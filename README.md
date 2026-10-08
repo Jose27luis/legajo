@@ -10,10 +10,9 @@ Incluye subida por partes y carga masiva de PDFs, descarga del legajo en ZIP, ac
 
 | Capa | Tecnología | Uso |
 |---|---|---|
-| Frontend | HTML + TypeScript sin framework | Páginas HTML independientes, cada una con su módulo TypeScript |
-| Empaquetado del frontend | Vite en modo multipágina | Compila el TypeScript, aplica hash a los recursos y deja todo en `dist` |
-| Estilos | Tailwind CSS 4 | Integrado con Vite |
-| Componentes reutilizables | Web Components nativos (`customElements`) | Tabla, visor de PDF, zona de subida, diálogo, menú |
+| Frontend | Angular 22 (SPA, componentes standalone, OnPush, signals) | Cada componente en tres archivos: `.ts`, `.html` (`templateUrl`) y `.css` (`styleUrl`) |
+| Estilos | CSS por componente + `styles.css` global | Variables CSS para colores y espaciado |
+| Formularios | Reactive Forms | Validación tipada |
 | Visor de PDF | pdf.js (`pdfjs-dist`) | Vista en el navegador con carga progresiva por rangos |
 | Subida de archivos | tus (`tus-js-client` y `@tus/server`) | Subida por partes y reanudable |
 | API | NestJS 11 sobre Node 22 | REST, sesiones, subidas tus, ZIP en streaming, eventos SSE |
@@ -35,7 +34,7 @@ Incluye subida por partes y carga masiva de PDFs, descarga del legajo en ZIP, ac
 ```mermaid
 flowchart LR
     subgraph cliente["Navegador del usuario"]
-        UI["Páginas HTML + TypeScript<br/>Tailwind, Web Components"]
+        UI["Angular 22<br/>componentes .ts + .html + .css"]
         TUS["tus-js-client<br/>subida por partes de 8 MB"]
         PDFJS["pdf.js<br/>visor por rangos"]
         SSE["EventSource<br/>estado de documentos"]
@@ -78,7 +77,7 @@ flowchart LR
 ```
 
 - El worker corre aparte de la API para que Ghostscript no frene las pantallas.
-- La sesión va en cookie HttpOnly. El frontend es multipágina y los enlaces de descarga y el visor la envían sin código adicional.
+- La sesión va en cookie HttpOnly. Los enlaces de descarga y el visor la envían sin código adicional.
 - Los PDF los entrega nginx con X-Accel-Redirect, con soporte de Range para el visor. La API solo valida permisos.
 - El ZIP va en modo `store`: los PDF ya llegan optimizados desde la subida.
 - Los archivos se guardan por trabajador y documento. Reclasificar un documento no mueve el archivo.
@@ -165,15 +164,44 @@ legajos/
 │       ├── auditoria/
 │       ├── backup/
 │       └── eventos/             SSE con Redis pub/sub
-├── frontend/
-│   ├── vite.config.ts           una entrada por cada página
-│   ├── index.html               inicio de sesión
-│   ├── paginas/                 un HTML por pantalla
+├── frontend/                    Angular 22
+│   ├── angular.json
 │   └── src/
-│       ├── api/                 cliente fetch tipado por módulo
-│       ├── componentes/         Web Components
-│       ├── paginas/             un módulo TS por pantalla
-│       └── estilos/app.css
+│       ├── index.html
+│       ├── main.ts
+│       ├── styles.css
+│       └── app/
+│           ├── app.component.ts | .html | .css
+│           ├── app.config.ts
+│           ├── app.routes.ts    rutas con loadComponent y guards de permiso
+│           ├── core/            interceptor HTTP, guards, sesión, eventos SSE
+│           ├── services/        un servicio por módulo de la API
+│           ├── models/
+│           ├── components/      reutilizables, cada uno con .ts, .html y .css
+│           │   ├── cabecera/
+│           │   ├── menu/
+│           │   ├── tabla-datos/
+│           │   ├── visor-pdf/
+│           │   ├── zona-subida/
+│           │   ├── dialogo/
+│           │   ├── selector-trabajador/
+│           │   └── aviso/
+│           └── pages/           una carpeta por pantalla, cada una con .ts, .html y .css
+│               ├── login/
+│               ├── cambiar-clave/
+│               ├── inicio/
+│               ├── personal/
+│               ├── trabajador/
+│               ├── legajo/
+│               ├── busqueda/
+│               ├── carga-masiva/
+│               ├── lote/
+│               ├── reportes/
+│               ├── auditoria/
+│               ├── usuarios/
+│               ├── roles/
+│               ├── catalogos/
+│               └── backup/
 └── infra/
     ├── nginx/legajos.conf
     └── backup/restaurar.sh
@@ -764,9 +792,9 @@ sequenceDiagram
         A->>P: auditoría LOGIN
         A-->>N: 200 y cookie sid HttpOnly, Secure, SameSite=Strict
         alt debe_cambiar_clave
-            N->>N: va a cambiar-clave.html
+            N->>N: navega a /cambiar-clave
         else
-            N->>N: va a inicio.html
+            N->>N: navega a /inicio
         end
     end
 ```
@@ -1258,27 +1286,27 @@ Reglas:
 
 ```mermaid
 flowchart LR
-    LOGIN["index.html<br/>Inicio de sesión"] --> CC["cambiar-clave.html<br/>primer ingreso"]
-    LOGIN --> INI["inicio.html<br/>búsqueda, accesos rápidos,<br/>avance de digitalización"]
+    LOGIN["/login<br/>Inicio de sesión"] --> CC["/cambiar-clave<br/>primer ingreso"]
+    LOGIN --> INI["/inicio<br/>búsqueda, accesos rápidos,<br/>avance de digitalización"]
     CC --> INI
-    INI --> PER["personal.html<br/>listado con filtros"]
-    PER --> TRA["trabajador.html?id<br/>ficha, familiares, vínculos"]
-    TRA --> LEG["legajo.html?id<br/>13 secciones, visor,<br/>subida, ZIP, historial"]
+    INI --> PER["/personal<br/>listado con filtros"]
+    PER --> TRA["/personal/:id<br/>ficha, familiares, vínculos"]
+    TRA --> LEG["/legajos/:id<br/>13 secciones, visor,<br/>subida, ZIP, historial"]
     PER --> LEG
-    INI --> BUS["busqueda.html<br/>búsqueda avanzada"]
+    INI --> BUS["/busqueda<br/>búsqueda avanzada"]
     BUS --> LEG
-    INI --> CM["carga-masiva.html<br/>nueva carga y lotes"]
-    CM --> LOT["lote.html?id<br/>bandeja, clasificar, dividir"]
-    INI --> REP["reportes.html<br/>personal, faltantes,<br/>digitalización, avance"]
+    INI --> CM["/carga-masiva<br/>nueva carga y lotes"]
+    CM --> LOT["/carga-masiva/:id<br/>bandeja, clasificar, dividir"]
+    INI --> REP["/reportes<br/>personal, faltantes,<br/>digitalización, avance"]
     REP --> LEG
-    INI --> AUD["auditoria.html"]
-    INI --> USU["usuarios.html"]
-    USU --> ROL["roles.html"]
-    INI --> CAT["catalogos.html<br/>tipos, obligatorios,<br/>regímenes, áreas, cargos"]
-    INI --> BAK["backup.html"]
+    INI --> AUD["/auditoria"]
+    INI --> USU["/usuarios"]
+    USU --> ROL["/usuarios/roles"]
+    INI --> CAT["/catalogos<br/>tipos, obligatorios,<br/>regímenes, áreas, cargos"]
+    INI --> BAK["/backup"]
 ```
 
-El menú se arma según los permisos. Una pantalla sin permiso redirige a `inicio.html`.
+El menú se arma según los permisos. Cada ruta tiene un guard con su permiso; sin permiso redirige a `/inicio`.
 
 ### Pantalla del legajo
 
@@ -1290,20 +1318,20 @@ El menú se arma según los permisos. Una pantalla sin permiso redirige a `inici
 | Barra de acciones | Subir (o soltar sobre una sección), ZIP del legajo, ZIP de secciones marcadas |
 | Pestañas | Documentos, Faltantes, Vínculos, Historial |
 
-### Componentes web
+### Componentes reutilizables
 
-| Etiqueta | Función |
+| Selector | Función |
 |---|---|
-| `<app-cabecera>` | Logo, búsqueda global, usuario y cierre de sesión |
-| `<app-menu>` | Menú lateral filtrado por permisos |
-| `<tabla-datos>` | Tabla con paginación, orden y filtros desde la API |
-| `<visor-pdf>` | pdf.js con zoom, páginas y miniaturas; también lo usa la división de PDFs |
-| `<zona-subida>` | Arrastrar y soltar, cola de subidas tus, progreso y reanudación |
-| `<dialogo-modal>` | Formularios y confirmaciones |
-| `<selector-trabajador>` | Autocompletado por DNI o nombre |
-| `<aviso-flotante>` | Mensajes de éxito y error |
+| `app-cabecera` | Logo, búsqueda global, usuario y cierre de sesión |
+| `app-menu` | Menú lateral filtrado por permisos |
+| `app-tabla-datos` | Tabla con paginación, orden y filtros desde la API |
+| `app-visor-pdf` | pdf.js con zoom, páginas y miniaturas; también lo usa la división de PDFs |
+| `app-zona-subida` | Arrastrar y soltar, cola de subidas tus, progreso y reanudación |
+| `app-dialogo` | Formularios y confirmaciones |
+| `app-selector-trabajador` | Autocompletado por DNI o nombre |
+| `app-aviso` | Mensajes de éxito y error |
 
-Cada página llama a `GET /api/auth/yo` al cargar para obtener usuario y permisos.
+Al iniciar, la app llama a `GET /api/auth/yo` y guarda usuario y permisos en un servicio con signals. El interceptor HTTP envía `withCredentials` y la cabecera `X-Legajos: 1`, y ante un 401 navega a `/login`.
 
 ## API
 
@@ -1389,7 +1417,7 @@ Todos se ven en pantalla y se exportan a Excel.
 | Memoria de la API durante un ZIP | Constante, sin importar el tamaño del legajo |
 | JSON, JS y CSS | gzip en nginx |
 | Recursos del frontend | Nombres con hash y caché de 1 año (`immutable`) |
-| Páginas HTML | Sin caché, para que siempre carguen la versión vigente |
+| `index.html` | Sin caché |
 
 ## Seguridad
 
