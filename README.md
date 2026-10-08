@@ -2,20 +2,9 @@
 
 ## Descripción
 
-Sistema web para el área de Legajos de la Oficina de Personal (Recursos Humanos) de una entidad pública del tipo DIRESA. El área administra y custodia el expediente personal de cada trabajador, y mantiene su documentación laboral organizada, actualizada, disponible y protegida, respetando la confidencialidad de los datos personales.
+Sistema web del área de Legajos de la Oficina de Personal. Registra a los trabajadores con sus vínculos laborales y digitaliza su legajo personal en 13 secciones.
 
-El legajo no es solo el currículum: es todo el historial documental del trabajador dentro de la institución. El sistema guarda dos cosas:
-
-1. **Datos estructurados del trabajador**: identificación, contacto, familia y vínculos laborales (régimen, tipo de personal, cargo, área, fechas).
-2. **Documentos PDF** clasificados en **13 secciones** uniformes, para que todos los expedientes tengan el mismo orden y cualquier documento se encuentre rápido.
-
-Requisitos que marcan el diseño:
-
-- **Subida de datos rápida**: subida por partes y reanudable, procesamiento en segundo plano y carga masiva.
-- **Descargas comprimidas y livianas**: cada PDF se optimiza una sola vez al subir. Las descargas de varios documentos salen en un ZIP que se genera mientras se envía, sin archivos temporales.
-- **Acceso restringido** a los documentos disciplinarios y médicos, según el perfil del usuario.
-- **Auditoría** de quién hizo cada acción, incluidas las consultas y descargas.
-- **Copias de seguridad** automáticas de la base de datos y de los archivos.
+Incluye subida por partes y carga masiva de PDFs, descarga del legajo en ZIP, acceso restringido a documentos disciplinarios y médicos, auditoría de cada acción y copias de seguridad automáticas.
 
 ## Stack
 
@@ -30,7 +19,7 @@ Requisitos que marcan el diseño:
 | API | NestJS 11 sobre Node 22 | REST, sesiones, subidas tus, ZIP en streaming, eventos SSE |
 | Worker | NestJS 11 (mismo código, otro proceso) | Procesa PDFs, carga masiva, limpieza y backup |
 | ORM | Prisma 7 | Esquema y migraciones; los índices especiales y triggers van en SQL dentro de las migraciones |
-| Base de datos | PostgreSQL 17 con `pg_trgm` y `unaccent` | Datos y metadatos. Los PDFs nunca se guardan en la base. |
+| Base de datos | PostgreSQL 17 con `pg_trgm` y `unaccent` | Datos y metadatos; los PDF van en disco |
 | Colas, sesiones y eventos | Redis 7 + BullMQ | Colas de trabajo, sesiones de usuario y pub/sub de eventos |
 | Procesamiento de PDF | Ghostscript y qpdf | Optimización, linealización, validación, conteo de folios y división |
 | ZIP | `archiver` | ZIP en streaming, en modo `store` |
@@ -88,16 +77,12 @@ flowchart LR
     class PG,RDS,SUB,ARC,REPO datos
 ```
 
-Decisiones de arquitectura:
-
-| Decisión | Motivo |
-|---|---|
-| La API y el worker son procesos separados | Ghostscript consume CPU. Si corriera dentro de la API, las pantallas se pondrían lentas mientras se procesan escaneos. |
-| Sesión con cookie HttpOnly en lugar de JWT | El frontend es multipágina: cada navegación recarga la página y un token guardado en memoria se perdería. Además, la cookie viaja sola en los enlaces de descarga (`<a href>`) y en el visor, sin código adicional. |
-| nginx entrega los PDF con X-Accel-Redirect | Node solo revisa permisos y deja la transferencia a nginx. No consume CPU ni memoria de la API, y nginx soporta peticiones Range para el visor. |
-| ZIP en streaming y en modo `store` | Los PDF ya están comprimidos por dentro: volver a comprimirlos con deflate solo ahorra entre 5 y 10 % y gasta CPU en cada descarga. El ahorro real se logra al subir. |
-| Los archivos se guardan por trabajador y documento, no por sección | Si un documento se reclasifica a otro tipo o sección, solo cambian los metadatos: el archivo no se mueve. |
-| Documentos sin borrado físico | Un documento se anula con motivo; el archivo y su historial se conservan. |
+- El worker corre aparte de la API para que Ghostscript no frene las pantallas.
+- La sesión va en cookie HttpOnly. El frontend es multipágina y los enlaces de descarga y el visor la envían sin código adicional.
+- Los PDF los entrega nginx con X-Accel-Redirect, con soporte de Range para el visor. La API solo valida permisos.
+- El ZIP va en modo `store`: los PDF ya llegan optimizados desde la subida.
+- Los archivos se guardan por trabajador y documento. Reclasificar un documento no mueve el archivo.
+- Los documentos no se borran: se anulan con motivo.
 
 ## Despliegue
 
@@ -141,7 +126,7 @@ flowchart TB
 
 - Solo nginx publica puertos. PostgreSQL y Redis quedan en la red interna de Compose.
 - La imagen del `worker` incluye `ghostscript`, `qpdf`, `restic` y `postgresql-client-17`. La imagen de la `api` no los necesita.
-- La API monta el volumen de archivos en **solo lectura**: el único proceso que escribe PDFs definitivos es el worker.
+- La API monta el volumen de archivos en solo lectura. Solo el worker escribe ahí.
 
 ## Estructura del repositorio
 
@@ -220,44 +205,27 @@ flowchart LR
     class S08,S10,S13 restringida
 ```
 
-Las secciones en rojo contienen tipos de documento de **acceso restringido**. La restricción se aplica **por tipo de documento**, no por sección: en la sección 08 los reconocimientos son visibles para todos y las sanciones no.
+En rojo, las secciones con tipos de acceso restringido. La restricción va por tipo de documento: en la sección 08 los reconocimientos son visibles y las sanciones no.
 
-### Decisiones sobre el texto recibido
+### Reglas de clasificación
 
-El texto recibido trae tres estructuras distintas: 10 carpetas, 12 carpetas y la estructura propuesta de 13 secciones. **El sistema usa la de 13 secciones.** Todo lo que aparece en las otras dos se reubica así, de modo que no se pierde ningún tipo de documento:
-
-| Estructura de 10 o 12 carpetas | Sección del sistema |
+| Documento | Dónde va |
 |---|---|
-| 01_Datos_Personales | 01 Información personal y familiar |
-| 02_Formacion_Academica (y Profesional) | 03 Formación académica y capacitación |
-| 03_Capacitaciones | 03 Formación académica y capacitación |
-| 04_Experiencia_Laboral | 04 Experiencia laboral |
-| 05_Vinculo_Laboral (y Contratos), incluida la resolución de nombramiento y la resolución CAS | 02 Incorporación |
-| 06_Resoluciones_y_Acciones_de_Personal: designaciones, encargaturas, rotaciones, destaques, reasignaciones, cambios de funciones, memorandos y Resolución Directoral Regional | 05 Movimientos del personal |
-| 06_Resoluciones_y_Acciones_de_Personal: Resolución SERUMS | 04 Experiencia laboral (acredita servicio prestado) |
-| 06_Resoluciones_y_Acciones_de_Personal: reconocimientos | 08 Reconocimientos y sanciones disciplinarias |
-| 07_Documentos_de_Contratacion | 02 Incorporación |
-| 07 u 08_Vacaciones_Licencias_y_Permisos | 13 Vacaciones, licencias y permisos |
-| 08 o 09_Evaluaciones (y Desempeño), incluidos los informes de jefatura | 07 Evaluación de desempeño y progresión en la carrera |
-| 09 o 10_Medidas_Disciplinarias, incluidas las suspensiones | 08 Reconocimientos y sanciones disciplinarias |
-| 10 u 11_Cese | 11 Desvinculación |
-| 12_Otros_Documentos | 12 Otros que considere la entidad |
-
-Otras decisiones:
-
-| Caso del texto | Decisión |
-|---|---|
-| "Contrato Administrativo de Servicios N.° 036-2022", "Contrato Administrativo N.° 0089-2022", "Contrato Administrativo N.° 0231-2021" | Son documentos concretos, no tipos. Se registran como tipo "Contrato Administrativo de Servicios (CAS)" o "Contrato administrativo", con el número `036-2022`, `0089-2022` o `0231-2021` en el campo **número**. |
-| Tipo de personal, régimen laboral, cargo, área o dependencia y fecha de ingreso (sección 01) | Son **datos** de la ficha del trabajador y de su vínculo, no PDFs. Se registran como campos y se usan para filtrar, para los reportes y para calcular los documentos faltantes. |
-| Descansos médicos en la sección 10 y en la 13 | Sección 13: descanso médico común. Sección 10: descanso médico de origen ocupacional (accidente de trabajo o enfermedad profesional). Los dos son de acceso restringido. |
-| Constancia de trabajo en la sección 04 y en la 11 | Sección 04: la que emitió un empleador anterior. Sección 11: la que emite la entidad cuando el trabajador sale. |
-| Memorandos en varias secciones | Cada memorando se clasifica **por su finalidad**: rotación o encargatura en la 05, desempeño en la 07, reconocimiento o disciplina en la 08. |
-| Licencias en la sección 10 y en la 13 | Las licencias y permisos van en la 13. En la 10 solo van las vinculadas a la seguridad y salud en el trabajo. |
-| Contrato de locación de servicios | Se registra en la sección 02. El régimen "Locación de servicios" se marca como no laboral en el catálogo de regímenes. |
+| Contratos con número (CAS N.° 036-2022, Contrato Administrativo N.° 0089-2022) | Tipo 0202 o 0203, con `036-2022` o `0089-2022` en el campo número |
+| Tipo de personal, régimen, cargo, área y fecha de ingreso | Campos de la ficha y del vínculo, no se suben como PDF |
+| Resolución de nombramiento y resolución CAS | 02 Incorporación |
+| Resolución SERUMS | 04 Experiencia laboral |
+| Descanso médico común | 13, restringido |
+| Descanso médico por accidente de trabajo o enfermedad ocupacional | 10, restringido |
+| Constancia de trabajo de un empleador anterior | 04 Experiencia laboral |
+| Constancia de trabajo emitida al cese | 11 Desvinculación |
+| Memorandos | Según su finalidad: rotación o encargatura en la 05, desempeño en la 07, reconocimiento o disciplina en la 08 |
+| Licencias y permisos | 13. En la 10 solo los vinculados a seguridad y salud en el trabajo |
+| Contrato de locación de servicios | 02 Incorporación, con régimen "Locación de servicios" (no laboral) |
 
 ### Catálogo de tipos de documento
 
-El código tiene cuatro dígitos: los dos primeros son la sección y los dos últimos el tipo. El código 99 de cada sección es "Otro". La columna **R** marca acceso restringido, **Nº** indica que el número es obligatorio y **V** que el documento tiene fecha de vencimiento. El catálogo se carga con la semilla y el administrador puede agregar, desactivar o reordenar tipos sin cambiar código.
+Código de cuatro dígitos: sección y tipo. El 99 de cada sección es "Otro". R = restringido, Nº = número obligatorio, V = tiene vencimiento. El administrador puede agregar, desactivar o reordenar tipos.
 
 **01 Información personal y familiar** (carpeta `01_Informacion_Personal_y_Familiar`)
 
@@ -713,7 +681,7 @@ stateDiagram-v2
 
 Motivos de fin de vínculo: `RENUNCIA`, `TERMINO_CONTRATO`, `CESE`, `CAMBIO_REGIMEN`, `CAMBIO_CARGO_O_AREA`, `RENOVACION`, `FALLECIMIENTO`, `OTRO`.
 
-El trabajador nunca se borra. Al cesar, su legajo queda completo y consultable, y el reporte de faltantes empieza a exigir los documentos de cese.
+El trabajador no se borra. Al cesar, su legajo sigue consultable y en faltantes se le exigen los documentos de cese.
 
 ### Documento
 
@@ -835,11 +803,11 @@ flowchart TD
     M --> N(["Respuesta"])
 ```
 
-En los listados, las consultas filtran los tipos restringidos directamente en SQL cuando el usuario no tiene el permiso: esos documentos no aparecen en el legajo, en la búsqueda, en los conteos ni en los ZIP.
+Sin `documentos.restringidos`, los tipos restringidos se filtran en SQL: no salen en el legajo, la búsqueda, los conteos ni los ZIP.
 
 ### Subida de un documento
 
-La subida del archivo empieza en cuanto el digitador lo suelta en la pantalla, **mientras** llena los datos del documento. Cuando termina de escribir, el archivo normalmente ya está en el servidor.
+El archivo se empieza a subir al soltarlo, mientras el digitador llena los datos.
 
 ```mermaid
 sequenceDiagram
@@ -894,8 +862,8 @@ sequenceDiagram
     N-->>D: el documento pasa a Disponible
 ```
 
-- El navegador sube hasta **3 archivos en paralelo**. El resto espera en una cola visible con barra de progreso por archivo.
-- nginx tiene `proxy_request_buffering off` y `client_max_body_size 10m` en `/api/subidas`: cada parte pasa directo a la API sin copias intermedias.
+- Hasta 3 archivos en paralelo; el resto queda en cola con barra de progreso.
+- `/api/subidas` en nginx: `proxy_request_buffering off` y `client_max_body_size 10m`.
 - Una subida que no se registra como documento en 24 horas la borra el trabajo `limpiar-subidas`, que corre cada hora.
 
 ### Procesamiento del PDF en el worker
@@ -918,8 +886,8 @@ flowchart TD
     RT -->|"sí"| GS
     RT -->|"no"| E4["ERROR: no se pudo procesar"]
     GSOK -->|"sí"| CMP{"¿Resultado menor al 95 %<br/>del tamaño original?"}
-    CMP -->|"sí, típico en escaneos"| OPT["Usa el optimizado"]
-    CMP -->|"no, típico en PDF digitales"| ORI["Conserva el original"]
+    CMP -->|"sí"| OPT["Usa el optimizado"]
+    CMP -->|"no"| ORI["Conserva el original"]
     OPT --> LIN["qpdf --linearize --object-streams=generate"]
     ORI --> LIN
     LIN --> PAG["qpdf --show-npages: folios<br/>SHA-256 del final"]
@@ -945,14 +913,14 @@ gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.7 -dPDFSETTINGS=/ebook
    -sOutputFile=<salida> <entrada>
 ```
 
-- Con `OPTIMIZAR_GRISES=true` se agregan `-sColorConversionStrategy=Gray -dProcessColorModel=/DeviceGray` y el ahorro es mayor. Por defecto se mantiene el color, para que se distingan sellos y firmas.
-- La resolución se configura con `OPTIMIZAR_PPP`. Con 150 ppp el texto sigue legible en pantalla e impreso.
-- El worker procesa `WORKER_CONCURRENCIA` documentos a la vez (por defecto, núcleos del servidor menos uno).
-- El original sin optimizar no se guarda: el ahorro de disco es parte del objetivo. Su hash sí queda registrado.
+- `OPTIMIZAR_GRISES=true` agrega `-sColorConversionStrategy=Gray -dProcessColorModel=/DeviceGray`. Por defecto se mantiene el color (sellos y firmas).
+- Resolución en `OPTIMIZAR_PPP`, 150 por defecto.
+- Concurrencia en `WORKER_CONCURRENCIA`, por defecto núcleos menos uno.
+- Del original solo se guarda el hash.
 
 ### Carga masiva
 
-Sirve para digitalizar los legajos en papel que ya existen. El digitador selecciona una carpeta entera o varios PDFs.
+Para digitalizar los legajos en papel. Se selecciona una carpeta o varios PDFs.
 
 Convención de nombres:
 
@@ -1004,9 +972,9 @@ flowchart TD
     FIN -->|"sí"| BAN
 ```
 
-- La división sirve cuando el escáner genera un solo PDF con todo el legajo físico: el digitador lo parte en documentos desde la misma pantalla.
-- Los PDFs de un lote siguen el mismo procesamiento que una subida individual: optimización, duplicados, hash y folios.
-- El lote queda registrado con totales para el reporte de avance de digitalización.
+- Dividir: para cuando el escáner saca un solo PDF con todo el legajo.
+- Cada PDF del lote pasa por el mismo procesamiento que una subida individual.
+- Los totales del lote alimentan el reporte de digitalización.
 
 ### Ver y descargar un documento
 
@@ -1045,12 +1013,12 @@ sequenceDiagram
     X-->>N: PDF completo
 ```
 
-- `location /interno/archivos/` en nginx es `internal`: no se puede pedir desde fuera, solo a través de la cabecera que pone la API.
-- El nombre del archivo descargado es `<CÓDIGO>_<TIPO>_<NÚMERO>_<AAAA-MM-DD>.pdf`, sin caracteres problemáticos.
+- `location /interno/archivos/` es `internal` en nginx.
+- Nombre de descarga: `<CÓDIGO>_<TIPO>_<NÚMERO>_<AAAA-MM-DD>.pdf`.
 
 ### Descarga comprimida en ZIP
 
-Sirve para descargar el legajo completo, una o varias secciones, o documentos marcados de una lista.
+Legajo completo, secciones marcadas o documentos seleccionados.
 
 ```mermaid
 sequenceDiagram
@@ -1099,9 +1067,9 @@ Estructura del ZIP:
         └── 0302_Titulo_profesional_2019-05-20.pdf
 ```
 
-- No se crea ningún archivo temporal. La memoria usada es constante (un búfer por stream), sin importar el tamaño del legajo.
-- Si dos documentos generan el mismo nombre, se agrega un sufijo `_2`, `_3`.
-- La descarga de documentos seleccionados usa `POST /api/documentos/zip` con la lista de ids, y pueden ser de distintos trabajadores (por ejemplo, desde la búsqueda).
+- Sin archivos temporales; memoria constante.
+- Nombres repetidos llevan sufijo `_2`, `_3`.
+- Selección de documentos: `POST /api/documentos/zip` con los ids, pueden ser de varios trabajadores.
 
 ### Búsqueda
 
@@ -1125,11 +1093,11 @@ flowchart TD
     M --> N(["Clic en un trabajador abre su legajo<br/>clic en un documento abre el visor"])
 ```
 
-La caja de búsqueda está en la cabecera de todas las pantallas. La pantalla de búsqueda avanzada expone todos los filtros y permite marcar documentos para descargarlos juntos en un ZIP.
+Búsqueda rápida en la cabecera de todas las pantallas. La búsqueda avanzada tiene todos los filtros y descarga en ZIP los documentos marcados.
 
 ### Documentos faltantes
 
-La entidad define en **Catálogos > Documentos obligatorios** qué tipos exige y para quién: por régimen, por tipo de personal (administrativo o asistencial) y por estado del trabajador (activo, cesado o todos).
+Los obligatorios se configuran en Catálogos > Documentos obligatorios, por régimen, tipo de personal y estado del trabajador.
 
 ```mermaid
 flowchart TD
@@ -1152,9 +1120,9 @@ flowchart TD
     N --> O(["En pantalla o en Excel:<br/>por trabajador y consolidado por área"])
 ```
 
-Todo se calcula en una sola consulta SQL con `LEFT JOIN` entre trabajadores, requisitos y documentos, sin recorrer los trabajadores uno por uno.
+Se calcula en una sola consulta con `LEFT JOIN` entre trabajadores, requisitos y documentos.
 
-Requisitos que trae la semilla (la entidad los ajusta en Catálogos):
+Requisitos iniciales de la semilla:
 
 | Tipo | Régimen | Tipo de personal | Estado |
 |---|---|---|---|
@@ -1199,7 +1167,7 @@ Acciones registradas:
 | Reportes | `REPORTE_EXPORTAR` |
 | Backup | `BACKUP_MANUAL`, `BACKUP_CORRECTO`, `BACKUP_ERROR` |
 
-Cada registro guarda fecha, usuario, acción, entidad e id, trabajador afectado, IP, navegador y el detalle en JSON. La pantalla de auditoría filtra por usuario, acción, trabajador y rango de fechas, y exporta a Excel. Desde el legajo, la pestaña **Historial** muestra la auditoría de ese trabajador. La auditoría no se borra ni se depura.
+Cada registro: fecha, usuario, acción, entidad e id, trabajador, IP, navegador y detalle en JSON. Filtros por usuario, acción, trabajador y fechas, con exportación a Excel. En el legajo, la pestaña Historial muestra la auditoría del trabajador. No se depura.
 
 ### Copias de seguridad
 
@@ -1235,10 +1203,10 @@ sequenceDiagram
     end
 ```
 
-- El trabajo `backup` corre con concurrencia 1: nunca hay dos copias en simultáneo.
-- `pg_dump` no detiene el sistema: los usuarios siguen trabajando durante la copia.
-- El repositorio va **cifrado** con `RESTIC_PASSWORD`. Esa clave se entrega a la entidad por separado: sin ella las copias no se pueden restaurar.
-- El panel de Backup muestra la última copia, el historial, las snapshots disponibles, el espacio usado y un botón de copia manual. La restauración **no** se hace desde la web.
+- Concurrencia 1.
+- `pg_dump` corre en caliente.
+- Repositorio cifrado con `RESTIC_PASSWORD`.
+- Panel: última copia, historial, snapshots, espacio usado y copia manual. La restauración se hace por consola.
 
 ### Restauración
 
@@ -1260,7 +1228,7 @@ flowchart TD
 
 ## Roles y permisos
 
-Los roles se administran en **Usuarios > Roles**. La semilla crea cuatro roles de sistema y el administrador puede crear otros combinando permisos.
+Roles en Usuarios > Roles. La semilla crea estos cuatro; se pueden crear otros.
 
 | Permiso | Administrador | Jefe de Legajos | Digitador | Consulta |
 |---|---|---|---|---|
@@ -1282,9 +1250,9 @@ Los roles se administran en **Usuarios > Roles**. La semilla crea cuatro roles d
 
 Reglas:
 
-- El digitador puede editar o reclasificar solo los documentos que **él** subió en las últimas 48 horas, para corregir errores de digitación. Después, solo el Jefe de Legajos.
-- Un usuario no puede quitarse a sí mismo el permiso `usuarios.gestionar`, y siempre debe quedar al menos un Administrador activo.
-- Los usuarios no se borran: se desactivan, para que su autoría y su auditoría sigan vigentes.
+- El digitador edita o reclasifica solo lo que subió en las últimas 48 horas. Después, el Jefe de Legajos.
+- Nadie se quita a sí mismo `usuarios.gestionar` y siempre queda un Administrador activo.
+- Los usuarios se desactivan, no se borran.
 
 ## Pantallas
 
@@ -1310,15 +1278,17 @@ flowchart LR
     INI --> BAK["backup.html"]
 ```
 
-El menú solo muestra las pantallas que el usuario puede usar según sus permisos. Si alguien abre la URL de una pantalla sin permiso, la página redirige a `inicio.html`; de todos modos la protección real está en la API.
+El menú se arma según los permisos. Una pantalla sin permiso redirige a `inicio.html`.
 
 ### Pantalla del legajo
 
-- **Cabecera**: DNI, nombre completo, estado, régimen, tipo de personal, cargo y área del vínculo vigente, fecha de ingreso y porcentaje de completitud.
-- **Columna izquierda**: las 13 secciones como acordeón, cada una con su número de documentos y sus faltantes. Dentro, los documentos ordenados por tipo y fecha de emisión con número, fecha, folios y estado.
-- **Panel derecho**: el visor pdf.js del documento elegido, con sus datos, versiones y acciones: editar, reemplazar, anular y descargar.
-- **Barra de acciones**: subir documento (también se puede soltar el archivo directamente sobre una sección), descargar el legajo completo en ZIP y descargar las secciones marcadas en ZIP.
-- **Pestañas**: Documentos, Faltantes, Vínculos e Historial (auditoría del legajo).
+| Zona | Contenido |
+|---|---|
+| Cabecera | DNI, nombre, estado, régimen, tipo de personal, cargo, área, fecha de ingreso y completitud |
+| Columna izquierda | 13 secciones en acordeón con conteo y faltantes; documentos por tipo y fecha con número, folios y estado |
+| Panel derecho | Visor, datos, versiones y acciones: editar, reemplazar, anular, descargar |
+| Barra de acciones | Subir (o soltar sobre una sección), ZIP del legajo, ZIP de secciones marcadas |
+| Pestañas | Documentos, Faltantes, Vínculos, Historial |
 
 ### Componentes web
 
@@ -1333,7 +1303,7 @@ El menú solo muestra las pantallas que el usuario puede usar según sus permiso
 | `<selector-trabajador>` | Autocompletado por DNI o nombre |
 | `<aviso-flotante>` | Mensajes de éxito y error |
 
-Todo el estado de la sesión vive en la cookie. Cada página, al cargar, llama a `GET /api/auth/yo` para obtener el usuario y sus permisos, y arma el menú.
+Cada página llama a `GET /api/auth/yo` al cargar para obtener usuario y permisos.
 
 ## API
 
@@ -1390,7 +1360,7 @@ Todas las rutas van bajo `/api`, exigen sesión salvo `POST /auth/login` y respo
 | GET | `/backups` | `backup.gestionar` | Historial, snapshots y espacio usado |
 | POST | `/backups` | `backup.gestionar` | Copia manual |
 
-Las rutas de reportes y la de auditoría aceptan `formato=xlsx` (requiere `reportes.exportar` o `auditoria.ver`). El Excel se genera en streaming, igual que el ZIP.
+Reportes y auditoría aceptan `formato=xlsx` (con `reportes.exportar` o `auditoria.ver`), generado en streaming.
 
 ## Reportes
 
@@ -1455,11 +1425,11 @@ Todos se ven en pantalla y se exportan a Excel.
 
 ## Orden de construcción
 
-1. **Base**: repositorio, Docker Compose, nginx, Prisma con la migración inicial y sus SQL, semilla, sesión, roles, permisos y auditoría.
-2. **Usuarios y catálogos**: pantallas de usuarios, roles, tipos de documento, documentos obligatorios, regímenes, áreas y cargos.
-3. **Personal**: trabajadores, familiares, vínculos, alta, cese y reingreso.
-4. **Documentos**: subida tus, worker de procesamiento, eventos SSE, pantalla del legajo, visor, descargas individuales y ZIP, versiones y anulación.
-5. **Carga masiva**: lotes, convención de nombres, bandeja, clasificación y división de PDFs.
-6. **Búsqueda y reportes**: búsqueda global y avanzada, los seis reportes y la exportación a Excel.
-7. **Backup**: copia programada y manual, panel, verificación y script de restauración probado.
-8. **Cierre**: cabeceras de seguridad, pruebas de carga con escaneos reales, manual de instalación y entrega de la clave de las copias.
+1. Base: Docker Compose, nginx, Prisma, semilla, sesión, roles, permisos y auditoría.
+2. Usuarios y catálogos.
+3. Personal: trabajadores, familiares, vínculos, alta, cese y reingreso.
+4. Documentos: subida tus, worker, SSE, legajo, visor, descargas, ZIP, versiones y anulación.
+5. Carga masiva: lotes, bandeja, clasificación y división.
+6. Búsqueda y reportes.
+7. Backup y script de restauración.
+8. Seguridad, pruebas de carga con escaneos reales y manual de instalación.
