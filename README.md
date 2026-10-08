@@ -41,7 +41,7 @@ flowchart LR
     end
 
     subgraph servidor["Servidor de la entidad - Docker Compose"]
-        NGX["nginx<br/>estáticos, proxy /api,<br/>X-Accel-Redirect, gzip, TLS"]
+        NGX["nginx<br/>estáticos, proxy a la API,<br/>X-Accel-Redirect, gzip, TLS"]
         API["api - NestJS<br/>REST, sesiones, tus,<br/>ZIP en streaming, SSE"]
         WRK["worker - NestJS<br/>BullMQ: procesar-documento,<br/>carga-masiva, limpieza, backup"]
         PG[("PostgreSQL 17<br/>datos y metadatos")]
@@ -53,11 +53,11 @@ flowchart LR
     REPO[("Repositorio restic<br/>disco secundario y copia remota")]
 
     UI -->|"HTTPS, cookie de sesión"| NGX
-    TUS -->|"POST y PATCH /api/subidas"| NGX
+    TUS -->|"partes del archivo"| NGX
     PDFJS -->|"GET con Range"| NGX
-    SSE -->|"GET /api/eventos"| NGX
-    NGX -->|"proxy /api"| API
-    NGX -.->|"location interna /interno/archivos"| ARC
+    SSE -->|"eventos"| NGX
+    NGX -->|"proxy"| API
+    NGX -.->|"location interna"| ARC
     API --> PG
     API --> RDS
     API -->|"escribe partes"| SUB
@@ -89,19 +89,19 @@ flowchart LR
 flowchart TB
     subgraph host["Servidor de la entidad"]
         subgraph compose["docker compose - proyecto legajos"]
-            C_NGX["nginx<br/>puertos 80 y 443"]
-            C_API["api<br/>puerto interno 3000"]
-            C_WRK["worker<br/>sin puertos"]
-            C_PG["postgres<br/>puerto interno 5432"]
-            C_RDS["redis<br/>puerto interno 6379"]
+            C_NGX["nginx<br/>único servicio publicado"]
+            C_API["api"]
+            C_WRK["worker"]
+            C_PG["postgres"]
+            C_RDS["redis"]
         end
         V_PG[("vol: datos_pg")]
         V_RDS[("vol: datos_redis")]
-        V_SUB[("vol: subidas<br/>/srv/legajos/subidas")]
-        V_ARC[("vol: archivos<br/>/srv/legajos/archivos")]
-        V_WEB[("vol: frontend dist<br/>solo lectura")]
+        V_SUB[("vol: subidas")]
+        V_ARC[("vol: archivos")]
+        V_WEB[("vol: frontend compilado<br/>solo lectura")]
         V_TLS[("certificados TLS<br/>solo lectura")]
-        DISCO2[("Disco secundario<br/>/mnt/respaldo/restic")]
+        DISCO2[("Disco secundario<br/>copias restic")]
     end
     REMOTO[("Copia remota<br/>SFTP de la entidad")]
 
@@ -126,86 +126,6 @@ flowchart TB
 - Solo nginx publica puertos. PostgreSQL y Redis quedan en la red interna de Compose.
 - La imagen del `worker` incluye `ghostscript`, `qpdf`, `restic` y `postgresql-client-17`. La imagen de la `api` no los necesita.
 - La API monta el volumen de archivos en solo lectura. Solo el worker escribe ahí.
-
-## Estructura del repositorio
-
-```
-legajos/
-├── README.md
-├── docker-compose.yml
-├── .env.example
-├── pnpm-workspace.yaml
-├── compartido/                  tipos TypeScript comunes a frontend y backend
-│   └── src/
-│       ├── permisos.ts          códigos de permiso
-│       ├── enums.ts             estados, tipo de personal, motivos
-│       └── dto/                 contratos de la API
-├── backend/
-│   ├── Dockerfile.api
-│   ├── Dockerfile.worker
-│   ├── prisma/
-│   │   ├── schema.prisma
-│   │   ├── migrations/          incluye SQL de pg_trgm, unaccent, índices y triggers
-│   │   └── seed.ts              secciones, tipos de documento, regímenes, permisos y roles
-│   └── src/
-│       ├── main.ts              arranque de la API
-│       ├── worker.ts            arranque del worker
-│       ├── comun/               guard de sesión, guard de permisos, interceptor de auditoría, filtros
-│       ├── auth/
-│       ├── usuarios/            usuarios, roles y permisos
-│       ├── catalogos/           secciones, tipos de documento, requisitos, regímenes, áreas, cargos
-│       ├── personal/            trabajadores, familiares, vínculos
-│       ├── legajo/              resumen por sección, completitud, ZIP
-│       ├── documentos/          subidas tus, registro, descargas, versiones, anulación
-│       ├── procesamiento/       procesadores BullMQ: PDF, carga masiva, limpieza
-│       ├── carga-masiva/        lotes y bandeja de clasificación
-│       ├── busqueda/
-│       ├── reportes/
-│       ├── auditoria/
-│       ├── backup/
-│       └── eventos/             SSE con Redis pub/sub
-├── frontend/                    Angular 22
-│   ├── angular.json
-│   └── src/
-│       ├── index.html
-│       ├── main.ts
-│       ├── styles.css
-│       └── app/
-│           ├── app.component.ts | .html | .css
-│           ├── app.config.ts
-│           ├── app.routes.ts    rutas con loadComponent y guards de permiso
-│           ├── core/            interceptor HTTP, guards, sesión, eventos SSE
-│           ├── services/        un servicio por módulo de la API
-│           ├── models/
-│           ├── components/      reutilizables, cada uno con .ts, .html y .css
-│           │   ├── cabecera/
-│           │   ├── menu/
-│           │   ├── tabla-datos/
-│           │   ├── visor-pdf/
-│           │   ├── zona-subida/
-│           │   ├── dialogo/
-│           │   ├── selector-trabajador/
-│           │   └── aviso/
-│           └── pages/           una carpeta por pantalla, cada una con .ts, .html y .css
-│               ├── login/
-│               ├── cambiar-clave/
-│               ├── inicio/
-│               ├── personal/
-│               ├── trabajador/
-│               ├── legajo/
-│               ├── busqueda/
-│               ├── carga-masiva/
-│               ├── lote/
-│               ├── reportes/
-│               ├── auditoria/
-│               ├── usuarios/
-│               ├── roles/
-│               ├── catalogos/
-│               └── backup/
-└── infra/
-    ├── nginx/legajos.conf
-    └── backup/restaurar.sh
-```
 
 ## Estructura del legajo
 
@@ -770,7 +690,7 @@ sequenceDiagram
     participant P as PostgreSQL
 
     U->>N: Ingresa usuario y contraseña
-    N->>X: POST /api/auth/login
+    N->>X: solicitud de inicio de sesión
     X->>A: reenvía
     A->>A: límite de 10 intentos por minuto por IP
     A->>P: busca usuario activo
@@ -787,35 +707,35 @@ sequenceDiagram
     else contraseña correcta
         A->>P: intentos_fallidos = 0, ultimo_acceso = ahora
         A->>P: carga rol y permisos
-        A->>R: SET sesion:sid con usuario y permisos, expira en 30 minutos
-        A->>R: SADD usuario:id:sesiones sid
+        A->>R: guarda la sesión con usuario y permisos, expira en 30 minutos
+        A->>R: la asocia a la lista de sesiones del usuario
         A->>P: auditoría LOGIN
         A-->>N: 200 y cookie sid HttpOnly, Secure, SameSite=Strict
         alt debe_cambiar_clave
-            N->>N: navega a /cambiar-clave
+            N->>N: abre Cambiar clave
         else
-            N->>N: navega a /inicio
+            N->>N: abre Inicio
         end
     end
 ```
 
 - La sesión se renueva con cada petición y expira tras 30 minutos sin actividad.
-- Al cambiar el rol de un usuario o los permisos de un rol, se borran las sesiones afectadas usando el conjunto `usuario:id:sesiones`: el cambio rige de inmediato.
+- Al cambiar el rol de un usuario o los permisos de un rol, se cierran las sesiones afectadas y el cambio rige de inmediato.
 - Al cerrar sesión se borra la clave en Redis y se registra `LOGOUT`.
 
 ### Autorización de cada petición
 
 ```mermaid
 flowchart TD
-    A(["Petición a /api"]) --> B{"¿Ruta pública?<br/>solo /auth/login"}
+    A(["Petición a la API"]) --> B{"¿Es el inicio de sesión?"}
     B -->|"sí"| Z["Ejecuta"]
     B -->|"no"| C{"¿Cookie sid?"}
     C -->|"no"| E401["401: el frontend redirige al login"]
-    C -->|"sí"| D{"¿sesion:sid existe en Redis?"}
+    C -->|"sí"| D{"¿La sesión existe en Redis?"}
     D -->|"no"| E401
     D -->|"sí"| F["Renueva la expiración a 30 minutos"]
     F --> G{"¿Método POST, PATCH o DELETE?"}
-    G -->|"sí"| H{"¿Cabecera X-Legajos: 1?"}
+    G -->|"sí"| H{"¿Trae la cabecera anti-CSRF?"}
     H -->|"no"| E403C["403: protección CSRF"]
     H -->|"sí"| I
     G -->|"no"| I{"¿La ruta exige un permiso?<br/>decorador Permiso"}
@@ -852,13 +772,13 @@ sequenceDiagram
     D->>N: Suelta el PDF en una sección del legajo
     N->>N: valida extensión .pdf y tamaño máximo de 200 MB
     par Subida del archivo
-        N->>X: POST /api/subidas con Upload-Length
+        N->>X: crea la subida con Upload-Length
         X->>A: reenvía
         A->>A: valida sesión y permiso documentos.subir
         A->>S: crea el archivo vacío y su metadata con el usuario dueño
-        A-->>N: 201 Location /api/subidas/id
+        A-->>N: 201 con el identificador de la subida
         loop cada parte de 8 MB
-            N->>X: PATCH /api/subidas/id con Upload-Offset
+            N->>X: envía la parte con Upload-Offset
             X->>A: reenvía sin buffer
             A->>S: escribe la parte directo a disco
             A-->>N: 204 con el nuevo Upload-Offset
@@ -869,7 +789,7 @@ sequenceDiagram
         D->>N: tipo, número, fecha de emisión, vencimiento, emisor, observaciones, ubicación física
         N->>N: valida número y vencimiento obligatorios según el tipo
     end
-    N->>X: POST /api/documentos con subidaId y datos
+    N->>X: registra el documento con la subida y sus datos
     X->>A: reenvía
     A->>S: comprueba que la subida sea del usuario y esté completa
     A->>P: INSERT documento en PROCESANDO
@@ -891,7 +811,7 @@ sequenceDiagram
 ```
 
 - Hasta 3 archivos en paralelo; el resto queda en cola con barra de progreso.
-- `/api/subidas` en nginx: `proxy_request_buffering off` y `client_max_body_size 10m`.
+- Las subidas pasan por nginx con `proxy_request_buffering off` y `client_max_body_size 10m`.
 - Una subida que no se registra como documento en 24 horas la borra el trabajo `limpiar-subidas`, que corre cada hora.
 
 ### Procesamiento del PDF en el worker
@@ -941,9 +861,9 @@ gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.7 -dPDFSETTINGS=/ebook
    -sOutputFile=<salida> <entrada>
 ```
 
-- `OPTIMIZAR_GRISES=true` agrega `-sColorConversionStrategy=Gray -dProcessColorModel=/DeviceGray`. Por defecto se mantiene el color (sellos y firmas).
-- Resolución en `OPTIMIZAR_PPP`, 150 por defecto.
-- Concurrencia en `WORKER_CONCURRENCIA`, por defecto núcleos menos uno.
+- En escala de grises se agregan `-sColorConversionStrategy=Gray -dProcessColorModel=/DeviceGray`. Por defecto se mantiene el color (sellos y firmas).
+- Resolución configurable, 150 ppp por defecto.
+- Concurrencia configurable, por defecto núcleos menos uno.
 - Del original solo se guarda el hash.
 
 ### Carga masiva
@@ -967,9 +887,9 @@ flowchart TD
     A(["Carga masiva"]) --> B["Selecciona una carpeta o varios PDFs"]
     B --> C["El navegador interpreta cada nombre<br/>sin subir nada todavía"]
     C --> D["Vista previa: reconocidos y no reconocidos,<br/>trabajador y tipo detectados"]
-    D --> E["POST /api/lotes con la lista de archivos"]
+    D --> E["Crea el lote con la lista de archivos"]
     E --> F["Sube con tus, 3 en paralelo,<br/>progreso por archivo y total"]
-    F --> G["Al completar cada archivo:<br/>POST /api/lotes/id/items/id/completar"]
+    F --> G["Al completar cada archivo<br/>la API intenta clasificarlo"]
     G --> H{"¿El nombre sigue la convención?"}
     H -->|"no"| PEN["Ítem PENDIENTE<br/>motivo: nombre no reconocido"]
     H -->|"sí"| I{"¿Existe el trabajador con ese DNI?"}
@@ -1016,12 +936,12 @@ sequenceDiagram
     participant F as Volumen archivos
 
     U->>N: Abre un documento del legajo
-    N->>X: GET /api/documentos/id/archivo
+    N->>X: pide el archivo para verlo
     X->>A: reenvía
     A->>A: sesión, permiso documentos.ver y regla de restringidos
     A->>P: busca la versión actual del archivo
     A->>P: auditoría DOCUMENTO_VER
-    A-->>X: 200 con X-Accel-Redirect /interno/archivos/ruta, Content-Disposition inline
+    A-->>X: 200 con X-Accel-Redirect y Content-Disposition inline
     X->>F: lee el archivo
     X-->>N: primeros bytes del PDF linealizado
     N-->>U: pdf.js muestra la primera página
@@ -1032,7 +952,7 @@ sequenceDiagram
     end
 
     U->>N: Descargar
-    N->>X: GET /api/documentos/id/archivo?descarga=1
+    N->>X: pide el archivo para descargarlo
     X->>A: reenvía
     A->>A: además exige documentos.descargar
     A->>P: auditoría DOCUMENTO_DESCARGAR
@@ -1041,7 +961,7 @@ sequenceDiagram
     X-->>N: PDF completo
 ```
 
-- `location /interno/archivos/` es `internal` en nginx.
+- La location de archivos es `internal` en nginx.
 - Nombre de descarga: `<CÓDIGO>_<TIPO>_<NÚMERO>_<AAAA-MM-DD>.pdf`.
 
 ### Descarga comprimida en ZIP
@@ -1058,7 +978,7 @@ sequenceDiagram
     participant F as Volumen archivos
 
     U->>N: Descargar legajo completo, secciones marcadas o documentos seleccionados
-    N->>X: GET /api/legajos/id/zip?secciones=2,3,5
+    N->>X: pide el ZIP con las secciones elegidas
     X->>A: reenvía
     A->>A: sesión y permiso documentos.descargar
     A->>P: documentos DISPONIBLES del trabajador, sin restringidos si no tiene el permiso
@@ -1097,7 +1017,7 @@ Estructura del ZIP:
 
 - Sin archivos temporales; memoria constante.
 - Nombres repetidos llevan sufijo `_2`, `_3`.
-- Selección de documentos: `POST /api/documentos/zip` con los ids, pueden ser de varios trabajadores.
+- Los documentos seleccionados pueden ser de varios trabajadores.
 
 ### Búsqueda
 
@@ -1218,7 +1138,7 @@ sequenceDiagram
     F-->>R: solo bloques nuevos o cambiados, comprimidos y cifrados
     R-->>W: snapshot de archivos y bytes agregados
     W->>R: restic forget --prune con 7 diarias, 4 semanales y 12 mensuales
-    W->>M: restic copy al repositorio remoto
+    W->>M: restic copy a la copia remota
     opt domingo
         W->>R: restic check con lectura de una muestra del 5 %
         W->>P: verificado = true o error
@@ -1233,14 +1153,14 @@ sequenceDiagram
 
 - Concurrencia 1.
 - `pg_dump` corre en caliente.
-- Repositorio cifrado con `RESTIC_PASSWORD`.
+- Copias cifradas.
 - Panel: última copia, historial, snapshots, espacio usado y copia manual. La restauración se hace por consola.
 
 ### Restauración
 
 ```mermaid
 flowchart TD
-    A(["infra/backup/restaurar.sh SNAPSHOT"]) --> B["Lista las snapshots si no se indica una"]
+    A(["Script de restauración con la snapshot"]) --> B["Lista las snapshots si no se indica una"]
     B --> C["Confirmación escrita del operador"]
     C --> D["docker compose stop api worker"]
     D --> E["restic restore de archivos<br/>a una carpeta nueva"]
@@ -1286,27 +1206,27 @@ Reglas:
 
 ```mermaid
 flowchart LR
-    LOGIN["/login<br/>Inicio de sesión"] --> CC["/cambiar-clave<br/>primer ingreso"]
-    LOGIN --> INI["/inicio<br/>búsqueda, accesos rápidos,<br/>avance de digitalización"]
+    LOGIN["Inicio de sesión"] --> CC["Cambiar clave<br/>primer ingreso"]
+    LOGIN --> INI["Inicio<br/>búsqueda, accesos rápidos,<br/>avance de digitalización"]
     CC --> INI
-    INI --> PER["/personal<br/>listado con filtros"]
-    PER --> TRA["/personal/:id<br/>ficha, familiares, vínculos"]
-    TRA --> LEG["/legajos/:id<br/>13 secciones, visor,<br/>subida, ZIP, historial"]
+    INI --> PER["Personal<br/>listado con filtros"]
+    PER --> TRA["Trabajador<br/>ficha, familiares, vínculos"]
+    TRA --> LEG["Legajo<br/>13 secciones, visor,<br/>subida, ZIP, historial"]
     PER --> LEG
-    INI --> BUS["/busqueda<br/>búsqueda avanzada"]
+    INI --> BUS["Búsqueda avanzada"]
     BUS --> LEG
-    INI --> CM["/carga-masiva<br/>nueva carga y lotes"]
-    CM --> LOT["/carga-masiva/:id<br/>bandeja, clasificar, dividir"]
-    INI --> REP["/reportes<br/>personal, faltantes,<br/>digitalización, avance"]
+    INI --> CM["Carga masiva<br/>nueva carga y lotes"]
+    CM --> LOT["Lote<br/>bandeja, clasificar, dividir"]
+    INI --> REP["Reportes<br/>personal, faltantes,<br/>digitalización, avance"]
     REP --> LEG
-    INI --> AUD["/auditoria"]
-    INI --> USU["/usuarios"]
-    USU --> ROL["/usuarios/roles"]
-    INI --> CAT["/catalogos<br/>tipos, obligatorios,<br/>regímenes, áreas, cargos"]
-    INI --> BAK["/backup"]
+    INI --> AUD["Auditoría"]
+    INI --> USU["Usuarios"]
+    USU --> ROL["Roles"]
+    INI --> CAT["Catálogos<br/>tipos, obligatorios,<br/>regímenes, áreas, cargos"]
+    INI --> BAK["Backup"]
 ```
 
-El menú se arma según los permisos. Cada ruta tiene un guard con su permiso; sin permiso redirige a `/inicio`.
+El menú se arma según los permisos. Cada pantalla tiene un guard con su permiso; sin permiso vuelve a Inicio.
 
 ### Pantalla del legajo
 
@@ -1331,64 +1251,7 @@ El menú se arma según los permisos. Cada ruta tiene un guard con su permiso; s
 | `app-selector-trabajador` | Autocompletado por DNI o nombre |
 | `app-aviso` | Mensajes de éxito y error |
 
-Al iniciar, la app llama a `GET /api/auth/yo` y guarda usuario y permisos en un servicio con signals. El interceptor HTTP envía `withCredentials` y la cabecera `X-Legajos: 1`, y ante un 401 navega a `/login`.
-
-## API
-
-Todas las rutas van bajo `/api`, exigen sesión salvo `POST /auth/login` y responden JSON. Los listados se paginan con `pagina` y `por_pagina` (máximo 100).
-
-| Método | Ruta | Permiso | Descripción |
-|---|---|---|---|
-| POST | `/auth/login` | Pública | Inicia sesión |
-| POST | `/auth/logout` | Sesión | Cierra sesión |
-| GET | `/auth/yo` | Sesión | Usuario y permisos |
-| POST | `/auth/cambiar-clave` | Sesión | Cambia la contraseña propia |
-| GET | `/eventos` | Sesión | SSE con el estado de documentos y lotes del usuario |
-| GET, POST | `/usuarios` | `usuarios.gestionar` | Lista y crea usuarios |
-| PATCH | `/usuarios/:id` | `usuarios.gestionar` | Edita, cambia rol, activa o desactiva |
-| POST | `/usuarios/:id/restablecer-clave` | `usuarios.gestionar` | Genera una clave temporal y obliga a cambiarla |
-| GET, POST | `/roles` | `usuarios.gestionar` | Lista y crea roles |
-| PATCH | `/roles/:id` | `usuarios.gestionar` | Edita nombre y permisos |
-| GET | `/permisos` | `usuarios.gestionar` | Catálogo de permisos |
-| GET | `/secciones` | Sesión | Las 13 secciones con sus tipos |
-| GET, POST, PATCH | `/tipos-documento` | `catalogos.gestionar` para escribir | Tipos de documento |
-| GET, POST, PATCH, DELETE | `/requisitos` | `catalogos.gestionar` para escribir | Documentos obligatorios |
-| GET, POST, PATCH | `/regimenes`, `/areas`, `/cargos` | `catalogos.gestionar` para escribir | Catálogos |
-| GET, POST | `/trabajadores` | `personal.ver` y `personal.editar` | Lista con filtros y crea |
-| GET, PATCH | `/trabajadores/:id` | `personal.ver` y `personal.editar` | Ficha |
-| GET, POST, PATCH, DELETE | `/trabajadores/:id/familiares` | `personal.ver` y `personal.editar` | Familiares |
-| GET, POST | `/trabajadores/:id/vinculos` | `personal.ver` y `personal.editar` | Historial y nuevo vínculo |
-| POST | `/trabajadores/:id/vinculos/:vid/finalizar` | `personal.editar` | Fin de vínculo o cese |
-| GET | `/legajos/:trabajadorId` | `documentos.ver` | Secciones, documentos, conteos y completitud |
-| GET | `/legajos/:trabajadorId/zip` | `documentos.descargar` | ZIP del legajo o de las secciones indicadas |
-| GET | `/legajos/:trabajadorId/historial` | `auditoria.ver` | Auditoría del legajo |
-| POST, HEAD, PATCH, DELETE | `/subidas` y `/subidas/:id` | `documentos.subir` | Protocolo tus |
-| POST | `/documentos` | `documentos.subir` | Registra un documento con una subida completa |
-| GET | `/documentos/:id` | `documentos.ver` | Datos y versiones |
-| PATCH | `/documentos/:id` | `documentos.editar` | Edita datos o reclasifica |
-| POST | `/documentos/:id/reemplazar` | `documentos.editar` | Nueva versión con otra subida |
-| POST | `/documentos/:id/anular` | `documentos.anular` | Anula con motivo |
-| POST | `/documentos/:id/reintentar` | `documentos.subir` | Reintenta un procesamiento fallido |
-| GET | `/documentos/:id/archivo` | `documentos.ver` (y `documentos.descargar` con `descarga=1`) | Entrega por X-Accel-Redirect |
-| GET | `/documentos/:id/versiones/:version/archivo` | `documentos.ver` | Versión anterior |
-| POST | `/documentos/zip` | `documentos.descargar` | ZIP de documentos seleccionados |
-| GET, POST | `/lotes` | `carga_masiva.usar` | Lista y crea lotes |
-| GET | `/lotes/:id` | `carga_masiva.usar` | Lote e ítems |
-| POST | `/lotes/:id/items/:itemId/completar` | `carga_masiva.usar` | Avisa que terminó la subida e intenta clasificar |
-| POST | `/lotes/:id/items/:itemId/clasificar` | `carga_masiva.usar` | Clasificación manual |
-| POST | `/lotes/:id/items/:itemId/dividir` | `carga_masiva.usar` | Divide por rangos de páginas |
-| POST | `/lotes/:id/items/:itemId/descartar` | `carga_masiva.usar` | Descarta con motivo |
-| GET | `/busqueda` | `personal.ver` | Búsqueda por DNI, nombre, documento y fecha |
-| GET | `/reportes/personal` | `reportes.ver` | Listado de personal |
-| GET | `/reportes/faltantes` | `reportes.ver` | Faltantes consolidado |
-| GET | `/reportes/faltantes/:trabajadorId` | `documentos.ver` | Faltantes de un trabajador |
-| GET | `/reportes/digitalizacion` | `reportes.ver` | Documentos cargados por usuario y fecha |
-| GET | `/reportes/avance` | `reportes.ver` | Legajos completos e incompletos por área |
-| GET | `/auditoria` | `auditoria.ver` | Consulta con filtros |
-| GET | `/backups` | `backup.gestionar` | Historial, snapshots y espacio usado |
-| POST | `/backups` | `backup.gestionar` | Copia manual |
-
-Reportes y auditoría aceptan `formato=xlsx` (con `reportes.exportar` o `auditoria.ver`), generado en streaming.
+Al iniciar, la app pide a la API el usuario y sus permisos y los guarda en un servicio con signals. El interceptor HTTP envía la cookie y la cabecera anti-CSRF, y ante un 401 vuelve al inicio de sesión.
 
 ## Reportes
 
@@ -1401,13 +1264,13 @@ Reportes y auditoría aceptan `formato=xlsx` (con `reportes.exportar` o `auditor
 | Digitalización | Documentos cargados por usuario y por día, con folios y tamaño | Usuario, fecha desde y hasta |
 | Avance de legajos | Legajos al 100 %, parciales y vacíos, por área | Área, régimen |
 
-Todos se ven en pantalla y se exportan a Excel.
+Todos se ven en pantalla y se exportan a Excel, generado en streaming.
 
 ## Rendimiento
 
 | Aspecto | Objetivo o límite |
 |---|---|
-| Tamaño máximo por PDF | 200 MB (`TAMANO_MAXIMO_MB`) |
+| Tamaño máximo por PDF | 200 MB |
 | Parte de subida tus | 8 MB |
 | Subidas paralelas por navegador | 3 |
 | Reducción esperada en escaneos | Entre 60 y 80 % |
@@ -1422,7 +1285,7 @@ Todos se ven en pantalla y se exportan a Excel.
 ## Seguridad
 
 - Contraseñas con argon2id, con mínimo de 10 caracteres. Bloqueo de 15 minutos tras 5 intentos fallidos. Cambio obligatorio en el primer ingreso y después de un restablecimiento.
-- Cookie de sesión `HttpOnly`, `Secure` y `SameSite=Strict`. Las peticiones que modifican datos exigen además la cabecera `X-Legajos: 1`.
+- Cookie de sesión `HttpOnly`, `Secure` y `SameSite=Strict`. Las peticiones que modifican datos exigen además una cabecera anti-CSRF.
 - Los archivos están fuera de la raíz pública de nginx y solo se entregan después de que la API valida los permisos.
 - Los documentos restringidos se filtran en SQL y responden 404 a quien no tiene el permiso.
 - Solo se aceptan PDF: se validan la extensión, la firma del archivo y la estructura con `qpdf --check`. Ghostscript corre con `-dSAFER`.
@@ -1432,24 +1295,16 @@ Todos se ven en pantalla y se exportan a Excel.
 
 ## Configuración
 
-| Variable | Ejemplo | Uso |
-|---|---|---|
-| `DOMINIO` | `legajos.entidad.gob.pe` | Dominio público |
-| `DATABASE_URL` | `postgresql://legajos:***@postgres:5432/legajos` | Conexión de Prisma |
-| `REDIS_URL` | `redis://redis:6379` | Sesiones, colas y eventos |
-| `DIR_SUBIDAS` | `/srv/legajos/subidas` | Partes tus temporales |
-| `DIR_ARCHIVOS` | `/srv/legajos/archivos` | PDF definitivos |
-| `TAMANO_MAXIMO_MB` | `200` | Límite por archivo |
-| `OPTIMIZAR_PPP` | `150` | Resolución de las imágenes optimizadas |
-| `OPTIMIZAR_GRISES` | `false` | Convertir los escaneos a escala de grises |
-| `WORKER_CONCURRENCIA` | `3` | PDFs procesados a la vez |
-| `SESION_MINUTOS` | `30` | Expiración por inactividad |
-| `RESTIC_REPOSITORY` | `/mnt/respaldo/restic` | Repositorio local de copias |
-| `RESTIC_REPOSITORY_REMOTO` | `sftp:respaldo@servidor:/legajos` | Copia remota |
-| `RESTIC_PASSWORD` | `***` | Clave de cifrado de las copias |
-| `BACKUP_HORA` | `01:00` | Hora de la copia diaria |
-| `ADMIN_USUARIO` | `admin` | Primer administrador que crea la semilla |
-| `ADMIN_CLAVE` | `***` | Clave temporal del primer administrador |
+| Parámetro | Valor por defecto |
+|---|---|
+| Tamaño máximo por archivo | 200 MB |
+| Resolución de imágenes optimizadas | 150 ppp |
+| Escaneos en escala de grises | No |
+| PDFs procesados a la vez | Núcleos del servidor menos uno |
+| Expiración de sesión por inactividad | 30 minutos |
+| Hora de la copia diaria | 01:00 |
+
+Las credenciales, conexiones y ubicaciones de almacenamiento van en variables de entorno del servidor.
 
 ## Orden de construcción
 
