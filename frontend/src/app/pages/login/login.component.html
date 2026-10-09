@@ -1,7 +1,7 @@
 <div class="pantalla">
   <div class="tarjeta" #tarjeta>
     <section class="presentacion" aria-labelledby="titulo-sistema">
-      <app-marca [tamano]="54" />
+      <app-marca [tamano]="64" [conFondo]="true" />
 
       <div class="titular">
         <h2 id="titulo-sistema">Legajos de Personal</h2>
@@ -16,6 +16,7 @@
 
     <main class="acceso">
       <form #formularioAcceso [formGroup]="formulario" (ngSubmit)="ingresar()" novalidate>
+        <app-marca class="logo-formulario entra" [tamano]="72" />
         <h1 class="entra">Iniciar sesión</h1>
 
         <div
