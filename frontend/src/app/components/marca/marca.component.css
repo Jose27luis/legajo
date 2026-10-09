@@ -1,0 +1,16 @@
+:host {
+  display: inline-flex;
+  flex: none;
+}
+
+.fondo {
+  fill: var(--tinta);
+}
+
+.pestana {
+  fill: var(--ocre);
+}
+
+.carpeta {
+  fill: var(--ocre-claro);
+}
