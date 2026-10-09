@@ -1,27 +1,31 @@
 @import '@fontsource-variable/archivo/wdth.css';
 
 :root {
-  --tinta: #13313a;
-  --tinta-media: #3d5963;
-  --tinta-suave: #5f7780;
-  --papel: #e9efec;
-  --hoja: #fbfcfb;
-  --rio: #1d6b5f;
-  --rio-oscuro: #14524a;
-  --rio-claro: #d6e8e3;
-  --ocre: #b7862e;
-  --ocre-claro: #f1e4c8;
-  --linea: #c8d4cf;
-  --linea-suave: #dde5e1;
-  --alerta: #a3392d;
-  --alerta-claro: #f6e1dd;
-  --exito: #24704a;
-  --exito-claro: #dcefe3;
+  --marino: #132d46;
+  --marino-medio: #214668;
+  --marino-profundo: #0c253d;
+  --tinta: #162a3d;
+  --tinta-media: #3c5468;
+  --tinta-suave: #677a8b;
+  --papel: #f3f7fa;
+  --hoja: #ffffff;
+  --primario: #1c65a0;
+  --primario-oscuro: #105486;
+  --primario-claro: #e5f1fd;
+  --celeste: #95d0ef;
+  --celeste-claro: #dbedff;
+  --linea: #dce6ef;
+  --linea-suave: #e9eff5;
+  --alerta: #ad3b47;
+  --alerta-claro: #fae6e8;
+  --exito: #087a50;
+  --exito-claro: #dbf5e5;
 
-  --radio-control: 6px;
-  --radio-panel: 10px;
-  --sombra-panel: 0 1px 2px rgb(19 49 58 / 0.06), 0 8px 24px rgb(19 49 58 / 0.08);
-  --foco: 0 0 0 3px rgb(29 107 95 / 0.35);
+  --radio-control: 9px;
+  --radio-panel: 13px;
+  --sombra-panel: 0 3px 15px rgb(26 64 87 / 0.06);
+  --sombra-flotante: 0 25px 80px rgb(7 27 44 / 0.63);
+  --foco: 0 0 0 3px rgb(119 186 255 / 0.55);
 
   --fuente: 'Archivo Variable', 'Segoe UI', system-ui, sans-serif;
 
@@ -101,7 +105,7 @@ p {
 }
 
 .campo input:focus-visible {
-  border-color: var(--rio);
+  border-color: var(--primario);
 }
 
 .campo input[aria-invalid='true'] {
@@ -164,14 +168,14 @@ p {
 }
 
 .boton.principal {
-  background: var(--rio);
-  border-color: var(--rio);
+  background: var(--primario);
+  border-color: var(--primario);
   color: #fff;
 }
 
 .boton.principal:hover {
-  background: var(--rio-oscuro);
-  border-color: var(--rio-oscuro);
+  background: var(--primario-oscuro);
+  border-color: var(--primario-oscuro);
 }
 
 .boton:disabled {
