@@ -1,19 +1,19 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { SesionService } from '../../core/sesion.service';
-import { MarcaComponent } from '../../components/marca/marca.component';
-import { FormularioClaveComponent } from '../../components/formulario-clave/formulario-clave.component';
+import { SessionService } from '../../core/session.service';
+import { BrandComponent } from '../../components/brand/brand.component';
+import { PasswordFormComponent } from '../../components/password-form/password-form.component';
 
 @Component({
-  selector: 'app-cambiar-clave',
-  imports: [MarcaComponent, FormularioClaveComponent],
+  selector: 'app-change-password',
+  imports: [BrandComponent, PasswordFormComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: './cambiar-clave.component.html',
-  styleUrl: './cambiar-clave.component.css',
+  templateUrl: './change-password.component.html',
+  styleUrl: './change-password.component.css',
 })
-export class CambiarClaveComponent {
+export class ChangePasswordComponent {
   private readonly router = inject(Router);
-  protected readonly sesion = inject(SesionService);
+  protected readonly sesion = inject(SessionService);
   protected readonly saliendo = signal(false);
 
   protected async continuar(): Promise<void> {
