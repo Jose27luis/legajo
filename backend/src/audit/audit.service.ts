@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { Prisma } from '../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
-import type { DatosCliente } from '../comun/cliente';
+import type { DatosCliente } from '../common/client';
 
 export interface EventoAuditoria {
   accion: string;
@@ -14,7 +14,7 @@ export interface EventoAuditoria {
 }
 
 @Injectable()
-export class AuditoriaService {
+export class AuditService {
   constructor(private readonly prisma: PrismaService) {}
 
   async registrar(evento: EventoAuditoria, transaccion?: Prisma.TransactionClient): Promise<void> {
