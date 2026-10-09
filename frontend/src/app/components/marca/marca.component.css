@@ -4,13 +4,13 @@
 }
 
 .fondo {
-  fill: var(--tinta);
+  fill: var(--marino-medio);
 }
 
 .pestana {
-  fill: var(--ocre);
+  fill: var(--celeste);
 }
 
 .carpeta {
-  fill: var(--ocre-claro);
+  fill: var(--celeste-claro);
 }
