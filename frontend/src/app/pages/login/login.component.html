@@ -1,7 +1,7 @@
 <div class="pantalla">
   <div class="tarjeta" #tarjeta>
     <section class="presentacion" aria-labelledby="titulo-sistema">
-      <app-marca [tamano]="64" [conFondo]="true" />
+      <app-brand [tamano]="64" [conFondo]="true" />
 
       <div class="titular">
         <h2 id="titulo-sistema">Legajos de Personal</h2>
@@ -9,14 +9,14 @@
         <p class="lema">Gestión ordenada y centralizada de la documentación del personal.</p>
       </div>
 
-      <app-ilustracion-archivador class="ilustracion" />
+      <app-cabinet-illustration class="ilustracion" />
 
       <p class="oficina">Oficina de Personal</p>
     </section>
 
     <main class="acceso">
       <form #formularioAcceso [formGroup]="formulario" (ngSubmit)="ingresar()" novalidate>
-        <app-marca class="logo-formulario entra" [tamano]="72" />
+        <app-brand class="logo-formulario entra" [tamano]="72" />
         <h1 class="entra">Iniciar sesión</h1>
 
         <div
