@@ -12,7 +12,7 @@ export const autenticadoGuard: CanMatchFn = async () => {
 export const claveAlDiaGuard: CanMatchFn = () => {
   const sesion = inject(SesionService);
   const router = inject(Router);
-  return sesion.usuario()?.debeCambiarClave === true ? router.createUrlTree(['/cambiar-clave']) : true;
+  return sesion.usuario()?.debeCambiarClave === true ? router.createUrlTree(['/change-password']) : true;
 };
 
 export const invitadoGuard: CanMatchFn = async () => {
