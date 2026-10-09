@@ -5,14 +5,11 @@
 
       <div class="titular">
         <h2 id="titulo-sistema">Legajos de Personal</h2>
-        <p>Dirección Regional de Salud Madre de Dios</p>
+        <p class="entidad">Dirección Regional de Salud Madre de Dios</p>
+        <p class="lema">Gestión ordenada y centralizada de la documentación del personal.</p>
       </div>
 
-      <div class="carpetas" #carpetas aria-hidden="true">
-        <span class="carpeta"></span>
-        <span class="carpeta"></span>
-        <span class="carpeta"></span>
-      </div>
+      <app-ilustracion-archivador class="ilustracion" />
 
       <p class="oficina">Oficina de Personal</p>
     </section>
@@ -21,8 +18,15 @@
       <form #formularioAcceso [formGroup]="formulario" (ngSubmit)="ingresar()" novalidate>
         <h1 class="entra">Iniciar sesión</h1>
 
-        <div class="campo entra">
-          <label for="identificador">Usuario o correo</label>
+        <div
+          class="entrada entra"
+          [class.lleno]="formulario.controls.identificador.value !== ''"
+          [class.invalida]="invalido('identificador')"
+        >
+          <svg class="icono" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <circle cx="12" cy="8.5" r="3.6" />
+            <path d="M5 19.5c1.2-3.4 4-5 7-5s5.8 1.6 7 5" />
+          </svg>
           <input
             id="identificador"
             formControlName="identificador"
@@ -31,36 +35,51 @@
             spellcheck="false"
             [attr.aria-invalid]="invalido('identificador')"
           />
+          <label for="identificador">Usuario o correo</label>
         </div>
 
-        <div class="campo entra">
-          <label for="clave">Contraseña</label>
-          <div class="con-accion">
+        <div class="grupo-clave entra">
+          <div
+            class="entrada con-boton"
+            [class.lleno]="formulario.controls.clave.value !== ''"
+            [class.invalida]="invalido('clave')"
+          >
+            <svg class="icono" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <rect x="5" y="10.5" width="14" height="9.5" rx="2.2" />
+              <path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" />
+            </svg>
             <input
               id="clave"
               [type]="mostrarClave() ? 'text' : 'password'"
               formControlName="clave"
               autocomplete="current-password"
               [attr.aria-invalid]="invalido('clave')"
+              aria-describedby="aviso-mayusculas"
+              (keydown)="revisarMayusculas($event)"
+              (keyup)="revisarMayusculas($event)"
+              (blur)="mayusculasActivas.set(false)"
             />
+            <label for="clave">Contraseña</label>
             <button
               type="button"
-              class="ojo"
+              class="accion ojo"
               (click)="alternarClave()"
               [attr.aria-pressed]="mostrarClave()"
               [attr.aria-label]="mostrarClave() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
               aria-controls="clave"
             >
               <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                <path
-                  class="ojo-contorno"
-                  d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"
-                />
+                <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z" />
                 <circle class="ojo-pupila" [class.cerrado]="!mostrarClave()" cx="12" cy="12" r="3.2" />
                 <path class="ojo-tachado" [class.visible]="!mostrarClave()" d="M4 4l16 16" />
               </svg>
             </button>
           </div>
+          <p id="aviso-mayusculas" class="mayusculas" aria-live="polite">
+            @if (mayusculasActivas()) {
+              <span animate.enter="aparece">Bloq Mayús está activado</span>
+            }
+          </p>
         </div>
 
         @if (error(); as mensaje) {
