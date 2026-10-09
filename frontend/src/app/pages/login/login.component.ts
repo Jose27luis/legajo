@@ -27,6 +27,7 @@ export class LoginComponent implements AfterViewInit {
   private readonly sesion = inject(SesionService);
   private readonly router = inject(Router);
   private readonly archivador = viewChild.required<ElementRef<HTMLElement>>('archivador');
+  private readonly tarjeta = viewChild.required<ElementRef<HTMLElement>>('tarjeta');
 
   protected readonly secciones = SECCIONES_LEGAJO;
   protected readonly enviando = signal(false);
@@ -45,11 +46,16 @@ export class LoginComponent implements AfterViewInit {
     if (prefiereMenosMovimiento()) {
       return;
     }
+    animate(
+      this.tarjeta().nativeElement,
+      { opacity: [0, 1], transform: ['translateY(24px) scale(0.985)', 'translateY(0px) scale(1)'] },
+      { duration: 0.6, ease: [0.22, 1, 0.36, 1] },
+    );
     const pestanas = this.archivador().nativeElement.querySelectorAll<HTMLElement>('.pestana');
     animate(
       pestanas,
-      { opacity: [0, 1], transform: ['translateY(28px)', 'translateY(0px)'] },
-      { delay: stagger(0.04, { startDelay: 0.1 }), duration: 0.55, ease: [0.22, 1, 0.36, 1] },
+      { opacity: [0, 1], transform: ['translateY(18px)', 'translateY(0px)'] },
+      { delay: stagger(0.035, { startDelay: 0.3 }), duration: 0.5, ease: [0.22, 1, 0.36, 1] },
     );
   }
 
