@@ -8,4 +8,5 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 })
 export class MarcaComponent {
   readonly tamano = input<number>(36);
+  readonly conFondo = input<boolean>(false);
 }
