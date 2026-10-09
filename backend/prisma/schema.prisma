@@ -1,0 +1,78 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Rol {
+  id          String       @id @default(uuid()) @db.Uuid
+  nombre      String       @unique @db.VarChar(60)
+  descripcion String
+  esSistema   Boolean      @default(false) @map("es_sistema")
+  usuarios    Usuario[]
+  permisos    RolPermiso[]
+
+  @@map("rol")
+}
+
+model Permiso {
+  codigo      String       @id @db.VarChar(60)
+  modulo      String       @db.VarChar(40)
+  descripcion String
+  roles       RolPermiso[]
+
+  @@map("permiso")
+}
+
+model RolPermiso {
+  rolId         String  @map("rol_id") @db.Uuid
+  permisoCodigo String  @map("permiso_codigo") @db.VarChar(60)
+  rol           Rol     @relation(fields: [rolId], references: [id], onDelete: Cascade)
+  permiso       Permiso @relation(fields: [permisoCodigo], references: [codigo], onDelete: Restrict)
+
+  @@id([rolId, permisoCodigo])
+  @@map("rol_permiso")
+}
+
+model Usuario {
+  id               String      @id @default(uuid()) @db.Uuid
+  usuario          String      @unique @db.VarChar(30)
+  nombreCompleto   String      @map("nombre_completo") @db.VarChar(120)
+  correo           String      @unique @db.VarChar(120)
+  claveHash        String      @map("clave_hash")
+  rolId            String      @map("rol_id") @db.Uuid
+  activo           Boolean     @default(true)
+  intentosFallidos Int         @default(0) @map("intentos_fallidos")
+  bloqueadoHasta   DateTime?   @map("bloqueado_hasta") @db.Timestamptz(3)
+  debeCambiarClave Boolean     @default(true) @map("debe_cambiar_clave")
+  ultimoAcceso     DateTime?   @map("ultimo_acceso") @db.Timestamptz(3)
+  creadoEn         DateTime    @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoEn    DateTime    @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  rol              Rol         @relation(fields: [rolId], references: [id], onDelete: Restrict)
+  auditorias       Auditoria[]
+
+  @@map("usuario")
+}
+
+model Auditoria {
+  id           BigInt   @id @default(autoincrement())
+  fecha        DateTime @default(now()) @db.Timestamptz(3)
+  usuarioId    String?  @map("usuario_id") @db.Uuid
+  accion       String   @db.VarChar(60)
+  entidad      String   @db.VarChar(60)
+  entidadId    String?  @map("entidad_id") @db.VarChar(60)
+  trabajadorId String?  @map("trabajador_id") @db.Uuid
+  ip           String?  @db.Inet
+  userAgent    String?  @map("user_agent")
+  detalle      Json?
+  usuario      Usuario? @relation(fields: [usuarioId], references: [id], onDelete: Restrict)
+
+  @@index([usuarioId, fecha(sort: Desc)], map: "ix_auditoria_usuario")
+  @@index([trabajadorId, fecha(sort: Desc)], map: "ix_auditoria_legajo")
+  @@index([accion, fecha(sort: Desc)], map: "ix_auditoria_accion")
+  @@map("auditoria")
+}
