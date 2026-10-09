@@ -1,10 +1,10 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import type { UsuarioSesion } from './modelos';
+import type { UsuarioSesion } from './models';
 
 @Injectable({ providedIn: 'root' })
-export class SesionService {
+export class SessionService {
   private readonly http = inject(HttpClient);
   private readonly estado = signal<UsuarioSesion | null>(null);
   private verificacion: Promise<UsuarioSesion | null> | null = null;
