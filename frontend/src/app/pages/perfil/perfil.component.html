@@ -1,0 +1,37 @@
+<div class="perfil">
+  <header class="encabezado">
+    <h1>Mi perfil</h1>
+    <p>Datos de tu cuenta de acceso.</p>
+  </header>
+
+  @if (sesion.usuario(); as usuario) {
+    <dl class="datos">
+      <div>
+        <dt>Nombre</dt>
+        <dd>{{ usuario.nombreCompleto }}</dd>
+      </div>
+      <div>
+        <dt>Usuario</dt>
+        <dd>{{ usuario.usuario }}</dd>
+      </div>
+      <div>
+        <dt>Correo</dt>
+        <dd>{{ usuario.correo }}</dd>
+      </div>
+      <div>
+        <dt>Rol</dt>
+        <dd>{{ usuario.rol }}</dd>
+      </div>
+      <div>
+        <dt>Ingreso actual</dt>
+        <dd>{{ ultimoIngreso() }}</dd>
+      </div>
+    </dl>
+  }
+
+  <section class="bloque" aria-labelledby="titulo-clave">
+    <h2 id="titulo-clave">Cambiar contraseña</h2>
+    <p class="nota">Al guardarla se cierran tus sesiones abiertas en otros equipos.</p>
+    <app-formulario-clave />
+  </section>
+</div>
