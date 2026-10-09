@@ -57,28 +57,29 @@
   align-content: start;
   gap: 2px;
   padding: 20px 12px;
-  border-right: 1px solid var(--linea);
-  background: var(--hoja);
+  background: var(--marino);
 }
 
 .menu a {
   display: block;
-  padding: 9px 12px;
+  padding: 10px 12px;
+  border: 1px solid transparent;
   border-radius: var(--radio-control);
-  color: var(--tinta-media);
+  color: #d8e6f0;
   text-decoration: none;
-  font-weight: 550;
+  font-size: 13.5px;
+  font-weight: 600;
 }
 
 .menu a:hover {
-  background: var(--papel);
-  color: var(--tinta);
+  background: rgb(255 255 255 / 0.1);
+  color: #fff;
 }
 
 .menu a.activo {
-  background: var(--rio-claro);
-  color: var(--rio-oscuro);
-  box-shadow: inset 3px 0 0 var(--rio);
+  background: rgb(255 255 255 / 0.1);
+  border-color: rgb(109 146 177 / 0.31);
+  color: #fff;
 }
 
 .contenido {
@@ -105,8 +106,7 @@
     display: flex;
     overflow-x: auto;
     padding: 8px 12px;
-    border-right: 0;
-    border-bottom: 1px solid var(--linea);
+    gap: 6px;
   }
 
   .menu a {
