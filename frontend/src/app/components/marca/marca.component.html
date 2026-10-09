@@ -1,5 +1,19 @@
-<svg [attr.width]="tamano()" [attr.height]="tamano()" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
-  <rect width="32" height="32" rx="7" class="fondo" />
-  <path d="M7 11.5a1.5 1.5 0 0 1 1.5-1.5h5.2l2 2.2h7.8a1.5 1.5 0 0 1 1.5 1.5V22a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 7 22z" class="pestana" />
-  <path d="M7 15h18v7a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 7 22z" class="carpeta" />
-</svg>
+<span class="marca" [class.con-fondo]="conFondo()" [style.width.px]="tamano()" [style.height.px]="tamano()">
+  <svg viewBox="272 251 760 760" aria-hidden="true" focusable="false">
+    <g class="hojas">
+      <rect x="298" y="368" width="200" height="290" rx="30" class="hoja-1" transform="rotate(-5 398 513)" />
+      <rect x="366" y="291" width="330" height="340" rx="34" class="hoja-2" transform="rotate(-2 531 461)" />
+      <rect x="420" y="344" width="396" height="292" rx="30" class="hoja-3" />
+      <rect x="478" y="385" width="426" height="262" rx="30" class="hoja-4" />
+    </g>
+    <path class="renglones" d="M548 462H783M548 522H783M548 584H728" />
+    <path
+      class="carpeta"
+      d="M330 618H440C460 618 475 625 488 634 498 641 506 644 520 644H745C760 644 772 637 780 626L832 548C845 529 860 517 885 517H970C1000 517 1025 543 1022 573L990 915C987 947 962 972 930 972H370C338 972 313 947 310 915L284 670C281 642 302 618 330 618Z"
+    />
+    <g class="cruz">
+      <rect x="865" y="586" width="106" height="34" rx="10" />
+      <rect x="901" y="550" width="34" height="106" rx="10" />
+    </g>
+  </svg>
+</span>
