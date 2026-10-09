@@ -10,14 +10,14 @@ import {
 import * as argon2 from 'argon2';
 import type { Prisma } from '../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
-import { AuditoriaService } from '../auditoria/auditoria.service';
-import type { DatosCliente } from '../comun/cliente';
-import type { SesionActiva } from '../comun/sesion';
-import { SesionService } from './sesion.service';
-import { LimiteService } from './limite.service';
-import type { IniciarSesionDto } from './dto/iniciar-sesion.dto';
-import type { CambiarClaveDto } from './dto/cambiar-clave.dto';
-import type { UsuarioSesionDto } from './dto/usuario-sesion.dto';
+import { AuditService } from '../audit/audit.service';
+import type { DatosCliente } from '../common/client';
+import type { SesionActiva } from '../common/session';
+import { SessionService } from './session.service';
+import { RateLimitService } from './rate-limit.service';
+import type { LoginDto } from './dto/login.dto';
+import type { ChangePasswordDto } from './dto/change-password.dto';
+import type { SessionUserDto } from './dto/session-user.dto';
 
 const MAXIMO_INTENTOS_FALLIDOS = 5;
 const MINUTOS_DE_BLOQUEO = 15;
@@ -29,7 +29,7 @@ type UsuarioConPermisos = Prisma.UsuarioGetPayload<{ include: typeof incluirPerm
 
 export interface ResultadoInicioSesion {
   sesion: SesionActiva;
-  usuario: UsuarioSesionDto;
+  usuario: SessionUserDto;
 }
 
 @Injectable()
@@ -38,16 +38,16 @@ export class AuthService implements OnModuleInit {
 
   constructor(
     private readonly prisma: PrismaService,
-    private readonly sesiones: SesionService,
-    private readonly limite: LimiteService,
-    private readonly auditoria: AuditoriaService,
+    private readonly sesiones: SessionService,
+    private readonly limite: RateLimitService,
+    private readonly auditoria: AuditService,
   ) {}
 
   async onModuleInit(): Promise<void> {
     this.hashDeReferencia = await argon2.hash(randomBytes(24).toString('base64url'), { type: argon2.argon2id });
   }
 
-  async iniciarSesion(datos: IniciarSesionDto, cliente: DatosCliente): Promise<ResultadoInicioSesion> {
+  async iniciarSesion(datos: LoginDto, cliente: DatosCliente): Promise<ResultadoInicioSesion> {
     const permitido = await this.limite.consumir(`login:ip:${cliente.ip ?? 'desconocida'}`, 10, 60);
     if (!permitido) {
       throw new HttpException('Demasiados intentos desde este equipo. Espera un minuto.', HttpStatus.TOO_MANY_REQUESTS);
@@ -121,7 +121,7 @@ export class AuthService implements OnModuleInit {
     return { sesion, usuario: this.aUsuarioSesion(usuario, permisos) };
   }
 
-  async perfil(sesion: SesionActiva): Promise<UsuarioSesionDto> {
+  async perfil(sesion: SesionActiva): Promise<SessionUserDto> {
     const usuario = await this.prisma.usuario.findUnique({ where: { id: sesion.usuarioId }, include: incluirPermisos });
     if (usuario === null || !usuario.activo) {
       await this.sesiones.cerrar(sesion);
@@ -141,7 +141,7 @@ export class AuthService implements OnModuleInit {
     });
   }
 
-  async cambiarClave(sesion: SesionActiva, datos: CambiarClaveDto, cliente: DatosCliente): Promise<UsuarioSesionDto> {
+  async cambiarClave(sesion: SesionActiva, datos: ChangePasswordDto, cliente: DatosCliente): Promise<SessionUserDto> {
     const permitido = await this.limite.consumir(`clave:${sesion.usuarioId}`, 5, 15 * 60);
     if (!permitido) {
       throw new HttpException('Demasiados intentos. Espera 15 minutos.', HttpStatus.TOO_MANY_REQUESTS);
@@ -213,7 +213,7 @@ export class AuthService implements OnModuleInit {
     return usuario.rol.permisos.map((permiso) => permiso.permisoCodigo).sort();
   }
 
-  private aUsuarioSesion(usuario: UsuarioConPermisos, permisos: string[]): UsuarioSesionDto {
+  private aUsuarioSesion(usuario: UsuarioConPermisos, permisos: string[]): SessionUserDto {
     return {
       id: usuario.id,
       usuario: usuario.usuario,
