@@ -1,0 +1,62 @@
+<form class="formulario" [formGroup]="formulario" (ngSubmit)="guardar()" novalidate>
+  <div class="campo">
+    <label for="clave-actual">Contraseña actual</label>
+    <input
+      id="clave-actual"
+      [type]="mostrar() ? 'text' : 'password'"
+      formControlName="claveActual"
+      autocomplete="current-password"
+      [attr.aria-invalid]="invalido('claveActual')"
+    />
+  </div>
+
+  <div class="campo">
+    <label for="clave-nueva">Nueva contraseña</label>
+    <input
+      id="clave-nueva"
+      [type]="mostrar() ? 'text' : 'password'"
+      formControlName="claveNueva"
+      autocomplete="new-password"
+      aria-describedby="ayuda-clave-nueva"
+      [attr.aria-invalid]="invalido('claveNueva')"
+    />
+    <span id="ayuda-clave-nueva" class="ayuda" [class.invalida]="invalido('claveNueva')">
+      Mínimo 10 caracteres, con al menos una letra y un número.
+    </span>
+  </div>
+
+  <div class="campo">
+    <label for="clave-confirmacion">Repite la nueva contraseña</label>
+    <input
+      id="clave-confirmacion"
+      [type]="mostrar() ? 'text' : 'password'"
+      formControlName="confirmacion"
+      autocomplete="new-password"
+      aria-describedby="ayuda-confirmacion"
+      [attr.aria-invalid]="invalido('confirmacion')"
+    />
+    @if (invalido('confirmacion')) {
+      <span id="ayuda-confirmacion" class="ayuda invalida">Las contraseñas no coinciden.</span>
+    }
+  </div>
+
+  <label class="ver">
+    <input type="checkbox" [checked]="mostrar()" (change)="alternarVisibilidad()" />
+    Mostrar contraseñas
+  </label>
+
+  @if (error(); as mensaje) {
+    <p class="aviso error" role="alert" animate.enter="aparece">{{ mensaje }}</p>
+  }
+  @if (exito()) {
+    <p class="aviso exito" role="status" animate.enter="aparece">
+      Contraseña actualizada. Se cerraron tus sesiones en otros equipos.
+    </p>
+  }
+
+  <div class="acciones">
+    <button class="boton principal" type="submit" [disabled]="guardando()">
+      {{ guardando() ? 'Guardando contraseña' : 'Guardar contraseña' }}
+    </button>
+  </div>
+</form>
