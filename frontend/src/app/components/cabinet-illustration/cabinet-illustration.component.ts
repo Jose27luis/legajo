@@ -1,6 +1,6 @@
 import { AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, viewChild } from '@angular/core';
 import { animate, stagger } from 'motion';
-import { prefiereMenosMovimiento } from '../../core/movimiento';
+import { prefiereMenosMovimiento } from '../../core/motion';
 
 const CURVA_SUAVE: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
@@ -10,12 +10,12 @@ interface Cajon {
 }
 
 @Component({
-  selector: 'app-ilustracion-archivador',
+  selector: 'app-cabinet-illustration',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: './ilustracion-archivador.component.html',
-  styleUrl: './ilustracion-archivador.component.css',
+  templateUrl: './cabinet-illustration.component.html',
+  styleUrl: './cabinet-illustration.component.css',
 })
-export class IlustracionArchivadorComponent implements AfterViewInit {
+export class CabinetIllustrationComponent implements AfterViewInit {
   private readonly lienzo = viewChild.required<ElementRef<SVGSVGElement>>('lienzo');
 
   protected readonly cajonesCerrados: readonly Cajon[] = [
