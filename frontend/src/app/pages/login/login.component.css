@@ -25,9 +25,10 @@
 
 .tarjeta {
   position: relative;
-  width: min(1000px, 100%);
+  width: min(920px, 100%);
+  min-height: 520px;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(330px, 430px);
+  grid-template-columns: minmax(0, 1fr) minmax(330px, 420px);
   border-radius: 20px;
   background: var(--hoja);
   box-shadow: var(--sombra-flotante);
@@ -35,153 +36,251 @@
 }
 
 .presentacion {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 28px;
-  padding: 44px 40px 0;
+  gap: 26px;
+  padding: 48px 44px 40px;
   background: linear-gradient(155deg, #0e304d, #194967);
   color: #fff;
-}
-
-.identidad {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 1.35;
-  color: #a4d2ec;
+  overflow: hidden;
 }
 
 .titular {
   display: grid;
-  gap: 14px;
+  gap: 8px;
 }
 
 h2 {
-  max-width: 16ch;
-  font-size: clamp(26px, 2.8vw, 32px);
-  font-weight: 640;
+  font-size: clamp(28px, 3vw, 36px);
+  font-weight: 660;
   font-variation-settings: 'wdth' 112;
   letter-spacing: -0.02em;
 }
 
 .titular p {
-  max-width: 38ch;
-  color: #c4d7e5;
-  font-size: 13.5px;
-  line-height: 1.7;
+  color: #a4d2ec;
+  font-size: 14px;
+  font-weight: 500;
 }
 
-.pestanas {
-  list-style: none;
-  margin: auto 0 0;
-  padding: 0;
-  display: grid;
+.carpetas {
+  position: relative;
+  flex: 1;
+  min-height: 150px;
 }
 
-.pestana {
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
-  margin-top: -5px;
-  padding: 6px 14px 10px;
-  border-radius: 9px 9px 0 0;
-  background: #24557a;
-  border: 1px solid rgb(255 255 255 / 0.08);
+.carpeta {
+  position: absolute;
+  left: 0;
+  width: 78%;
+  height: 120px;
+  border-radius: 4px 14px 14px 14px;
+  border: 1px solid rgb(219 237 255 / 0.14);
+  background: rgb(255 255 255 / 0.05);
+}
+
+.carpeta::before {
+  content: '';
+  position: absolute;
+  top: -15px;
+  left: -1px;
+  width: 34%;
+  height: 16px;
+  border-radius: 8px 8px 0 0;
+  border: 1px solid rgb(219 237 255 / 0.14);
   border-bottom: 0;
-  color: #d8e6f0;
+  background: inherit;
+}
+
+.carpeta:nth-child(1) {
+  bottom: 52px;
+  left: 0;
+}
+
+.carpeta:nth-child(2) {
+  bottom: 26px;
+  left: 9%;
+  background: rgb(255 255 255 / 0.07);
+}
+
+.carpeta:nth-child(3) {
+  bottom: 0;
+  left: 18%;
+  background: rgb(149 208 239 / 0.14);
+  border-color: rgb(149 208 239 / 0.3);
+}
+
+.oficina {
+  color: #8fb3cc;
   font-size: 12.5px;
-  box-shadow: 0 -5px 12px rgb(5 20 34 / 0.25);
-}
-
-.pestana:nth-child(even) {
-  background: #1f4c70;
-}
-
-.numero {
-  flex: none;
-  min-width: 2ch;
-  padding: 1px 6px;
-  border-radius: 5px;
-  background: rgb(219 237 255 / 0.16);
-  color: var(--celeste-claro);
-  font-weight: 700;
-  font-size: 11px;
-  font-variant-numeric: tabular-nums;
-}
-
-.nombre {
-  font-weight: 560;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-weight: 500;
 }
 
 .acceso {
   display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 22px;
-  padding: 48px 38px 36px;
+  align-items: center;
+  padding: 48px 40px;
+}
+
+form {
+  width: 100%;
+  display: grid;
+  gap: 18px;
 }
 
 h1 {
+  margin-bottom: 6px;
   font-size: 27px;
   font-weight: 660;
   font-variation-settings: 'wdth' 108;
   color: var(--tinta);
 }
 
-.bajada {
-  margin-top: -14px;
-  color: var(--tinta-suave);
-  font-size: 13.5px;
+.campo label {
+  transition: color 150ms ease;
 }
 
-form {
+.campo:focus-within label {
+  color: var(--primario);
+}
+
+.campo input {
+  height: 46px;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.campo input:focus-visible {
+  box-shadow: 0 0 0 4px rgb(28 101 160 / 0.14);
+}
+
+.con-accion input {
+  padding-right: 52px;
+}
+
+.ojo {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 36px;
+  height: 36px;
   display: grid;
-  gap: 17px;
+  place-items: center;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--tinta-suave);
+  cursor: pointer;
+  transition: color 150ms ease, background-color 150ms ease;
+}
+
+.ojo:hover {
+  background: var(--primario-claro);
+  color: var(--primario);
+}
+
+.ojo:active svg {
+  transform: scale(0.88);
+}
+
+.ojo svg {
+  width: 21px;
+  height: 21px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 120ms ease;
+}
+
+.ojo-pupila {
+  fill: currentColor;
+  transform-origin: 12px 12px;
+  transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.ojo-pupila.cerrado {
+  transform: scaleY(0.25);
+}
+
+.ojo-tachado {
+  stroke-dasharray: 23;
+  stroke-dashoffset: 23;
+  transition: stroke-dashoffset 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.ojo-tachado.visible {
+  stroke-dashoffset: 0;
 }
 
 .ingresar {
   width: 100%;
-  margin-top: 6px;
+  height: 46px;
+  margin-top: 8px;
   background: #16639d;
   border-color: #16639d;
+  transition: background-color 150ms ease, transform 120ms ease, box-shadow 150ms ease;
 }
 
-.ingresar:hover {
+.ingresar:hover:not(:disabled) {
   background: #0a4e83;
   border-color: #0a4e83;
+  box-shadow: 0 8px 20px rgb(22 99 157 / 0.28);
 }
 
-.pie {
-  padding-top: 16px;
-  border-top: 1px solid var(--linea-suave);
-  color: #8496a7;
-  font-size: 12px;
-  text-align: center;
+.ingresar:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.girando {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid rgb(255 255 255 / 0.35);
+  border-top-color: #fff;
+  animation: girar 700ms linear infinite;
+}
+
+@keyframes girar {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @media (max-width: 840px) {
   .tarjeta {
     grid-template-columns: 1fr;
-    max-width: 470px;
+    max-width: 440px;
+    min-height: 0;
   }
 
   .presentacion {
-    gap: 0;
+    flex-direction: row;
+    align-items: center;
+    gap: 14px;
     padding: 22px 26px;
   }
 
-  .titular,
-  .pestanas {
+  .titular {
+    gap: 2px;
+  }
+
+  h2 {
+    font-size: 20px;
+  }
+
+  .titular p {
+    font-size: 12.5px;
+  }
+
+  .carpetas,
+  .oficina {
     display: none;
   }
 
   .acceso {
-    padding: 30px 26px 26px;
+    padding: 30px 26px 32px;
   }
 }
 
@@ -191,6 +290,6 @@ form {
   }
 
   .acceso {
-    padding: 24px 20px 22px;
+    padding: 26px 20px 28px;
   }
 }
