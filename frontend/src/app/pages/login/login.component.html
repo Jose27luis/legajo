@@ -1,24 +1,29 @@
 <div class="pantalla">
-  <section class="archivador" #archivador aria-labelledby="titulo-archivador">
-    <div class="identidad">
-      <app-marca [tamano]="40" />
-      <p>Dirección Regional de Salud<br />Madre de Dios</p>
-    </div>
-    <h2 id="titulo-archivador" class="titulo-archivador">El legajo digital, en el mismo orden que el físico</h2>
-    <ol class="pestanas">
-      @for (seccion of secciones; track seccion.numero) {
-        <li class="pestana" [style.--indice]="$index">
-          <span class="numero">{{ seccion.numero }}</span>
-          <span class="nombre">{{ seccion.nombre }}</span>
-        </li>
-      }
-    </ol>
-  </section>
+  <div class="tarjeta" #tarjeta>
+    <section class="presentacion" aria-labelledby="titulo-sistema">
+      <div class="identidad">
+        <app-marca [tamano]="46" />
+        <p>Dirección Regional de Salud<br />Madre de Dios</p>
+      </div>
 
-  <main class="acceso">
-    <div class="panel">
-      <h1>Legajos de Personal</h1>
-      <p class="bajada">Oficina de Personal. Ingresa con la cuenta que te asignó el administrador del sistema.</p>
+      <div class="titular">
+        <h2 id="titulo-sistema">Sistema web de legajos digitales</h2>
+        <p>Gestión ordenada y centralizada de la documentación del personal, en las 13 secciones del legajo.</p>
+      </div>
+
+      <ol class="pestanas" #archivador aria-label="Secciones del legajo">
+        @for (seccion of secciones; track seccion.numero) {
+          <li class="pestana">
+            <span class="numero">{{ seccion.numero }}</span>
+            <span class="nombre">{{ seccion.nombre }}</span>
+          </li>
+        }
+      </ol>
+    </section>
+
+    <main class="acceso">
+      <h1>Iniciar sesión</h1>
+      <p class="bajada">Ingresa con la cuenta que te asignó la Oficina de Personal.</p>
 
       <form [formGroup]="formulario" (ngSubmit)="ingresar()" novalidate>
         <div class="campo">
@@ -60,11 +65,11 @@
         }
 
         <button class="boton principal ingresar" type="submit" [disabled]="enviando()">
-          {{ enviando() ? 'Ingresando' : 'Ingresar' }}
+          {{ enviando() ? 'Ingresando' : 'Ingresar al sistema' }}
         </button>
       </form>
 
       <p class="pie">Si olvidaste tu contraseña, pide al administrador que la restablezca.</p>
-    </div>
-  </main>
+    </main>
+  </div>
 </div>
