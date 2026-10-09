@@ -12,9 +12,10 @@ import { Router } from '@angular/router';
 import { animate, stagger } from 'motion';
 import { SesionService } from '../../core/sesion.service';
 import { mensajeDeError } from '../../core/errores';
-import { SECCIONES_LEGAJO } from '../../core/modelos';
 import { prefiereMenosMovimiento } from '../../core/movimiento';
 import { MarcaComponent } from '../../components/marca/marca.component';
+
+const CURVA_SUAVE: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
 @Component({
   selector: 'app-login',
@@ -26,10 +27,10 @@ import { MarcaComponent } from '../../components/marca/marca.component';
 export class LoginComponent implements AfterViewInit {
   private readonly sesion = inject(SesionService);
   private readonly router = inject(Router);
-  private readonly archivador = viewChild.required<ElementRef<HTMLElement>>('archivador');
   private readonly tarjeta = viewChild.required<ElementRef<HTMLElement>>('tarjeta');
+  private readonly carpetas = viewChild.required<ElementRef<HTMLElement>>('carpetas');
+  private readonly formularioAcceso = viewChild.required<ElementRef<HTMLFormElement>>('formularioAcceso');
 
-  protected readonly secciones = SECCIONES_LEGAJO;
   protected readonly enviando = signal(false);
   protected readonly error = signal<string | null>(null);
   protected readonly mostrarClave = signal(false);
@@ -48,14 +49,18 @@ export class LoginComponent implements AfterViewInit {
     }
     animate(
       this.tarjeta().nativeElement,
-      { opacity: [0, 1], transform: ['translateY(24px) scale(0.985)', 'translateY(0px) scale(1)'] },
-      { duration: 0.6, ease: [0.22, 1, 0.36, 1] },
+      { opacity: [0, 1], transform: ['translateY(28px) scale(0.98)', 'translateY(0px) scale(1)'] },
+      { duration: 0.65, ease: CURVA_SUAVE },
     );
-    const pestanas = this.archivador().nativeElement.querySelectorAll<HTMLElement>('.pestana');
     animate(
-      pestanas,
-      { opacity: [0, 1], transform: ['translateY(18px)', 'translateY(0px)'] },
-      { delay: stagger(0.035, { startDelay: 0.3 }), duration: 0.5, ease: [0.22, 1, 0.36, 1] },
+      this.carpetas().nativeElement.querySelectorAll<HTMLElement>('.carpeta'),
+      { opacity: [0, 1], transform: ['translateY(26px)', 'translateY(0px)'] },
+      { delay: stagger(0.09, { startDelay: 0.35 }), duration: 0.7, ease: CURVA_SUAVE },
+    );
+    animate(
+      this.formularioAcceso().nativeElement.querySelectorAll<HTMLElement>('.entra'),
+      { opacity: [0, 1], transform: ['translateX(16px)', 'translateX(0px)'] },
+      { delay: stagger(0.06, { startDelay: 0.25 }), duration: 0.5, ease: CURVA_SUAVE },
     );
   }
 
@@ -72,6 +77,7 @@ export class LoginComponent implements AfterViewInit {
     if (this.formulario.invalid) {
       this.formulario.markAllAsTouched();
       this.error.set('Escribe tu usuario o correo y tu contraseña.');
+      this.sacudir();
       return;
     }
     this.enviando.set(true);
@@ -79,12 +85,36 @@ export class LoginComponent implements AfterViewInit {
     try {
       const { identificador, clave } = this.formulario.getRawValue();
       const usuario = await this.sesion.iniciar(identificador.trim(), clave);
+      await this.salir();
       await this.router.navigateByUrl(usuario.debeCambiarClave ? '/cambiar-clave' : '/');
     } catch (error: unknown) {
       this.error.set(mensajeDeError(error));
       this.formulario.controls.clave.reset();
+      this.sacudir();
     } finally {
       this.enviando.set(false);
     }
+  }
+
+  private sacudir(): void {
+    if (prefiereMenosMovimiento()) {
+      return;
+    }
+    animate(
+      this.formularioAcceso().nativeElement,
+      { transform: ['translateX(0px)', 'translateX(-9px)', 'translateX(8px)', 'translateX(-5px)', 'translateX(3px)', 'translateX(0px)'] },
+      { duration: 0.42, ease: 'easeOut' },
+    );
+  }
+
+  private async salir(): Promise<void> {
+    if (prefiereMenosMovimiento()) {
+      return;
+    }
+    await animate(
+      this.tarjeta().nativeElement,
+      { opacity: [1, 0], transform: ['translateY(0px) scale(1)', 'translateY(-12px) scale(0.985)'] },
+      { duration: 0.32, ease: CURVA_SUAVE },
+    );
   }
 }
