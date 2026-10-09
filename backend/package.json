@@ -7,7 +7,7 @@
   "scripts": {
     "build": "nest build",
     "start:prod": "node dist/main.js",
-    "semilla": "node dist/semilla.js",
+    "seed": "node dist/seed.js",
     "lint": "eslint \"src/**/*.ts\"",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "prisma:generate": "prisma generate",
