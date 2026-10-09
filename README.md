@@ -163,7 +163,7 @@ En rojo, las secciones con tipos de acceso restringido. La restricción va por t
 | Contratos con número (CAS N.° 036-2022, Contrato Administrativo N.° 0089-2022) | Tipo 0202 o 0203, con `036-2022` o `0089-2022` en el campo número |
 | Tipo de personal, régimen, cargo, área y fecha de ingreso | Campos de la ficha y del vínculo, no se suben como PDF |
 | Resolución de nombramiento y resolución CAS | 02 Incorporación |
-| Resolución SERUMS | 04 Experiencia laboral |
+| Resolución SERUMS | 03 Formación académica y capacitación |
 | Descanso médico común | 13, restringido |
 | Descanso médico por accidente de trabajo o enfermedad ocupacional | 10, restringido |
 | Constancia de trabajo de un empleador anterior | 04 Experiencia laboral |
@@ -224,6 +224,7 @@ Código de cuatro dígitos: sección y tipo. El 99 de cada sección es "Otro". R
 | 0313 | Taller | | | |
 | 0314 | Seminario | | | |
 | 0315 | Constancia de capacitación | | | |
+| 0316 | Resolución SERUMS | | Sí | |
 | 0399 | Otro documento académico o de capacitación | | | |
 
 **04 Experiencia laboral** (carpeta `04_Experiencia_Laboral`)
@@ -233,7 +234,7 @@ Código de cuatro dígitos: sección y tipo. El 99 de cada sección es "Otro". R
 | 0401 | Constancia de trabajo de empleador anterior | | | |
 | 0402 | Certificado de trabajo | | | |
 | 0403 | Resolución que acredita servicios anteriores | | Sí | |
-| 0404 | Resolución SERUMS | | Sí | |
+| 0404 | Constancia de prácticas | | | |
 | 0499 | Otro documento que acredite experiencia laboral | | | |
 
 **05 Movimientos del personal** (carpeta `05_Movimientos_del_Personal`)
@@ -241,13 +242,14 @@ Código de cuatro dígitos: sección y tipo. El 99 de cada sección es "Otro". R
 | Código | Tipo | R | Nº | V |
 |---|---|---|---|---|
 | 0501 | Memorando de rotación | | Sí | |
-| 0502 | Memorando de encargatura | | Sí | |
+| 0502 | Memorando o documento de encargatura | | Sí | |
 | 0503 | Cambio de funciones | | Sí | |
-| 0504 | Destaque | | Sí | Sí |
-| 0505 | Reasignación | | Sí | |
-| 0506 | Designación | | Sí | |
+| 0504 | Resolución de destaque | | Sí | Sí |
+| 0505 | Resolución de reasignación | | Sí | |
+| 0506 | Resolución de designación | | Sí | |
 | 0507 | Resolución Directoral Regional | | Sí | |
 | 0508 | Resolución relacionada con movimientos | | Sí | |
+| 0509 | Resolución de rotación | | Sí | |
 | 0599 | Otro memorando de acción de personal | | | |
 
 **06 Compensaciones** (carpeta `06_Compensaciones`)
@@ -258,6 +260,8 @@ Código de cuatro dígitos: sección y tipo. El 99 de cada sección es "Otro". R
 | 0602 | Bonificación | | | |
 | 0603 | Asignación | | | |
 | 0604 | Beneficio laboral | | | |
+| 0605 | Informe de compensaciones | | | |
+| 0606 | Constancia de pago | | | |
 | 0699 | Otro documento económico | | | |
 
 **07 Evaluación de desempeño y progresión en la carrera** (carpeta `07_Evaluacion_y_Progresion`)
@@ -269,6 +273,7 @@ Código de cuatro dígitos: sección y tipo. El 99 de cada sección es "Otro". R
 | 0703 | Evaluación periódica | | | |
 | 0704 | Documento de ascenso o progresión | | Sí | |
 | 0705 | Memorando relacionado con desempeño | | Sí | |
+| 0706 | Informe de cumplimiento de metas | | | |
 | 0799 | Otro documento de evaluación laboral | | | |
 
 **08 Reconocimientos y sanciones disciplinarias** (carpeta `08_Reconocimientos_y_Sanciones`)
@@ -283,6 +288,7 @@ Código de cuatro dígitos: sección y tipo. El 99 de cada sección es "Otro". R
 | 0806 | Resolución sancionadora | Sí | Sí | |
 | 0807 | Proceso administrativo disciplinario | Sí | Sí | |
 | 0808 | Suspensión | Sí | Sí | |
+| 0809 | Carta de reconocimiento | | | |
 | 0899 | Otro documento disciplinario | Sí | | |
 
 **09 Relaciones laborales individuales y colectivas** (carpeta `09_Relaciones_Laborales`)
@@ -293,6 +299,9 @@ Código de cuatro dígitos: sección y tipo. El 99 de cada sección es "Otro". R
 | 0902 | Solicitud sobre condiciones laborales | | | |
 | 0903 | Documento de relación individual | | | |
 | 0904 | Documento colectivo | | | |
+| 0905 | Acta de reunión laboral | | Sí | |
+| 0906 | Convenio colectivo | | Sí | |
+| 0907 | Resolución sobre relación laboral | | Sí | |
 | 0999 | Otro documento de relaciones laborales | | | |
 
 **10 Seguridad y Salud en el Trabajo y bienestar social** (carpeta `10_SST_y_Bienestar_Social`)
@@ -300,9 +309,12 @@ Código de cuatro dígitos: sección y tipo. El 99 de cada sección es "Otro". R
 | Código | Tipo | R | Nº | V |
 |---|---|---|---|---|
 | 1001 | Documento de SST | | | |
-| 1002 | Evaluación ocupacional | Sí | | Sí |
+| 1002 | Evaluación o aptitud ocupacional | Sí | | Sí |
 | 1003 | Documento de bienestar social | | | |
 | 1004 | Licencia o descanso médico de origen ocupacional | Sí | | |
+| 1005 | Constancia de inducción SST | | | |
+| 1006 | Constancia de capacitación SST | | | |
+| 1007 | Acta de entrega de EPP | | | |
 | 1099 | Otro documento de SST o bienestar | | | |
 
 **11 Desvinculación** (carpeta `11_Desvinculacion`)
@@ -315,6 +327,8 @@ Código de cuatro dígitos: sección y tipo. El 99 de cada sección es "Otro". R
 | 1104 | Constancia de trabajo emitida por la entidad | | | |
 | 1105 | Liquidación | | | |
 | 1106 | Entrega de cargo | | | |
+| 1107 | Resolución de jubilación | | Sí | |
+| 1108 | Sustento de fallecimiento | Sí | | |
 | 1199 | Otro documento de salida | | | |
 
 **12 Otros que considere la entidad** (carpeta `12_Otros`)
@@ -324,6 +338,7 @@ Código de cuatro dígitos: sección y tipo. El 99 de cada sección es "Otro". R
 | 1201 | Comunicación administrativa | | | |
 | 1202 | Documentación complementaria | | | |
 | 1203 | Anexo | | | |
+| 1204 | Informe complementario | | | |
 | 1299 | Documento que no corresponde a otra sección | | | |
 
 **13 Vacaciones, licencias y permisos** (carpeta `13_Vacaciones_Licencias_y_Permisos`)
@@ -335,9 +350,34 @@ Código de cuatro dígitos: sección y tipo. El 99 de cada sección es "Otro". R
 | 1303 | Rol de vacaciones | | | |
 | 1304 | Licencia con goce | | | |
 | 1305 | Licencia sin goce | | | |
-| 1306 | Permiso | | | |
+| 1306 | Autorización de permiso | | | |
 | 1307 | Descanso médico | Sí | | |
+| 1308 | Solicitud de licencia | | | |
+| 1309 | Resolución de licencia | | Sí | |
+| 1310 | Solicitud de permiso | | | |
+| 1311 | Documento de reincorporación | | | |
 | 1399 | Otro documento de ausencias autorizadas | | | |
+
+### Campos propios por sección
+
+Además de tipo, número, fecha de emisión, vencimiento, emisor, observaciones y ubicación física, cada sección pide sus propios datos. Se guardan en `documento.datos`.
+
+| Sección | Campos |
+|---|---|
+| 02 | Régimen o modalidad, inicio del vínculo, fin del vínculo, área o dependencia |
+| 03 | Institución emisora, carrera o curso, fecha de culminación, fecha de vencimiento |
+| 04 | Entidad donde trabajó, cargo desempeñado, inicio y fin del período |
+| 05 | Tipo de movimiento, área de origen, área de destino, fecha de efecto |
+| 06 | Concepto, período de referencia, fecha de efecto, referencia administrativa |
+| 07 | Período evaluado, cargo evaluado, resultado, área evaluadora |
+| 08 | Categoría (reconocimiento, sanción, actuación disciplinaria), autoridad emisora, fecha de efecto, nivel de acceso |
+| 09 | Materia, instancia participante, fecha de reunión, número de expediente |
+| 10 | Categoría SST, área responsable, vigencia, nivel de acceso |
+| 11 | Motivo de cese, fecha efectiva, sustento, área que tramita |
+| 12 | Categoría propuesta, justificación (obligatoria), oficina emisora |
+| 13 | Clase de ausencia, fecha de inicio, fecha de término, días autorizados, área que autoriza |
+
+Nivel de acceso por documento: **Restringido** (Administrador y Operador) o **Muy restringido** (solo Administrador). Los tipos marcados con R nunca bajan de Restringido. En la sección 10 no se registran diagnósticos ni datos clínicos en campos abiertos.
 
 ## Módulos
 
@@ -388,12 +428,13 @@ erDiagram
     USUARIO |o--o{ AUDITORIA : genera
     TRABAJADOR |o--o{ AUDITORIA : "afecta a"
     USUARIO |o--o{ BACKUP_EJECUCION : "lanza manualmente"
+    USUARIO ||--o{ CODIGO_RECUPERACION : solicita
 
     USUARIO {
         uuid id PK
         varchar usuario UK
         varchar nombre_completo
-        varchar correo
+        varchar correo UK "para iniciar sesión y recuperar la clave"
         text clave_hash "argon2id"
         uuid rol_id FK
         bool activo
@@ -456,6 +497,8 @@ erDiagram
         varchar correo
         date fecha_ingreso "ingreso a la institución"
         varchar estado "ACTIVO o CESADO"
+        varchar movimiento_actual "SIN_MOVIMIENTO, ROTACION, DESTAQUE, ENCARGATURA, REASIGNACION"
+        date movimiento_fecha
         timestamptz creado_en
         timestamptz actualizado_en
     }
@@ -486,6 +529,17 @@ erDiagram
         varchar nombre
         varchar carpeta "nombre de carpeta en el ZIP"
         text descripcion
+        jsonb campos "campos propios de la sección"
+    }
+    CODIGO_RECUPERACION {
+        uuid id PK
+        uuid usuario_id FK
+        char codigo_hash "SHA-256 del código de 6 dígitos"
+        timestamptz expira_en "10 minutos"
+        int intentos "máximo 5"
+        timestamptz usado_en
+        inet ip
+        timestamptz creado_en
     }
     TIPO_DOCUMENTO {
         int id PK
@@ -515,6 +569,8 @@ erDiagram
         varchar emisor
         text observaciones
         varchar ubicacion_fisica "caja o archivador del original"
+        jsonb datos "campos propios de la sección"
+        varchar nivel_acceso "NORMAL, RESTRINGIDO, MUY_RESTRINGIDO"
         varchar estado "PROCESANDO, DISPONIBLE, ERROR, ANULADO"
         text detalle_error
         text motivo_anulacion
@@ -628,7 +684,11 @@ stateDiagram-v2
     FINALIZADO --> [*]
 ```
 
-Motivos de fin de vínculo: `RENUNCIA`, `TERMINO_CONTRATO`, `CESE`, `CAMBIO_REGIMEN`, `CAMBIO_CARGO_O_AREA`, `RENOVACION`, `FALLECIMIENTO`, `OTRO`.
+Motivos de cese: `RENUNCIA`, `JUBILACION`, `FALLECIMIENTO`, `FIN_CONTRATO`, `DESTITUCION`, `OTRA_CAUSA`. Motivos de fin de vínculo sin cese: `RENOVACION`, `CAMBIO_REGIMEN`, `CAMBIO_CARGO_O_AREA`.
+
+- El reingreso exige una fecha posterior al último cese y no se permite si el motivo fue fallecimiento.
+- El movimiento actual (rotación, destaque, encargatura, reasignación) no es un estado laboral: un trabajador rotado sigue ACTIVO. Se actualiza con la fecha del movimiento y su sustento va en la sección 05.
+- Registrar un PDF de cese no cambia el estado: el cese se registra en la ficha con motivo y fecha.
 
 El trabajador no se borra. Al cesar, su legajo sigue consultable y en faltantes se le exigen los documentos de cese.
 
@@ -690,7 +750,7 @@ sequenceDiagram
     participant R as Redis
     participant P as PostgreSQL
 
-    U->>N: Ingresa usuario y contraseña
+    U->>N: Ingresa usuario o correo y contraseña
     N->>X: solicitud de inicio de sesión
     X->>A: reenvía
     A->>A: límite de 10 intentos por minuto por IP
@@ -723,6 +783,46 @@ sequenceDiagram
 - La sesión se renueva con cada petición y expira tras 30 minutos sin actividad.
 - Al cambiar el rol de un usuario o los permisos de un rol, se cierran las sesiones afectadas y el cambio rige de inmediato.
 - Al cerrar sesión se borra la clave en Redis y se registra `LOGOUT`.
+- El Administrador puede desbloquear una cuenta antes de los 15 minutos.
+
+### Recuperación de contraseña
+
+```mermaid
+sequenceDiagram
+    actor U as Usuario
+    participant N as Navegador
+    participant A as API
+    participant P as PostgreSQL
+    participant C as Servidor de correo
+
+    U->>N: Olvidé mi contraseña e ingresa su usuario o correo
+    N->>A: solicita el código
+    A->>A: límite de 3 solicitudes cada 15 minutos por usuario e IP
+    A->>P: busca usuario activo con correo
+    alt existe
+        A->>P: invalida códigos anteriores y guarda el hash del nuevo, vence en 10 minutos
+        A->>C: envía el código de 6 dígitos
+        A->>P: auditoría RECUPERACION_SOLICITADA
+    end
+    A-->>N: misma respuesta exista o no, con el correo enmascarado si existe
+    U->>N: ingresa el código
+    N->>A: verifica el código
+    alt vencido, usado o más de 5 intentos
+        A-->>N: 400 solicita otro código
+    else incorrecto
+        A->>P: intentos más 1
+        A-->>N: 400 código incorrecto
+    else correcto
+        A->>P: marca el código como verificado
+        A-->>N: 200 con un token de un solo uso válido 10 minutos
+    end
+    U->>N: nueva contraseña dos veces
+    N->>A: guarda la contraseña con el token
+    A->>P: clave_hash nueva, desbloquea la cuenta, código usado
+    A->>A: cierra todas las sesiones del usuario
+    A->>P: auditoría CLAVE_RECUPERADA
+    A-->>N: 200 vuelve al inicio de sesión
+```
 
 ### Autorización de cada petición
 
@@ -756,11 +856,11 @@ Sin `documentos.restringidos`, los tipos restringidos se filtran en SQL: no sale
 
 ### Subida de un documento
 
-El archivo se empieza a subir al soltarlo, mientras el digitador llena los datos.
+El archivo se empieza a subir al soltarlo, mientras el operador llena los datos.
 
 ```mermaid
 sequenceDiagram
-    actor D as Digitador
+    actor D as Operador
     participant N as Navegador
     participant X as nginx
     participant A as API
@@ -798,7 +898,7 @@ sequenceDiagram
     A->>P: auditoría DOCUMENTO_SUBIR
     A-->>N: 202 documento en proceso
     N-->>D: el documento aparece en la sección como Procesando
-    Note over D,N: el digitador ya puede soltar el siguiente archivo
+    Note over D,N: el operador ya puede soltar el siguiente archivo
     Q->>W: entrega el trabajo
     W->>S: lee el original
     W->>W: valida, optimiza, linealiza, calcula hash y folios
@@ -906,7 +1006,7 @@ flowchart TD
     PEN2 --> BAN
     PEN3 --> BAN
     PEN4 --> BAN
-    BAN["Bandeja del lote"] --> O{"Acción del digitador"}
+    BAN["Bandeja del lote"] --> O{"Acción del operador"}
     O -->|"Clasificar"| P["Elige trabajador, tipo y datos<br/>viendo el PDF en el visor"]
     P --> L
     O -->|"Dividir"| Q["Ve las páginas del PDF,<br/>marca rangos y asigna tipo y datos a cada uno"]
@@ -1106,8 +1206,8 @@ Acciones registradas:
 
 | Módulo | Acciones |
 |---|---|
-| Sesión | `LOGIN`, `LOGIN_FALLIDO`, `LOGOUT`, `CLAVE_CAMBIAR`, `ACCESO_DENEGADO` |
-| Usuarios | `USUARIO_CREAR`, `USUARIO_EDITAR`, `USUARIO_DESACTIVAR`, `USUARIO_RESTABLECER_CLAVE`, `ROL_CREAR`, `ROL_EDITAR` |
+| Sesión | `LOGIN`, `LOGIN_FALLIDO`, `LOGOUT`, `CLAVE_CAMBIAR`, `ACCESO_DENEGADO`, `RECUPERACION_SOLICITADA`, `CLAVE_RECUPERADA` |
+| Usuarios | `USUARIO_CREAR`, `USUARIO_EDITAR`, `USUARIO_DESACTIVAR`, `USUARIO_ACTIVAR`, `USUARIO_DESBLOQUEAR`, `USUARIO_RESTABLECER_CLAVE`, `ROL_CREAR`, `ROL_EDITAR` |
 | Catálogos | `CATALOGO_CREAR`, `CATALOGO_EDITAR`, `REQUISITO_CREAR`, `REQUISITO_EDITAR`, `REQUISITO_QUITAR` |
 | Personal | `TRABAJADOR_CREAR`, `TRABAJADOR_EDITAR`, `FAMILIAR_CREAR`, `FAMILIAR_EDITAR`, `FAMILIAR_QUITAR`, `VINCULO_CREAR`, `VINCULO_FINALIZAR` |
 | Documentos | `DOCUMENTO_SUBIR`, `DOCUMENTO_EDITAR`, `DOCUMENTO_RECLASIFICAR`, `DOCUMENTO_REEMPLAZAR`, `DOCUMENTO_ANULAR`, `DOCUMENTO_REINTENTAR`, `DOCUMENTO_VER`, `DOCUMENTO_DESCARGAR` |
@@ -1177,29 +1277,31 @@ flowchart TD
 
 ## Roles y permisos
 
-Roles en Usuarios > Roles. La semilla crea estos cuatro; se pueden crear otros.
+Roles en Usuarios > Roles. La semilla crea estos tres; se pueden crear otros.
 
-| Permiso | Administrador | Jefe de Legajos | Digitador | Consulta |
-|---|---|---|---|---|
-| `usuarios.gestionar` | Sí | No | No | No |
-| `catalogos.gestionar` | Sí | Sí | No | No |
-| `personal.ver` | Sí | Sí | Sí | Sí |
-| `personal.editar` | Sí | Sí | Sí | No |
-| `documentos.ver` | Sí | Sí | Sí | Sí |
-| `documentos.subir` | Sí | Sí | Sí | No |
-| `documentos.editar` | Sí | Sí | Sí | No |
-| `documentos.anular` | Sí | Sí | No | No |
-| `documentos.descargar` | Sí | Sí | Sí | Sí |
-| `documentos.restringidos` | Sí | Sí | No | No |
-| `carga_masiva.usar` | Sí | Sí | Sí | No |
-| `reportes.ver` | Sí | Sí | No | Sí |
-| `reportes.exportar` | Sí | Sí | No | Sí |
-| `auditoria.ver` | Sí | Sí | No | No |
-| `backup.gestionar` | Sí | No | No | No |
+| Permiso | Administrador | Operador | Consulta |
+|---|---|---|---|
+| `usuarios.gestionar` | Sí | No | No |
+| `catalogos.gestionar` | Sí | No | No |
+| `personal.ver` | Sí | Sí | Sí |
+| `personal.editar` | Sí | Sí | No |
+| `documentos.ver` | Sí | Sí | Sí |
+| `documentos.subir` | Sí | Sí | No |
+| `documentos.editar` | Sí | Sí | No |
+| `documentos.anular` | Sí | Sí | No |
+| `documentos.descargar` | Sí | Sí | Sí |
+| `documentos.restringidos` | Sí | Sí | No |
+| `documentos.muy_restringidos` | Sí | No | No |
+| `carga_masiva.usar` | Sí | Sí | No |
+| `reportes.ver` | Sí | Sí | Sí |
+| `reportes.exportar` | Sí | Sí | Sí |
+| `auditoria.ver` | Sí | No | No |
+| `backup.gestionar` | Sí | No | No |
 
 Reglas:
 
-- El digitador edita o reclasifica solo lo que subió en las últimas 48 horas. Después, el Jefe de Legajos.
+- El Operador edita o reclasifica solo lo que subió en las últimas 48 horas. Después, el Administrador.
+- Editar los datos de un documento, reemplazarlo o anularlo exige un motivo, que queda en la auditoría.
 - Nadie se quita a sí mismo `usuarios.gestionar` y siempre queda un Administrador activo.
 - Los usuarios se desactivan, no se borran.
 
@@ -1208,7 +1310,10 @@ Reglas:
 ```mermaid
 flowchart LR
     LOGIN["Inicio de sesión"] --> CC["Cambiar clave<br/>primer ingreso"]
-    LOGIN --> INI["Inicio<br/>búsqueda, accesos rápidos,<br/>avance de digitalización"]
+    LOGIN --> REC["Recuperar contraseña<br/>código al correo"]
+    REC --> LOGIN
+    LOGIN --> INI["Inicio<br/>total, activos, cesados,<br/>rotados, destacados,<br/>ingresos recientes"]
+    INI --> PRF["Mi perfil<br/>datos y cambio de clave"]
     CC --> INI
     INI --> PER["Personal<br/>listado con filtros"]
     PER --> TRA["Trabajador<br/>ficha, familiares, vínculos"]
@@ -1304,6 +1409,7 @@ Todos se ven en pantalla y se exportan a Excel, generado en streaming.
 | PDFs procesados a la vez | Núcleos del servidor menos uno |
 | Expiración de sesión por inactividad | 30 minutos |
 | Hora de la copia diaria | 01:00 |
+| Vigencia del código de recuperación | 10 minutos, 5 intentos |
 
 Las credenciales, conexiones y ubicaciones de almacenamiento van en variables de entorno del servidor.
 
