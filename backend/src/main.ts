@@ -6,7 +6,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
-import { ENTORNO, type Entorno } from './entorno/entorno';
+import { ENTORNO, type Entorno } from './environment/environment';
 
 async function iniciar(): Promise<void> {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, { logger: ['error', 'warn', 'log'] });
