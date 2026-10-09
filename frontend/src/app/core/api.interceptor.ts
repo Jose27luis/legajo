@@ -2,12 +2,12 @@ import { HttpErrorResponse, type HttpInterceptorFn } from '@angular/common/http'
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
-import { SesionService } from './sesion.service';
+import { SessionService } from './session.service';
 
 const RUTAS_SIN_REDIRECCION = ['/api/auth/login', '/api/auth/me'];
 
 export const apiInterceptor: HttpInterceptorFn = (solicitud, siguiente) => {
-  const sesion = inject(SesionService);
+  const sesion = inject(SessionService);
   const router = inject(Router);
   const preparada = solicitud.clone({ withCredentials: true, setHeaders: { 'X-Legajos': '1' } });
 
