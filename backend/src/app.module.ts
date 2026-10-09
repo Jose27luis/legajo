@@ -1,13 +1,13 @@
 import { Module } from '@nestjs/common';
-import { EntornoModule } from './entorno/entorno.module';
+import { EnvironmentModule } from './environment/environment.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { RedisModule } from './redis/redis.module';
-import { AuditoriaModule } from './auditoria/auditoria.module';
+import { AuditModule } from './audit/audit.module';
 import { AuthModule } from './auth/auth.module';
-import { SaludController } from './salud/salud.controller';
+import { HealthController } from './health/health.controller';
 
 @Module({
-  imports: [EntornoModule, PrismaModule, RedisModule, AuditoriaModule, AuthModule],
-  controllers: [SaludController],
+  imports: [EnvironmentModule, PrismaModule, RedisModule, AuditModule, AuthModule],
+  controllers: [HealthController],
 })
 export class AppModule {}
