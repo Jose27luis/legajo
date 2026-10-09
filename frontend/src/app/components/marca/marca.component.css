@@ -3,14 +3,58 @@
   flex: none;
 }
 
-.fondo {
-  fill: var(--marino-medio);
+.marca {
+  display: inline-grid;
+  place-items: center;
 }
 
-.pestana {
-  fill: var(--celeste);
+.marca.con-fondo {
+  padding: 14%;
+  border-radius: 24%;
+  background: #fff;
+  box-shadow: 0 6px 18px rgb(3 15 28 / 0.28);
+}
+
+svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.hojas rect,
+.carpeta {
+  stroke: #fff;
+  stroke-width: 12;
+  stroke-linejoin: round;
+}
+
+.hoja-1 {
+  fill: #1c5f9c;
+}
+
+.hoja-2 {
+  fill: #1a5a96;
+}
+
+.hoja-3 {
+  fill: #7cc4ef;
+}
+
+.hoja-4 {
+  fill: #dbedff;
+}
+
+.renglones {
+  fill: none;
+  stroke: var(--primario);
+  stroke-width: 26;
+  stroke-linecap: round;
 }
 
 .carpeta {
-  fill: var(--celeste-claro);
+  fill: #153a63;
+}
+
+.cruz {
+  fill: #fff;
 }
