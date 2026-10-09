@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { RedisService } from '../redis/redis.service';
 
 @Injectable()
-export class LimiteService {
+export class RateLimitService {
   constructor(private readonly redis: RedisService) {}
 
   async consumir(clave: string, maximo: number, ventanaSegundos: number): Promise<boolean> {
