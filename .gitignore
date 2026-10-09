@@ -1,0 +1,17 @@
+node_modules/
+.pnpm-store/
+dist/
+.angular/
+coverage/
+*.tsbuildinfo
+backend/src/generated/
+
+.env
+.env.*
+!.env.example
+
+AGENTS.md
+CLAUDE.md
+
+*.log
+.DS_Store
