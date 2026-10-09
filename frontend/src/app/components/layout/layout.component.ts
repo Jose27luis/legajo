@@ -1,18 +1,18 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { SesionService } from '../../core/sesion.service';
-import { MarcaComponent } from '../marca/marca.component';
+import { SessionService } from '../../core/session.service';
+import { BrandComponent } from '../brand/brand.component';
 
 @Component({
-  selector: 'app-marco',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, MarcaComponent],
+  selector: 'app-layout',
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, BrandComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: './marco.component.html',
-  styleUrl: './marco.component.css',
+  templateUrl: './layout.component.html',
+  styleUrl: './layout.component.css',
 })
-export class MarcoComponent {
+export class LayoutComponent {
   private readonly router = inject(Router);
-  protected readonly sesion = inject(SesionService);
+  protected readonly sesion = inject(SessionService);
   protected readonly saliendo = signal(false);
 
   protected async cerrarSesion(): Promise<void> {
