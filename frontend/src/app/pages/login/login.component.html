@@ -1,32 +1,27 @@
 <div class="pantalla">
   <div class="tarjeta" #tarjeta>
     <section class="presentacion" aria-labelledby="titulo-sistema">
-      <div class="identidad">
-        <app-marca [tamano]="46" />
-        <p>Dirección Regional de Salud<br />Madre de Dios</p>
-      </div>
+      <app-marca [tamano]="54" />
 
       <div class="titular">
-        <h2 id="titulo-sistema">Sistema web de legajos digitales</h2>
-        <p>Gestión ordenada y centralizada de la documentación del personal, en las 13 secciones del legajo.</p>
+        <h2 id="titulo-sistema">Legajos de Personal</h2>
+        <p>Dirección Regional de Salud Madre de Dios</p>
       </div>
 
-      <ol class="pestanas" #archivador aria-label="Secciones del legajo">
-        @for (seccion of secciones; track seccion.numero) {
-          <li class="pestana">
-            <span class="numero">{{ seccion.numero }}</span>
-            <span class="nombre">{{ seccion.nombre }}</span>
-          </li>
-        }
-      </ol>
+      <div class="carpetas" #carpetas aria-hidden="true">
+        <span class="carpeta"></span>
+        <span class="carpeta"></span>
+        <span class="carpeta"></span>
+      </div>
+
+      <p class="oficina">Oficina de Personal</p>
     </section>
 
     <main class="acceso">
-      <h1>Iniciar sesión</h1>
-      <p class="bajada">Ingresa con la cuenta que te asignó la Oficina de Personal.</p>
+      <form #formularioAcceso [formGroup]="formulario" (ngSubmit)="ingresar()" novalidate>
+        <h1 class="entra">Iniciar sesión</h1>
 
-      <form [formGroup]="formulario" (ngSubmit)="ingresar()" novalidate>
-        <div class="campo">
+        <div class="campo entra">
           <label for="identificador">Usuario o correo</label>
           <input
             id="identificador"
@@ -38,7 +33,7 @@
           />
         </div>
 
-        <div class="campo">
+        <div class="campo entra">
           <label for="clave">Contraseña</label>
           <div class="con-accion">
             <input
@@ -50,12 +45,20 @@
             />
             <button
               type="button"
-              class="alternar"
+              class="ojo"
               (click)="alternarClave()"
               [attr.aria-pressed]="mostrarClave()"
+              [attr.aria-label]="mostrarClave() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
               aria-controls="clave"
             >
-              {{ mostrarClave() ? 'Ocultar' : 'Mostrar' }}
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path
+                  class="ojo-contorno"
+                  d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"
+                />
+                <circle class="ojo-pupila" [class.cerrado]="!mostrarClave()" cx="12" cy="12" r="3.2" />
+                <path class="ojo-tachado" [class.visible]="!mostrarClave()" d="M4 4l16 16" />
+              </svg>
             </button>
           </div>
         </div>
@@ -64,12 +67,15 @@
           <p class="aviso error" role="alert" animate.enter="aparece">{{ mensaje }}</p>
         }
 
-        <button class="boton principal ingresar" type="submit" [disabled]="enviando()">
-          {{ enviando() ? 'Ingresando' : 'Ingresar al sistema' }}
+        <button class="boton principal ingresar entra" type="submit" [disabled]="enviando()" [attr.aria-busy]="enviando()">
+          @if (enviando()) {
+            <span class="girando" aria-hidden="true"></span>
+            Ingresando
+          } @else {
+            Ingresar
+          }
         </button>
       </form>
-
-      <p class="pie">Si olvidaste tu contraseña, pide al administrador que la restablezca.</p>
     </main>
   </div>
 </div>
