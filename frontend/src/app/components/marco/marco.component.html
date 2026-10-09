@@ -1,0 +1,26 @@
+<div class="marco">
+  <header class="cabecera">
+    <a class="titulo" routerLink="/">
+      <app-marca [tamano]="30" />
+      <span>Legajos de Personal</span>
+    </a>
+    <div class="cuenta">
+      @if (sesion.usuario(); as usuario) {
+        <span class="persona">
+          <span class="nombre">{{ usuario.nombreCompleto }}</span>
+          <span class="rol">{{ usuario.rol }}</span>
+        </span>
+      }
+      <button type="button" class="boton" (click)="cerrarSesion()" [disabled]="saliendo()">Cerrar sesión</button>
+    </div>
+  </header>
+
+  <div class="cuerpo">
+    <nav class="menu" aria-label="Menú principal">
+      <a routerLink="/perfil" routerLinkActive="activo" ariaCurrentWhenActive="page">Mi perfil</a>
+    </nav>
+    <main class="contenido">
+      <router-outlet />
+    </main>
+  </div>
+</div>
