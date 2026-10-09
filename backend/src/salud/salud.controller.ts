@@ -10,7 +10,7 @@ class EstadoSaludDto {
 }
 
 @ApiTags('Salud')
-@Controller('salud')
+@Controller('health')
 export class SaludController {
   constructor(
     private readonly prisma: PrismaService,
