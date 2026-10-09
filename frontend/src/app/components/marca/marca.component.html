@@ -1,5 +1,17 @@
-<span class="marca" [class.con-fondo]="conFondo()" [style.width.px]="tamano()" [style.height.px]="tamano()">
-  <svg viewBox="272 251 760 760" aria-hidden="true" focusable="false">
+<span
+  class="marca"
+  [class.con-fondo]="conFondo()"
+  [style.width.px]="tamano()"
+  [style.height.px]="tamano()"
+  [style.padding.px]="relleno()"
+>
+  <svg
+    viewBox="272 251 760 760"
+    [attr.width]="tamanoDibujo()"
+    [attr.height]="tamanoDibujo()"
+    aria-hidden="true"
+    focusable="false"
+  >
     <g class="hojas">
       <rect x="298" y="368" width="200" height="290" rx="30" class="hoja-1" transform="rotate(-5 398 513)" />
       <rect x="366" y="291" width="330" height="340" rx="34" class="hoja-2" transform="rotate(-2 531 461)" />
