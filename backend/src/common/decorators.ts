@@ -1,5 +1,5 @@
 import { createParamDecorator, ExecutionContext, SetMetadata, UnauthorizedException } from '@nestjs/common';
-import type { SesionActiva, SolicitudConSesion } from './sesion';
+import type { SesionActiva, SolicitudConSesion } from './session';
 
 export const CLAVE_PUBLICO = 'legajos:publico';
 export const CLAVE_PERMISOS = 'legajos:permisos';
