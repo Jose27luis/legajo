@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class UsuarioSesionDto {
+export class SessionUserDto {
   @ApiProperty({ format: 'uuid' })
   id: string;
 
@@ -26,7 +26,7 @@ export class UsuarioSesionDto {
   ultimoAcceso: string | null;
 }
 
-export class MensajeDto {
+export class MessageDto {
   @ApiProperty()
   mensaje: string;
 }
