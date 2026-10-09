@@ -7,9 +7,9 @@ import {
   type AbstractControl,
   type ValidationErrors,
 } from '@angular/forms';
-import { SesionService } from '../../core/sesion.service';
-import { mensajeDeError } from '../../core/errores';
-import type { UsuarioSesion } from '../../core/modelos';
+import { SessionService } from '../../core/session.service';
+import { mensajeDeError } from '../../core/errors';
+import type { UsuarioSesion } from '../../core/models';
 
 function clavesCoinciden(grupo: AbstractControl): ValidationErrors | null {
   const nueva: unknown = grupo.get('claveNueva')?.value;
@@ -18,14 +18,14 @@ function clavesCoinciden(grupo: AbstractControl): ValidationErrors | null {
 }
 
 @Component({
-  selector: 'app-formulario-clave',
+  selector: 'app-password-form',
   imports: [ReactiveFormsModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: './formulario-clave.component.html',
-  styleUrl: './formulario-clave.component.css',
+  templateUrl: './password-form.component.html',
+  styleUrl: './password-form.component.css',
 })
-export class FormularioClaveComponent {
-  private readonly sesion = inject(SesionService);
+export class PasswordFormComponent {
+  private readonly sesion = inject(SessionService);
 
   readonly cambiada = output<UsuarioSesion>();
 
