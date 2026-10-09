@@ -57,7 +57,7 @@ export class AuthController {
   }
 
   @PermiteClavePendiente()
-  @Get('yo')
+  @Get('me')
   @ApiOperation({ summary: 'Usuario de la sesión actual y sus permisos' })
   @ApiResponse({ status: 200, type: UsuarioSesionDto })
   @ApiResponse({ status: 401, description: 'Sin sesión' })
@@ -66,7 +66,7 @@ export class AuthController {
   }
 
   @PermiteClavePendiente()
-  @Post('cambiar-clave')
+  @Post('change-password')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Cambia la contraseña del usuario de la sesión' })
   @ApiResponse({ status: 200, type: UsuarioSesionDto })
