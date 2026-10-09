@@ -17,7 +17,7 @@ export class SesionService {
     if (actual !== null) {
       return Promise.resolve(actual);
     }
-    this.verificacion ??= firstValueFrom(this.http.get<UsuarioSesion>('/api/auth/yo'))
+    this.verificacion ??= firstValueFrom(this.http.get<UsuarioSesion>('/api/auth/me'))
       .then(
         (usuario) => {
           this.estado.set(usuario);
@@ -39,7 +39,7 @@ export class SesionService {
 
   async cambiarClave(claveActual: string, claveNueva: string): Promise<UsuarioSesion> {
     const usuario = await firstValueFrom(
-      this.http.post<UsuarioSesion>('/api/auth/cambiar-clave', { claveActual, claveNueva }),
+      this.http.post<UsuarioSesion>('/api/auth/change-password', { claveActual, claveNueva }),
     );
     this.estado.set(usuario);
     return usuario;
