@@ -14,12 +14,13 @@ import { SesionService } from '../../core/sesion.service';
 import { mensajeDeError } from '../../core/errores';
 import { prefiereMenosMovimiento } from '../../core/movimiento';
 import { MarcaComponent } from '../../components/marca/marca.component';
+import { IlustracionArchivadorComponent } from '../../components/ilustracion-archivador/ilustracion-archivador.component';
 
 const CURVA_SUAVE: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule, MarcaComponent],
+  imports: [ReactiveFormsModule, MarcaComponent, IlustracionArchivadorComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './login.component.html',
   styleUrl: './login.component.css',
@@ -28,12 +29,12 @@ export class LoginComponent implements AfterViewInit {
   private readonly sesion = inject(SesionService);
   private readonly router = inject(Router);
   private readonly tarjeta = viewChild.required<ElementRef<HTMLElement>>('tarjeta');
-  private readonly carpetas = viewChild.required<ElementRef<HTMLElement>>('carpetas');
   private readonly formularioAcceso = viewChild.required<ElementRef<HTMLFormElement>>('formularioAcceso');
 
   protected readonly enviando = signal(false);
   protected readonly error = signal<string | null>(null);
   protected readonly mostrarClave = signal(false);
+  protected readonly mayusculasActivas = signal(false);
 
   protected readonly formulario = new FormGroup({
     identificador: new FormControl('', {
@@ -53,11 +54,6 @@ export class LoginComponent implements AfterViewInit {
       { duration: 0.65, ease: CURVA_SUAVE },
     );
     animate(
-      this.carpetas().nativeElement.querySelectorAll<HTMLElement>('.carpeta'),
-      { opacity: [0, 1], transform: ['translateY(26px)', 'translateY(0px)'] },
-      { delay: stagger(0.09, { startDelay: 0.35 }), duration: 0.7, ease: CURVA_SUAVE },
-    );
-    animate(
       this.formularioAcceso().nativeElement.querySelectorAll<HTMLElement>('.entra'),
       { opacity: [0, 1], transform: ['translateX(16px)', 'translateX(0px)'] },
       { delay: stagger(0.06, { startDelay: 0.25 }), duration: 0.5, ease: CURVA_SUAVE },
@@ -66,6 +62,10 @@ export class LoginComponent implements AfterViewInit {
 
   protected alternarClave(): void {
     this.mostrarClave.update((visible) => !visible);
+  }
+
+  protected revisarMayusculas(evento: KeyboardEvent): void {
+    this.mayusculasActivas.set(evento.getModifierState('CapsLock'));
   }
 
   protected invalido(campo: 'identificador' | 'clave'): boolean {
