@@ -1,0 +1,159 @@
+.pantalla {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(360px, 0.95fr);
+}
+
+.archivador {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  padding: 40px clamp(24px, 5vw, 64px);
+  background: var(--tinta);
+  color: #dfe9e5;
+  overflow: hidden;
+}
+
+.identidad {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 13.5px;
+  line-height: 1.35;
+  color: #b9cbc5;
+}
+
+.titulo-archivador {
+  max-width: 22ch;
+  font-size: clamp(26px, 2.6vw, 36px);
+  font-weight: 560;
+  font-variation-settings: 'wdth' 118;
+  letter-spacing: -0.01em;
+  color: #f3f7f5;
+}
+
+.pestanas {
+  list-style: none;
+  margin: auto 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0;
+}
+
+.pestana {
+  --desplazamiento: calc(var(--indice) * 10px);
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  margin-left: var(--desplazamiento);
+  margin-top: -6px;
+  padding: 11px 16px 15px;
+  border-radius: 8px 8px 0 0;
+  background: var(--ocre-claro);
+  color: var(--tinta);
+  box-shadow: 0 -1px 0 rgb(19 49 58 / 0.18), 0 -6px 14px rgb(5 20 25 / 0.28);
+  font-size: 14px;
+}
+
+.pestana:nth-child(odd) {
+  background: #ead9b5;
+}
+
+.pestana:last-child {
+  padding-bottom: 20px;
+  border-radius: 8px;
+}
+
+.numero {
+  flex: none;
+  min-width: 2ch;
+  font-weight: 700;
+  font-variation-settings: 'wdth' 80;
+  color: #8a6420;
+  font-variant-numeric: tabular-nums;
+}
+
+.nombre {
+  font-weight: 540;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.acceso {
+  display: grid;
+  place-items: center;
+  padding: 40px 24px;
+  background: var(--hoja);
+}
+
+.panel {
+  width: min(400px, 100%);
+  display: grid;
+  gap: 24px;
+}
+
+h1 {
+  font-size: 30px;
+  font-weight: 660;
+  font-variation-settings: 'wdth' 118;
+  letter-spacing: -0.015em;
+}
+
+.bajada {
+  margin-top: -14px;
+  color: var(--tinta-media);
+  font-size: 14.5px;
+}
+
+form {
+  display: grid;
+  gap: 18px;
+}
+
+.ingresar {
+  width: 100%;
+  margin-top: 4px;
+}
+
+.pie {
+  padding-top: 18px;
+  border-top: 1px solid var(--linea-suave);
+  color: var(--tinta-suave);
+  font-size: 13px;
+}
+
+@media (max-width: 900px) {
+  .pantalla {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+
+  .archivador {
+    gap: 16px;
+    padding: 20px 16px 0;
+  }
+
+  .titulo-archivador {
+    display: none;
+  }
+
+  .pestanas {
+    margin-top: 4px;
+  }
+
+  .pestana:nth-child(n + 5) {
+    display: none;
+  }
+
+  .pestana:nth-child(4) {
+    padding-bottom: 12px;
+    border-radius: 8px 8px 0 0;
+  }
+
+  .acceso {
+    place-items: start center;
+    padding: 28px 16px 40px;
+  }
+}
