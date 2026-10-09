@@ -94,11 +94,13 @@ form {
 }
 
 .logo-formulario {
+  justify-self: center;
   margin-bottom: -4px;
 }
 
 h1 {
   margin-bottom: 8px;
+  text-align: center;
   font-size: 27px;
   font-weight: 660;
   font-variation-settings: 'wdth' 108;
