@@ -10,23 +10,23 @@ import {
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { animate, stagger } from 'motion';
-import { SesionService } from '../../core/sesion.service';
-import { mensajeDeError } from '../../core/errores';
-import { prefiereMenosMovimiento } from '../../core/movimiento';
-import { MarcaComponent } from '../../components/marca/marca.component';
-import { IlustracionArchivadorComponent } from '../../components/ilustracion-archivador/ilustracion-archivador.component';
+import { SessionService } from '../../core/session.service';
+import { mensajeDeError } from '../../core/errors';
+import { prefiereMenosMovimiento } from '../../core/motion';
+import { BrandComponent } from '../../components/brand/brand.component';
+import { CabinetIllustrationComponent } from '../../components/cabinet-illustration/cabinet-illustration.component';
 
 const CURVA_SUAVE: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule, MarcaComponent, IlustracionArchivadorComponent],
+  imports: [ReactiveFormsModule, BrandComponent, CabinetIllustrationComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './login.component.html',
   styleUrl: './login.component.css',
 })
 export class LoginComponent implements AfterViewInit {
-  private readonly sesion = inject(SesionService);
+  private readonly sesion = inject(SessionService);
   private readonly router = inject(Router);
   private readonly tarjeta = viewChild.required<ElementRef<HTMLElement>>('tarjeta');
   private readonly formularioAcceso = viewChild.required<ElementRef<HTMLFormElement>>('formularioAcceso');
