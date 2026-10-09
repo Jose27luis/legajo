@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
 import { SesionService } from './sesion.service';
 
-const RUTAS_SIN_REDIRECCION = ['/api/auth/login', '/api/auth/yo'];
+const RUTAS_SIN_REDIRECCION = ['/api/auth/login', '/api/auth/me'];
 
 export const apiInterceptor: HttpInterceptorFn = (solicitud, siguiente) => {
   const sesion = inject(SesionService);
