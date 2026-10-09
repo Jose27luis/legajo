@@ -1,9 +1,9 @@
 import { randomBytes } from 'node:crypto';
 import { Inject, Injectable } from '@nestjs/common';
 import { z } from 'zod';
-import { ENTORNO, type Entorno } from '../entorno/entorno';
+import { ENTORNO, type Entorno } from '../environment/environment';
 import { RedisService } from '../redis/redis.service';
-import type { SesionActiva } from '../comun/sesion';
+import type { SesionActiva } from '../common/session';
 
 const esquemaSesion = z.object({
   sid: z.string(),
@@ -23,7 +23,7 @@ const claveSesionesDeUsuario = (usuarioId: string) => `usuario:${usuarioId}:sesi
 export type DatosNuevaSesion = Omit<SesionActiva, 'sid' | 'creadaEn'>;
 
 @Injectable()
-export class SesionService {
+export class SessionService {
   private readonly duracionSegundos: number;
 
   constructor(
