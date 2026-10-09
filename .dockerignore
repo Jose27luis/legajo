@@ -1,0 +1,8 @@
+**/node_modules
+**/dist
+**/.angular
+backend
+.env
+.git
+*.html
+!frontend/src/**/*.html
