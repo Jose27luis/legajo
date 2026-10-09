@@ -12,18 +12,18 @@ export const routes: Routes = [
     path: 'change-password',
     title: 'Crea tu contraseña - Legajos de Personal',
     canMatch: [autenticadoGuard],
-    loadComponent: () => import('./pages/cambiar-clave/cambiar-clave.component').then((m) => m.CambiarClaveComponent),
+    loadComponent: () => import('./pages/change-password/change-password.component').then((m) => m.ChangePasswordComponent),
   },
   {
     path: '',
     canMatch: [autenticadoGuard, claveAlDiaGuard],
-    loadComponent: () => import('./components/marco/marco.component').then((m) => m.MarcoComponent),
+    loadComponent: () => import('./components/layout/layout.component').then((m) => m.LayoutComponent),
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'profile' },
       {
         path: 'profile',
         title: 'Mi perfil - Legajos de Personal',
-        loadComponent: () => import('./pages/perfil/perfil.component').then((m) => m.PerfilComponent),
+        loadComponent: () => import('./pages/profile/profile.component').then((m) => m.ProfileComponent),
       },
     ],
   },
