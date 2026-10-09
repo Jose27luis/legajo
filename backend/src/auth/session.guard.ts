@@ -6,21 +6,21 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { AuditoriaService } from '../auditoria/auditoria.service';
-import { datosCliente } from '../comun/cliente';
-import { CLAVE_CLAVE_PENDIENTE, CLAVE_PERMISOS, CLAVE_PUBLICO } from '../comun/decoradores';
-import { NOMBRE_COOKIE_SESION, type SolicitudConSesion } from '../comun/sesion';
-import { SesionService } from './sesion.service';
+import { AuditService } from '../audit/audit.service';
+import { datosCliente } from '../common/client';
+import { CLAVE_CLAVE_PENDIENTE, CLAVE_PERMISOS, CLAVE_PUBLICO } from '../common/decorators';
+import { NOMBRE_COOKIE_SESION, type SolicitudConSesion } from '../common/session';
+import { SessionService } from './session.service';
 
 const METODOS_QUE_MODIFICAN = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 const CABECERA_ANTI_CSRF = 'x-legajos';
 
 @Injectable()
-export class SesionGuard implements CanActivate {
+export class SessionGuard implements CanActivate {
   constructor(
     private readonly reflector: Reflector,
-    private readonly sesiones: SesionService,
-    private readonly auditoria: AuditoriaService,
+    private readonly sesiones: SessionService,
+    private readonly auditoria: AuditService,
   ) {}
 
   async canActivate(contexto: ExecutionContext): Promise<boolean> {
