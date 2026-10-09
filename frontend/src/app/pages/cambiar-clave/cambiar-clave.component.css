@@ -3,17 +3,19 @@
   display: grid;
   place-items: center;
   padding: 32px 16px;
+  background:
+    radial-gradient(circle at 15% 12%, #205980 0, transparent 43%),
+    linear-gradient(128deg, var(--marino-profundo) 0%, #143c5d 51%, #0d273f 100%);
 }
 
 .panel {
   width: min(480px, 100%);
   display: grid;
   gap: 20px;
-  padding: 36px clamp(20px, 5vw, 40px);
+  padding: 38px clamp(20px, 5vw, 40px);
   background: var(--hoja);
-  border: 1px solid var(--linea);
-  border-radius: var(--radio-panel);
-  box-shadow: var(--sombra-panel);
+  border-radius: 20px;
+  box-shadow: var(--sombra-flotante);
 }
 
 h1 {
