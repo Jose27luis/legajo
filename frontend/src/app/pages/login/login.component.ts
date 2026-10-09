@@ -86,7 +86,7 @@ export class LoginComponent implements AfterViewInit {
       const { identificador, clave } = this.formulario.getRawValue();
       const usuario = await this.sesion.iniciar(identificador.trim(), clave);
       await this.salir();
-      await this.router.navigateByUrl(usuario.debeCambiarClave ? '/cambiar-clave' : '/');
+      await this.router.navigateByUrl(usuario.debeCambiarClave ? '/change-password' : '/');
     } catch (error: unknown) {
       this.error.set(mensajeDeError(error));
       this.formulario.controls.clave.reset();
