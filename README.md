@@ -13,6 +13,7 @@ Incluye subida por partes y carga masiva de PDFs, descarga del legajo en ZIP, ac
 | Frontend | Angular 22 (SPA, componentes standalone, OnPush, signals) | Cada componente en tres archivos: `.ts`, `.html` (`templateUrl`) y `.css` (`styleUrl`) |
 | Estilos | CSS por componente + `styles.css` global | Variables CSS para colores y espaciado |
 | Formularios | Reactive Forms | Validación tipada |
+| Animaciones | Motion (`motion`, API `animate`) + `animate.enter` / `animate.leave` de Angular | Transiciones de pantallas, modales, listas y estados |
 | Visor de PDF | pdf.js (`pdfjs-dist`) | Vista en el navegador con carga progresiva por rangos |
 | Subida de archivos | tus (`tus-js-client` y `@tus/server`) | Subida por partes y reanudable |
 | API | NestJS 11 sobre Node 22 | REST, sesiones, subidas tus, ZIP en streaming, eventos SSE |
