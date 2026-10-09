@@ -1,0 +1,70 @@
+<div class="pantalla">
+  <section class="archivador" #archivador aria-labelledby="titulo-archivador">
+    <div class="identidad">
+      <app-marca [tamano]="40" />
+      <p>Dirección Regional de Salud<br />Madre de Dios</p>
+    </div>
+    <h2 id="titulo-archivador" class="titulo-archivador">El legajo digital, en el mismo orden que el físico</h2>
+    <ol class="pestanas">
+      @for (seccion of secciones; track seccion.numero) {
+        <li class="pestana" [style.--indice]="$index">
+          <span class="numero">{{ seccion.numero }}</span>
+          <span class="nombre">{{ seccion.nombre }}</span>
+        </li>
+      }
+    </ol>
+  </section>
+
+  <main class="acceso">
+    <div class="panel">
+      <h1>Legajos de Personal</h1>
+      <p class="bajada">Oficina de Personal. Ingresa con la cuenta que te asignó el administrador del sistema.</p>
+
+      <form [formGroup]="formulario" (ngSubmit)="ingresar()" novalidate>
+        <div class="campo">
+          <label for="identificador">Usuario o correo</label>
+          <input
+            id="identificador"
+            formControlName="identificador"
+            autocomplete="username"
+            autocapitalize="none"
+            spellcheck="false"
+            [attr.aria-invalid]="invalido('identificador')"
+          />
+        </div>
+
+        <div class="campo">
+          <label for="clave">Contraseña</label>
+          <div class="con-accion">
+            <input
+              id="clave"
+              [type]="mostrarClave() ? 'text' : 'password'"
+              formControlName="clave"
+              autocomplete="current-password"
+              [attr.aria-invalid]="invalido('clave')"
+            />
+            <button
+              type="button"
+              class="alternar"
+              (click)="alternarClave()"
+              [attr.aria-pressed]="mostrarClave()"
+              aria-controls="clave"
+            >
+              {{ mostrarClave() ? 'Ocultar' : 'Mostrar' }}
+            </button>
+          </div>
+        </div>
+
+        @if (error(); as mensaje) {
+          <p class="aviso error" role="alert" animate.enter="aparece">{{ mensaje }}</p>
+        }
+
+        <button class="boton principal ingresar" type="submit" [disabled]="enviando()">
+          {{ enviando() ? 'Ingresando' : 'Ingresar' }}
+        </button>
+      </form>
+
+      <p class="pie">Si olvidaste tu contraseña, pide al administrador que la restablezca.</p>
+    </div>
+  </main>
+</div>
