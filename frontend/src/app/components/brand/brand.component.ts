@@ -1,12 +1,12 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 
 @Component({
-  selector: 'app-marca',
+  selector: 'app-brand',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: './marca.component.html',
-  styleUrl: './marca.component.css',
+  templateUrl: './brand.component.html',
+  styleUrl: './brand.component.css',
 })
-export class MarcaComponent {
+export class BrandComponent {
   readonly tamano = input<number>(36);
   readonly conFondo = input<boolean>(false);
 
