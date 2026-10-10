@@ -1,0 +1,280 @@
+:host {
+  display: grid;
+  gap: 14px;
+}
+
+.acciones-cabecera {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.rejilla {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 16px;
+  align-items: start;
+}
+
+.rejilla.sin-panel {
+  grid-template-columns: 1fr;
+}
+
+.lista {
+  padding: 16px;
+}
+
+.cabecera-tarjeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+h3 {
+  font-size: 15px;
+}
+
+.cuenta {
+  color: var(--tinta-suave);
+  font-size: 12.5px;
+}
+
+.filtros {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.buscador {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.buscador svg {
+  position: absolute;
+  left: 11px;
+  fill: none;
+  stroke: var(--tinta-suave);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  pointer-events: none;
+}
+
+.buscador input,
+.filtro {
+  height: 40px;
+  border: 1px solid var(--linea);
+  border-radius: var(--radio-control);
+  background: #fff;
+  font-size: 13.5px;
+}
+
+.buscador input {
+  width: 100%;
+  padding: 0 12px 0 36px;
+}
+
+.sugerencia {
+  position: absolute;
+  left: 36px;
+  color: #93a3b1;
+  font-size: 13.5px;
+  pointer-events: none;
+}
+
+.filtro {
+  padding: 0 10px;
+}
+
+.buscador input:focus-visible,
+.filtro:focus-visible {
+  border-color: var(--primario);
+  box-shadow: 0 0 0 4px rgb(28 101 160 / 0.13);
+}
+
+.documentos {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 6px;
+}
+
+.documento {
+  width: 100%;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1.6fr) minmax(0, 0.9fr) minmax(0, 0.9fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--linea);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--tinta);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 140ms ease, background-color 140ms ease, box-shadow 160ms ease;
+}
+
+.documento:hover {
+  border-color: #b3cde4;
+  background: #fbfdff;
+  box-shadow: 0 4px 14px rgb(26 64 87 / 0.06);
+}
+
+.documento:focus-visible {
+  box-shadow: var(--foco);
+}
+
+.documento.anulado {
+  background: #fafbfc;
+}
+
+.documento.anulado .principal strong {
+  color: var(--tinta-suave);
+  text-decoration: line-through;
+  text-decoration-color: #b3bec8;
+}
+
+.hoja {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 38px;
+  border-radius: 5px;
+  background: #fbe9eb;
+  color: #a3303d;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.hoja.procesando {
+  background: var(--primario-claro);
+  color: var(--primario);
+  animation: latido 1.4s ease-in-out infinite;
+}
+
+@keyframes latido {
+  50% {
+    opacity: 0.45;
+  }
+}
+
+.principal,
+.carga {
+  display: grid;
+  min-width: 0;
+  font-size: 12.5px;
+  color: var(--tinta-suave);
+}
+
+.principal strong {
+  overflow: hidden;
+  color: var(--tinta);
+  font-size: 13.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.archivo,
+.quien {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.carga span:first-child {
+  color: var(--tinta-media);
+}
+
+.marcas {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.vacio {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: 34px 16px;
+  border: 1px dashed var(--linea);
+  border-radius: 10px;
+  color: var(--tinta-suave);
+  font-size: 13px;
+  text-align: center;
+}
+
+.vacio strong {
+  color: var(--tinta-media);
+  font-size: 14px;
+}
+
+.panel {
+  position: sticky;
+  top: 84px;
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+}
+
+.destino {
+  color: var(--tinta-suave);
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+
+.destino b {
+  color: var(--tinta-media);
+}
+
+.formulario {
+  display: grid;
+  gap: 14px;
+}
+
+.botones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+@media (max-width: 1320px) {
+  .documento {
+    grid-template-columns: auto minmax(0, 1.5fr) minmax(0, 1fr) auto;
+  }
+
+  .modificacion {
+    display: none;
+  }
+}
+
+@media (max-width: 1180px) {
+  .rejilla {
+    grid-template-columns: 1fr;
+  }
+
+  .panel {
+    position: static;
+  }
+}
+
+@media (max-width: 640px) {
+  .filtros {
+    flex-direction: column;
+  }
+
+  .documento {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .carga {
+    display: none;
+  }
+}
