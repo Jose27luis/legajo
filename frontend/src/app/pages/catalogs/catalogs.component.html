@@ -1,0 +1,51 @@
+<div class="pagina">
+  <header class="encabezado">
+    <h1>Catálogos</h1>
+    <p>Tipos de documento del legajo, documentos obligatorios y datos de la organización.</p>
+  </header>
+
+  <div class="pestanas" role="tablist" aria-label="Catálogos">
+    @for (pestana of pestanas; track pestana.id; let indice = $index) {
+      <button
+        type="button"
+        role="tab"
+        class="pestana"
+        [id]="'pestana-' + pestana.id"
+        [class.activa]="activa() === pestana.id"
+        [attr.aria-selected]="activa() === pestana.id"
+        [attr.aria-controls]="'panel-' + pestana.id"
+        [attr.tabindex]="activa() === pestana.id ? 0 : -1"
+        (click)="seleccionar(pestana.id)"
+        (keydown)="moverConTeclado($event, indice)"
+      >
+        {{ pestana.etiqueta }}
+      </button>
+    }
+  </div>
+
+  <section
+    class="panel"
+    role="tabpanel"
+    tabindex="0"
+    [id]="'panel-' + activa()"
+    [attr.aria-labelledby]="'pestana-' + activa()"
+  >
+    @switch (activa()) {
+      @case ('document-types') {
+        <app-document-types />
+      }
+      @case ('requirements') {
+        <app-requirements />
+      }
+      @case ('regimes') {
+        <app-regimes />
+      }
+      @case ('areas') {
+        <app-areas />
+      }
+      @case ('positions') {
+        <app-positions />
+      }
+    }
+  </section>
+</div>
