@@ -1,0 +1,89 @@
+@if (errorCarga(); as mensaje) {
+  <div class="aviso error" role="alert">
+    {{ mensaje }}
+    <button type="button" class="boton chico" (click)="cargar()">Reintentar</button>
+  </div>
+} @else {
+  <div class="barra-tabla">
+    <p>Áreas, oficinas y establecimientos donde trabaja el personal. Pueden depender de otra área.</p>
+    <button type="button" class="boton principal" (click)="nuevo()" [disabled]="cargando()">Nueva área</button>
+  </div>
+
+  <div class="tabla-contenedor">
+    <table class="tabla">
+      <thead>
+        <tr>
+          <th scope="col">Área</th>
+          <th scope="col">Depende de</th>
+          <th scope="col">Estado</th>
+          <th scope="col"><span class="solo-lector">Acciones</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (cargando()) {
+          <tr>
+            <td colspan="4" class="celda-vacia">Cargando áreas</td>
+          </tr>
+        } @else {
+          @for (area of areas(); track area.id) {
+            <tr [class.fila-inactiva]="!area.activo">
+              <td class="nombre">{{ area.nombre }}</td>
+              <td>{{ area.padreNombre ?? 'Ninguna' }}</td>
+              <td>
+                @if (area.activo) {
+                  <span class="pastilla verde">Activa</span>
+                } @else {
+                  <span class="pastilla gris">Inactiva</span>
+                }
+              </td>
+              <td>
+                <div class="fila-acciones">
+                  <button type="button" class="boton chico" (click)="editar(area)">Editar</button>
+                  <button type="button" class="boton chico" [class.peligro]="area.activo" (click)="alternarActivo(area)">
+                    {{ area.activo ? 'Desactivar' : 'Activar' }}
+                  </button>
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="4" class="celda-vacia">Todavía no hay áreas. Registra la primera con Nueva área.</td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+}
+
+<app-dialog
+  [abierto]="dialogoAbierto()"
+  [angosto]="true"
+  [titulo]="editando() === null ? 'Nueva área' : 'Editar área'"
+  (cerrar)="cerrar()"
+>
+  <form id="formulario-area" class="formulario" [formGroup]="formulario" (ngSubmit)="guardar()" novalidate>
+    <div class="campo">
+      <label for="area-nombre">Nombre</label>
+      <input id="area-nombre" formControlName="nombre" autocomplete="off" [attr.aria-invalid]="nombreInvalido()" />
+    </div>
+    <div class="campo">
+      <label for="area-padre">Depende de</label>
+      <select id="area-padre" formControlName="padreId">
+        <option [ngValue]="null">Ninguna</option>
+        @for (opcion of opcionesPadre(); track opcion.id) {
+          <option [ngValue]="opcion.id">{{ opcion.nombre }}</option>
+        }
+      </select>
+    </div>
+    @if (errorFormulario(); as mensaje) {
+      <p class="aviso error" role="alert" animate.enter="aparece">{{ mensaje }}</p>
+    }
+  </form>
+  <ng-container pie>
+    <button type="button" class="boton" (click)="cerrar()" [disabled]="guardando()">Cancelar</button>
+    <button type="submit" form="formulario-area" class="boton principal" [disabled]="guardando()">
+      {{ guardando() ? 'Guardando' : editando() === null ? 'Crear área' : 'Guardar cambios' }}
+    </button>
+  </ng-container>
+</app-dialog>
