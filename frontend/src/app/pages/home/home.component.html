@@ -1,0 +1,70 @@
+<div class="pagina">
+  <header class="encabezado">
+    <div>
+      <h1>Panel del personal</h1>
+      <p>Cuántos trabajadores están activos o cesados, quiénes tienen movimientos y el acceso a cada legajo.</p>
+    </div>
+    <div class="acciones">
+      @if (sesion.tiene('personal.editar')) {
+        <button type="button" class="boton principal" (click)="abrirNuevo()">Registrar nuevo ingreso</button>
+      }
+      <a class="boton" routerLink="/workers">Ver listado completo</a>
+    </div>
+  </header>
+
+  @if (errorResumen(); as mensaje) {
+    <div class="aviso error" role="alert">
+      {{ mensaje }}
+      <button type="button" class="boton chico" (click)="resumen.reload()">Reintentar</button>
+    </div>
+  }
+
+  <div class="indicadores">
+    @for (indicador of indicadores(); track indicador.titulo) {
+      <button type="button" class="indicador" (click)="filtrar(indicador)" [attr.aria-label]="indicador.titulo + ': ver listado'">
+        <span class="titulo">{{ indicador.titulo }}</span>
+        <strong [class.atenuado]="!resumen.hasValue()">{{ indicador.valor }}</strong>
+        <span class="nota">{{ indicador.nota }}</span>
+      </button>
+    }
+  </div>
+
+  <p class="aclaracion">
+    <strong>Activo</strong> y <strong>cesado</strong> son estados laborales: uno excluye al otro. Rotación y destaque son
+    movimientos y se cuentan dentro de los activos, así que no se suman a los estados.
+  </p>
+
+  @if (resumen.value(); as datos) {
+    @if (datos.recientes.length > 0) {
+      <section class="recientes" aria-labelledby="titulo-recientes">
+        <h2 id="titulo-recientes">Ingresos más recientes</h2>
+        <ul>
+          @for (trabajador of datos.recientes; track trabajador.id) {
+            <li>
+              <div>
+                <a [routerLink]="['/workers', trabajador.id]">{{ nombreCompleto(trabajador) }}</a>
+                <span>
+                  {{ trabajador.tipoDocIdentidad }} {{ trabajador.numeroDoc }}, ingreso el {{ fechaCorta(trabajador.fechaIngreso) }}
+                  @if (trabajador.vinculo; as vinculo) {
+                    en {{ vinculo.area.nombre }}
+                  }
+                </span>
+              </div>
+              <a class="boton chico" [routerLink]="['/workers', trabajador.id]">Abrir legajo</a>
+            </li>
+          }
+        </ul>
+      </section>
+    }
+  }
+
+  <app-worker-directory titulo="Buscar trabajador" (cambio)="resumen.reload()" />
+</div>
+
+<app-new-worker-dialog
+  [abierto]="nuevoAbierto()"
+  (cerrar)="nuevoAbierto.set(false)"
+  (creado)="alCrear($event)"
+  (reingresar)="irAReingreso($event)"
+/>
+<app-reentry-dialog [trabajador]="paraReingreso()" (cerrar)="paraReingreso.set(null)" (actualizado)="alReingresar($event)" />
