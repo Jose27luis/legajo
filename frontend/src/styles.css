@@ -252,6 +252,85 @@ p {
   position: relative;
 }
 
+.casilla {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--linea);
+  border-radius: var(--radio-control);
+  background: #fff;
+  cursor: pointer;
+  transition: border-color 140ms ease, background-color 140ms ease;
+}
+
+.casilla:hover {
+  border-color: #b9cbdb;
+}
+
+.casilla:has(input:checked) {
+  border-color: #9cc3e4;
+  background: var(--primario-claro);
+}
+
+.casilla input {
+  width: 17px;
+  height: 17px;
+  margin-top: 2px;
+  accent-color: var(--primario);
+}
+
+.casilla strong {
+  display: block;
+  font-size: 13.5px;
+}
+
+.casilla span {
+  color: var(--tinta-suave);
+  font-size: 12.5px;
+}
+
+.celda-vacia {
+  padding: 28px 14px;
+  text-align: center;
+  color: var(--tinta-suave);
+}
+
+.solo-lector {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.fila-acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.fila-inactiva td {
+  color: var(--tinta-suave);
+}
+
+.barra-tabla {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.barra-tabla p {
+  color: var(--tinta-media);
+  font-size: 14px;
+  max-width: 62ch;
+}
+
 .entrada {
   position: relative;
 }
