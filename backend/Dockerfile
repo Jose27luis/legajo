@@ -21,8 +21,17 @@ COPY --from=compilacion --chown=legajos:legajos /app/prisma ./prisma
 COPY --from=compilacion --chown=legajos:legajos /app/prisma.config.ts ./prisma.config.ts
 COPY --from=compilacion --chown=legajos:legajos /app/package.json ./package.json
 COPY --chown=legajos:legajos docker-entrypoint.sh ./
-RUN chmod +x docker-entrypoint.sh
+RUN chmod +x docker-entrypoint.sh \
+    && mkdir -p /data/subidas /data/archivos \
+    && chown -R legajos:legajos /data
 USER legajos
 EXPOSE 3000
 ENTRYPOINT ["./docker-entrypoint.sh"]
 CMD ["node", "dist/main.js"]
+
+FROM ejecucion AS worker
+USER root
+RUN apk add --no-cache ghostscript qpdf
+USER legajos
+ENTRYPOINT []
+CMD ["node", "dist/worker.js"]
