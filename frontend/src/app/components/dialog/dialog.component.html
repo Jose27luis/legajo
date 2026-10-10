@@ -1,0 +1,23 @@
+<dialog
+  #dialogo
+  class="dialogo"
+  [class.angosto]="angosto()"
+  [attr.aria-labelledby]="idTitulo"
+  (cancel)="alCancelar($event)"
+  (mousedown)="alPulsarFondo($event)"
+>
+  <div class="contenido">
+    <header class="cabecera">
+      <h2 [id]="idTitulo">{{ titulo() }}</h2>
+      <button type="button" class="cerrar" (click)="cerrar.emit()" aria-label="Cerrar">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18" /></svg>
+      </button>
+    </header>
+    <div class="cuerpo">
+      <ng-content />
+    </div>
+    <footer class="pie">
+      <ng-content select="[pie]" />
+    </footer>
+  </div>
+</dialog>
