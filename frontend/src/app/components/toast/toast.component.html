@@ -1,0 +1,10 @@
+<div class="pila" aria-live="polite">
+  @for (aviso of avisos.avisos(); track aviso.id) {
+    <div class="aviso-flotante" [class.error]="aviso.tipo === 'error'" role="status" animate.enter="entra" animate.leave="sale">
+      <span>{{ aviso.mensaje }}</span>
+      <button type="button" class="cerrar" (click)="avisos.cerrar(aviso.id)" aria-label="Cerrar aviso">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18" /></svg>
+      </button>
+    </div>
+  }
+</div>
