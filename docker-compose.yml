@@ -43,9 +43,13 @@ services:
   api:
     build:
       context: ./backend
+      target: ejecucion
     image: legajos/api:latest
     restart: unless-stopped
     env_file: .env
+    volumes:
+      - subidas:/data/subidas
+      - archivos:/data/archivos:ro
     depends_on:
       postgres:
         condition: service_healthy
@@ -64,12 +68,34 @@ services:
     networks:
       - interna
 
+  worker:
+    build:
+      context: ./backend
+      target: worker
+    image: legajos/worker:latest
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - subidas:/data/subidas
+      - archivos:/data/archivos
+    depends_on:
+      api:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+    networks:
+      - interna
+
   web:
     build:
       context: .
       dockerfile: frontend/Dockerfile
     image: legajos/web:latest
     restart: unless-stopped
+    volumes:
+      - archivos:/data/archivos:ro
     depends_on:
       api:
         condition: service_healthy
@@ -85,6 +111,8 @@ services:
 volumes:
   datos_pg:
   datos_redis:
+  subidas:
+  archivos:
 
 networks:
   interna:
