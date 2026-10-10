@@ -1,6 +1,6 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, resource, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal, viewChild } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { DialogComponent } from '../../components/dialog/dialog.component';
 import { LinkFieldsComponent } from '../../components/link-fields/link-fields.component';
 import { crearCamposVinculo, leerCamposVinculo, reiniciarCamposVinculo } from '../../components/link-fields/link-form';
@@ -11,25 +11,41 @@ import {
   MOTIVOS_CAMBIO,
   TEXTO_ESTADO,
   TEXTO_MOTIVO_CAMBIO,
-  TEXTO_MOTIVO_FIN,
   TEXTO_MOVIMIENTO,
-  TEXTO_TIPO_PERSONAL,
-  fechaCorta,
   hoy,
   iniciales,
   nombreCompleto,
+  numeroSeccion,
   puedeReingresar,
 } from '../../core/labels';
-import type { Familiar, MotivoCambio, TipoDocIdentidad, TrabajadorDetalle } from '../../core/models';
+import type { MotivoCambio, TipoDocIdentidad, TrabajadorDetalle } from '../../core/models';
 import { SessionService } from '../../core/session.service';
 import { ToastService } from '../../core/toast.service';
 import { WorkersService } from '../../services/workers.service';
+import { WorkerContext } from './worker-context';
 
 const opcional = (valor: string): string | null => (valor.trim() === '' ? null : valor.trim());
 
+interface EnlaceSeccion {
+  numero: number;
+  nombre: string;
+  ruta: string;
+  total: number | null;
+}
+
 @Component({
   selector: 'app-worker-detail',
-  imports: [ReactiveFormsModule, RouterLink, DialogComponent, LinkFieldsComponent, SituationDialogComponent, ReentryDialogComponent],
+  imports: [
+    ReactiveFormsModule,
+    RouterLink,
+    RouterLinkActive,
+    RouterOutlet,
+    DialogComponent,
+    LinkFieldsComponent,
+    SituationDialogComponent,
+    ReentryDialogComponent,
+  ],
+  providers: [WorkerContext],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './worker-detail.component.html',
   styleUrl: './worker-detail.component.css',
@@ -37,32 +53,45 @@ const opcional = (valor: string): string | null => (valor.trim() === '' ? null :
 export class WorkerDetailComponent {
   private readonly servicio = inject(WorkersService);
   private readonly avisos = inject(ToastService);
+  protected readonly contexto = inject(WorkerContext);
   protected readonly sesion = inject(SessionService);
-
-  readonly id = input.required<string>();
 
   private readonly situacion = viewChild.required(SituationDialogComponent);
   private readonly reingreso = viewChild.required(ReentryDialogComponent);
 
   protected readonly textoEstado = TEXTO_ESTADO;
   protected readonly textoMovimiento = TEXTO_MOVIMIENTO;
-  protected readonly textoMotivoFin = TEXTO_MOTIVO_FIN;
   protected readonly textoMotivoCambio = TEXTO_MOTIVO_CAMBIO;
-  protected readonly textoTipoPersonal = TEXTO_TIPO_PERSONAL;
   protected readonly motivosCambio = MOTIVOS_CAMBIO;
   protected readonly nombreCompleto = nombreCompleto;
   protected readonly iniciales = iniciales;
-  protected readonly fechaCorta = fechaCorta;
+  protected readonly numeroSeccion = numeroSeccion;
   protected readonly puedeReingresar = puedeReingresar;
   protected readonly hoy = hoy();
 
-  protected readonly detalle = resource({
-    params: () => this.id(),
-    loader: ({ params }) => this.servicio.obtener(params),
-  });
+  protected readonly detalle = this.contexto.detalle;
   protected readonly errorDetalle = computed(() => {
     const error = this.detalle.error();
     return error === undefined ? null : mensajeDeError(error);
+  });
+
+  protected readonly secciones = computed<EnlaceSeccion[]>(() => {
+    const primera: EnlaceSeccion = { numero: 1, nombre: 'Información personal y familiar', ruta: 'record', total: null };
+    if (!this.contexto.legajo.hasValue()) {
+      return [primera];
+    }
+    return [
+      primera,
+      ...this.contexto.legajo
+        .value()
+        .secciones.filter((seccion) => seccion.numero > 1)
+        .map((seccion) => ({
+          numero: seccion.numero,
+          nombre: seccion.nombre,
+          ruta: `sections/${seccion.numero}`,
+          total: seccion.total,
+        })),
+    ];
   });
 
   protected readonly paraSituacion = signal<TrabajadorDetalle | null>(null);
@@ -95,25 +124,6 @@ export class WorkerDetailComponent {
   protected readonly vinculoCambio = crearCamposVinculo();
   protected readonly fechaCambio = new FormControl('', { nonNullable: true, validators: [Validators.required] });
   protected readonly motivoCambio = new FormControl<MotivoCambio>('CAMBIO_CARGO_O_AREA', { nonNullable: true });
-
-  protected readonly familiarAbierto = signal(false);
-  protected readonly familiarEditando = signal<Familiar | null>(null);
-  protected readonly guardandoFamiliar = signal(false);
-  protected readonly errorFamiliar = signal<string | null>(null);
-  protected readonly familiar = new FormGroup({
-    parentesco: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-    nombresApellidos: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.minLength(3)] }),
-    numeroDoc: new FormControl('', { nonNullable: true, validators: [Validators.pattern(/^([A-Za-z0-9]{8,12})?$/)] }),
-    fechaNacimiento: new FormControl('', { nonNullable: true }),
-  });
-  protected readonly porQuitar = signal<Familiar | null>(null);
-  protected readonly quitando = signal(false);
-
-  protected ubicacion(trabajador: TrabajadorDetalle): string {
-    return [trabajador.distrito, trabajador.provincia, trabajador.departamento]
-      .filter((parte): parte is string => parte !== null && parte !== '')
-      .join(', ');
-  }
 
   protected abrirSituacion(trabajador: TrabajadorDetalle): void {
     this.situacion().reiniciar(trabajador);
@@ -175,7 +185,7 @@ export class WorkerDetailComponent {
     this.guardandoFicha.set(true);
     this.errorFicha.set(null);
     try {
-      const detalle = await this.servicio.editar(this.id(), {
+      const detalle = await this.servicio.editar(this.contexto.id(), {
         tipoDocIdentidad: valores.tipoDocIdentidad,
         numeroDoc: valores.numeroDoc.trim().toUpperCase(),
         nombres: valores.nombres.trim(),
@@ -226,7 +236,7 @@ export class WorkerDetailComponent {
     this.guardandoCambio.set(true);
     this.errorCambio.set(null);
     try {
-      const detalle = await this.servicio.cambiarVinculo(this.id(), {
+      const detalle = await this.servicio.cambiarVinculo(this.contexto.id(), {
         ...datos,
         fechaInicio: this.fechaCambio.value,
         motivo: this.motivoCambio.value,
@@ -238,80 +248,6 @@ export class WorkerDetailComponent {
       this.errorCambio.set(mensajeDeError(error));
     } finally {
       this.guardandoCambio.set(false);
-    }
-  }
-
-  protected abrirFamiliar(familiar: Familiar | null): void {
-    this.familiarEditando.set(familiar);
-    this.errorFamiliar.set(null);
-    this.familiar.reset({
-      parentesco: familiar?.parentesco ?? '',
-      nombresApellidos: familiar?.nombresApellidos ?? '',
-      numeroDoc: familiar?.numeroDoc ?? '',
-      fechaNacimiento: familiar?.fechaNacimiento ?? '',
-    });
-    this.familiarAbierto.set(true);
-  }
-
-  protected cerrarFamiliar(): void {
-    if (!this.guardandoFamiliar()) {
-      this.familiarAbierto.set(false);
-    }
-  }
-
-  protected async guardarFamiliar(): Promise<void> {
-    if (this.familiar.invalid) {
-      this.familiar.markAllAsTouched();
-      this.errorFamiliar.set('Revisa los campos marcados.');
-      return;
-    }
-    const valores = this.familiar.getRawValue();
-    const datos = {
-      parentesco: valores.parentesco,
-      nombresApellidos: valores.nombresApellidos.trim(),
-      numeroDoc: opcional(valores.numeroDoc),
-      fechaNacimiento: opcional(valores.fechaNacimiento),
-    };
-    this.guardandoFamiliar.set(true);
-    this.errorFamiliar.set(null);
-    try {
-      const editando = this.familiarEditando();
-      if (editando === null) {
-        await this.servicio.crearFamiliar(this.id(), datos);
-      } else {
-        await this.servicio.editarFamiliar(this.id(), editando.id, datos);
-      }
-      this.detalle.set(await this.servicio.obtener(this.id()));
-      this.familiarAbierto.set(false);
-      this.avisos.exito(editando === null ? 'Familiar agregado' : 'Familiar actualizado');
-    } catch (error: unknown) {
-      this.errorFamiliar.set(mensajeDeError(error));
-    } finally {
-      this.guardandoFamiliar.set(false);
-    }
-  }
-
-  protected cerrarQuitar(): void {
-    if (!this.quitando()) {
-      this.porQuitar.set(null);
-    }
-  }
-
-  protected async confirmarQuitar(): Promise<void> {
-    const familiar = this.porQuitar();
-    if (familiar === null) {
-      return;
-    }
-    this.quitando.set(true);
-    try {
-      await this.servicio.quitarFamiliar(this.id(), familiar.id);
-      this.detalle.set(await this.servicio.obtener(this.id()));
-      this.porQuitar.set(null);
-      this.avisos.exito('Familiar quitado');
-    } catch (error: unknown) {
-      this.avisos.error(mensajeDeError(error));
-    } finally {
-      this.quitando.set(false);
     }
   }
 }
