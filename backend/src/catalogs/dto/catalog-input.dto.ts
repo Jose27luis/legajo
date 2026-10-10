@@ -55,12 +55,12 @@ export class CreateRequirementDto {
   @IsOptional()
   @IsInt()
   @IsPositive()
-  regimenId: number | null;
+  regimenId: number | null = null;
 
   @ApiProperty({ enum: TIPOS_PERSONAL, nullable: true, description: 'Nulo para ambos tipos de personal' })
   @IsOptional()
   @IsIn(TIPOS_PERSONAL, { message: 'Tipo de personal no válido' })
-  tipoPersonal: TipoPersonalValor | null;
+  tipoPersonal: TipoPersonalValor | null = null;
 
   @ApiProperty({ enum: APLICA_A })
   @IsIn(APLICA_A, { message: 'Indica a qué trabajadores aplica' })
@@ -102,7 +102,7 @@ export class AreaInputDto {
   @IsOptional()
   @IsInt()
   @IsPositive()
-  padreId: number | null;
+  padreId: number | null = null;
 
   @ApiProperty()
   @IsBoolean()
