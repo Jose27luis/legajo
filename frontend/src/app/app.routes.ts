@@ -31,6 +31,12 @@ export const routes: Routes = [
         canMatch: [permisoGuard('usuarios.gestionar')],
         loadComponent: () => import('./pages/users/users.component').then((m) => m.UsersComponent),
       },
+      {
+        path: 'catalogs',
+        title: 'Catálogos - Legajos de Personal',
+        canMatch: [permisoGuard('catalogos.gestionar')],
+        loadComponent: () => import('./pages/catalogs/catalogs.component').then((m) => m.CatalogsComponent),
+      },
     ],
   },
   { path: '**', redirectTo: '' },
