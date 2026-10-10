@@ -258,3 +258,71 @@ export interface DatosFamiliar {
   numeroDoc: string | null;
   fechaNacimiento: string | null;
 }
+
+export type NivelAcceso = 'NORMAL' | 'RESTRINGIDO' | 'MUY_RESTRINGIDO';
+export type EstadoDocumento = 'PROCESANDO' | 'DISPONIBLE' | 'ERROR' | 'ANULADO';
+export type ValorCampo = string | number | null;
+
+export interface VersionArchivo {
+  version: number;
+  nombreOriginal: string;
+  paginas: number;
+  tamanoOriginal: number;
+  tamanoFinal: number;
+  optimizado: boolean;
+  subidoPor: string;
+  creadoEn: string;
+  actual: boolean;
+}
+
+export interface Documento {
+  id: string;
+  seccion: number;
+  tipo: TipoDocumento;
+  numero: string | null;
+  fechaEmision: string | null;
+  fechaVencimiento: string | null;
+  emisor: string | null;
+  observaciones: string | null;
+  ubicacionFisica: string | null;
+  datos: Record<string, ValorCampo>;
+  nivelAcceso: NivelAcceso;
+  estado: EstadoDocumento;
+  detalleError: string | null;
+  motivoAnulacion: string | null;
+  creadoPor: string;
+  creadoEn: string;
+  modificadoPor: string | null;
+  modificadoEn: string | null;
+  motivoModificacion: string | null;
+  reintentable: boolean;
+  editable: boolean;
+  versiones: VersionArchivo[];
+}
+
+export interface SeccionLegajo {
+  id: number;
+  numero: number;
+  nombre: string;
+  descripcion: string;
+  campos: CampoSeccion[];
+  tipos: TipoDocumento[];
+  total: number;
+}
+
+export interface Legajo {
+  secciones: SeccionLegajo[];
+  documentos: Documento[];
+}
+
+export interface DatosDocumento {
+  tipoDocumentoId: number;
+  numero: string | null;
+  fechaEmision: string | null;
+  fechaVencimiento: string | null;
+  emisor: string | null;
+  observaciones: string | null;
+  ubicacionFisica: string | null;
+  nivelAcceso: NivelAcceso;
+  datos: Record<string, ValorCampo>;
+}
