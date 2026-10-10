@@ -1,4 +1,14 @@
-import type { EstadoTrabajador, MotivoCambio, MotivoCese, MotivoFin, Movimiento, TipoPersonal, TrabajadorResumen } from './models';
+import type {
+  EstadoDocumento,
+  EstadoTrabajador,
+  MotivoCambio,
+  MotivoCese,
+  MotivoFin,
+  Movimiento,
+  NivelAcceso,
+  TipoPersonal,
+  TrabajadorResumen,
+} from './models';
 
 export const TEXTO_ESTADO: Record<EstadoTrabajador, string> = {
   ACTIVO: 'Activo',
@@ -60,4 +70,38 @@ export function fechaCorta(valor: string | null): string {
 
 export function hoy(): string {
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Lima' }).format(new Date());
+}
+
+export const TEXTO_ESTADO_DOCUMENTO: Record<EstadoDocumento, string> = {
+  PROCESANDO: 'Procesando',
+  DISPONIBLE: 'Registrado',
+  ERROR: 'Con error',
+  ANULADO: 'Anulado',
+};
+
+export const CLASE_ESTADO_DOCUMENTO: Record<EstadoDocumento, string> = {
+  PROCESANDO: 'azul',
+  DISPONIBLE: 'verde',
+  ERROR: 'roja',
+  ANULADO: 'gris',
+};
+
+export const TEXTO_NIVEL_ACCESO: Record<NivelAcceso, string> = {
+  NORMAL: 'Normal',
+  RESTRINGIDO: 'Restringido',
+  MUY_RESTRINGIDO: 'Muy restringido',
+};
+
+export const ESTADOS_DOCUMENTO: readonly EstadoDocumento[] = ['DISPONIBLE', 'PROCESANDO', 'ERROR', 'ANULADO'];
+export const NIVELES_ACCESO: readonly NivelAcceso[] = ['NORMAL', 'RESTRINGIDO', 'MUY_RESTRINGIDO'];
+
+export function numeroSeccion(numero: number): string {
+  return String(numero).padStart(2, '0');
+}
+
+export function tamanoLegible(bytes: number): string {
+  if (bytes < 1024 * 1024) {
+    return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+  }
+  return `${(bytes / (1024 * 1024)).toFixed(1).replace('.', ',')} MB`;
 }
