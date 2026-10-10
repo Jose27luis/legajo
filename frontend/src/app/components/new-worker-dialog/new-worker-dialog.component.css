@@ -1,0 +1,43 @@
+.intro {
+  margin-bottom: 18px;
+  padding: 12px 14px;
+  border: 1px solid #c3dfee;
+  border-radius: 9px;
+  background: #eaf5fc;
+  color: #25577a;
+  font-size: 13.5px;
+  line-height: 1.6;
+}
+
+form {
+  display: grid;
+  gap: 16px;
+}
+
+h3 {
+  margin-top: 6px;
+  font-size: 14.5px;
+  color: var(--tinta-media);
+}
+
+.existente {
+  display: grid;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid #efd4b7;
+  border-radius: 9px;
+  background: #fff4e8;
+  color: #7c5122;
+  font-size: 13.5px;
+}
+
+.atajos {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.atajos a {
+  text-decoration: none;
+  color: var(--tinta);
+}
