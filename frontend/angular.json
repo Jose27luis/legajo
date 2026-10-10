@@ -54,6 +54,9 @@
             ],
             "styles": [
               "src/styles.css"
+            ],
+            "allowedCommonJsDependencies": [
+              "url-parse"
             ]
           },
           "configurations": {
