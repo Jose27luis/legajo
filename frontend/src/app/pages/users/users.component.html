@@ -1,0 +1,235 @@
+<div class="pagina">
+  <header class="encabezado">
+    <div>
+      <h1>Usuarios</h1>
+      <p>Cuentas con acceso al sistema y su rol.</p>
+    </div>
+    <button type="button" class="boton principal" (click)="nuevo()" [disabled]="cargando()">Nuevo usuario</button>
+  </header>
+
+  @if (errorCarga(); as mensaje) {
+    <div class="aviso error carga" role="alert">
+      <span>{{ mensaje }}</span>
+      <button type="button" class="boton chico" (click)="cargar()">Reintentar</button>
+    </div>
+  } @else {
+    <div class="resumen">
+      <div class="cifra">
+        <strong>{{ resumen().total }}</strong>
+        <span>cuentas</span>
+      </div>
+      <div class="cifra">
+        <strong>{{ resumen().activos }}</strong>
+        <span>activas</span>
+      </div>
+      <div class="cifra" [class.alerta]="resumen().bloqueados > 0">
+        <strong>{{ resumen().bloqueados }}</strong>
+        <span>bloqueadas</span>
+      </div>
+      <div class="campo buscador">
+        <label for="buscar-usuario">Buscar</label>
+        <input
+          id="buscar-usuario"
+          type="search"
+          autocomplete="off"
+          [value]="busqueda()"
+          (input)="actualizarBusqueda($event)"
+        />
+      </div>
+    </div>
+
+    <div class="tabla-contenedor">
+      <table class="tabla">
+        <thead>
+          <tr>
+            <th scope="col">Nombre</th>
+            <th scope="col">Usuario</th>
+            <th scope="col">Rol</th>
+            <th scope="col">Estado</th>
+            <th scope="col">Último ingreso</th>
+            <th scope="col"><span class="oculto">Acciones</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (cargando()) {
+            <tr>
+              <td colspan="6" class="vacio">Cargando cuentas</td>
+            </tr>
+          } @else {
+            @for (usuario of filtrados(); track usuario.id) {
+              <tr [class.inactivo]="!usuario.activo">
+                <td>
+                  <span class="nombre">{{ usuario.nombreCompleto }}</span>
+                  <span class="secundario">{{ usuario.correo }}</span>
+                </td>
+                <td>{{ usuario.usuario }}</td>
+                <td><span class="pastilla azul">{{ usuario.rol.nombre }}</span></td>
+                <td>
+                  <div class="estados">
+                    @if (usuario.activo) {
+                      <span class="pastilla verde">Activa</span>
+                    } @else {
+                      <span class="pastilla gris">Inactiva</span>
+                    }
+                    @if (usuario.bloqueadoHasta !== null) {
+                      <span class="pastilla roja">Bloqueada</span>
+                    }
+                    @if (usuario.debeCambiarClave) {
+                      <span class="pastilla ambar">Clave temporal</span>
+                    }
+                  </div>
+                </td>
+                <td class="fecha">{{ fechaHora(usuario.ultimoAcceso) }}</td>
+                <td>
+                  <div class="acciones">
+                    <button type="button" class="boton chico" (click)="editar(usuario)">Editar</button>
+                    @if (usuario.bloqueadoHasta !== null) {
+                      <button type="button" class="boton chico" (click)="desbloquear(usuario)">Desbloquear</button>
+                    }
+                    @if (!esPropio(usuario)) {
+                      <button type="button" class="boton chico" (click)="pedirConfirmacion('restablecer', usuario)">
+                        Restablecer clave
+                      </button>
+                      @if (usuario.activo) {
+                        <button type="button" class="boton chico peligro" (click)="pedirConfirmacion('desactivar', usuario)">
+                          Desactivar
+                        </button>
+                      } @else {
+                        <button type="button" class="boton chico" (click)="activar(usuario)">Activar</button>
+                      }
+                    }
+                  </div>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="6" class="vacio">Ninguna cuenta coincide con la búsqueda.</td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
+
+<app-dialog
+  [abierto]="formularioAbierto()"
+  [titulo]="editando() === null ? 'Nuevo usuario' : 'Editar usuario'"
+  (cerrar)="cerrarFormulario()"
+>
+  <form id="formulario-usuario" class="campos" [formGroup]="formulario" (ngSubmit)="guardar()" novalidate>
+    <div class="campo completo">
+      <label for="usuario-nombre">Nombre completo</label>
+      <input
+        id="usuario-nombre"
+        formControlName="nombreCompleto"
+        autocomplete="off"
+        [attr.aria-invalid]="invalido('nombreCompleto')"
+      />
+    </div>
+    <div class="campo">
+      <label for="usuario-cuenta">Usuario</label>
+      <input
+        id="usuario-cuenta"
+        formControlName="usuario"
+        autocomplete="off"
+        autocapitalize="none"
+        spellcheck="false"
+        aria-describedby="ayuda-usuario"
+        [attr.aria-invalid]="invalido('usuario')"
+      />
+      <span id="ayuda-usuario" class="ayuda" [class.invalida]="invalido('usuario')">
+        @if (editando() === null) {
+          4 a 30 caracteres: minúsculas, números, punto o guion.
+        } @else {
+          El nombre de usuario no se puede cambiar.
+        }
+      </span>
+    </div>
+    <div class="campo">
+      <label for="usuario-correo">Correo</label>
+      <input
+        id="usuario-correo"
+        type="email"
+        formControlName="correo"
+        autocomplete="off"
+        [attr.aria-invalid]="invalido('correo')"
+      />
+    </div>
+    <div class="campo completo">
+      <label for="usuario-rol">Rol</label>
+      <select id="usuario-rol" formControlName="rolId" aria-describedby="ayuda-rol" [attr.aria-invalid]="invalido('rolId')">
+        <option value="" disabled>Selecciona un rol</option>
+        @for (rol of roles(); track rol.id) {
+          <option [value]="rol.id">{{ rol.nombre }}</option>
+        }
+      </select>
+      <span id="ayuda-rol" class="ayuda">{{ descripcionRol() }}</span>
+    </div>
+    @if (editando() === null) {
+      <p class="nota completo">Se generará una contraseña temporal. Al ingresar, la persona deberá crear la suya.</p>
+    }
+    @if (errorFormulario(); as mensaje) {
+      <p class="aviso error completo" role="alert" animate.enter="aparece">{{ mensaje }}</p>
+    }
+  </form>
+  <ng-container pie>
+    <button type="button" class="boton" (click)="cerrarFormulario()" [disabled]="guardando()">Cancelar</button>
+    <button type="submit" form="formulario-usuario" class="boton principal" [disabled]="guardando()">
+      {{ guardando() ? 'Guardando' : editando() === null ? 'Crear usuario' : 'Guardar cambios' }}
+    </button>
+  </ng-container>
+</app-dialog>
+
+<app-dialog
+  [abierto]="confirmacion() !== null"
+  [angosto]="true"
+  [titulo]="confirmacion()?.tipo === 'desactivar' ? 'Desactivar cuenta' : 'Restablecer contraseña'"
+  (cerrar)="cerrarConfirmacion()"
+>
+  @if (confirmacion(); as pendiente) {
+    @if (pendiente.tipo === 'desactivar') {
+      <p class="texto-dialogo">
+        <strong>{{ pendiente.usuario.nombreCompleto }}</strong> no podrá ingresar al sistema y se cerrarán sus sesiones
+        abiertas. Puedes volver a activarla cuando quieras.
+      </p>
+    } @else {
+      <p class="texto-dialogo">
+        Se generará una contraseña temporal para <strong>{{ pendiente.usuario.nombreCompleto }}</strong> y se cerrarán sus
+        sesiones abiertas. Al ingresar deberá crear una nueva.
+      </p>
+    }
+  }
+  <ng-container pie>
+    <button type="button" class="boton" (click)="cerrarConfirmacion()" [disabled]="procesando()">Cancelar</button>
+    <button
+      type="button"
+      class="boton"
+      [class.principal]="confirmacion()?.tipo === 'restablecer'"
+      [class.peligro]="confirmacion()?.tipo === 'desactivar'"
+      [class.lleno]="confirmacion()?.tipo === 'desactivar'"
+      (click)="confirmar()"
+      [disabled]="procesando()"
+    >
+      {{ confirmacion()?.tipo === 'desactivar' ? 'Desactivar' : 'Restablecer contraseña' }}
+    </button>
+  </ng-container>
+</app-dialog>
+
+<app-dialog [abierto]="claveGenerada() !== null" [angosto]="true" titulo="Contraseña temporal" (cerrar)="cerrarClave()">
+  @if (claveGenerada(); as generada) {
+    <p class="texto-dialogo">
+      Entrégasela a <strong>{{ generada.usuario.nombreCompleto }}</strong> para que ingrese como
+      <strong>{{ generada.usuario.usuario }}</strong>. Al ingresar deberá crear su propia contraseña.
+    </p>
+    <div class="clave">
+      <output aria-label="Contraseña temporal">{{ generada.claveTemporal }}</output>
+      <button type="button" class="boton chico" (click)="copiarClave()">{{ copiada() ? 'Copiada' : 'Copiar' }}</button>
+    </div>
+    <p class="nota">Esta contraseña no se volverá a mostrar.</p>
+  }
+  <ng-container pie>
+    <button type="button" class="boton principal" (click)="cerrarClave()">Listo</button>
+  </ng-container>
+</app-dialog>
