@@ -1,0 +1,83 @@
+@if (errorCarga(); as mensaje) {
+  <div class="aviso error" role="alert">
+    {{ mensaje }}
+    <button type="button" class="boton chico" (click)="cargar()">Reintentar</button>
+  </div>
+} @else {
+  <div class="barra-tabla">
+    <p>Cargos o puestos que se asignan a los trabajadores en su vínculo.</p>
+    <button type="button" class="boton principal" (click)="nuevo()" [disabled]="cargando()">Nuevo cargo</button>
+  </div>
+
+  <div class="tabla-contenedor">
+    <table class="tabla">
+      <thead>
+        <tr>
+          <th scope="col">Cargo</th>
+          <th scope="col">Estado</th>
+          <th scope="col"><span class="solo-lector">Acciones</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (cargando()) {
+          <tr>
+            <td colspan="3" class="celda-vacia">Cargando cargos</td>
+          </tr>
+        } @else {
+          @for (cargo of cargos(); track cargo.id) {
+            <tr [class.fila-inactiva]="!cargo.activo">
+              <td class="nombre">{{ cargo.nombre }}</td>
+              <td>
+                @if (cargo.activo) {
+                  <span class="pastilla verde">Activo</span>
+                } @else {
+                  <span class="pastilla gris">Inactivo</span>
+                }
+              </td>
+              <td>
+                <div class="fila-acciones">
+                  <button type="button" class="boton chico" (click)="editar(cargo)">Editar</button>
+                  <button type="button" class="boton chico" [class.peligro]="cargo.activo" (click)="alternarActivo(cargo)">
+                    {{ cargo.activo ? 'Desactivar' : 'Activar' }}
+                  </button>
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="3" class="celda-vacia">Todavía no hay cargos. Registra el primero con Nuevo cargo.</td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+}
+
+<app-dialog
+  [abierto]="dialogoAbierto()"
+  [angosto]="true"
+  [titulo]="editando() === null ? 'Nuevo cargo' : 'Editar cargo'"
+  (cerrar)="cerrar()"
+>
+  <form id="formulario-cargo" class="formulario" (submit)="$event.preventDefault(); guardar()" novalidate>
+    <div class="campo">
+      <label for="cargo-nombre">Nombre del cargo</label>
+      <input
+        id="cargo-nombre"
+        [formControl]="nombre"
+        autocomplete="off"
+        [attr.aria-invalid]="nombre.touched && nombre.invalid"
+      />
+    </div>
+    @if (errorFormulario(); as mensaje) {
+      <p class="aviso error" role="alert" animate.enter="aparece">{{ mensaje }}</p>
+    }
+  </form>
+  <ng-container pie>
+    <button type="button" class="boton" (click)="cerrar()" [disabled]="guardando()">Cancelar</button>
+    <button type="submit" form="formulario-cargo" class="boton principal" [disabled]="guardando()">
+      {{ guardando() ? 'Guardando' : editando() === null ? 'Crear cargo' : 'Guardar cambios' }}
+    </button>
+  </ng-container>
+</app-dialog>
