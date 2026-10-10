@@ -19,6 +19,36 @@ enum AplicaA {
   TODOS
 }
 
+enum TipoDocIdentidad {
+  DNI
+  CE
+}
+
+enum EstadoTrabajador {
+  ACTIVO
+  CESADO
+}
+
+enum Movimiento {
+  SIN_MOVIMIENTO
+  ROTACION
+  DESTAQUE
+  ENCARGATURA
+  REASIGNACION
+}
+
+enum MotivoFin {
+  RENUNCIA
+  JUBILACION
+  FALLECIMIENTO
+  FIN_CONTRATO
+  DESTITUCION
+  OTRA_CAUSA
+  RENOVACION
+  CAMBIO_REGIMEN
+  CAMBIO_CARGO_O_AREA
+}
+
 model Regimen {
   id         Int         @id @default(autoincrement())
   codigo     String      @unique @db.VarChar(20)
@@ -26,27 +56,99 @@ model Regimen {
   esLaboral  Boolean     @default(true) @map("es_laboral")
   activo     Boolean     @default(true)
   requisitos Requisito[]
+  vinculos   Vinculo[]
 
   @@map("regimen")
 }
 
 model Area {
-  id      Int     @id @default(autoincrement())
-  nombre  String  @db.VarChar(140)
-  padreId Int?    @map("padre_id")
-  activo  Boolean @default(true)
-  padre   Area?   @relation("AreaDependencia", fields: [padreId], references: [id], onDelete: Restrict)
-  hijas   Area[]  @relation("AreaDependencia")
+  id       Int       @id @default(autoincrement())
+  nombre   String    @db.VarChar(140)
+  padreId  Int?      @map("padre_id")
+  activo   Boolean   @default(true)
+  padre    Area?     @relation("AreaDependencia", fields: [padreId], references: [id], onDelete: Restrict)
+  hijas    Area[]    @relation("AreaDependencia")
+  vinculos Vinculo[]
 
   @@map("area")
 }
 
 model Cargo {
-  id     Int     @id @default(autoincrement())
-  nombre String  @unique @db.VarChar(120)
-  activo Boolean @default(true)
+  id       Int       @id @default(autoincrement())
+  nombre   String    @unique @db.VarChar(120)
+  activo   Boolean   @default(true)
+  vinculos Vinculo[]
 
   @@map("cargo")
+}
+
+model Trabajador {
+  id               String           @id @default(uuid()) @db.Uuid
+  tipoDocIdentidad TipoDocIdentidad @default(DNI) @map("tipo_doc_identidad")
+  numeroDoc        String           @map("numero_doc") @db.VarChar(12)
+  apellidoPaterno  String           @map("apellido_paterno") @db.VarChar(80)
+  apellidoMaterno  String?          @map("apellido_materno") @db.VarChar(80)
+  nombres          String           @db.VarChar(100)
+  nombreBusqueda   String?          @map("nombre_busqueda")
+  fechaNacimiento  DateTime?        @map("fecha_nacimiento") @db.Date
+  sexo             String?          @db.Char(1)
+  estadoCivil      String?          @map("estado_civil") @db.VarChar(20)
+  direccion        String?          @db.VarChar(200)
+  departamento     String?          @db.VarChar(60)
+  provincia        String?          @db.VarChar(60)
+  distrito         String?          @db.VarChar(60)
+  telefono         String?          @db.VarChar(20)
+  correo           String?          @db.VarChar(120)
+  fechaIngreso     DateTime         @map("fecha_ingreso") @db.Date
+  estado           EstadoTrabajador @default(ACTIVO)
+  movimientoActual Movimiento       @default(SIN_MOVIMIENTO) @map("movimiento_actual")
+  movimientoFecha  DateTime?        @map("movimiento_fecha") @db.Date
+  creadoEn         DateTime         @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoEn    DateTime         @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  vinculos         Vinculo[]
+  familiares       Familiar[]
+  auditorias       Auditoria[]
+
+  @@unique([tipoDocIdentidad, numeroDoc], map: "ux_trabajador_doc")
+  @@index([estado, movimientoActual], map: "ix_trabajador_estado")
+  @@map("trabajador")
+}
+
+model Vinculo {
+  id           String       @id @default(uuid()) @db.Uuid
+  trabajadorId String       @map("trabajador_id") @db.Uuid
+  regimenId    Int          @map("regimen_id")
+  tipoPersonal TipoPersonal @map("tipo_personal")
+  cargoId      Int          @map("cargo_id")
+  areaId       Int          @map("area_id")
+  fechaInicio  DateTime     @map("fecha_inicio") @db.Date
+  fechaFin     DateTime?    @map("fecha_fin") @db.Date
+  motivoFin    MotivoFin?   @map("motivo_fin")
+  referencia   String?      @db.VarChar(160)
+  actual       Boolean      @default(true)
+  creadoEn     DateTime     @default(now()) @map("creado_en") @db.Timestamptz(3)
+  trabajador   Trabajador   @relation(fields: [trabajadorId], references: [id], onDelete: Restrict)
+  regimen      Regimen      @relation(fields: [regimenId], references: [id], onDelete: Restrict)
+  cargo        Cargo        @relation(fields: [cargoId], references: [id], onDelete: Restrict)
+  area         Area         @relation(fields: [areaId], references: [id], onDelete: Restrict)
+
+  @@index([trabajadorId, fechaInicio(sort: Desc)], map: "ix_vinculo_trabajador")
+  @@index([areaId, actual], map: "ix_vinculo_area")
+  @@map("vinculo")
+}
+
+model Familiar {
+  id               String     @id @default(uuid()) @db.Uuid
+  trabajadorId     String     @map("trabajador_id") @db.Uuid
+  parentesco       String     @db.VarChar(30)
+  nombresApellidos String     @map("nombres_apellidos") @db.VarChar(160)
+  numeroDoc        String?    @map("numero_doc") @db.VarChar(12)
+  fechaNacimiento  DateTime?  @map("fecha_nacimiento") @db.Date
+  creadoEn         DateTime   @default(now()) @map("creado_en") @db.Timestamptz(3)
+  trabajador       Trabajador @relation(fields: [trabajadorId], references: [id], onDelete: Restrict)
+
+  @@index([trabajadorId], map: "ix_familiar_trabajador")
+  @@map("familiar")
 }
 
 model Seccion {
@@ -141,17 +243,18 @@ model Usuario {
 }
 
 model Auditoria {
-  id           BigInt   @id @default(autoincrement())
-  fecha        DateTime @default(now()) @db.Timestamptz(3)
-  usuarioId    String?  @map("usuario_id") @db.Uuid
-  accion       String   @db.VarChar(60)
-  entidad      String   @db.VarChar(60)
-  entidadId    String?  @map("entidad_id") @db.VarChar(60)
-  trabajadorId String?  @map("trabajador_id") @db.Uuid
-  ip           String?  @db.Inet
-  userAgent    String?  @map("user_agent")
+  id           BigInt      @id @default(autoincrement())
+  fecha        DateTime    @default(now()) @db.Timestamptz(3)
+  usuarioId    String?     @map("usuario_id") @db.Uuid
+  accion       String      @db.VarChar(60)
+  entidad      String      @db.VarChar(60)
+  entidadId    String?     @map("entidad_id") @db.VarChar(60)
+  trabajadorId String?     @map("trabajador_id") @db.Uuid
+  ip           String?     @db.Inet
+  userAgent    String?     @map("user_agent")
   detalle      Json?
-  usuario      Usuario? @relation(fields: [usuarioId], references: [id], onDelete: Restrict)
+  usuario      Usuario?    @relation(fields: [usuarioId], references: [id], onDelete: Restrict)
+  trabajador   Trabajador? @relation(fields: [trabajadorId], references: [id], onDelete: Restrict)
 
   @@index([usuarioId, fecha(sort: Desc)], map: "ix_auditoria_usuario")
   @@index([trabajadorId, fecha(sort: Desc)], map: "ix_auditoria_legajo")
