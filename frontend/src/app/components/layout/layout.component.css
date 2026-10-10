@@ -82,6 +82,13 @@
   color: #fff;
 }
 
+.grupo {
+  margin: 18px 12px 6px;
+  color: #8fb3cc;
+  font-size: 12px;
+  font-weight: 600;
+}
+
 .contenido {
   min-width: 0;
   padding: 32px clamp(16px, 4vw, 48px) 56px;
