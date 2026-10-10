@@ -1,0 +1,8 @@
+.nombre {
+  font-weight: 600;
+}
+
+.formulario {
+  display: grid;
+  gap: 14px;
+}
