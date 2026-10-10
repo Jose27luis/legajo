@@ -1,0 +1,105 @@
+<div class="campos" [class.compacto]="compacto()" [formGroup]="grupo()">
+  <div class="campo completo">
+    <label [for]="id('tipo')">Tipo de documento</label>
+    <select [id]="id('tipo')" formControlName="tipoDocumentoId" [attr.aria-invalid]="tipoInvalido()">
+      <option [ngValue]="null" disabled>Selecciona el tipo</option>
+      @for (tipo of seccion().tipos; track tipo.id) {
+        <option [ngValue]="tipo.id">{{ tipo.codigo }} {{ tipo.nombre }}</option>
+      }
+    </select>
+  </div>
+
+  <div class="campo">
+    <label [for]="id('numero')">
+      Número de documento
+      @if (tipoElegido()?.requiereNumero !== true) {
+        <span class="opcional">opcional</span>
+      }
+    </label>
+    <input [id]="id('numero')" formControlName="numero" maxlength="60" autocomplete="off" [attr.aria-invalid]="numeroInvalido()" />
+  </div>
+
+  <div class="campo">
+    <label [for]="id('emision')">Fecha de emisión</label>
+    <input [id]="id('emision')" type="date" formControlName="fechaEmision" [max]="hoy" />
+  </div>
+
+  @if (tipoElegido()?.tieneVencimiento === true) {
+    <div class="campo">
+      <label [for]="id('vencimiento')">Fecha de vencimiento</label>
+      <input [id]="id('vencimiento')" type="date" formControlName="fechaVencimiento" />
+    </div>
+  }
+
+  <div class="campo">
+    <label [for]="id('emisor')">Emitido por <span class="opcional">opcional</span></label>
+    <input [id]="id('emisor')" formControlName="emisor" maxlength="160" autocomplete="off" />
+  </div>
+
+  <ng-container formGroupName="datos">
+    @for (campo of seccion().campos; track campo.clave) {
+      <div class="campo" [class.completo]="campo.tipo === 'parrafo'">
+        <label [for]="id('dato-' + campo.clave)">
+          {{ campo.etiqueta }}
+          @if (!campo.obligatorio) {
+            <span class="opcional">opcional</span>
+          }
+        </label>
+        @switch (campo.tipo) {
+          @case ('seleccion') {
+            <select [id]="id('dato-' + campo.clave)" [formControlName]="campo.clave" [attr.aria-invalid]="campoInvalido(campo)">
+              <option value="">Sin indicar</option>
+              @for (opcion of campo.opciones ?? []; track opcion) {
+                <option [value]="opcion">{{ opcion }}</option>
+              }
+            </select>
+          }
+          @case ('parrafo') {
+            <textarea
+              [id]="id('dato-' + campo.clave)"
+              [formControlName]="campo.clave"
+              maxlength="1000"
+              rows="3"
+              [attr.aria-invalid]="campoInvalido(campo)"
+            ></textarea>
+          }
+          @default {
+            <input
+              [id]="id('dato-' + campo.clave)"
+              [type]="tipoEntrada(campo)"
+              [formControlName]="campo.clave"
+              [attr.maxlength]="campo.tipo === 'texto' ? 200 : null"
+              [attr.min]="campo.tipo === 'numero' ? 0 : null"
+              autocomplete="off"
+              [attr.aria-invalid]="campoInvalido(campo)"
+            />
+          }
+        }
+      </div>
+    }
+  </ng-container>
+
+  <div class="campo completo">
+    <label [for]="id('observaciones')">Descripción y observaciones <span class="opcional">opcional</span></label>
+    <textarea [id]="id('observaciones')" formControlName="observaciones" maxlength="500" rows="2"></textarea>
+  </div>
+
+  <div class="campo">
+    <label [for]="id('ubicacion')">Ubicación del físico <span class="opcional">opcional</span></label>
+    <input [id]="id('ubicacion')" formControlName="ubicacionFisica" maxlength="120" autocomplete="off" />
+  </div>
+
+  @if (niveles().length > 1) {
+    <div class="campo">
+      <label [for]="id('nivel')">Nivel de acceso</label>
+      <select [id]="id('nivel')" formControlName="nivelAcceso">
+        @for (nivel of niveles(); track nivel) {
+          <option [ngValue]="nivel" [disabled]="nivelBloqueado(nivel)">{{ textoNivel[nivel] }}</option>
+        }
+      </select>
+      @if (tipoElegido()?.restringido === true) {
+        <span class="ayuda">Este tipo se guarda siempre como restringido.</span>
+      }
+    </div>
+  }
+</div>
