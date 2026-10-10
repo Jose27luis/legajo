@@ -1,0 +1,19 @@
+.intro {
+  margin-bottom: 18px;
+  padding: 12px 14px;
+  border: 1px solid #c3dfee;
+  border-radius: 9px;
+  background: #eaf5fc;
+  color: #25577a;
+  font-size: 13.5px;
+  line-height: 1.6;
+}
+
+form {
+  display: grid;
+  gap: 16px;
+}
+
+.fecha {
+  max-width: 260px;
+}
