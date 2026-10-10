@@ -1,0 +1,25 @@
+<div class="pagina">
+  <header class="encabezado">
+    <div>
+      <h1>Personal</h1>
+      <p>Busca por documento o nombre, filtra por estado, movimiento o área, y abre el legajo de cada trabajador.</p>
+    </div>
+    @if (sesion.tiene('personal.editar')) {
+      <button type="button" class="boton principal" (click)="abrirNuevo()">Registrar nuevo ingreso</button>
+    }
+  </header>
+
+  <app-worker-directory
+    titulo="Trabajadores registrados"
+    [estadoInicial]="estadoInicial()"
+    [movimientoInicial]="movimientoInicial()"
+  />
+</div>
+
+<app-new-worker-dialog
+  [abierto]="nuevoAbierto()"
+  (cerrar)="nuevoAbierto.set(false)"
+  (creado)="alCrear($event)"
+  (reingresar)="irAReingreso($event)"
+/>
+<app-reentry-dialog [trabajador]="paraReingreso()" (cerrar)="paraReingreso.set(null)" (actualizado)="alReingresar($event)" />
