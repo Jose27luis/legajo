@@ -1,0 +1,317 @@
+import { ChangeDetectionStrategy, Component, computed, inject, input, resource, signal, viewChild } from '@angular/core';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { RouterLink } from '@angular/router';
+import { DialogComponent } from '../../components/dialog/dialog.component';
+import { LinkFieldsComponent } from '../../components/link-fields/link-fields.component';
+import { crearCamposVinculo, leerCamposVinculo, reiniciarCamposVinculo } from '../../components/link-fields/link-form';
+import { ReentryDialogComponent } from '../../components/reentry-dialog/reentry-dialog.component';
+import { SituationDialogComponent } from '../../components/situation-dialog/situation-dialog.component';
+import { mensajeDeError } from '../../core/errors';
+import {
+  MOTIVOS_CAMBIO,
+  TEXTO_ESTADO,
+  TEXTO_MOTIVO_CAMBIO,
+  TEXTO_MOTIVO_FIN,
+  TEXTO_MOVIMIENTO,
+  TEXTO_TIPO_PERSONAL,
+  fechaCorta,
+  hoy,
+  iniciales,
+  nombreCompleto,
+  puedeReingresar,
+} from '../../core/labels';
+import type { Familiar, MotivoCambio, TipoDocIdentidad, TrabajadorDetalle } from '../../core/models';
+import { SessionService } from '../../core/session.service';
+import { ToastService } from '../../core/toast.service';
+import { WorkersService } from '../../services/workers.service';
+
+const opcional = (valor: string): string | null => (valor.trim() === '' ? null : valor.trim());
+
+@Component({
+  selector: 'app-worker-detail',
+  imports: [ReactiveFormsModule, RouterLink, DialogComponent, LinkFieldsComponent, SituationDialogComponent, ReentryDialogComponent],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  templateUrl: './worker-detail.component.html',
+  styleUrl: './worker-detail.component.css',
+})
+export class WorkerDetailComponent {
+  private readonly servicio = inject(WorkersService);
+  private readonly avisos = inject(ToastService);
+  protected readonly sesion = inject(SessionService);
+
+  readonly id = input.required<string>();
+
+  private readonly situacion = viewChild.required(SituationDialogComponent);
+  private readonly reingreso = viewChild.required(ReentryDialogComponent);
+
+  protected readonly textoEstado = TEXTO_ESTADO;
+  protected readonly textoMovimiento = TEXTO_MOVIMIENTO;
+  protected readonly textoMotivoFin = TEXTO_MOTIVO_FIN;
+  protected readonly textoMotivoCambio = TEXTO_MOTIVO_CAMBIO;
+  protected readonly textoTipoPersonal = TEXTO_TIPO_PERSONAL;
+  protected readonly motivosCambio = MOTIVOS_CAMBIO;
+  protected readonly nombreCompleto = nombreCompleto;
+  protected readonly iniciales = iniciales;
+  protected readonly fechaCorta = fechaCorta;
+  protected readonly puedeReingresar = puedeReingresar;
+  protected readonly hoy = hoy();
+
+  protected readonly detalle = resource({
+    params: () => this.id(),
+    loader: ({ params }) => this.servicio.obtener(params),
+  });
+  protected readonly errorDetalle = computed(() => {
+    const error = this.detalle.error();
+    return error === undefined ? null : mensajeDeError(error);
+  });
+
+  protected readonly paraSituacion = signal<TrabajadorDetalle | null>(null);
+  protected readonly paraReingreso = signal<TrabajadorDetalle | null>(null);
+
+  protected readonly fichaAbierta = signal(false);
+  protected readonly guardandoFicha = signal(false);
+  protected readonly errorFicha = signal<string | null>(null);
+  protected readonly ficha = new FormGroup({
+    tipoDocIdentidad: new FormControl<TipoDocIdentidad>('DNI', { nonNullable: true }),
+    numeroDoc: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.pattern(/^[A-Za-z0-9]{8,12}$/)] }),
+    nombres: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(100)] }),
+    apellidoPaterno: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(80)] }),
+    apellidoMaterno: new FormControl('', { nonNullable: true }),
+    fechaNacimiento: new FormControl('', { nonNullable: true }),
+    sexo: new FormControl('', { nonNullable: true }),
+    estadoCivil: new FormControl('', { nonNullable: true }),
+    direccion: new FormControl('', { nonNullable: true, validators: [Validators.maxLength(200)] }),
+    departamento: new FormControl('', { nonNullable: true }),
+    provincia: new FormControl('', { nonNullable: true }),
+    distrito: new FormControl('', { nonNullable: true }),
+    telefono: new FormControl('', { nonNullable: true }),
+    correo: new FormControl('', { nonNullable: true, validators: [Validators.email] }),
+    fechaIngreso: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+  });
+
+  protected readonly cambioAbierto = signal(false);
+  protected readonly guardandoCambio = signal(false);
+  protected readonly errorCambio = signal<string | null>(null);
+  protected readonly vinculoCambio = crearCamposVinculo();
+  protected readonly fechaCambio = new FormControl('', { nonNullable: true, validators: [Validators.required] });
+  protected readonly motivoCambio = new FormControl<MotivoCambio>('CAMBIO_CARGO_O_AREA', { nonNullable: true });
+
+  protected readonly familiarAbierto = signal(false);
+  protected readonly familiarEditando = signal<Familiar | null>(null);
+  protected readonly guardandoFamiliar = signal(false);
+  protected readonly errorFamiliar = signal<string | null>(null);
+  protected readonly familiar = new FormGroup({
+    parentesco: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+    nombresApellidos: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.minLength(3)] }),
+    numeroDoc: new FormControl('', { nonNullable: true, validators: [Validators.pattern(/^([A-Za-z0-9]{8,12})?$/)] }),
+    fechaNacimiento: new FormControl('', { nonNullable: true }),
+  });
+  protected readonly porQuitar = signal<Familiar | null>(null);
+  protected readonly quitando = signal(false);
+
+  protected ubicacion(trabajador: TrabajadorDetalle): string {
+    return [trabajador.distrito, trabajador.provincia, trabajador.departamento]
+      .filter((parte): parte is string => parte !== null && parte !== '')
+      .join(', ');
+  }
+
+  protected abrirSituacion(trabajador: TrabajadorDetalle): void {
+    this.situacion().reiniciar(trabajador);
+    this.paraSituacion.set(trabajador);
+  }
+
+  protected abrirReingreso(trabajador: TrabajadorDetalle): void {
+    this.reingreso().reiniciar(trabajador);
+    this.paraReingreso.set(trabajador);
+  }
+
+  protected alActualizar(detalle: TrabajadorDetalle, mensaje: string): void {
+    this.paraSituacion.set(null);
+    this.paraReingreso.set(null);
+    this.detalle.set(detalle);
+    this.avisos.exito(mensaje);
+  }
+
+  protected abrirFicha(trabajador: TrabajadorDetalle): void {
+    this.errorFicha.set(null);
+    this.ficha.reset({
+      tipoDocIdentidad: trabajador.tipoDocIdentidad,
+      numeroDoc: trabajador.numeroDoc,
+      nombres: trabajador.nombres,
+      apellidoPaterno: trabajador.apellidoPaterno,
+      apellidoMaterno: trabajador.apellidoMaterno ?? '',
+      fechaNacimiento: trabajador.fechaNacimiento ?? '',
+      sexo: trabajador.sexo ?? '',
+      estadoCivil: trabajador.estadoCivil ?? '',
+      direccion: trabajador.direccion ?? '',
+      departamento: trabajador.departamento ?? '',
+      provincia: trabajador.provincia ?? '',
+      distrito: trabajador.distrito ?? '',
+      telefono: trabajador.telefono ?? '',
+      correo: trabajador.correo ?? '',
+      fechaIngreso: trabajador.fechaIngreso,
+    });
+    this.fichaAbierta.set(true);
+  }
+
+  protected cerrarFicha(): void {
+    if (!this.guardandoFicha()) {
+      this.fichaAbierta.set(false);
+    }
+  }
+
+  protected campoInvalido(campo: 'numeroDoc' | 'nombres' | 'apellidoPaterno' | 'correo' | 'fechaIngreso'): boolean {
+    const control = this.ficha.controls[campo];
+    return control.touched && control.invalid;
+  }
+
+  protected async guardarFicha(): Promise<void> {
+    if (this.ficha.invalid) {
+      this.ficha.markAllAsTouched();
+      this.errorFicha.set('Revisa los campos marcados.');
+      return;
+    }
+    const valores = this.ficha.getRawValue();
+    this.guardandoFicha.set(true);
+    this.errorFicha.set(null);
+    try {
+      const detalle = await this.servicio.editar(this.id(), {
+        tipoDocIdentidad: valores.tipoDocIdentidad,
+        numeroDoc: valores.numeroDoc.trim().toUpperCase(),
+        nombres: valores.nombres.trim(),
+        apellidoPaterno: valores.apellidoPaterno.trim(),
+        apellidoMaterno: opcional(valores.apellidoMaterno),
+        fechaNacimiento: opcional(valores.fechaNacimiento),
+        sexo: opcional(valores.sexo),
+        estadoCivil: opcional(valores.estadoCivil),
+        direccion: opcional(valores.direccion),
+        departamento: opcional(valores.departamento),
+        provincia: opcional(valores.provincia),
+        distrito: opcional(valores.distrito),
+        telefono: opcional(valores.telefono),
+        correo: opcional(valores.correo),
+        fechaIngreso: valores.fechaIngreso,
+      });
+      this.detalle.set(detalle);
+      this.fichaAbierta.set(false);
+      this.avisos.exito('Ficha actualizada');
+    } catch (error: unknown) {
+      this.errorFicha.set(mensajeDeError(error));
+    } finally {
+      this.guardandoFicha.set(false);
+    }
+  }
+
+  protected abrirCambio(trabajador: TrabajadorDetalle): void {
+    this.errorCambio.set(null);
+    this.fechaCambio.reset(hoy());
+    this.motivoCambio.reset('CAMBIO_CARGO_O_AREA');
+    reiniciarCamposVinculo(this.vinculoCambio, trabajador.vinculo);
+    this.cambioAbierto.set(true);
+  }
+
+  protected cerrarCambio(): void {
+    if (!this.guardandoCambio()) {
+      this.cambioAbierto.set(false);
+    }
+  }
+
+  protected async guardarCambio(): Promise<void> {
+    const datos = leerCamposVinculo(this.vinculoCambio);
+    if (datos === null || this.fechaCambio.invalid) {
+      this.vinculoCambio.markAllAsTouched();
+      this.errorCambio.set('Completa la fecha y los datos del nuevo vínculo.');
+      return;
+    }
+    this.guardandoCambio.set(true);
+    this.errorCambio.set(null);
+    try {
+      const detalle = await this.servicio.cambiarVinculo(this.id(), {
+        ...datos,
+        fechaInicio: this.fechaCambio.value,
+        motivo: this.motivoCambio.value,
+      });
+      this.detalle.set(detalle);
+      this.cambioAbierto.set(false);
+      this.avisos.exito('Nuevo vínculo registrado');
+    } catch (error: unknown) {
+      this.errorCambio.set(mensajeDeError(error));
+    } finally {
+      this.guardandoCambio.set(false);
+    }
+  }
+
+  protected abrirFamiliar(familiar: Familiar | null): void {
+    this.familiarEditando.set(familiar);
+    this.errorFamiliar.set(null);
+    this.familiar.reset({
+      parentesco: familiar?.parentesco ?? '',
+      nombresApellidos: familiar?.nombresApellidos ?? '',
+      numeroDoc: familiar?.numeroDoc ?? '',
+      fechaNacimiento: familiar?.fechaNacimiento ?? '',
+    });
+    this.familiarAbierto.set(true);
+  }
+
+  protected cerrarFamiliar(): void {
+    if (!this.guardandoFamiliar()) {
+      this.familiarAbierto.set(false);
+    }
+  }
+
+  protected async guardarFamiliar(): Promise<void> {
+    if (this.familiar.invalid) {
+      this.familiar.markAllAsTouched();
+      this.errorFamiliar.set('Revisa los campos marcados.');
+      return;
+    }
+    const valores = this.familiar.getRawValue();
+    const datos = {
+      parentesco: valores.parentesco,
+      nombresApellidos: valores.nombresApellidos.trim(),
+      numeroDoc: opcional(valores.numeroDoc),
+      fechaNacimiento: opcional(valores.fechaNacimiento),
+    };
+    this.guardandoFamiliar.set(true);
+    this.errorFamiliar.set(null);
+    try {
+      const editando = this.familiarEditando();
+      if (editando === null) {
+        await this.servicio.crearFamiliar(this.id(), datos);
+      } else {
+        await this.servicio.editarFamiliar(this.id(), editando.id, datos);
+      }
+      this.detalle.set(await this.servicio.obtener(this.id()));
+      this.familiarAbierto.set(false);
+      this.avisos.exito(editando === null ? 'Familiar agregado' : 'Familiar actualizado');
+    } catch (error: unknown) {
+      this.errorFamiliar.set(mensajeDeError(error));
+    } finally {
+      this.guardandoFamiliar.set(false);
+    }
+  }
+
+  protected cerrarQuitar(): void {
+    if (!this.quitando()) {
+      this.porQuitar.set(null);
+    }
+  }
+
+  protected async confirmarQuitar(): Promise<void> {
+    const familiar = this.porQuitar();
+    if (familiar === null) {
+      return;
+    }
+    this.quitando.set(true);
+    try {
+      await this.servicio.quitarFamiliar(this.id(), familiar.id);
+      this.detalle.set(await this.servicio.obtener(this.id()));
+      this.porQuitar.set(null);
+      this.avisos.exito('Familiar quitado');
+    } catch (error: unknown) {
+      this.avisos.error(mensajeDeError(error));
+    } finally {
+      this.quitando.set(false);
+    }
+  }
+}
