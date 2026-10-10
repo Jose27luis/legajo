@@ -415,7 +415,6 @@ erDiagram
     TRABAJADOR ||--o{ DOCUMENTO : "legajo de"
     TIPO_DOCUMENTO ||--o{ DOCUMENTO : clasifica
     DOCUMENTO ||--|{ DOCUMENTO_ARCHIVO : versiones
-    DOCUMENTO |o--o{ VINCULO : sustenta
     USUARIO ||--o{ DOCUMENTO : registra
     USUARIO ||--o{ DOCUMENTO_ARCHIVO : sube
 
@@ -520,8 +519,8 @@ erDiagram
         date fecha_inicio
         date fecha_fin "nulo mientras está vigente"
         varchar motivo_fin
-        uuid documento_sustento_id FK
-        bool vigente "único vigente por trabajador"
+        varchar referencia "documento de sustento"
+        bool actual "uno por trabajador, se conserva al cesar"
     }
     SECCION {
         int id PK
@@ -650,7 +649,7 @@ Restricciones e índices que se crean con SQL en las migraciones:
 | `trabajador.nombre_busqueda` | Columna generada: `lower(f_unaccent(apellido_paterno || ' ' || apellido_materno || ' ' || nombres))` | Búsqueda sin tildes ni mayúsculas |
 | `ix_trabajador_nombre_trgm` | GIN `gin_trgm_ops` sobre `nombre_busqueda` | Búsqueda parcial por nombre |
 | `ux_trabajador_doc` | Único sobre `(tipo_doc_identidad, numero_doc)` | Un trabajador por documento de identidad |
-| `ux_vinculo_vigente` | Único parcial sobre `trabajador_id` donde `vigente` | Solo un vínculo vigente a la vez |
+| `ux_vinculo_actual` | Único parcial sobre `trabajador_id` donde `actual` | Un solo vínculo actual por trabajador; si no tiene fecha de fin, está vigente |
 | `ix_documento_numero_trgm` | GIN `gin_trgm_ops` sobre `lower(numero)` | Búsqueda por número de documento |
 | `ix_documento_legajo` | B-tree sobre `(trabajador_id, tipo_documento_id, fecha_emision)` | Carga del legajo ordenado |
 | `ix_documento_fecha` | B-tree sobre `fecha_emision` | Búsqueda por rango de fechas |
