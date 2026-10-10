@@ -5,15 +5,28 @@ import type { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
+import type { NextFunction, Request, Response } from 'express';
 import { AppModule } from './app.module';
 import { ENTORNO, type Entorno } from './environment/environment';
+import { UploadServerService } from './documents/upload-server.service';
+
+const RUTA_SUBIDAS = '/api/uploads';
 
 async function iniciar(): Promise<void> {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, { logger: ['error', 'warn', 'log'] });
   const entorno = app.get<Entorno>(ENTORNO);
 
+  const subidas = app.get(UploadServerService);
+
   app.disable('x-powered-by');
   app.use(helmet());
+  app.use((solicitud: Request, respuesta: Response, siguiente: NextFunction) => {
+    if (solicitud.path !== RUTA_SUBIDAS && !solicitud.path.startsWith(`${RUTA_SUBIDAS}/`)) {
+      siguiente();
+      return;
+    }
+    subidas.servidor.handle(solicitud, respuesta).catch((error: unknown) => siguiente(error));
+  });
   app.use(cookieParser());
   app.setGlobalPrefix('api');
   app.useGlobalPipes(
