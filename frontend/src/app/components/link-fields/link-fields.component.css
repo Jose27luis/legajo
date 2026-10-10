@@ -1,0 +1,10 @@
+.falta {
+  background: #fff4e8;
+  color: #7c5122;
+}
+
+.falta a {
+  margin-left: 6px;
+  color: var(--primario);
+  font-weight: 650;
+}
