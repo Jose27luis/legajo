@@ -1,0 +1,9 @@
+.codigo {
+  font-weight: 700;
+  color: var(--primario-oscuro);
+}
+
+.formulario {
+  display: grid;
+  gap: 14px;
+}
