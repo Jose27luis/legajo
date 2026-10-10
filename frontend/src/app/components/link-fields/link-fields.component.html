@@ -1,0 +1,60 @@
+<div class="campos" [formGroup]="grupo()">
+  @if (error(); as mensaje) {
+    <p class="aviso error completo" role="alert">{{ mensaje }}</p>
+  }
+  @if (faltanCatalogos()) {
+    <p class="aviso completo falta">
+      Primero registra al menos un área y un cargo.
+      @if (sesion.tiene('catalogos.gestionar')) {
+        <a routerLink="/catalogs" [queryParams]="{ tab: 'areas' }">Ir a Catálogos</a>
+      }
+    </p>
+  }
+  <div class="campo">
+    <label [for]="prefijo + '-tipo'">Tipo de personal</label>
+    <select [id]="prefijo + '-tipo'" formControlName="tipoPersonal" [attr.aria-invalid]="invalido('tipoPersonal')">
+      <option [ngValue]="null" disabled>Selecciona</option>
+      <option ngValue="ADMINISTRATIVO">Administrativo</option>
+      <option ngValue="ASISTENCIAL">Asistencial</option>
+    </select>
+  </div>
+  <div class="campo">
+    <label [for]="prefijo + '-regimen'">Régimen o modalidad</label>
+    <select [id]="prefijo + '-regimen'" formControlName="regimenId" [attr.aria-invalid]="invalido('regimenId')">
+      <option [ngValue]="null" disabled>Selecciona</option>
+      @for (regimen of opciones()?.regimenes ?? []; track regimen.id) {
+        <option [ngValue]="regimen.id">{{ regimen.nombre }}</option>
+      }
+    </select>
+  </div>
+  <div class="campo">
+    <label [for]="prefijo + '-cargo'">Cargo o puesto</label>
+    <select [id]="prefijo + '-cargo'" formControlName="cargoId" [attr.aria-invalid]="invalido('cargoId')">
+      <option [ngValue]="null" disabled>Selecciona</option>
+      @for (cargo of opciones()?.cargos ?? []; track cargo.id) {
+        <option [ngValue]="cargo.id">{{ cargo.nombre }}</option>
+      }
+    </select>
+  </div>
+  <div class="campo">
+    <label [for]="prefijo + '-area'">Área o dependencia</label>
+    <select [id]="prefijo + '-area'" formControlName="areaId" [attr.aria-invalid]="invalido('areaId')">
+      <option [ngValue]="null" disabled>Selecciona</option>
+      @for (area of opciones()?.areas ?? []; track area.id) {
+        <option [ngValue]="area.id">{{ area.nombre }}{{ area.padreNombre ? ' - ' + area.padreNombre : '' }}</option>
+      }
+    </select>
+  </div>
+  <div class="campo completo">
+    <label [for]="prefijo + '-referencia'">{{ etiquetaReferencia() }} (opcional)</label>
+    <input
+      [id]="prefijo + '-referencia'"
+      formControlName="referencia"
+      autocomplete="off"
+      [attr.aria-describedby]="prefijo + '-ayuda'"
+    />
+    <span [id]="prefijo + '-ayuda'" class="ayuda">
+      Por ejemplo, Contrato CAS N.° 025-2026. La referencia no reemplaza al PDF, que se sube en el legajo.
+    </span>
+  </div>
+</div>
