@@ -19,7 +19,24 @@ export const routes: Routes = [
     canMatch: [autenticadoGuard, claveAlDiaGuard],
     loadComponent: () => import('./components/layout/layout.component').then((m) => m.LayoutComponent),
     children: [
-      { path: '', pathMatch: 'full', redirectTo: 'profile' },
+      {
+        path: '',
+        pathMatch: 'full',
+        title: 'Inicio - Legajos de Personal',
+        loadComponent: () => import('./pages/home/home.component').then((m) => m.HomeComponent),
+      },
+      {
+        path: 'workers',
+        title: 'Personal - Legajos de Personal',
+        canMatch: [permisoGuard('personal.ver')],
+        loadComponent: () => import('./pages/workers/workers.component').then((m) => m.WorkersComponent),
+      },
+      {
+        path: 'workers/:id',
+        title: 'Legajo del trabajador - Legajos de Personal',
+        canMatch: [permisoGuard('personal.ver')],
+        loadComponent: () => import('./pages/worker-detail/worker-detail.component').then((m) => m.WorkerDetailComponent),
+      },
       {
         path: 'profile',
         title: 'Mi perfil - Legajos de Personal',
