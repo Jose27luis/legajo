@@ -1,0 +1,103 @@
+@if (errorCarga(); as mensaje) {
+  <div class="aviso error" role="alert">
+    {{ mensaje }}
+    <button type="button" class="boton chico" (click)="cargar()">Reintentar</button>
+  </div>
+} @else {
+  <div class="barra-tabla">
+    <p>Regímenes laborales con los que se registra el vínculo de cada trabajador.</p>
+    <button type="button" class="boton principal" (click)="nuevo()" [disabled]="cargando()">Nuevo régimen</button>
+  </div>
+
+  <div class="tabla-contenedor">
+    <table class="tabla">
+      <thead>
+        <tr>
+          <th scope="col">Código</th>
+          <th scope="col">Nombre</th>
+          <th scope="col">Vínculo</th>
+          <th scope="col">Estado</th>
+          <th scope="col"><span class="solo-lector">Acciones</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (cargando()) {
+          <tr>
+            <td colspan="5" class="celda-vacia">Cargando regímenes</td>
+          </tr>
+        } @else {
+          @for (regimen of regimenes(); track regimen.id) {
+            <tr [class.fila-inactiva]="!regimen.activo">
+              <td class="codigo">{{ regimen.codigo }}</td>
+              <td>{{ regimen.nombre }}</td>
+              <td>{{ regimen.esLaboral ? 'Laboral' : 'No laboral' }}</td>
+              <td>
+                @if (regimen.activo) {
+                  <span class="pastilla verde">Activo</span>
+                } @else {
+                  <span class="pastilla gris">Inactivo</span>
+                }
+              </td>
+              <td>
+                <div class="fila-acciones">
+                  <button type="button" class="boton chico" (click)="editar(regimen)">Editar</button>
+                  <button type="button" class="boton chico" [class.peligro]="regimen.activo" (click)="alternarActivo(regimen)">
+                    {{ regimen.activo ? 'Desactivar' : 'Activar' }}
+                  </button>
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="5" class="celda-vacia">Todavía no hay regímenes.</td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+}
+
+<app-dialog
+  [abierto]="dialogoAbierto()"
+  [angosto]="true"
+  [titulo]="editando() === null ? 'Nuevo régimen' : 'Editar régimen'"
+  (cerrar)="cerrar()"
+>
+  <form id="formulario-regimen" class="formulario" [formGroup]="formulario" (ngSubmit)="guardar()" novalidate>
+    <div class="campo">
+      <label for="regimen-codigo">Código</label>
+      <input
+        id="regimen-codigo"
+        formControlName="codigo"
+        autocomplete="off"
+        autocapitalize="characters"
+        aria-describedby="ayuda-regimen-codigo"
+        [attr.aria-invalid]="invalido('codigo')"
+      />
+      <span id="ayuda-regimen-codigo" class="ayuda">
+        {{ editando() === null ? 'Ejemplo: DL1057. Letras, números o guion bajo.' : 'El código no se puede cambiar.' }}
+      </span>
+    </div>
+    <div class="campo">
+      <label for="regimen-nombre">Nombre</label>
+      <input id="regimen-nombre" formControlName="nombre" autocomplete="off" [attr.aria-invalid]="invalido('nombre')" />
+    </div>
+    <label class="casilla">
+      <input type="checkbox" formControlName="esLaboral" />
+      <span>
+        <strong>Es vínculo laboral</strong>
+        <span>Desmárcalo para locación de servicios u otras modalidades no laborales.</span>
+      </span>
+    </label>
+    @if (errorFormulario(); as mensaje) {
+      <p class="aviso error" role="alert" animate.enter="aparece">{{ mensaje }}</p>
+    }
+  </form>
+  <ng-container pie>
+    <button type="button" class="boton" (click)="cerrar()" [disabled]="guardando()">Cancelar</button>
+    <button type="submit" form="formulario-regimen" class="boton principal" [disabled]="guardando()">
+      {{ guardando() ? 'Guardando' : editando() === null ? 'Crear régimen' : 'Guardar cambios' }}
+    </button>
+  </ng-container>
+</app-dialog>
