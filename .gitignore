@@ -15,3 +15,5 @@ CLAUDE.md
 
 *.log
 .DS_Store
+*.swp
+*.swo
