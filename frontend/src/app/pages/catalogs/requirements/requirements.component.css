@@ -1,0 +1,11 @@
+.codigo {
+  margin-right: 6px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--primario-oscuro);
+}
+
+.texto {
+  color: var(--tinta-media);
+  line-height: 1.6;
+}
