@@ -1,23 +1,13 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { z } from 'zod';
 import type { TipoDocumento } from '../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import type { DatosCliente } from '../common/client';
 import type { SesionActiva } from '../common/session';
 import { sinDuplicados } from '../common/unique-violation';
-import { TIPOS_CAMPO, type DocumentTypeDto, type SectionDto, type SectionFieldDto } from './dto/catalog.dto';
+import type { DocumentTypeDto, SectionDto } from './dto/catalog.dto';
 import type { CreateDocumentTypeDto, UpdateDocumentTypeDto } from './dto/catalog-input.dto';
-
-const esquemaCampos = z.array(
-  z.object({
-    clave: z.string(),
-    etiqueta: z.string(),
-    tipo: z.enum(TIPOS_CAMPO),
-    opciones: z.array(z.string()).optional(),
-    obligatorio: z.boolean(),
-  }),
-);
+import { leerCampos } from './section-fields';
 
 const ULTIMO_CORRELATIVO = 98;
 
@@ -53,7 +43,7 @@ export class DocumentTypesService {
       nombre: seccion.nombre,
       carpeta: seccion.carpeta,
       descripcion: seccion.descripcion,
-      campos: this.leerCampos(seccion.campos),
+      campos: leerCampos(seccion.campos),
       tipos: seccion.tipos.map(aTipoDto),
     }));
   }
@@ -138,14 +128,6 @@ export class DocumentTypesService {
       return tipo;
     });
     return aTipoDto(actualizado);
-  }
-
-  private leerCampos(valor: unknown): SectionFieldDto[] {
-    const resultado = esquemaCampos.safeParse(valor);
-    if (!resultado.success) {
-      throw new Error('La definición de campos de una sección no es válida');
-    }
-    return resultado.data;
   }
 }
 
