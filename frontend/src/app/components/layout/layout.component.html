@@ -1,44 +1,109 @@
-<div class="marco">
-  <header class="cabecera">
-    <a class="titulo" routerLink="/">
-      <app-brand [tamano]="30" />
-      <span>Legajos de Personal</span>
+<div class="app" [class.contraido]="contraido()" [class.menu-abierto]="menuMovil()">
+  <aside class="lateral" id="menu-lateral">
+    <a class="marca-lateral" routerLink="/" [attr.aria-label]="contraido() ? 'Legajos de Personal, inicio' : null">
+      <app-brand [tamano]="40" [conFondo]="true" />
+      <span class="texto-marca">
+        <strong>Legajos de Personal</strong>
+        <span>DIRESA Madre de Dios</span>
+      </span>
     </a>
-    <div class="cuenta">
-      @if (sesion.usuario(); as usuario) {
-        <span class="persona">
-          <span class="nombre">{{ usuario.nombreCompleto }}</span>
-          <span class="rol">{{ usuario.rol }}</span>
-        </span>
-      }
-      <button type="button" class="boton" (click)="cerrarSesion()" [disabled]="saliendo()">Cerrar sesión</button>
-    </div>
-  </header>
 
-  <div class="cuerpo">
-    <nav class="menu" aria-label="Menú principal">
-      <a
-        routerLink="/"
-        routerLinkActive="activo"
-        [routerLinkActiveOptions]="{ exact: true }"
-        ariaCurrentWhenActive="page"
-      >
-        Inicio
-      </a>
-      @if (sesion.tiene('personal.ver')) {
-        <a routerLink="/workers" routerLinkActive="activo" ariaCurrentWhenActive="page">Personal</a>
-      }
-      <a routerLink="/profile" routerLinkActive="activo" ariaCurrentWhenActive="page">Mi perfil</a>
-      @if (sesion.tiene('usuarios.gestionar') || sesion.tiene('catalogos.gestionar')) {
-        <span class="grupo">Administración</span>
-      }
-      @if (sesion.tiene('usuarios.gestionar')) {
-        <a routerLink="/users" routerLinkActive="activo" ariaCurrentWhenActive="page">Usuarios</a>
-      }
-      @if (sesion.tiene('catalogos.gestionar')) {
-        <a routerLink="/catalogs" routerLinkActive="activo" ariaCurrentWhenActive="page">Catálogos</a>
+    <nav class="navegacion" aria-label="Menú principal">
+      @for (grupo of grupos(); track grupo.titulo) {
+        <p class="grupo">{{ grupo.titulo }}</p>
+        <ul>
+          @for (enlace of grupo.enlaces; track enlace.ruta) {
+            <li>
+              <a
+                class="enlace"
+                [routerLink]="enlace.ruta"
+                routerLinkActive="activo"
+                [routerLinkActiveOptions]="{ exact: enlace.exacto }"
+                ariaCurrentWhenActive="page"
+                [attr.title]="contraido() ? enlace.etiqueta : null"
+              >
+                <app-icon [nombre]="enlace.icono" />
+                <span class="etiqueta">{{ enlace.etiqueta }}</span>
+              </a>
+            </li>
+          }
+        </ul>
       }
     </nav>
+
+    <button
+      type="button"
+      class="contraer"
+      (click)="alternarContraido()"
+      [attr.aria-label]="contraido() ? 'Expandir menú' : 'Contraer menú'"
+      [attr.aria-expanded]="!contraido()"
+      aria-controls="menu-lateral"
+    >
+      <app-icon nombre="contraer" />
+      <span class="etiqueta">Contraer menú</span>
+    </button>
+  </aside>
+
+  <button type="button" class="velo" aria-label="Cerrar menú" tabindex="-1" (click)="menuMovil.set(false)"></button>
+
+  <div class="principal">
+    <header class="superior">
+      <button
+        type="button"
+        class="hamburguesa"
+        aria-label="Abrir menú"
+        aria-controls="menu-lateral"
+        [attr.aria-expanded]="menuMovil()"
+        (click)="menuMovil.set(true)"
+      >
+        <app-icon nombre="menu" [tamano]="22" />
+      </button>
+
+      <div class="ubicacion">
+        <span class="titulo">{{ titulo() }}</span>
+        <span class="fecha">{{ fechaHoy }}</span>
+      </div>
+
+      <div class="usuario" #zonaUsuario>
+        <button
+          type="button"
+          class="chip"
+          aria-haspopup="menu"
+          aria-controls="menu-usuario"
+          [attr.aria-expanded]="menuUsuario()"
+          (click)="alternarMenuUsuario()"
+        >
+          <span class="avatar" aria-hidden="true">{{ iniciales() }}</span>
+          @if (sesion.usuario(); as usuario) {
+            <span class="datos">
+              <strong>{{ usuario.nombreCompleto }}</strong>
+              <span>{{ usuario.rol }}</span>
+            </span>
+          }
+          <app-icon nombre="abajo" [tamano]="18" class="flecha" [class.girada]="menuUsuario()" />
+        </button>
+
+        @if (menuUsuario()) {
+          <div class="desplegable" id="menu-usuario" role="menu" animate.enter="entra" animate.leave="sale">
+            @if (sesion.usuario(); as usuario) {
+              <div class="cuenta">
+                <strong>{{ usuario.nombreCompleto }}</strong>
+                <span>{{ usuario.correo }}</span>
+              </div>
+            }
+            <a role="menuitem" class="opcion" routerLink="/profile">
+              <app-icon nombre="perfil" [tamano]="18" />
+              Mi perfil
+            </a>
+            <button role="menuitem" type="button" class="opcion salir" (click)="cerrarSesion()" [disabled]="saliendo()">
+              <app-icon nombre="salir" [tamano]="18" />
+              {{ saliendo() ? 'Cerrando sesión' : 'Cerrar sesión' }}
+            </button>
+          </div>
+        }
+      </div>
+    </header>
+
     <main class="contenido">
       <router-outlet />
     </main>
