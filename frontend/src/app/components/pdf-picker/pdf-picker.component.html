@@ -1,0 +1,60 @@
+<input
+  #selector
+  class="solo-lector"
+  type="file"
+  accept="application/pdf,.pdf"
+  [id]="idCampo()"
+  [disabled]="deshabilitado()"
+  (change)="alElegir($event)"
+/>
+
+@if (archivo(); as elegido) {
+  <div class="elegido" [class.subiendo]="progreso() !== null">
+    <span class="hoja" aria-hidden="true">PDF</span>
+    <span class="datos">
+      <strong>{{ elegido.name }}</strong>
+      <span>
+        {{ tamano() }}
+        @if (progreso(); as avance) {
+          <span class="avance">, subido {{ avance }} %</span>
+        }
+      </span>
+    </span>
+    @if (progreso() === null) {
+      <button type="button" class="boton chico" (click)="quitar()" [disabled]="deshabilitado()">Cambiar</button>
+    }
+    @if (progreso() !== null) {
+      <span
+        class="barra"
+        role="progressbar"
+        aria-label="Avance de la subida"
+        [attr.aria-valuenow]="progreso()"
+        aria-valuemin="0"
+        aria-valuemax="100"
+      >
+        <span [style.width.%]="progreso()"></span>
+      </span>
+    }
+  </div>
+} @else {
+  <label
+    class="zona"
+    [for]="idCampo()"
+    [class.encima]="arrastrando()"
+    [class.invalida]="invalido() || error() !== null"
+    (dragover)="alArrastrar($event, true)"
+    (dragleave)="alArrastrar($event, false)"
+    (drop)="alSoltar($event)"
+  >
+    <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true">
+      <path d="M12 15.5V4.5M7.5 9 12 4.5 16.5 9" />
+      <path d="M4.5 14.5v3a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-3" />
+    </svg>
+    <span><b>Elige el PDF</b> o arrástralo aquí</span>
+    <small>Hasta {{ tamanoMaximo }} MB. Se optimiza al guardarse.</small>
+  </label>
+}
+
+@if (error(); as mensaje) {
+  <p class="error" role="alert">{{ mensaje }}</p>
+}
