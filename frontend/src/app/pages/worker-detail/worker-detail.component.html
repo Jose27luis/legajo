@@ -1,0 +1,358 @@
+<nav class="migas" aria-label="Ruta">
+  <a routerLink="/workers">Personal</a>
+  <span aria-hidden="true">/</span>
+  @if (detalle.value(); as actual) {
+    <span>{{ nombreCompleto(actual) }}</span>
+  }
+</nav>
+
+@if (errorDetalle(); as mensaje) {
+  <div class="aviso error" role="alert">
+    {{ mensaje }}
+    <button type="button" class="boton chico" (click)="detalle.reload()">Reintentar</button>
+  </div>
+} @else {
+  @if (detalle.value(); as trabajador) {
+    <section class="persona">
+      <div class="avatar" aria-hidden="true">{{ iniciales(trabajador) }}</div>
+      <div class="identidad">
+        <h1>{{ nombreCompleto(trabajador) }}</h1>
+        <p class="meta">
+          <span>{{ trabajador.tipoDocIdentidad }} {{ trabajador.numeroDoc }}</span>
+          @if (trabajador.vinculo; as vinculo) {
+            <span>{{ vinculo.regimen.nombre }}</span>
+            <span>{{ vinculo.cargo.nombre }}</span>
+            <span>{{ vinculo.area.nombre }}</span>
+          }
+        </p>
+      </div>
+      <div class="estado">
+        <span class="pastilla" [class.verde]="trabajador.estado === 'ACTIVO'" [class.gris]="trabajador.estado === 'CESADO'">
+          {{ textoEstado[trabajador.estado] }}
+        </span>
+        @if (trabajador.movimientoActual !== 'SIN_MOVIMIENTO') {
+          <span class="pastilla azul">{{ textoMovimiento[trabajador.movimientoActual] }}</span>
+        }
+      </div>
+    </section>
+
+    @if (sesion.tiene('personal.editar')) {
+      <div class="barra-acciones">
+        <button type="button" class="boton" (click)="abrirFicha(trabajador)">Editar ficha</button>
+        @if (trabajador.estado === 'ACTIVO') {
+          <button type="button" class="boton" (click)="abrirSituacion(trabajador)">Estado y movimiento</button>
+          <button type="button" class="boton" (click)="abrirCambio(trabajador)">Cambio de vínculo</button>
+        } @else if (puedeReingresar(trabajador)) {
+          <button type="button" class="boton principal" (click)="abrirReingreso(trabajador)">Registrar reingreso</button>
+        }
+      </div>
+    }
+
+    <div class="rejilla">
+      <section class="tarjeta" aria-labelledby="titulo-ficha">
+        <h2 id="titulo-ficha">Ficha principal</h2>
+        <dl class="datos">
+          <div><dt>Documento</dt><dd>{{ trabajador.tipoDocIdentidad }} {{ trabajador.numeroDoc }}</dd></div>
+          <div><dt>Nombres</dt><dd>{{ trabajador.nombres }}</dd></div>
+          <div>
+            <dt>Apellidos</dt>
+            <dd>{{ trabajador.apellidoPaterno }} {{ trabajador.apellidoMaterno ?? '' }}</dd>
+          </div>
+          @if (trabajador.vinculo; as vinculo) {
+            <div><dt>Tipo de personal</dt><dd>{{ textoTipoPersonal[vinculo.tipoPersonal] }}</dd></div>
+            <div><dt>Régimen laboral</dt><dd>{{ vinculo.regimen.nombre }}</dd></div>
+            <div><dt>Cargo</dt><dd>{{ vinculo.cargo.nombre }}</dd></div>
+            <div><dt>Área o dependencia</dt><dd>{{ vinculo.area.nombre }}</dd></div>
+          }
+          <div><dt>Fecha de ingreso actual</dt><dd>{{ fechaCorta(trabajador.fechaIngreso) }}</dd></div>
+          <div><dt>Estado laboral</dt><dd>{{ textoEstado[trabajador.estado] }}</dd></div>
+          <div>
+            <dt>Último movimiento</dt>
+            <dd>
+              {{ textoMovimiento[trabajador.movimientoActual] }}
+              @if (trabajador.movimientoFecha; as fecha) {
+                desde {{ fechaCorta(fecha) }}
+              }
+            </dd>
+          </div>
+          @if (trabajador.estado === 'CESADO' && trabajador.vinculo; as vinculo) {
+            <div><dt>Motivo de cese</dt><dd>{{ vinculo.motivoFin ? textoMotivoFin[vinculo.motivoFin] : '' }}</dd></div>
+            <div><dt>Fecha de cese</dt><dd>{{ fechaCorta(vinculo.fechaFin) }}</dd></div>
+          }
+        </dl>
+
+        <h3>Datos personales y contacto</h3>
+        <dl class="datos">
+          <div><dt>Fecha de nacimiento</dt><dd>{{ fechaCorta(trabajador.fechaNacimiento) }}</dd></div>
+          <div><dt>Sexo</dt><dd>{{ trabajador.sexo === 'F' ? 'Femenino' : trabajador.sexo === 'M' ? 'Masculino' : 'No registrado' }}</dd></div>
+          <div><dt>Estado civil</dt><dd>{{ trabajador.estadoCivil ?? 'No registrado' }}</dd></div>
+          <div><dt>Teléfono</dt><dd>{{ trabajador.telefono ?? 'No registrado' }}</dd></div>
+          <div><dt>Correo</dt><dd>{{ trabajador.correo ?? 'No registrado' }}</dd></div>
+          <div class="ancho">
+            <dt>Domicilio</dt>
+            <dd>
+              {{ trabajador.direccion ?? 'No registrado' }}
+              @if (ubicacion(trabajador); as lugar) {
+                <span class="ubicacion">{{ lugar }}</span>
+              }
+            </dd>
+          </div>
+        </dl>
+      </section>
+
+      <section class="tarjeta" aria-labelledby="titulo-vinculos">
+        <h2 id="titulo-vinculos">Historial de vínculos</h2>
+        <ol class="linea">
+          @for (vinculo of trabajador.vinculos; track vinculo.id) {
+            <li [class.vigente]="vinculo.fechaFin === null">
+              <strong>
+                {{ fechaCorta(vinculo.fechaInicio) }} al
+                {{ vinculo.fechaFin === null ? 'presente' : fechaCorta(vinculo.fechaFin) }}
+              </strong>
+              <span>{{ vinculo.cargo.nombre }} en {{ vinculo.area.nombre }}</span>
+              <span>{{ vinculo.regimen.nombre }}, {{ textoTipoPersonal[vinculo.tipoPersonal].toLowerCase() }}</span>
+              @if (vinculo.motivoFin; as motivo) {
+                <span class="motivo">Terminó por {{ textoMotivoFin[motivo].toLowerCase() }}</span>
+              }
+              @if (vinculo.referencia; as referencia) {
+                <span class="referencia">{{ referencia }}</span>
+              }
+            </li>
+          }
+        </ol>
+        <p class="nota">Si reingresa, se conserva este mismo legajo y se agrega un nuevo período.</p>
+      </section>
+    </div>
+
+    <section class="tarjeta" aria-labelledby="titulo-familia">
+      <div class="cabecera-tarjeta">
+        <h2 id="titulo-familia">Datos familiares</h2>
+        @if (sesion.tiene('personal.editar')) {
+          <button type="button" class="boton chico" (click)="abrirFamiliar(null)">Agregar familiar</button>
+        }
+      </div>
+      @if (trabajador.familiares.length === 0) {
+        <p class="nota">No hay familiares registrados.</p>
+      } @else {
+        <div class="tabla-contenedor">
+          <table class="tabla">
+            <thead>
+              <tr>
+                <th scope="col">Parentesco</th>
+                <th scope="col">Nombres y apellidos</th>
+                <th scope="col">Documento</th>
+                <th scope="col">Nacimiento</th>
+                <th scope="col"><span class="solo-lector">Acciones</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (familiar of trabajador.familiares; track familiar.id) {
+                <tr>
+                  <td>{{ familiar.parentesco }}</td>
+                  <td>{{ familiar.nombresApellidos }}</td>
+                  <td>{{ familiar.numeroDoc ?? '' }}</td>
+                  <td>{{ familiar.fechaNacimiento ? fechaCorta(familiar.fechaNacimiento) : '' }}</td>
+                  <td>
+                    @if (sesion.tiene('personal.editar')) {
+                      <div class="fila-acciones">
+                        <button type="button" class="boton chico" (click)="abrirFamiliar(familiar)">Editar</button>
+                        <button type="button" class="boton chico peligro" (click)="porQuitar.set(familiar)">Quitar</button>
+                      </div>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </section>
+  } @else {
+    <p class="celda-vacia">Cargando legajo</p>
+  }
+}
+
+<app-situation-dialog
+  [trabajador]="paraSituacion()"
+  (cerrar)="paraSituacion.set(null)"
+  (actualizado)="alActualizar($event, 'Situación actualizada')"
+/>
+<app-reentry-dialog
+  [trabajador]="paraReingreso()"
+  (cerrar)="paraReingreso.set(null)"
+  (actualizado)="alActualizar($event, 'Reingreso registrado')"
+/>
+
+<app-dialog [abierto]="fichaAbierta()" titulo="Editar ficha del trabajador" (cerrar)="cerrarFicha()">
+  <form id="formulario-ficha" class="campos" [formGroup]="ficha" (ngSubmit)="guardarFicha()" novalidate>
+    <div class="campo">
+      <label for="ficha-tipo-doc">Documento de identidad</label>
+      <select id="ficha-tipo-doc" formControlName="tipoDocIdentidad">
+        <option value="DNI">DNI</option>
+        <option value="CE">Carné de extranjería</option>
+      </select>
+    </div>
+    <div class="campo">
+      <label for="ficha-numero">Número</label>
+      <input id="ficha-numero" formControlName="numeroDoc" maxlength="12" autocomplete="off" [attr.aria-invalid]="campoInvalido('numeroDoc')" />
+    </div>
+    <div class="campo completo">
+      <label for="ficha-nombres">Nombres</label>
+      <input id="ficha-nombres" formControlName="nombres" autocomplete="off" [attr.aria-invalid]="campoInvalido('nombres')" />
+    </div>
+    <div class="campo">
+      <label for="ficha-paterno">Apellido paterno</label>
+      <input id="ficha-paterno" formControlName="apellidoPaterno" autocomplete="off" [attr.aria-invalid]="campoInvalido('apellidoPaterno')" />
+    </div>
+    <div class="campo">
+      <label for="ficha-materno">Apellido materno</label>
+      <input id="ficha-materno" formControlName="apellidoMaterno" autocomplete="off" />
+    </div>
+    <div class="campo">
+      <label for="ficha-nacimiento">Fecha de nacimiento</label>
+      <input id="ficha-nacimiento" type="date" formControlName="fechaNacimiento" [max]="hoy" />
+    </div>
+    <div class="campo">
+      <label for="ficha-ingreso">Fecha de ingreso actual</label>
+      <input id="ficha-ingreso" type="date" formControlName="fechaIngreso" [max]="hoy" [attr.aria-invalid]="campoInvalido('fechaIngreso')" />
+    </div>
+    <div class="campo">
+      <label for="ficha-sexo">Sexo</label>
+      <select id="ficha-sexo" formControlName="sexo">
+        <option value="">No registrado</option>
+        <option value="F">Femenino</option>
+        <option value="M">Masculino</option>
+      </select>
+    </div>
+    <div class="campo">
+      <label for="ficha-civil">Estado civil</label>
+      <select id="ficha-civil" formControlName="estadoCivil">
+        <option value="">No registrado</option>
+        <option>Soltero(a)</option>
+        <option>Casado(a)</option>
+        <option>Conviviente</option>
+        <option>Divorciado(a)</option>
+        <option>Viudo(a)</option>
+      </select>
+    </div>
+    <div class="campo">
+      <label for="ficha-telefono">Teléfono</label>
+      <input id="ficha-telefono" type="tel" formControlName="telefono" autocomplete="off" />
+    </div>
+    <div class="campo">
+      <label for="ficha-correo">Correo</label>
+      <input id="ficha-correo" type="email" formControlName="correo" autocomplete="off" [attr.aria-invalid]="campoInvalido('correo')" />
+    </div>
+    <div class="campo completo">
+      <label for="ficha-direccion">Dirección</label>
+      <input id="ficha-direccion" formControlName="direccion" autocomplete="off" />
+    </div>
+    <div class="campo">
+      <label for="ficha-distrito">Distrito</label>
+      <input id="ficha-distrito" formControlName="distrito" autocomplete="off" />
+    </div>
+    <div class="campo">
+      <label for="ficha-provincia">Provincia</label>
+      <input id="ficha-provincia" formControlName="provincia" autocomplete="off" />
+    </div>
+    <div class="campo">
+      <label for="ficha-departamento">Departamento</label>
+      <input id="ficha-departamento" formControlName="departamento" autocomplete="off" />
+    </div>
+    @if (errorFicha(); as mensaje) {
+      <p class="aviso error completo" role="alert" animate.enter="aparece">{{ mensaje }}</p>
+    }
+  </form>
+  <ng-container pie>
+    <button type="button" class="boton" (click)="cerrarFicha()" [disabled]="guardandoFicha()">Cancelar</button>
+    <button type="submit" form="formulario-ficha" class="boton principal" [disabled]="guardandoFicha()">
+      {{ guardandoFicha() ? 'Guardando' : 'Guardar ficha' }}
+    </button>
+  </ng-container>
+</app-dialog>
+
+<app-dialog [abierto]="cambioAbierto()" titulo="Cambio de vínculo" (cerrar)="cerrarCambio()">
+  <p class="explicacion">
+    El vínculo vigente se cierra el día anterior a la fecha de inicio y se abre uno nuevo con estos datos.
+  </p>
+  <form id="formulario-cambio" class="formulario" (submit)="$event.preventDefault(); guardarCambio()" novalidate>
+    <div class="campos">
+      <div class="campo">
+        <label for="cambio-motivo">Motivo</label>
+        <select id="cambio-motivo" [formControl]="motivoCambio">
+          @for (motivo of motivosCambio; track motivo) {
+            <option [ngValue]="motivo">{{ textoMotivoCambio[motivo] }}</option>
+          }
+        </select>
+      </div>
+      <div class="campo">
+        <label for="cambio-fecha">Inicio del nuevo vínculo</label>
+        <input id="cambio-fecha" type="date" [formControl]="fechaCambio" [max]="hoy" />
+      </div>
+    </div>
+    <app-link-fields [grupo]="vinculoCambio" />
+    @if (errorCambio(); as mensaje) {
+      <p class="aviso error" role="alert" animate.enter="aparece">{{ mensaje }}</p>
+    }
+  </form>
+  <ng-container pie>
+    <button type="button" class="boton" (click)="cerrarCambio()" [disabled]="guardandoCambio()">Cancelar</button>
+    <button type="submit" form="formulario-cambio" class="boton principal" [disabled]="guardandoCambio()">
+      {{ guardandoCambio() ? 'Guardando' : 'Registrar nuevo vínculo' }}
+    </button>
+  </ng-container>
+</app-dialog>
+
+<app-dialog
+  [abierto]="familiarAbierto()"
+  [angosto]="true"
+  [titulo]="familiarEditando() === null ? 'Agregar familiar' : 'Editar familiar'"
+  (cerrar)="cerrarFamiliar()"
+>
+  <form id="formulario-familiar" class="formulario" [formGroup]="familiar" (ngSubmit)="guardarFamiliar()" novalidate>
+    <div class="campo">
+      <label for="familiar-parentesco">Parentesco</label>
+      <select id="familiar-parentesco" formControlName="parentesco">
+        <option value="" disabled>Selecciona</option>
+        <option>Cónyuge</option>
+        <option>Conviviente</option>
+        <option>Hijo(a)</option>
+        <option>Padre</option>
+        <option>Madre</option>
+        <option>Hermano(a)</option>
+        <option>Otro</option>
+      </select>
+    </div>
+    <div class="campo">
+      <label for="familiar-nombre">Nombres y apellidos</label>
+      <input id="familiar-nombre" formControlName="nombresApellidos" autocomplete="off" />
+    </div>
+    <div class="campo">
+      <label for="familiar-doc">Documento (opcional)</label>
+      <input id="familiar-doc" formControlName="numeroDoc" maxlength="12" autocomplete="off" />
+    </div>
+    <div class="campo">
+      <label for="familiar-nacimiento">Fecha de nacimiento (opcional)</label>
+      <input id="familiar-nacimiento" type="date" formControlName="fechaNacimiento" [max]="hoy" />
+    </div>
+    @if (errorFamiliar(); as mensaje) {
+      <p class="aviso error" role="alert" animate.enter="aparece">{{ mensaje }}</p>
+    }
+  </form>
+  <ng-container pie>
+    <button type="button" class="boton" (click)="cerrarFamiliar()" [disabled]="guardandoFamiliar()">Cancelar</button>
+    <button type="submit" form="formulario-familiar" class="boton principal" [disabled]="guardandoFamiliar()">
+      {{ guardandoFamiliar() ? 'Guardando' : 'Guardar' }}
+    </button>
+  </ng-container>
+</app-dialog>
+
+<app-dialog [abierto]="porQuitar() !== null" [angosto]="true" titulo="Quitar familiar" (cerrar)="cerrarQuitar()">
+  @if (porQuitar(); as familiar) {
+    <p class="explicacion">Se quitará a <strong>{{ familiar.nombresApellidos }}</strong> de los datos familiares.</p>
+  }
+  <ng-container pie>
+    <button type="button" class="boton" (click)="cerrarQuitar()" [disabled]="quitando()">Cancelar</button>
+    <button type="button" class="boton peligro lleno" (click)="confirmarQuitar()" [disabled]="quitando()">Quitar</button>
+  </ng-container>
+</app-dialog>
