@@ -1,0 +1,153 @@
+@if (errorCarga(); as mensaje) {
+  <div class="aviso error" role="alert">
+    {{ mensaje }}
+    <button type="button" class="boton chico" (click)="cargar()">Reintentar</button>
+  </div>
+} @else if (cargando()) {
+  <p class="celda-vacia">Cargando secciones</p>
+} @else {
+  <div class="distribucion">
+    <nav class="secciones" aria-label="Secciones del legajo">
+      @for (item of secciones(); track item.id) {
+        <button
+          type="button"
+          class="seccion"
+          [class.activa]="item.numero === numeroSeleccionado()"
+          [attr.aria-current]="item.numero === numeroSeleccionado() ? 'true' : null"
+          (click)="numeroSeleccionado.set(item.numero)"
+        >
+          <span class="numero">{{ item.numero < 10 ? '0' + item.numero : item.numero }}</span>
+          <span class="nombre">{{ item.nombre }}</span>
+          <span class="conteo">{{ activos(item) }}</span>
+        </button>
+      }
+    </nav>
+
+    @if (seccion(); as actual) {
+      <div class="detalle">
+        <div class="barra-tabla">
+          <div>
+            <h2>{{ actual.nombre }}</h2>
+            <p>{{ actual.descripcion }}</p>
+          </div>
+          <button type="button" class="boton principal" (click)="nuevo()">Nuevo tipo</button>
+        </div>
+
+        @if (actual.campos.length > 0) {
+          <div class="campos-propios">
+            <span>Campos propios de la sección:</span>
+            @for (campo of actual.campos; track campo.clave) {
+              <span class="pastilla gris">{{ campo.etiqueta }}{{ campo.obligatorio ? ' (obligatorio)' : '' }}</span>
+            }
+          </div>
+        }
+
+        <div class="tabla-contenedor">
+          <table class="tabla">
+            <thead>
+              <tr>
+                <th scope="col">Código</th>
+                <th scope="col">Tipo de documento</th>
+                <th scope="col">Condiciones</th>
+                <th scope="col">Estado</th>
+                <th scope="col"><span class="solo-lector">Acciones</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (tipo of actual.tipos; track tipo.id) {
+                <tr [class.fila-inactiva]="!tipo.activo">
+                  <td class="codigo">{{ tipo.codigo }}</td>
+                  <td>{{ tipo.nombre }}</td>
+                  <td>
+                    <div class="condiciones">
+                      @if (tipo.restringido) {
+                        <span class="pastilla roja">Restringido</span>
+                      }
+                      @if (tipo.requiereNumero) {
+                        <span class="pastilla azul">Exige número</span>
+                      }
+                      @if (tipo.tieneVencimiento) {
+                        <span class="pastilla ambar">Vence</span>
+                      }
+                    </div>
+                  </td>
+                  <td>
+                    @if (tipo.activo) {
+                      <span class="pastilla verde">Activo</span>
+                    } @else {
+                      <span class="pastilla gris">Inactivo</span>
+                    }
+                  </td>
+                  <td>
+                    <div class="fila-acciones">
+                      <button type="button" class="boton chico" (click)="editar(tipo)">Editar</button>
+                      <button type="button" class="boton chico" [class.peligro]="tipo.activo" (click)="alternarActivo(tipo)">
+                        {{ tipo.activo ? 'Desactivar' : 'Activar' }}
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="5" class="celda-vacia">Esta sección todavía no tiene tipos de documento.</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
+  </div>
+}
+
+<app-dialog
+  [abierto]="dialogoAbierto()"
+  [titulo]="editando() === null ? 'Nuevo tipo de documento' : 'Editar tipo ' + (editando()?.codigo ?? '')"
+  (cerrar)="cerrar()"
+>
+  <form id="formulario-tipo" class="formulario" [formGroup]="formulario" (ngSubmit)="guardar()" novalidate>
+    @if (editando() === null) {
+      <p class="nota">Se agregará a la sección {{ seccion()?.nombre }} con el siguiente código libre.</p>
+    }
+    <div class="campo">
+      <label for="tipo-nombre">Nombre</label>
+      <input id="tipo-nombre" formControlName="nombre" autocomplete="off" [attr.aria-invalid]="nombreInvalido()" />
+    </div>
+    <label class="casilla">
+      <input type="checkbox" formControlName="restringido" />
+      <span>
+        <strong>Acceso restringido</strong>
+        <span>Solo lo ven los roles con permiso para documentos restringidos.</span>
+      </span>
+    </label>
+    <label class="casilla">
+      <input type="checkbox" formControlName="requiereNumero" />
+      <span>
+        <strong>Exige número</strong>
+        <span>El documento debe registrarse con su número, por ejemplo 036-2022.</span>
+      </span>
+    </label>
+    <label class="casilla">
+      <input type="checkbox" formControlName="tieneVencimiento" />
+      <span>
+        <strong>Tiene vencimiento</strong>
+        <span>Se pide la fecha de vencimiento y aparece en el reporte de vencidos.</span>
+      </span>
+    </label>
+    @if (editando() !== null) {
+      <div class="campo orden">
+        <label for="tipo-orden">Orden en la sección</label>
+        <input id="tipo-orden" type="number" min="0" max="999" formControlName="orden" />
+      </div>
+    }
+    @if (errorFormulario(); as mensaje) {
+      <p class="aviso error" role="alert" animate.enter="aparece">{{ mensaje }}</p>
+    }
+  </form>
+  <ng-container pie>
+    <button type="button" class="boton" (click)="cerrar()" [disabled]="guardando()">Cancelar</button>
+    <button type="submit" form="formulario-tipo" class="boton principal" [disabled]="guardando()">
+      {{ guardando() ? 'Guardando' : editando() === null ? 'Crear tipo' : 'Guardar cambios' }}
+    </button>
+  </ng-container>
+</app-dialog>
