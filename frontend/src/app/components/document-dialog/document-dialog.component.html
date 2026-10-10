@@ -1,0 +1,175 @@
+<app-dialog [abierto]="documento() !== null" [titulo]="titulo()" (cerrar)="alCerrar()">
+  @if (documento(); as doc) {
+    @switch (modo()) {
+      @case ('detalle') {
+        <div class="resumen">
+          <div class="identidad">
+            <span class="codigo">{{ doc.tipo.codigo }}</span>
+            <div>
+              <strong>{{ doc.tipo.nombre }}</strong>
+              <span>{{ doc.numero ?? 'Sin número' }}</span>
+            </div>
+          </div>
+          <div class="pastillas">
+            <span class="pastilla" [class]="claseEstado[doc.estado]">{{ textoEstado[doc.estado] }}</span>
+            @if (doc.nivelAcceso !== 'NORMAL') {
+              <span class="pastilla ambar">{{ textoNivel[doc.nivelAcceso] }}</span>
+            }
+          </div>
+        </div>
+
+        @if (doc.estado === 'PROCESANDO') {
+          <p class="aviso info">El PDF se está optimizando. Esta ventana se actualiza sola.</p>
+        }
+        @if (doc.detalleError; as detalle) {
+          <p class="aviso error" role="alert">{{ detalle }}</p>
+        }
+        @if (doc.motivoAnulacion; as motivo) {
+          <p class="aviso sensible">Anulado: {{ motivo }}</p>
+        }
+
+        <dl class="datos">
+          <div><dt>Sección</dt><dd>{{ numeroSeccion(doc.seccion) }} {{ seccion()?.nombre }}</dd></div>
+          <div><dt>Fecha de emisión</dt><dd>{{ doc.fechaEmision ? fechaCorta(doc.fechaEmision) : 'Sin registrar' }}</dd></div>
+          @if (doc.tipo.tieneVencimiento) {
+            <div><dt>Vencimiento</dt><dd>{{ doc.fechaVencimiento ? fechaCorta(doc.fechaVencimiento) : 'Sin registrar' }}</dd></div>
+          }
+          <div><dt>Emitido por</dt><dd>{{ doc.emisor ?? 'Sin registrar' }}</dd></div>
+          <div><dt>Cargado el</dt><dd>{{ fechaHora(doc.creadoEn) }}<span class="quien">{{ doc.creadoPor }}</span></dd></div>
+          <div>
+            <dt>Última modificación</dt>
+            @if (doc.modificadoEn; as modificado) {
+              <dd>{{ fechaHora(modificado) }}<span class="quien">{{ doc.modificadoPor }}</span></dd>
+            } @else {
+              <dd>Sin modificaciones</dd>
+            }
+          </div>
+          @if (doc.motivoModificacion; as motivo) {
+            <div class="ancho"><dt>Motivo de la modificación</dt><dd>{{ motivo }}</dd></div>
+          }
+          @for (propio of propios(); track propio.etiqueta) {
+            <div><dt>{{ propio.etiqueta }}</dt><dd>{{ propio.valor }}</dd></div>
+          }
+          <div><dt>Ubicación del físico</dt><dd>{{ doc.ubicacionFisica ?? 'Sin registrar' }}</dd></div>
+          @if (doc.observaciones; as observaciones) {
+            <div class="ancho"><dt>Descripción y observaciones</dt><dd>{{ observaciones }}</dd></div>
+          }
+        </dl>
+
+        @if (doc.versiones.length > 0) {
+          <h3>Versiones del PDF</h3>
+          <ol class="versiones">
+            @for (version of doc.versiones; track version.version) {
+              <li [class.actual]="version.actual">
+                <span class="numero">v{{ version.version }}</span>
+                <span class="archivo">
+                  <strong>{{ version.nombreOriginal }}</strong>
+                  <span>
+                    {{ version.paginas }} {{ version.paginas === 1 ? 'folio' : 'folios' }},
+                    {{ tamanoLegible(version.tamanoFinal) }}
+                    @if (version.optimizado) {
+                      <span class="ahorro">(antes {{ tamanoLegible(version.tamanoOriginal) }})</span>
+                    }
+                  </span>
+                  <span>{{ fechaHora(version.creadoEn) }}, {{ version.subidoPor }}</span>
+                </span>
+                @if (version.actual) {
+                  <span class="pastilla azul">Vigente</span>
+                }
+              </li>
+            }
+          </ol>
+        }
+      }
+
+      @case ('editar') {
+        @if (seccion(); as actual) {
+          <form id="formulario-edicion" class="formulario" (submit)="$event.preventDefault(); guardarEdicion()" novalidate>
+            <app-document-fields [grupo]="formulario" [seccion]="actual" prefijo="edicion" />
+            <div class="campo">
+              <label for="edicion-motivo">Motivo de la corrección</label>
+              <textarea id="edicion-motivo" [formControl]="motivo" maxlength="500" rows="2" [attr.aria-invalid]="motivoInvalido()"></textarea>
+            </div>
+          </form>
+        }
+      }
+
+      @case ('reemplazar') {
+        <form id="formulario-reemplazo" class="formulario" (submit)="$event.preventDefault(); reemplazar()" novalidate>
+          <p class="aviso info">
+            Úsalo solo para la versión corregida del mismo documento, por ejemplo un escaneo incompleto. Un documento de otro año se
+            registra aparte. La versión anterior se conserva.
+          </p>
+          <app-pdf-picker idCampo="reemplazo-archivo" [(archivo)]="archivo" [progreso]="progreso()" [deshabilitado]="ocupado()" />
+          <div class="campo">
+            <label for="reemplazo-motivo">Motivo del reemplazo</label>
+            <textarea id="reemplazo-motivo" [formControl]="motivo" maxlength="500" rows="2" [attr.aria-invalid]="motivoInvalido()"></textarea>
+          </div>
+        </form>
+      }
+
+      @case ('anular') {
+        <form id="formulario-anulacion" class="formulario" (submit)="$event.preventDefault(); anular()" novalidate>
+          <p class="aviso sensible">
+            El documento no se borra: queda en la sección marcado como anulado, con su motivo y quién lo anuló.
+          </p>
+          <div class="campo">
+            <label for="anulacion-motivo">Motivo de la anulación</label>
+            <textarea id="anulacion-motivo" [formControl]="motivo" maxlength="500" rows="3" [attr.aria-invalid]="motivoInvalido()"></textarea>
+          </div>
+        </form>
+      }
+    }
+
+    @if (error(); as mensaje) {
+      <p class="aviso error mensaje" role="alert" animate.enter="aparece">{{ mensaje }}</p>
+    }
+  }
+
+  <ng-container pie>
+    @if (documento(); as doc) {
+      @switch (modo()) {
+        @case ('detalle') {
+          <div class="secundarias">
+            @if (doc.editable) {
+              <button type="button" class="boton chico" (click)="cambiarModo('editar')">Editar datos</button>
+              <button type="button" class="boton chico" (click)="cambiarModo('reemplazar')">Reemplazar PDF</button>
+            }
+            @if (sesion.tiene('documentos.anular') && doc.estado !== 'ANULADO' && doc.estado !== 'PROCESANDO') {
+              <button type="button" class="boton chico peligro" (click)="cambiarModo('anular')">Anular</button>
+            }
+          </div>
+          @if (doc.reintentable && sesion.tiene('documentos.subir')) {
+            <button type="button" class="boton" (click)="reintentar()" [disabled]="ocupado()">Reintentar</button>
+          }
+          @if (versionActual() !== null) {
+            @if (sesion.tiene('documentos.descargar')) {
+              <a class="boton" [href]="enlace(true)" download>Descargar</a>
+            }
+            <a class="boton principal" [href]="enlace(false)" target="_blank" rel="noopener">Ver PDF</a>
+          } @else {
+            <button type="button" class="boton" (click)="alCerrar()">Cerrar</button>
+          }
+        }
+        @case ('editar') {
+          <button type="button" class="boton" (click)="volver()" [disabled]="ocupado()">Volver</button>
+          <button type="submit" form="formulario-edicion" class="boton principal" [disabled]="ocupado()">
+            {{ ocupado() ? 'Guardando' : 'Guardar corrección' }}
+          </button>
+        }
+        @case ('reemplazar') {
+          <button type="button" class="boton" (click)="volver()" [disabled]="ocupado()">Volver</button>
+          <button type="submit" form="formulario-reemplazo" class="boton principal" [disabled]="ocupado()">
+            {{ progreso() !== null ? 'Subiendo' : ocupado() ? 'Guardando' : 'Subir versión corregida' }}
+          </button>
+        }
+        @case ('anular') {
+          <button type="button" class="boton" (click)="volver()" [disabled]="ocupado()">Volver</button>
+          <button type="submit" form="formulario-anulacion" class="boton peligro lleno" [disabled]="ocupado()">
+            {{ ocupado() ? 'Anulando' : 'Anular documento' }}
+          </button>
+        }
+      }
+    }
+  </ng-container>
+</app-dialog>
