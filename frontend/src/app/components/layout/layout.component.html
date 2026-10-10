@@ -17,6 +17,17 @@
 
   <div class="cuerpo">
     <nav class="menu" aria-label="Menú principal">
+      <a
+        routerLink="/"
+        routerLinkActive="activo"
+        [routerLinkActiveOptions]="{ exact: true }"
+        ariaCurrentWhenActive="page"
+      >
+        Inicio
+      </a>
+      @if (sesion.tiene('personal.ver')) {
+        <a routerLink="/workers" routerLinkActive="activo" ariaCurrentWhenActive="page">Personal</a>
+      }
       <a routerLink="/profile" routerLinkActive="activo" ariaCurrentWhenActive="page">Mi perfil</a>
       @if (sesion.tiene('usuarios.gestionar') || sesion.tiene('catalogos.gestionar')) {
         <span class="grupo">Administración</span>
