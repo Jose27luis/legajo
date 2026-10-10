@@ -1,0 +1,33 @@
+<app-dialog [abierto]="trabajador() !== null" titulo="Registrar reingreso" (cerrar)="cerrarDialogo()">
+  @if (trabajador(); as actual) {
+    <p class="intro">
+      <strong>{{ nombreCompleto(actual) }}</strong> ya tiene legajo. Se conservan sus 13 secciones y documentos, y se
+      agrega un nuevo período laboral.
+      @if (actual.vinculo?.fechaFin; as cese) {
+        Último cese: {{ fechaCorta(cese) }}.
+      }
+    </p>
+    <form id="formulario-reingreso" (submit)="$event.preventDefault(); guardar()" novalidate>
+      <div class="campo fecha">
+        <label for="reingreso-fecha">Fecha del nuevo ingreso</label>
+        <input
+          id="reingreso-fecha"
+          type="date"
+          [formControl]="fechaIngreso"
+          [max]="hoy"
+          [attr.aria-invalid]="fechaIngreso.touched && fechaIngreso.invalid"
+        />
+      </div>
+      <app-link-fields [grupo]="vinculo" etiquetaReferencia="Documento del nuevo ingreso" />
+      @if (error(); as mensaje) {
+        <p class="aviso error" role="alert" animate.enter="aparece">{{ mensaje }}</p>
+      }
+    </form>
+  }
+  <ng-container pie>
+    <button type="button" class="boton" (click)="cerrarDialogo()" [disabled]="guardando()">Cancelar</button>
+    <button type="submit" form="formulario-reingreso" class="boton principal" [disabled]="guardando()">
+      {{ guardando() ? 'Registrando' : 'Registrar reingreso' }}
+    </button>
+  </ng-container>
+</app-dialog>
