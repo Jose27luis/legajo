@@ -1,0 +1,98 @@
+<app-dialog [abierto]="abierto()" titulo="Registrar nuevo ingreso" (cerrar)="cerrarDialogo()">
+  <p class="intro">
+    El trabajador queda <strong>activo</strong>, sin movimiento y con su legajo de 13 secciones listo. Los PDF se suben
+    después, desde su legajo.
+  </p>
+
+  <form id="formulario-ingreso" [formGroup]="formulario" (ngSubmit)="guardar()" novalidate>
+    <div class="campos">
+      <div class="campo">
+        <label for="ingreso-tipo-doc">Documento de identidad</label>
+        <select id="ingreso-tipo-doc" formControlName="tipoDocIdentidad" (change)="revisarDocumento()">
+          <option value="DNI">DNI</option>
+          <option value="CE">Carné de extranjería</option>
+        </select>
+      </div>
+      <div class="campo">
+        <label for="ingreso-numero">Número</label>
+        <input
+          id="ingreso-numero"
+          formControlName="numeroDoc"
+          inputmode="numeric"
+          maxlength="12"
+          autocomplete="off"
+          aria-describedby="ingreso-numero-ayuda"
+          [attr.aria-invalid]="invalido('numeroDoc')"
+          (input)="revisarDocumento()"
+        />
+        <span id="ingreso-numero-ayuda" class="ayuda">No se registran dos legajos con el mismo documento.</span>
+      </div>
+
+      @if (existente(); as trabajador) {
+        <div class="existente completo" role="status" animate.enter="aparece">
+          <p>
+            Este documento ya corresponde a <strong>{{ nombreCompleto(trabajador) }}</strong>
+            ({{ textoEstado[trabajador.estado].toLowerCase() }}). No se crea otro legajo.
+          </p>
+          <div class="atajos">
+            <a class="boton chico" [routerLink]="['/workers', trabajador.id]" (click)="cerrar.emit()">Abrir legajo</a>
+            @if (puedeReingresar(trabajador)) {
+              <button type="button" class="boton chico principal" (click)="reingresar.emit(trabajador)">
+                Registrar reingreso
+              </button>
+            }
+          </div>
+        </div>
+      }
+
+      <div class="campo completo">
+        <label for="ingreso-nombres">Nombres</label>
+        <input id="ingreso-nombres" formControlName="nombres" autocomplete="off" [attr.aria-invalid]="invalido('nombres')" />
+      </div>
+      <div class="campo">
+        <label for="ingreso-paterno">Apellido paterno</label>
+        <input
+          id="ingreso-paterno"
+          formControlName="apellidoPaterno"
+          autocomplete="off"
+          [attr.aria-invalid]="invalido('apellidoPaterno')"
+        />
+      </div>
+      <div class="campo">
+        <label for="ingreso-materno">Apellido materno</label>
+        <input id="ingreso-materno" formControlName="apellidoMaterno" autocomplete="off" />
+      </div>
+      <div class="campo">
+        <label for="ingreso-fecha">Fecha de ingreso</label>
+        <input
+          id="ingreso-fecha"
+          type="date"
+          formControlName="fechaIngreso"
+          [max]="hoy"
+          aria-describedby="ingreso-fecha-ayuda"
+          [attr.aria-invalid]="invalido('fechaIngreso')"
+        />
+        <span id="ingreso-fecha-ayuda" class="ayuda">Día en que empezó a laborar, no el de digitalización.</span>
+      </div>
+    </div>
+
+    <h3>Vínculo laboral</h3>
+    <app-link-fields [grupo]="vinculo" etiquetaReferencia="Documento de ingreso" />
+
+    @if (error(); as mensaje) {
+      <p class="aviso error" role="alert" animate.enter="aparece">{{ mensaje }}</p>
+    }
+  </form>
+
+  <ng-container pie>
+    <button type="button" class="boton" (click)="cerrarDialogo()" [disabled]="guardando()">Cancelar</button>
+    <button
+      type="submit"
+      form="formulario-ingreso"
+      class="boton principal"
+      [disabled]="guardando() || existente() !== null"
+    >
+      {{ guardando() ? 'Registrando' : 'Registrar ingreso' }}
+    </button>
+  </ng-container>
+</app-dialog>
