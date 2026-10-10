@@ -1,0 +1,140 @@
+@if (seccion(); as actual) {
+  <header class="cabecera-seccion">
+    <div>
+      <p class="antetitulo">Sección {{ numeroSeccion(actual.numero) }} de 13</p>
+      <h2>{{ actual.nombre }}</h2>
+      <p>{{ actual.descripcion }}</p>
+    </div>
+    <div class="acciones-cabecera">
+      <a routerLink=".." class="boton chico">Ver las 13 secciones</a>
+      @if (sesion.tiene('documentos.descargar') && hayDisponibles()) {
+        <a class="boton chico" [href]="enlaceZip()" download>Descargar sección en ZIP</a>
+      }
+    </div>
+  </header>
+
+  <p class="aviso" [class.sensible]="aviso().sensible" [class.info]="!aviso().sensible">{{ aviso().texto }}</p>
+
+  <div class="rejilla" [class.sin-panel]="!sesion.tiene('documentos.subir')">
+    <section class="tarjeta lista" aria-labelledby="titulo-documentos">
+      <div class="cabecera-tarjeta">
+        <h3 id="titulo-documentos">Documentos de la sección {{ numeroSeccion(actual.numero) }}</h3>
+        <span class="cuenta">{{ actual.total }} {{ actual.total === 1 ? 'vigente' : 'vigentes' }}</span>
+      </div>
+
+      <div class="filtros">
+        <label class="buscador">
+          <span class="solo-lector">Buscar documentos</span>
+          <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><circle cx="11" cy="11" r="6.5" /><path d="m16 16 4 4" /></svg>
+          <input type="search" [value]="busqueda()" (input)="alBuscar($event)" autocomplete="off" aria-label="Buscar por tipo, número o nombre del PDF" />
+          @if (busqueda() === '') {
+            <span class="sugerencia" aria-hidden="true">Tipo, número o nombre del PDF</span>
+          }
+        </label>
+        <label class="solo-lector" for="filtro-estado">Estado</label>
+        <select id="filtro-estado" class="filtro" (change)="alFiltrar($event)">
+          <option value="" [selected]="filtroEstado() === ''">Todos los estados</option>
+          @for (estado of estados; track estado) {
+            <option [value]="estado" [selected]="filtroEstado() === estado">{{ textoEstado[estado] }}</option>
+          }
+        </select>
+      </div>
+
+      @if (documentos().length === 0) {
+        <div class="vacio">
+          <strong>{{ actual.total === 0 && filtroEstado() === '' && busqueda() === '' ? 'Todavía no hay documentos' : 'Nada coincide con los filtros' }}</strong>
+          <span>
+            {{
+              actual.total === 0 && filtroEstado() === '' && busqueda() === ''
+                ? 'Los PDF que se registren en esta sección aparecerán aquí.'
+                : 'Prueba con otro término o estado.'
+            }}
+          </span>
+        </div>
+      } @else {
+        <ul class="documentos">
+          @for (documento of documentos(); track documento.id) {
+            <li animate.enter="aparece">
+              <button type="button" class="documento" [class.anulado]="documento.estado === 'ANULADO'" (click)="seleccionadoId.set(documento.id)">
+                <span class="hoja" [class.procesando]="documento.estado === 'PROCESANDO'" aria-hidden="true">PDF</span>
+                <span class="principal">
+                  <strong>{{ documento.tipo.nombre }}</strong>
+                  <span>{{ referencia(documento) }}</span>
+                  <span class="archivo">{{ nombreArchivo(documento) }}</span>
+                </span>
+                <span class="carga">
+                  <span>{{ fechaHora(documento.creadoEn) }}</span>
+                  <span class="quien">{{ documento.creadoPor }}</span>
+                </span>
+                <span class="carga modificacion">
+                  @if (documento.modificadoEn; as modificado) {
+                    <span>{{ fechaHora(modificado) }}</span>
+                    <span class="quien">{{ documento.modificadoPor }}</span>
+                  } @else {
+                    <span class="quien">Sin modificaciones</span>
+                  }
+                </span>
+                <span class="marcas">
+                  <span class="pastilla" [class]="claseEstado[documento.estado]">{{ textoEstado[documento.estado] }}</span>
+                  @if (documento.nivelAcceso !== 'NORMAL') {
+                    <span class="pastilla ambar">{{ textoNivel[documento.nivelAcceso] }}</span>
+                  }
+                </span>
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+
+    @if (sesion.tiene('documentos.subir')) {
+      <aside class="tarjeta panel" aria-labelledby="titulo-subir">
+        <h3 id="titulo-subir">Subir PDF</h3>
+        @if (contexto.detalle.value(); as trabajador) {
+          <p class="destino">
+            Se guardará en el legajo de <b>{{ nombreCompleto(trabajador) }}</b>, sección {{ numeroSeccion(actual.numero) }}.
+          </p>
+        }
+        <form class="formulario" (submit)="$event.preventDefault(); registrar()" novalidate>
+          <app-pdf-picker
+            idCampo="nuevo-archivo"
+            [(archivo)]="archivo"
+            [progreso]="progreso()"
+            [deshabilitado]="ocupado()"
+            [invalido]="archivoFaltante() && archivo() === null"
+          />
+          <app-document-fields [grupo]="formulario" [seccion]="actual" prefijo="nuevo" [compacto]="true" />
+          @if (error(); as mensaje) {
+            <p class="aviso error" role="alert" animate.enter="aparece">{{ mensaje }}</p>
+          }
+          <div class="botones">
+            @if (progreso() !== null) {
+              <button type="button" class="boton" (click)="cancelarSubida()">Cancelar subida</button>
+            } @else {
+              <button type="button" class="boton" (click)="limpiar()" [disabled]="ocupado()">Limpiar</button>
+            }
+            <button type="submit" class="boton principal" [disabled]="ocupado()">
+              {{ progreso() !== null ? 'Subiendo ' + progreso() + ' %' : ocupado() ? 'Registrando' : 'Registrar PDF' }}
+            </button>
+          </div>
+        </form>
+      </aside>
+    }
+  </div>
+
+  <app-document-dialog
+    [documento]="seleccionado()"
+    [seccion]="actual"
+    (cerrar)="seleccionadoId.set(null)"
+    (actualizado)="contexto.actualizarDocumento($event)"
+  />
+} @else if (contexto.errorLegajo(); as mensaje) {
+  <div class="aviso error" role="alert">
+    {{ mensaje }}
+    <button type="button" class="boton chico" (click)="contexto.legajo.reload()">Reintentar</button>
+  </div>
+} @else if (contexto.legajo.hasValue()) {
+  <p class="celda-vacia">La sección no existe.</p>
+} @else {
+  <p class="celda-vacia">Cargando sección</p>
+}
