@@ -1,7 +1,8 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import * as argon2 from 'argon2';
-import { Prisma } from '../generated/prisma/client';
+import type { Prisma } from '../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { sinDuplicados } from '../common/unique-violation';
 import { AuditService } from '../audit/audit.service';
 import { SessionService } from '../auth/session.service';
 import type { DatosCliente } from '../common/client';
@@ -233,15 +234,8 @@ export class UsersService {
     }
   }
 
-  private async ejecutarSinDuplicados<T>(operacion: () => Promise<T>): Promise<T> {
-    try {
-      return await operacion();
-    } catch (error: unknown) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
-        throw new ConflictException('Ya existe una cuenta con ese nombre de usuario o correo');
-      }
-      throw error;
-    }
+  private ejecutarSinDuplicados<T>(operacion: () => Promise<T>): Promise<T> {
+    return sinDuplicados(operacion, 'Ya existe una cuenta con ese nombre de usuario o correo');
   }
 
   private aDto(usuario: UsuarioConRol): UserDto {
