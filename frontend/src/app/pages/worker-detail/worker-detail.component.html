@@ -34,139 +34,44 @@
           <span class="pastilla azul">{{ textoMovimiento[trabajador.movimientoActual] }}</span>
         }
       </div>
-    </section>
-
-    @if (sesion.tiene('personal.editar')) {
-      <div class="barra-acciones">
-        <button type="button" class="boton" (click)="abrirFicha(trabajador)">Editar ficha</button>
-        @if (trabajador.estado === 'ACTIVO') {
-          <button type="button" class="boton" (click)="abrirSituacion(trabajador)">Estado y movimiento</button>
-          <button type="button" class="boton" (click)="abrirCambio(trabajador)">Cambio de vínculo</button>
-        } @else if (puedeReingresar(trabajador)) {
-          <button type="button" class="boton principal" (click)="abrirReingreso(trabajador)">Registrar reingreso</button>
-        }
-      </div>
-    }
-
-    <div class="rejilla">
-      <section class="tarjeta" aria-labelledby="titulo-ficha">
-        <h2 id="titulo-ficha">Ficha principal</h2>
-        <dl class="datos">
-          <div><dt>Documento</dt><dd>{{ trabajador.tipoDocIdentidad }} {{ trabajador.numeroDoc }}</dd></div>
-          <div><dt>Nombres</dt><dd>{{ trabajador.nombres }}</dd></div>
-          <div>
-            <dt>Apellidos</dt>
-            <dd>{{ trabajador.apellidoPaterno }} {{ trabajador.apellidoMaterno ?? '' }}</dd>
-          </div>
-          @if (trabajador.vinculo; as vinculo) {
-            <div><dt>Tipo de personal</dt><dd>{{ textoTipoPersonal[vinculo.tipoPersonal] }}</dd></div>
-            <div><dt>Régimen laboral</dt><dd>{{ vinculo.regimen.nombre }}</dd></div>
-            <div><dt>Cargo</dt><dd>{{ vinculo.cargo.nombre }}</dd></div>
-            <div><dt>Área o dependencia</dt><dd>{{ vinculo.area.nombre }}</dd></div>
+      @if (sesion.tiene('personal.editar')) {
+        <div class="acciones">
+          <button type="button" class="boton chico" (click)="abrirFicha(trabajador)">Editar ficha</button>
+          @if (trabajador.estado === 'ACTIVO') {
+            <button type="button" class="boton chico" (click)="abrirSituacion(trabajador)">Estado y movimiento</button>
+            <button type="button" class="boton chico" (click)="abrirCambio(trabajador)">Cambio de vínculo</button>
+          } @else if (puedeReingresar(trabajador)) {
+            <button type="button" class="boton chico principal" (click)="abrirReingreso(trabajador)">Registrar reingreso</button>
           }
-          <div><dt>Fecha de ingreso actual</dt><dd>{{ fechaCorta(trabajador.fechaIngreso) }}</dd></div>
-          <div><dt>Estado laboral</dt><dd>{{ textoEstado[trabajador.estado] }}</dd></div>
-          <div>
-            <dt>Último movimiento</dt>
-            <dd>
-              {{ textoMovimiento[trabajador.movimientoActual] }}
-              @if (trabajador.movimientoFecha; as fecha) {
-                desde {{ fechaCorta(fecha) }}
-              }
-            </dd>
-          </div>
-          @if (trabajador.estado === 'CESADO' && trabajador.vinculo; as vinculo) {
-            <div><dt>Motivo de cese</dt><dd>{{ vinculo.motivoFin ? textoMotivoFin[vinculo.motivoFin] : '' }}</dd></div>
-            <div><dt>Fecha de cese</dt><dd>{{ fechaCorta(vinculo.fechaFin) }}</dd></div>
-          }
-        </dl>
-
-        <h3>Datos personales y contacto</h3>
-        <dl class="datos">
-          <div><dt>Fecha de nacimiento</dt><dd>{{ fechaCorta(trabajador.fechaNacimiento) }}</dd></div>
-          <div><dt>Sexo</dt><dd>{{ trabajador.sexo === 'F' ? 'Femenino' : trabajador.sexo === 'M' ? 'Masculino' : 'No registrado' }}</dd></div>
-          <div><dt>Estado civil</dt><dd>{{ trabajador.estadoCivil ?? 'No registrado' }}</dd></div>
-          <div><dt>Teléfono</dt><dd>{{ trabajador.telefono ?? 'No registrado' }}</dd></div>
-          <div><dt>Correo</dt><dd>{{ trabajador.correo ?? 'No registrado' }}</dd></div>
-          <div class="ancho">
-            <dt>Domicilio</dt>
-            <dd>
-              {{ trabajador.direccion ?? 'No registrado' }}
-              @if (ubicacion(trabajador); as lugar) {
-                <span class="ubicacion">{{ lugar }}</span>
-              }
-            </dd>
-          </div>
-        </dl>
-      </section>
-
-      <section class="tarjeta" aria-labelledby="titulo-vinculos">
-        <h2 id="titulo-vinculos">Historial de vínculos</h2>
-        <ol class="linea">
-          @for (vinculo of trabajador.vinculos; track vinculo.id) {
-            <li [class.vigente]="vinculo.fechaFin === null">
-              <strong>
-                {{ fechaCorta(vinculo.fechaInicio) }} al
-                {{ vinculo.fechaFin === null ? 'presente' : fechaCorta(vinculo.fechaFin) }}
-              </strong>
-              <span>{{ vinculo.cargo.nombre }} en {{ vinculo.area.nombre }}</span>
-              <span>{{ vinculo.regimen.nombre }}, {{ textoTipoPersonal[vinculo.tipoPersonal].toLowerCase() }}</span>
-              @if (vinculo.motivoFin; as motivo) {
-                <span class="motivo">Terminó por {{ textoMotivoFin[motivo].toLowerCase() }}</span>
-              }
-              @if (vinculo.referencia; as referencia) {
-                <span class="referencia">{{ referencia }}</span>
-              }
-            </li>
-          }
-        </ol>
-        <p class="nota">Si reingresa, se conserva este mismo legajo y se agrega un nuevo período.</p>
-      </section>
-    </div>
-
-    <section class="tarjeta" aria-labelledby="titulo-familia">
-      <div class="cabecera-tarjeta">
-        <h2 id="titulo-familia">Datos familiares</h2>
-        @if (sesion.tiene('personal.editar')) {
-          <button type="button" class="boton chico" (click)="abrirFamiliar(null)">Agregar familiar</button>
-        }
-      </div>
-      @if (trabajador.familiares.length === 0) {
-        <p class="nota">No hay familiares registrados.</p>
-      } @else {
-        <div class="tabla-contenedor">
-          <table class="tabla">
-            <thead>
-              <tr>
-                <th scope="col">Parentesco</th>
-                <th scope="col">Nombres y apellidos</th>
-                <th scope="col">Documento</th>
-                <th scope="col">Nacimiento</th>
-                <th scope="col"><span class="solo-lector">Acciones</span></th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (familiar of trabajador.familiares; track familiar.id) {
-                <tr>
-                  <td>{{ familiar.parentesco }}</td>
-                  <td>{{ familiar.nombresApellidos }}</td>
-                  <td>{{ familiar.numeroDoc ?? '' }}</td>
-                  <td>{{ familiar.fechaNacimiento ? fechaCorta(familiar.fechaNacimiento) : '' }}</td>
-                  <td>
-                    @if (sesion.tiene('personal.editar')) {
-                      <div class="fila-acciones">
-                        <button type="button" class="boton chico" (click)="abrirFamiliar(familiar)">Editar</button>
-                        <button type="button" class="boton chico peligro" (click)="porQuitar.set(familiar)">Quitar</button>
-                      </div>
-                    }
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
         </div>
       }
     </section>
+
+    <div class="legajo">
+      <nav class="indice" aria-label="Secciones del legajo">
+        <p class="indice-titulo">Legajo</p>
+        @if (sesion.tiene('documentos.ver')) {
+          <a routerLink="./" routerLinkActive="activo" [routerLinkActiveOptions]="{ exact: true }" class="enlace general">
+            <span class="numero" aria-hidden="true">
+              <svg viewBox="0 0 16 16" width="14" height="14"><path d="M2 2h5v5H2zM9 2h5v5H9zM2 9h5v5H2zM9 9h5v5H9z" /></svg>
+            </span>
+            <span class="nombre">Vista general</span>
+          </a>
+        }
+        @for (seccion of secciones(); track seccion.numero) {
+          <a [routerLink]="seccion.ruta" routerLinkActive="activo" class="enlace">
+            <span class="numero">{{ numeroSeccion(seccion.numero) }}</span>
+            <span class="nombre">{{ seccion.nombre }}</span>
+            @if (seccion.total !== null && seccion.total > 0) {
+              <span class="total">{{ seccion.total }}</span>
+            }
+          </a>
+        }
+      </nav>
+      <div class="contenido">
+        <router-outlet />
+      </div>
+    </div>
   } @else {
     <p class="celda-vacia">Cargando legajo</p>
   }
@@ -300,59 +205,5 @@
     <button type="submit" form="formulario-cambio" class="boton principal" [disabled]="guardandoCambio()">
       {{ guardandoCambio() ? 'Guardando' : 'Registrar nuevo vínculo' }}
     </button>
-  </ng-container>
-</app-dialog>
-
-<app-dialog
-  [abierto]="familiarAbierto()"
-  [angosto]="true"
-  [titulo]="familiarEditando() === null ? 'Agregar familiar' : 'Editar familiar'"
-  (cerrar)="cerrarFamiliar()"
->
-  <form id="formulario-familiar" class="formulario" [formGroup]="familiar" (ngSubmit)="guardarFamiliar()" novalidate>
-    <div class="campo">
-      <label for="familiar-parentesco">Parentesco</label>
-      <select id="familiar-parentesco" formControlName="parentesco">
-        <option value="" disabled>Selecciona</option>
-        <option>Cónyuge</option>
-        <option>Conviviente</option>
-        <option>Hijo(a)</option>
-        <option>Padre</option>
-        <option>Madre</option>
-        <option>Hermano(a)</option>
-        <option>Otro</option>
-      </select>
-    </div>
-    <div class="campo">
-      <label for="familiar-nombre">Nombres y apellidos</label>
-      <input id="familiar-nombre" formControlName="nombresApellidos" autocomplete="off" />
-    </div>
-    <div class="campo">
-      <label for="familiar-doc">Documento (opcional)</label>
-      <input id="familiar-doc" formControlName="numeroDoc" maxlength="12" autocomplete="off" />
-    </div>
-    <div class="campo">
-      <label for="familiar-nacimiento">Fecha de nacimiento (opcional)</label>
-      <input id="familiar-nacimiento" type="date" formControlName="fechaNacimiento" [max]="hoy" />
-    </div>
-    @if (errorFamiliar(); as mensaje) {
-      <p class="aviso error" role="alert" animate.enter="aparece">{{ mensaje }}</p>
-    }
-  </form>
-  <ng-container pie>
-    <button type="button" class="boton" (click)="cerrarFamiliar()" [disabled]="guardandoFamiliar()">Cancelar</button>
-    <button type="submit" form="formulario-familiar" class="boton principal" [disabled]="guardandoFamiliar()">
-      {{ guardandoFamiliar() ? 'Guardando' : 'Guardar' }}
-    </button>
-  </ng-container>
-</app-dialog>
-
-<app-dialog [abierto]="porQuitar() !== null" [angosto]="true" titulo="Quitar familiar" (cerrar)="cerrarQuitar()">
-  @if (porQuitar(); as familiar) {
-    <p class="explicacion">Se quitará a <strong>{{ familiar.nombresApellidos }}</strong> de los datos familiares.</p>
-  }
-  <ng-container pie>
-    <button type="button" class="boton" (click)="cerrarQuitar()" [disabled]="quitando()">Cancelar</button>
-    <button type="button" class="boton peligro lleno" (click)="confirmarQuitar()" [disabled]="quitando()">Quitar</button>
   </ng-container>
 </app-dialog>
