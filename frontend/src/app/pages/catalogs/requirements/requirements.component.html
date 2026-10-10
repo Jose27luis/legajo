@@ -1,0 +1,121 @@
+@if (errorCarga(); as mensaje) {
+  <div class="aviso error" role="alert">
+    {{ mensaje }}
+    <button type="button" class="boton chico" (click)="cargar()">Reintentar</button>
+  </div>
+} @else {
+  <div class="barra-tabla">
+    <p>Lo que se exige a cada trabajador según su régimen, tipo de personal y estado. El reporte de faltantes usa esta lista.</p>
+    <button type="button" class="boton principal" (click)="nuevo()" [disabled]="cargando()">Agregar obligatorio</button>
+  </div>
+
+  <div class="tabla-contenedor">
+    <table class="tabla">
+      <thead>
+        <tr>
+          <th scope="col">Documento</th>
+          <th scope="col">Régimen</th>
+          <th scope="col">Tipo de personal</th>
+          <th scope="col">Se exige a</th>
+          <th scope="col"><span class="solo-lector">Acciones</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (cargando()) {
+          <tr>
+            <td colspan="5" class="celda-vacia">Cargando documentos obligatorios</td>
+          </tr>
+        } @else {
+          @for (requisito of requisitos(); track requisito.id) {
+            <tr>
+              <td>
+                <span class="codigo">{{ requisito.tipoDocumento.codigo }}</span>
+                {{ requisito.tipoDocumento.nombre }}
+              </td>
+              <td>{{ requisito.regimen?.nombre ?? 'Todos' }}</td>
+              <td>{{ requisito.tipoPersonal === null ? 'Ambos' : textoTipoPersonal[requisito.tipoPersonal] }}</td>
+              <td>{{ textoAplicaA[requisito.aplicaA] }}</td>
+              <td>
+                <div class="fila-acciones">
+                  <button type="button" class="boton chico peligro" (click)="porQuitar.set(requisito)">Quitar</button>
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="5" class="celda-vacia">Todavía no hay documentos obligatorios.</td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+}
+
+<app-dialog [abierto]="dialogoAbierto()" titulo="Agregar documento obligatorio" (cerrar)="cerrar()">
+  <form id="formulario-requisito" class="campos" [formGroup]="formulario" (ngSubmit)="guardar()" novalidate>
+    <div class="campo completo">
+      <label for="requisito-tipo">Documento</label>
+      <select id="requisito-tipo" formControlName="tipoDocumentoId">
+        <option [ngValue]="null" disabled>Selecciona un tipo de documento</option>
+        @for (seccion of secciones(); track seccion.id) {
+          <optgroup [label]="seccion.numero + '. ' + seccion.nombre">
+            @for (tipo of seccion.tipos; track tipo.id) {
+              @if (tipo.activo) {
+                <option [ngValue]="tipo.id">{{ tipo.codigo }} {{ tipo.nombre }}</option>
+              }
+            }
+          </optgroup>
+        }
+      </select>
+    </div>
+    <div class="campo">
+      <label for="requisito-regimen">Régimen</label>
+      <select id="requisito-regimen" formControlName="regimenId">
+        <option [ngValue]="null">Todos los regímenes</option>
+        @for (regimen of regimenes(); track regimen.id) {
+          <option [ngValue]="regimen.id">{{ regimen.nombre }}</option>
+        }
+      </select>
+    </div>
+    <div class="campo">
+      <label for="requisito-personal">Tipo de personal</label>
+      <select id="requisito-personal" formControlName="tipoPersonal">
+        <option [ngValue]="null">Administrativo y asistencial</option>
+        <option ngValue="ADMINISTRATIVO">Solo administrativo</option>
+        <option ngValue="ASISTENCIAL">Solo asistencial</option>
+      </select>
+    </div>
+    <div class="campo completo">
+      <label for="requisito-aplica">Se exige a</label>
+      <select id="requisito-aplica" formControlName="aplicaA">
+        <option ngValue="TODOS">Trabajadores activos y cesados</option>
+        <option ngValue="ACTIVO">Solo trabajadores activos</option>
+        <option ngValue="CESADO">Solo trabajadores cesados</option>
+      </select>
+    </div>
+    @if (errorFormulario(); as mensaje) {
+      <p class="aviso error completo" role="alert" animate.enter="aparece">{{ mensaje }}</p>
+    }
+  </form>
+  <ng-container pie>
+    <button type="button" class="boton" (click)="cerrar()" [disabled]="guardando()">Cancelar</button>
+    <button type="submit" form="formulario-requisito" class="boton principal" [disabled]="guardando()">
+      {{ guardando() ? 'Agregando' : 'Agregar' }}
+    </button>
+  </ng-container>
+</app-dialog>
+
+<app-dialog [abierto]="porQuitar() !== null" [angosto]="true" titulo="Quitar documento obligatorio" (cerrar)="cerrarQuitar()">
+  @if (porQuitar(); as requisito) {
+    <p class="texto">
+      <strong>{{ requisito.tipoDocumento.nombre }}</strong> dejará de exigirse
+      {{ requisito.regimen === null ? 'en todos los regímenes' : 'en ' + requisito.regimen.nombre }}. Los documentos ya
+      subidos no se modifican.
+    </p>
+  }
+  <ng-container pie>
+    <button type="button" class="boton" (click)="cerrarQuitar()" [disabled]="quitando()">Cancelar</button>
+    <button type="button" class="boton peligro lleno" (click)="confirmarQuitar()" [disabled]="quitando()">Quitar</button>
+  </ng-container>
+</app-dialog>
