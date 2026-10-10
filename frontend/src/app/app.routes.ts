@@ -1,5 +1,7 @@
+import { inject } from '@angular/core';
 import type { Routes } from '@angular/router';
 import { autenticadoGuard, claveAlDiaGuard, invitadoGuard, permisoGuard } from './core/guards';
+import { SessionService } from './core/session.service';
 
 export const routes: Routes = [
   {
@@ -36,6 +38,38 @@ export const routes: Routes = [
         title: 'Legajo del trabajador - Legajos de Personal',
         canMatch: [permisoGuard('personal.ver')],
         loadComponent: () => import('./pages/worker-detail/worker-detail.component').then((m) => m.WorkerDetailComponent),
+        children: [
+          {
+            path: '',
+            pathMatch: 'full',
+            canMatch: [() => inject(SessionService).tiene('documentos.ver')],
+            loadComponent: () =>
+              import('./pages/worker-detail/overview/legajo-overview.component').then((m) => m.LegajoOverviewComponent),
+          },
+          {
+            path: '',
+            pathMatch: 'full',
+            redirectTo: 'record',
+          },
+          {
+            path: 'record',
+            loadComponent: () => import('./pages/worker-detail/record/worker-record.component').then((m) => m.WorkerRecordComponent),
+          },
+          {
+            path: 'sections/1',
+            redirectTo: 'record',
+          },
+          {
+            path: 'sections/:numero',
+            canMatch: [permisoGuard('documentos.ver')],
+            loadComponent: () =>
+              import('./pages/worker-detail/section/legajo-section.component').then((m) => m.LegajoSectionComponent),
+          },
+          {
+            path: '**',
+            redirectTo: '',
+          },
+        ],
       },
       {
         path: 'profile',
