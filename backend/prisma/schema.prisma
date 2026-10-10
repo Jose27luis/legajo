@@ -49,6 +49,19 @@ enum MotivoFin {
   CAMBIO_CARGO_O_AREA
 }
 
+enum NivelAcceso {
+  NORMAL
+  RESTRINGIDO
+  MUY_RESTRINGIDO
+}
+
+enum EstadoDocumento {
+  PROCESANDO
+  DISPONIBLE
+  ERROR
+  ANULADO
+}
+
 model Regimen {
   id         Int         @id @default(autoincrement())
   codigo     String      @unique @db.VarChar(20)
@@ -107,6 +120,7 @@ model Trabajador {
   actualizadoEn    DateTime         @updatedAt @map("actualizado_en") @db.Timestamptz(3)
   vinculos         Vinculo[]
   familiares       Familiar[]
+  documentos       Documento[]
   auditorias       Auditoria[]
 
   @@unique([tipoDocIdentidad, numeroDoc], map: "ux_trabajador_doc")
@@ -175,6 +189,7 @@ model TipoDocumento {
   orden            Int         @default(0)
   seccion          Seccion     @relation(fields: [seccionId], references: [id], onDelete: Restrict)
   requisitos       Requisito[]
+  documentos       Documento[]
 
   @@index([seccionId, orden], map: "ix_tipo_documento_seccion")
   @@map("tipo_documento")
@@ -223,23 +238,84 @@ model RolPermiso {
 }
 
 model Usuario {
-  id               String      @id @default(uuid()) @db.Uuid
-  usuario          String      @unique @db.VarChar(30)
-  nombreCompleto   String      @map("nombre_completo") @db.VarChar(120)
-  correo           String      @unique @db.VarChar(120)
-  claveHash        String      @map("clave_hash")
-  rolId            String      @map("rol_id") @db.Uuid
-  activo           Boolean     @default(true)
-  intentosFallidos Int         @default(0) @map("intentos_fallidos")
-  bloqueadoHasta   DateTime?   @map("bloqueado_hasta") @db.Timestamptz(3)
-  debeCambiarClave Boolean     @default(true) @map("debe_cambiar_clave")
-  ultimoAcceso     DateTime?   @map("ultimo_acceso") @db.Timestamptz(3)
-  creadoEn         DateTime    @default(now()) @map("creado_en") @db.Timestamptz(3)
-  actualizadoEn    DateTime    @updatedAt @map("actualizado_en") @db.Timestamptz(3)
-  rol              Rol         @relation(fields: [rolId], references: [id], onDelete: Restrict)
-  auditorias       Auditoria[]
+  id                    String             @id @default(uuid()) @db.Uuid
+  usuario               String             @unique @db.VarChar(30)
+  nombreCompleto        String             @map("nombre_completo") @db.VarChar(120)
+  correo                String             @unique @db.VarChar(120)
+  claveHash             String             @map("clave_hash")
+  rolId                 String             @map("rol_id") @db.Uuid
+  activo                Boolean            @default(true)
+  intentosFallidos      Int                @default(0) @map("intentos_fallidos")
+  bloqueadoHasta        DateTime?          @map("bloqueado_hasta") @db.Timestamptz(3)
+  debeCambiarClave      Boolean            @default(true) @map("debe_cambiar_clave")
+  ultimoAcceso          DateTime?          @map("ultimo_acceso") @db.Timestamptz(3)
+  creadoEn              DateTime           @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoEn         DateTime           @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  rol                   Rol                @relation(fields: [rolId], references: [id], onDelete: Restrict)
+  auditorias            Auditoria[]
+  documentosCreados     Documento[]        @relation("DocumentoCreador")
+  documentosModificados Documento[]        @relation("DocumentoModificador")
+  archivosSubidos       DocumentoArchivo[]
 
   @@map("usuario")
+}
+
+model Documento {
+  id                 String             @id @default(uuid()) @db.Uuid
+  trabajadorId       String             @map("trabajador_id") @db.Uuid
+  tipoDocumentoId    Int                @map("tipo_documento_id")
+  numero             String?            @db.VarChar(60)
+  fechaEmision       DateTime?          @map("fecha_emision") @db.Date
+  fechaVencimiento   DateTime?          @map("fecha_vencimiento") @db.Date
+  emisor             String?            @db.VarChar(160)
+  observaciones      String?            @db.VarChar(500)
+  ubicacionFisica    String?            @map("ubicacion_fisica") @db.VarChar(120)
+  datos              Json               @default("{}")
+  nivelAcceso        NivelAcceso        @default(NORMAL) @map("nivel_acceso")
+  estado             EstadoDocumento    @default(PROCESANDO)
+  detalleError       String?            @map("detalle_error") @db.VarChar(300)
+  motivoAnulacion    String?            @map("motivo_anulacion") @db.VarChar(500)
+  subidaPendiente    String?            @map("subida_pendiente") @db.VarChar(64)
+  archivoActualId    String?            @unique @map("archivo_actual_id") @db.Uuid
+  creadoPorId        String             @map("creado_por") @db.Uuid
+  creadoEn           DateTime           @default(now()) @map("creado_en") @db.Timestamptz(3)
+  modificadoPorId    String?            @map("modificado_por") @db.Uuid
+  modificadoEn       DateTime?          @map("modificado_en") @db.Timestamptz(3)
+  motivoModificacion String?            @map("motivo_modificacion") @db.VarChar(500)
+  actualizadoEn      DateTime           @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  trabajador         Trabajador         @relation(fields: [trabajadorId], references: [id], onDelete: Restrict)
+  tipoDocumento      TipoDocumento      @relation(fields: [tipoDocumentoId], references: [id], onDelete: Restrict)
+  creadoPor          Usuario            @relation("DocumentoCreador", fields: [creadoPorId], references: [id], onDelete: Restrict)
+  modificadoPor      Usuario?           @relation("DocumentoModificador", fields: [modificadoPorId], references: [id], onDelete: Restrict)
+  archivoActual      DocumentoArchivo?  @relation("ArchivoActual", fields: [archivoActualId], references: [id], onDelete: Restrict)
+  archivos           DocumentoArchivo[] @relation("ArchivosDelDocumento")
+
+  @@index([trabajadorId, tipoDocumentoId, fechaEmision], map: "ix_documento_legajo")
+  @@index([estado], map: "ix_documento_estado")
+  @@map("documento")
+}
+
+model DocumentoArchivo {
+  id             String     @id @default(uuid()) @db.Uuid
+  documentoId    String     @map("documento_id") @db.Uuid
+  version        Int
+  ruta           String     @db.VarChar(200)
+  nombreOriginal String     @map("nombre_original") @db.VarChar(200)
+  tamanoOriginal BigInt     @map("tamano_original")
+  tamanoFinal    BigInt     @map("tamano_final")
+  hashOriginal   String     @map("hash_original") @db.Char(64)
+  hashFinal      String     @map("hash_final") @db.Char(64)
+  paginas        Int
+  optimizado     Boolean
+  subidoPorId    String     @map("subido_por") @db.Uuid
+  creadoEn       DateTime   @default(now()) @map("creado_en") @db.Timestamptz(3)
+  documento      Documento  @relation("ArchivosDelDocumento", fields: [documentoId], references: [id], onDelete: Restrict)
+  actualDe       Documento? @relation("ArchivoActual")
+  subidoPor      Usuario    @relation(fields: [subidoPorId], references: [id], onDelete: Restrict)
+
+  @@unique([documentoId, version], map: "ux_documento_archivo_version")
+  @@index([hashOriginal], map: "ix_archivo_hash_original")
+  @@map("documento_archivo")
 }
 
 model Auditoria {
