@@ -1,7 +1,8 @@
 import { PrismaPg } from '@prisma/adapter-pg';
 import * as argon2 from 'argon2';
 import { z } from 'zod';
-import { PrismaClient } from './generated/prisma/client';
+import { PrismaClient, type Prisma } from './generated/prisma/client';
+import { REGIMENES, REQUISITOS, SECCIONES, TIPOS_DOCUMENTO } from './seed-catalogs';
 
 const esquemaSemilla = z.object({
   DATABASE_URL: z.url(),
@@ -60,6 +61,66 @@ const ROLES: ReadonlyArray<{ nombre: string; descripcion: string; permisos: read
   },
 ];
 
+async function sembrarCatalogos(transaccion: Prisma.TransactionClient): Promise<void> {
+  const idsSeccion = new Map<number, number>();
+  for (const seccion of SECCIONES) {
+    const guardada = await transaccion.seccion.upsert({
+      where: { numero: seccion.numero },
+      create: { ...seccion, campos: seccion.campos },
+      update: { nombre: seccion.nombre, carpeta: seccion.carpeta, descripcion: seccion.descripcion, campos: seccion.campos },
+    });
+    idsSeccion.set(seccion.numero, guardada.id);
+  }
+
+  const existentes = new Set(
+    (await transaccion.tipoDocumento.findMany({ select: { codigo: true } })).map((tipo) => tipo.codigo),
+  );
+  const nuevos = TIPOS_DOCUMENTO.filter(([codigo]) => !existentes.has(codigo)).map(
+    ([codigo, nombre, restringido, requiereNumero, tieneVencimiento]) => {
+      const seccionId = idsSeccion.get(Number(codigo.slice(0, 2)));
+      if (seccionId === undefined) {
+        throw new Error(`El tipo ${codigo} no corresponde a ninguna sección`);
+      }
+      return {
+        codigo,
+        nombre,
+        restringido,
+        requiereNumero,
+        tieneVencimiento,
+        seccionId,
+        orden: Number(codigo.slice(2)),
+      };
+    },
+  );
+  if (nuevos.length > 0) {
+    await transaccion.tipoDocumento.createMany({ data: nuevos });
+  }
+
+  for (const regimen of REGIMENES) {
+    await transaccion.regimen.upsert({ where: { codigo: regimen.codigo }, create: regimen, update: {} });
+  }
+
+  if ((await transaccion.requisito.count()) > 0) {
+    return;
+  }
+  const tipos = new Map(
+    (await transaccion.tipoDocumento.findMany({ select: { id: true, codigo: true } })).map((tipo) => [tipo.codigo, tipo.id]),
+  );
+  const regimenes = new Map(
+    (await transaccion.regimen.findMany({ select: { id: true, codigo: true } })).map((regimen) => [regimen.codigo, regimen.id]),
+  );
+  await transaccion.requisito.createMany({
+    data: REQUISITOS.map((requisito) => {
+      const tipoDocumentoId = tipos.get(requisito.tipo);
+      const regimenId = requisito.regimen === null ? null : regimenes.get(requisito.regimen);
+      if (tipoDocumentoId === undefined || regimenId === undefined) {
+        throw new Error(`Requisito inválido para el tipo ${requisito.tipo}`);
+      }
+      return { tipoDocumentoId, regimenId, tipoPersonal: requisito.tipoPersonal, aplicaA: requisito.aplicaA };
+    }),
+  });
+}
+
 async function sembrar(): Promise<void> {
   const resultado = esquemaSemilla.safeParse(process.env);
   if (!resultado.success) {
@@ -115,6 +176,7 @@ async function sembrar(): Promise<void> {
         data: { accion: 'USUARIO_CREAR', entidad: 'usuario', entidadId: creado.id, detalle: { origen: 'semilla' } },
       });
     });
+    await prisma.$transaction(sembrarCatalogos);
   } finally {
     await prisma.$disconnect();
   }
