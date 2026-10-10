@@ -121,3 +121,140 @@ export interface NuevoRequisito {
   tipoPersonal: TipoPersonal | null;
   aplicaA: AplicaA;
 }
+
+export type TipoDocIdentidad = 'DNI' | 'CE';
+export type EstadoTrabajador = 'ACTIVO' | 'CESADO';
+export type Movimiento = 'SIN_MOVIMIENTO' | 'ROTACION' | 'DESTAQUE' | 'ENCARGATURA' | 'REASIGNACION';
+export type MotivoCese = 'RENUNCIA' | 'JUBILACION' | 'FALLECIMIENTO' | 'FIN_CONTRATO' | 'DESTITUCION' | 'OTRA_CAUSA';
+export type MotivoCambio = 'RENOVACION' | 'CAMBIO_REGIMEN' | 'CAMBIO_CARGO_O_AREA';
+export type MotivoFin = MotivoCese | MotivoCambio;
+
+export interface ReferenciaCatalogo {
+  id: number;
+  nombre: string;
+}
+
+export interface Vinculo {
+  id: string;
+  regimen: ReferenciaCatalogo;
+  tipoPersonal: TipoPersonal;
+  cargo: ReferenciaCatalogo;
+  area: ReferenciaCatalogo;
+  fechaInicio: string;
+  fechaFin: string | null;
+  motivoFin: MotivoFin | null;
+  referencia: string | null;
+  actual: boolean;
+}
+
+export interface TrabajadorResumen {
+  id: string;
+  tipoDocIdentidad: TipoDocIdentidad;
+  numeroDoc: string;
+  nombres: string;
+  apellidoPaterno: string;
+  apellidoMaterno: string | null;
+  estado: EstadoTrabajador;
+  movimientoActual: Movimiento;
+  movimientoFecha: string | null;
+  fechaIngreso: string;
+  vinculo: Vinculo | null;
+}
+
+export interface Familiar {
+  id: string;
+  parentesco: string;
+  nombresApellidos: string;
+  numeroDoc: string | null;
+  fechaNacimiento: string | null;
+}
+
+export interface TrabajadorDetalle extends TrabajadorResumen {
+  fechaNacimiento: string | null;
+  sexo: string | null;
+  estadoCivil: string | null;
+  direccion: string | null;
+  departamento: string | null;
+  provincia: string | null;
+  distrito: string | null;
+  telefono: string | null;
+  correo: string | null;
+  creadoEn: string;
+  vinculos: Vinculo[];
+  familiares: Familiar[];
+}
+
+export interface PaginaTrabajadores {
+  items: TrabajadorResumen[];
+  total: number;
+  pagina: number;
+  porPagina: number;
+}
+
+export interface ResumenPersonal {
+  total: number;
+  activos: number;
+  cesados: number;
+  rotados: number;
+  destacados: number;
+  recientes: TrabajadorResumen[];
+}
+
+export interface FiltrosPersonal {
+  busqueda: string;
+  estado: EstadoTrabajador | '';
+  movimiento: Movimiento | '';
+  areaId: number | null;
+  pagina: number;
+}
+
+export interface DatosNuevoVinculo {
+  regimenId: number;
+  tipoPersonal: TipoPersonal;
+  cargoId: number;
+  areaId: number;
+  referencia: string | null;
+}
+
+export interface NuevoTrabajador extends DatosNuevoVinculo {
+  tipoDocIdentidad: TipoDocIdentidad;
+  numeroDoc: string;
+  nombres: string;
+  apellidoPaterno: string;
+  apellidoMaterno: string | null;
+  fechaIngreso: string;
+}
+
+export interface FichaTrabajador {
+  tipoDocIdentidad: TipoDocIdentidad;
+  numeroDoc: string;
+  nombres: string;
+  apellidoPaterno: string;
+  apellidoMaterno: string | null;
+  fechaNacimiento: string | null;
+  sexo: string | null;
+  estadoCivil: string | null;
+  direccion: string | null;
+  departamento: string | null;
+  provincia: string | null;
+  distrito: string | null;
+  telefono: string | null;
+  correo: string | null;
+  fechaIngreso: string;
+}
+
+export interface Situacion {
+  estado: EstadoTrabajador;
+  movimiento: Movimiento;
+  movimientoFecha: string | null;
+  motivoCese: MotivoCese | null;
+  fechaCese: string | null;
+  observacion: string | null;
+}
+
+export interface DatosFamiliar {
+  parentesco: string;
+  nombresApellidos: string;
+  numeroDoc: string | null;
+  fechaNacimiento: string | null;
+}
