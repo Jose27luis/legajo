@@ -1,5 +1,5 @@
 import type { Routes } from '@angular/router';
-import { autenticadoGuard, claveAlDiaGuard, invitadoGuard } from './core/guards';
+import { autenticadoGuard, claveAlDiaGuard, invitadoGuard, permisoGuard } from './core/guards';
 
 export const routes: Routes = [
   {
@@ -24,6 +24,12 @@ export const routes: Routes = [
         path: 'profile',
         title: 'Mi perfil - Legajos de Personal',
         loadComponent: () => import('./pages/profile/profile.component').then((m) => m.ProfileComponent),
+      },
+      {
+        path: 'users',
+        title: 'Usuarios - Legajos de Personal',
+        canMatch: [permisoGuard('usuarios.gestionar')],
+        loadComponent: () => import('./pages/users/users.component').then((m) => m.UsersComponent),
       },
     ],
   },
