@@ -8,6 +8,88 @@ datasource db {
   provider = "postgresql"
 }
 
+enum TipoPersonal {
+  ADMINISTRATIVO
+  ASISTENCIAL
+}
+
+enum AplicaA {
+  ACTIVO
+  CESADO
+  TODOS
+}
+
+model Regimen {
+  id         Int         @id @default(autoincrement())
+  codigo     String      @unique @db.VarChar(20)
+  nombre     String      @db.VarChar(80)
+  esLaboral  Boolean     @default(true) @map("es_laboral")
+  activo     Boolean     @default(true)
+  requisitos Requisito[]
+
+  @@map("regimen")
+}
+
+model Area {
+  id      Int     @id @default(autoincrement())
+  nombre  String  @db.VarChar(140)
+  padreId Int?    @map("padre_id")
+  activo  Boolean @default(true)
+  padre   Area?   @relation("AreaDependencia", fields: [padreId], references: [id], onDelete: Restrict)
+  hijas   Area[]  @relation("AreaDependencia")
+
+  @@map("area")
+}
+
+model Cargo {
+  id     Int     @id @default(autoincrement())
+  nombre String  @unique @db.VarChar(120)
+  activo Boolean @default(true)
+
+  @@map("cargo")
+}
+
+model Seccion {
+  id          Int             @id @default(autoincrement())
+  numero      Int             @unique
+  nombre      String          @db.VarChar(120)
+  carpeta     String          @db.VarChar(80)
+  descripcion String
+  campos      Json            @default("[]")
+  tipos       TipoDocumento[]
+
+  @@map("seccion")
+}
+
+model TipoDocumento {
+  id               Int         @id @default(autoincrement())
+  seccionId        Int         @map("seccion_id")
+  codigo           String      @unique @db.Char(4)
+  nombre           String      @db.VarChar(200)
+  restringido      Boolean     @default(false)
+  requiereNumero   Boolean     @default(false) @map("requiere_numero")
+  tieneVencimiento Boolean     @default(false) @map("tiene_vencimiento")
+  activo           Boolean     @default(true)
+  orden            Int         @default(0)
+  seccion          Seccion     @relation(fields: [seccionId], references: [id], onDelete: Restrict)
+  requisitos       Requisito[]
+
+  @@index([seccionId, orden], map: "ix_tipo_documento_seccion")
+  @@map("tipo_documento")
+}
+
+model Requisito {
+  id              Int           @id @default(autoincrement())
+  tipoDocumentoId Int           @map("tipo_documento_id")
+  regimenId       Int?          @map("regimen_id")
+  tipoPersonal    TipoPersonal? @map("tipo_personal")
+  aplicaA         AplicaA       @default(TODOS) @map("aplica_a")
+  tipoDocumento   TipoDocumento @relation(fields: [tipoDocumentoId], references: [id], onDelete: Restrict)
+  regimen         Regimen?      @relation(fields: [regimenId], references: [id], onDelete: Restrict)
+
+  @@map("requisito")
+}
+
 model Rol {
   id          String       @id @default(uuid()) @db.Uuid
   nombre      String       @unique @db.VarChar(60)
