@@ -1,0 +1,75 @@
+<app-dialog [abierto]="trabajador() !== null" titulo="Estado laboral y movimiento" (cerrar)="cerrarDialogo()">
+  @if (trabajador(); as actual) {
+    <p class="nota-conceptos">
+      <strong>{{ nombreCompleto(actual) }}</strong><br />
+      Estado laboral y movimiento son cosas distintas: una rotación o un destaque no cambian a un trabajador de activo a
+      cesado.
+    </p>
+
+    <div class="opciones" role="radiogroup" aria-label="Qué deseas registrar">
+      <label class="opcion" [class.elegida]="accion() === 'movimiento'">
+        <input type="radio" name="accion-situacion" [checked]="accion() === 'movimiento'" (change)="accion.set('movimiento')" />
+        <span><strong>Movimiento</strong><span>Rotación, destaque, encargatura o reasignación. Sigue activo.</span></span>
+      </label>
+      <label class="opcion" [class.elegida]="accion() === 'cese'">
+        <input type="radio" name="accion-situacion" [checked]="accion() === 'cese'" (change)="accion.set('cese')" />
+        <span><strong>Cese</strong><span>Deja de laborar. Su legajo se conserva.</span></span>
+      </label>
+    </div>
+
+    <form id="formulario-situacion" class="campos" [formGroup]="formulario" (ngSubmit)="guardar()" novalidate>
+      @if (accion() === 'movimiento') {
+        <div class="campo">
+          <label for="situacion-movimiento">Movimiento actual</label>
+          <select id="situacion-movimiento" formControlName="movimiento">
+            @for (movimiento of movimientos; track movimiento) {
+              <option [ngValue]="movimiento">{{ textoMovimiento[movimiento] }}</option>
+            }
+          </select>
+        </div>
+        @if (formulario.controls.movimiento.value !== 'SIN_MOVIMIENTO') {
+          <div class="campo">
+            <label for="situacion-fecha-movimiento">Fecha del movimiento</label>
+            <input id="situacion-fecha-movimiento" type="date" formControlName="movimientoFecha" [max]="hoy" />
+          </div>
+        }
+      } @else {
+        <div class="campo">
+          <label for="situacion-motivo">Motivo del cese</label>
+          <select id="situacion-motivo" formControlName="motivoCese">
+            <option [ngValue]="null" disabled>Selecciona</option>
+            @for (motivo of motivosCese; track motivo) {
+              <option [ngValue]="motivo">{{ textoMotivo[motivo] }}</option>
+            }
+          </select>
+        </div>
+        <div class="campo">
+          <label for="situacion-fecha-cese">Fecha efectiva del cese</label>
+          <input id="situacion-fecha-cese" type="date" formControlName="fechaCese" [max]="hoy" />
+        </div>
+      }
+      <div class="campo completo">
+        <label for="situacion-observacion">Documento de sustento u observación (opcional)</label>
+        <input id="situacion-observacion" formControlName="observacion" maxlength="500" autocomplete="off" />
+        <span class="ayuda">El PDF de la resolución o memorando se sube en la sección 05 u 11 del legajo.</span>
+      </div>
+      @if (error(); as mensaje) {
+        <p class="aviso error completo" role="alert" animate.enter="aparece">{{ mensaje }}</p>
+      }
+    </form>
+  }
+  <ng-container pie>
+    <button type="button" class="boton" (click)="cerrarDialogo()" [disabled]="guardando()">Cancelar</button>
+    <button
+      type="submit"
+      form="formulario-situacion"
+      class="boton"
+      [class.principal]="accion() === 'movimiento'"
+      [class.peligro]="accion() === 'cese'"
+      [class.lleno]="accion() === 'cese'"
+      [disabled]="guardando()"
+    >
+      {{ guardando() ? 'Guardando' : accion() === 'cese' ? 'Registrar cese' : 'Guardar movimiento' }}
+    </button>
+  </ng-container>
+</app-dialog>
