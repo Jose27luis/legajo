@@ -1,0 +1,23 @@
+.pagina {
+  display: grid;
+  gap: 20px;
+}
+
+.encabezado {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+h1 {
+  font-size: 28px;
+  font-variation-settings: 'wdth' 112;
+}
+
+.encabezado p {
+  max-width: 64ch;
+  margin-top: 4px;
+  color: var(--tinta-media);
+}
