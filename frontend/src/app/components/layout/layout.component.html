@@ -18,9 +18,14 @@
   <div class="cuerpo">
     <nav class="menu" aria-label="Menú principal">
       <a routerLink="/profile" routerLinkActive="activo" ariaCurrentWhenActive="page">Mi perfil</a>
-      @if (sesion.tiene('usuarios.gestionar')) {
+      @if (sesion.tiene('usuarios.gestionar') || sesion.tiene('catalogos.gestionar')) {
         <span class="grupo">Administración</span>
+      }
+      @if (sesion.tiene('usuarios.gestionar')) {
         <a routerLink="/users" routerLinkActive="activo" ariaCurrentWhenActive="page">Usuarios</a>
+      }
+      @if (sesion.tiene('catalogos.gestionar')) {
+        <a routerLink="/catalogs" routerLinkActive="activo" ariaCurrentWhenActive="page">Catálogos</a>
       }
     </nav>
     <main class="contenido">
