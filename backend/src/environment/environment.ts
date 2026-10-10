@@ -7,6 +7,12 @@ const esquemaEntorno = z.object({
   REDIS_URL: z.url(),
   SESION_MINUTOS: z.coerce.number().int().min(5).max(480).default(30),
   COOKIE_SEGURA: z.enum(['true', 'false']).default('true').transform((valor) => valor === 'true'),
+  DIR_SUBIDAS: z.string().startsWith('/').default('/data/subidas'),
+  DIR_ARCHIVOS: z.string().startsWith('/').default('/data/archivos'),
+  TAMANO_MAXIMO_MB: z.coerce.number().int().min(1).max(1024).default(200),
+  OPTIMIZAR_PPP: z.coerce.number().int().min(72).max(600).default(150),
+  OPTIMIZAR_GRISES: z.enum(['true', 'false']).default('false').transform((valor) => valor === 'true'),
+  WORKER_CONCURRENCIA: z.coerce.number().int().min(1).max(16).default(2),
 });
 
 export type Entorno = z.infer<typeof esquemaEntorno>;
