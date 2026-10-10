@@ -2,10 +2,11 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { SessionService } from '../../core/session.service';
 import { BrandComponent } from '../brand/brand.component';
+import { ToastComponent } from '../toast/toast.component';
 
 @Component({
   selector: 'app-layout',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, BrandComponent],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, BrandComponent, ToastComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './layout.component.html',
   styleUrl: './layout.component.css',
