@@ -1,0 +1,11 @@
+.tabla-contenedor.cargando {
+  opacity: 0.6;
+}
+
+.tabla {
+  min-width: 620px;
+}
+
+.aviso.error {
+  margin-bottom: 12px;
+}
