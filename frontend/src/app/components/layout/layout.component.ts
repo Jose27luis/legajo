@@ -4,6 +4,7 @@ import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } fro
 import { filter, map } from 'rxjs';
 import { SessionService } from '../../core/session.service';
 import { BrandComponent } from '../brand/brand.component';
+import { GlobalSearchComponent } from '../global-search/global-search.component';
 import { IconComponent, type NombreIcono } from '../icon/icon.component';
 import { ToastComponent } from '../toast/toast.component';
 
@@ -27,6 +28,8 @@ const GRUPOS: readonly GrupoMenu[] = [
       { ruta: '/', etiqueta: 'Inicio', icono: 'inicio', exacto: true, permiso: null },
       { ruta: '/workers', etiqueta: 'Personal', icono: 'personal', exacto: false, permiso: 'personal.ver' },
       { ruta: '/bulk-upload', etiqueta: 'Carga masiva', icono: 'carga', exacto: false, permiso: 'carga_masiva.usar' },
+      { ruta: '/search', etiqueta: 'Búsqueda', icono: 'buscar', exacto: false, permiso: 'personal.ver' },
+      { ruta: '/reports', etiqueta: 'Reportes', icono: 'reportes', exacto: false, permiso: 'reportes.ver' },
     ],
   },
   {
@@ -44,6 +47,8 @@ const TITULOS: readonly [RegExp, string][] = [
   [/^\/workers$/, 'Personal'],
   [/^\/bulk-upload\/[^/]+$/, 'Lote de carga'],
   [/^\/bulk-upload$/, 'Carga masiva'],
+  [/^\/search$/, 'Búsqueda avanzada'],
+  [/^\/reports/, 'Reportes'],
   [/^\/profile$/, 'Mi perfil'],
   [/^\/users$/, 'Usuarios'],
   [/^\/catalogs$/, 'Catálogos'],
@@ -61,7 +66,7 @@ function leerContraido(): boolean {
 
 @Component({
   selector: 'app-layout',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, BrandComponent, IconComponent, ToastComponent],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, BrandComponent, GlobalSearchComponent, IconComponent, ToastComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './layout.component.html',
   styleUrl: './layout.component.css',
