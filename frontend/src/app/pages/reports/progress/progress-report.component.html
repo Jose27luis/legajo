@@ -1,0 +1,134 @@
+<section class="tarjeta">
+  <div class="barra-reporte">
+    <h3>Avance de legajos</h3>
+    <div class="herramientas">
+      <span>Un legajo está completo cuando tiene todos los documentos que se le exigen</span>
+      @if (sesion.tiene('reportes.exportar')) {
+        <a class="boton chico" [href]="enlace()" download>Exportar Excel</a>
+      }
+    </div>
+  </div>
+
+  <div class="filtros-reporte">
+    <div class="campo">
+      <label for="avance-area">Área</label>
+      <select id="avance-area" (change)="cambiarArea($event)">
+        <option value="" [selected]="filtros().areaId === null">Todas las áreas</option>
+        @if (opciones.value(); as datos) {
+          @for (area of datos.areas; track area.id) {
+            <option [value]="area.id" [selected]="filtros().areaId === area.id">{{ area.nombre }}</option>
+          }
+        }
+      </select>
+    </div>
+    <div class="campo">
+      <label for="avance-regimen">Régimen</label>
+      <select id="avance-regimen" (change)="cambiarRegimen($event)">
+        <option value="" [selected]="filtros().regimenId === null">Todos los regímenes</option>
+        @if (opciones.value(); as datos) {
+          @for (regimen of datos.regimenes; track regimen.id) {
+            <option [value]="regimen.id" [selected]="filtros().regimenId === regimen.id">{{ regimen.nombre }}</option>
+          }
+        }
+      </select>
+    </div>
+    <div class="campo">
+      <label for="avance-tipo">Tipo de personal</label>
+      <select id="avance-tipo" (change)="cambiarTipoPersonal($event)">
+        <option value="" [selected]="filtros().tipoPersonal === null">Ambos</option>
+        <option value="ADMINISTRATIVO" [selected]="filtros().tipoPersonal === 'ADMINISTRATIVO'">Administrativo</option>
+        <option value="ASISTENCIAL" [selected]="filtros().tipoPersonal === 'ASISTENCIAL'">Asistencial</option>
+      </select>
+    </div>
+    <div class="campo">
+      <label for="avance-estado">Estado laboral</label>
+      <select id="avance-estado" (change)="cambiarEstado($event)">
+        <option value="" [selected]="filtros().estado === null">Todos</option>
+        <option value="ACTIVO" [selected]="filtros().estado === 'ACTIVO'">Activos</option>
+        <option value="CESADO" [selected]="filtros().estado === 'CESADO'">Cesados</option>
+      </select>
+    </div>
+  </div>
+
+  @if (reporte.value(); as datos) {
+    <dl class="cifras-reporte">
+      <div>
+        <dt>Trabajadores</dt>
+        <dd>{{ datos.totales.trabajadores }}</dd>
+      </div>
+      <div class="verde">
+        <dt>Legajos completos</dt>
+        <dd>{{ datos.totales.completos }}</dd>
+      </div>
+      <div class="ambar">
+        <dt>Parciales</dt>
+        <dd>{{ datos.totales.parciales }}</dd>
+      </div>
+      <div class="roja">
+        <dt>Vacíos</dt>
+        <dd>{{ datos.totales.vacios }}</dd>
+      </div>
+      <div>
+        <dt>Completitud general</dt>
+        <dd>{{ datos.totales.completitud }} %</dd>
+      </div>
+    </dl>
+  }
+
+  @if (error(); as mensaje) {
+    <p class="aviso error" role="alert">{{ mensaje }}</p>
+  }
+
+  <div class="tabla-contenedor" [class.cargando]="reporte.isLoading()">
+    <table class="tabla">
+      <thead>
+        <tr>
+          <th scope="col">Área</th>
+          <th scope="col">Trabajadores</th>
+          <th scope="col">Completos</th>
+          <th scope="col">Parciales</th>
+          <th scope="col">Vacíos</th>
+          <th scope="col">Completitud</th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (reporte.value(); as datos) {
+          @for (fila of datos.items; track fila.area) {
+            <tr>
+              <td>{{ fila.area }}</td>
+              <td class="celda-numero">{{ fila.trabajadores }}</td>
+              <td class="celda-numero">{{ fila.completos }}</td>
+              <td class="celda-numero">{{ fila.parciales }}</td>
+              <td class="celda-numero">{{ fila.vacios }}</td>
+              <td>
+                <span class="medidor">
+                  <span><span [style.width.%]="fila.completitud"></span></span>
+                  <span class="valor">{{ fila.completitud }} %</span>
+                </span>
+              </td>
+            </tr>
+          } @empty {
+            <tr><td colspan="6" class="celda-vacia">Ningún trabajador con estos filtros.</td></tr>
+          }
+          @if (datos.items.length > 0) {
+            <tr class="totales">
+              <td>{{ datos.totales.area }}</td>
+              <td class="celda-numero">{{ datos.totales.trabajadores }}</td>
+              <td class="celda-numero">{{ datos.totales.completos }}</td>
+              <td class="celda-numero">{{ datos.totales.parciales }}</td>
+              <td class="celda-numero">{{ datos.totales.vacios }}</td>
+              <td>
+                <span class="medidor">
+                  <span><span [style.width.%]="datos.totales.completitud"></span></span>
+                  <span class="valor">{{ datos.totales.completitud }} %</span>
+                </span>
+              </td>
+            </tr>
+          }
+        } @else {
+          <tr><td colspan="6" class="celda-vacia">Calculando el avance</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</section>
