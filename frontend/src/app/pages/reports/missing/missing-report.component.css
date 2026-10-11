@@ -1,0 +1,22 @@
+.elegir {
+  max-width: 420px;
+  margin-bottom: 14px;
+}
+
+.elegido-datos {
+  display: grid;
+  margin-bottom: 14px;
+}
+
+.elegido-datos strong {
+  font-size: 15px;
+}
+
+.secundario {
+  color: var(--tinta-suave);
+  font-size: 12.5px;
+}
+
+.aviso.error {
+  margin-bottom: 12px;
+}
