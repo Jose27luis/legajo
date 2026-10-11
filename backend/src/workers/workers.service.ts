@@ -1,4 +1,5 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import type { Response } from 'express';
 import type { Prisma } from '../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
@@ -6,6 +7,7 @@ import type { DatosCliente } from '../common/client';
 import type { SesionActiva } from '../common/session';
 import { aFecha, aTexto, hoyEnLima, normalizarBusqueda } from '../common/dates';
 import { sinDuplicados } from '../common/unique-violation';
+import { enviarLibro, type CeldaValor, type ColumnaHoja } from '../common/xlsx-stream';
 import type { CreateWorkerDto, LookupQueryDto, UpdateWorkerDto, WorkerQueryDto } from './dto/worker-input.dto';
 import type { WorkerDetailDto, WorkerLookupDto, WorkerPageDto, WorkerSummaryDto } from './dto/worker.dto';
 import { exigirCatalogosActivos } from './catalog-guard';
@@ -13,7 +15,6 @@ import { aDetalleDto, aListadoDto, incluirDetalle, incluirListado, validarDocume
 
 const MENSAJE_DUPLICADO = 'Ya existe un trabajador registrado con ese documento';
 const LIMITE_EXPORTACION = 10000;
-const MARCA_UTF8 = String.fromCharCode(0xfeff);
 
 const TEXTO_ESTADO = { ACTIVO: 'Activo', CESADO: 'Cesado' } as const;
 const TEXTO_MOVIMIENTO = {
@@ -89,51 +90,48 @@ export class WorkersService {
     };
   }
 
-  async exportar(consulta: WorkerQueryDto): Promise<string> {
+  async exportar(consulta: WorkerQueryDto, respuesta: Response): Promise<void> {
     const trabajadores = await this.prisma.trabajador.findMany({
       where: this.filtro(consulta),
       include: incluirListado,
       orderBy: [{ apellidoPaterno: 'asc' }, { apellidoMaterno: 'asc' }, { nombres: 'asc' }],
       take: LIMITE_EXPORTACION,
     });
-    const encabezado = [
-      'Documento',
-      'Apellido paterno',
-      'Apellido materno',
-      'Nombres',
-      'Cargo',
-      'Área',
-      'Régimen',
-      'Tipo de personal',
-      'Estado laboral',
-      'Motivo de cese',
-      'Fecha de cese',
-      'Último movimiento',
-      'Fecha de ingreso',
+    const columnas: ColumnaHoja[] = [
+      { titulo: 'Documento', ancho: 14 },
+      { titulo: 'Apellido paterno', ancho: 20 },
+      { titulo: 'Apellido materno', ancho: 20 },
+      { titulo: 'Nombres', ancho: 24 },
+      { titulo: 'Cargo', ancho: 28 },
+      { titulo: 'Área', ancho: 30 },
+      { titulo: 'Régimen', ancho: 26 },
+      { titulo: 'Tipo de personal', ancho: 18 },
+      { titulo: 'Estado laboral', ancho: 14 },
+      { titulo: 'Motivo de cese', ancho: 20 },
+      { titulo: 'Fecha de cese', ancho: 15, tipo: 'fecha' },
+      { titulo: 'Último movimiento', ancho: 18 },
+      { titulo: 'Fecha de ingreso', ancho: 16, tipo: 'fecha' },
     ];
-    const filas = trabajadores.map((trabajador) => {
+    const filas = trabajadores.map((trabajador): CeldaValor[] => {
       const vinculo = trabajador.vinculos[0];
       const cesado = trabajador.estado === 'CESADO';
       return [
         `${trabajador.tipoDocIdentidad} ${trabajador.numeroDoc}`,
         trabajador.apellidoPaterno,
-        trabajador.apellidoMaterno ?? '',
+        trabajador.apellidoMaterno,
         trabajador.nombres,
-        vinculo?.cargo.nombre ?? '',
-        vinculo?.area.nombre ?? '',
-        vinculo?.regimen.nombre ?? '',
-        vinculo === undefined ? '' : vinculo.tipoPersonal === 'ADMINISTRATIVO' ? 'Administrativo' : 'Asistencial',
+        vinculo?.cargo.nombre ?? null,
+        vinculo?.area.nombre ?? null,
+        vinculo?.regimen.nombre ?? null,
+        vinculo === undefined ? null : vinculo.tipoPersonal === 'ADMINISTRATIVO' ? 'Administrativo' : 'Asistencial',
         TEXTO_ESTADO[trabajador.estado],
-        cesado && vinculo?.motivoFin ? TEXTO_MOTIVO[vinculo.motivoFin] : '',
-        cesado && vinculo?.fechaFin ? aTexto(vinculo.fechaFin) : '',
+        cesado && vinculo?.motivoFin ? TEXTO_MOTIVO[vinculo.motivoFin] : null,
+        cesado && vinculo?.fechaFin ? aTexto(vinculo.fechaFin) : null,
         TEXTO_MOVIMIENTO[trabajador.movimientoActual],
         aTexto(trabajador.fechaIngreso),
       ];
     });
-    const csv = [encabezado, ...filas]
-      .map((fila) => fila.map((valor) => `"${valor.replaceAll('"', '""')}"`).join(';'))
-      .join('\r\n');
-    return `${MARCA_UTF8}${csv}`;
+    await enviarLibro(respuesta, { nombreArchivo: `trabajadores_${hoyEnLima()}`, hoja: 'Personal', columnas, filas });
   }
 
   async buscarDocumento(consulta: LookupQueryDto): Promise<WorkerLookupDto> {
