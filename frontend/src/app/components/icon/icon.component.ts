@@ -6,6 +6,7 @@ export type NombreIcono =
   | 'perfil'
   | 'usuarios'
   | 'catalogos'
+  | 'carga'
   | 'salir'
   | 'menu'
   | 'contraer'
