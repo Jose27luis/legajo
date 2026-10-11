@@ -1,0 +1,121 @@
+<section class="tarjeta">
+  <div class="barra-reporte">
+    <h3>Faltantes consolidado</h3>
+    <div class="herramientas">
+      @if (reporte.value(); as datos) {
+        <span aria-live="polite">{{ datos.total }} trabajadores, {{ datos.columnas.length }} tipos obligatorios</span>
+      }
+      <button type="button" class="boton chico" (click)="limpiar()">Quitar filtros</button>
+      @if (sesion.tiene('reportes.exportar')) {
+        <a class="boton chico" [href]="enlace()" download>Exportar Excel</a>
+      }
+    </div>
+  </div>
+
+  <div class="filtros-reporte">
+    <div class="campo">
+      <label for="consolidado-area">Área</label>
+      <select id="consolidado-area" (change)="cambiar('areaId', $event)">
+        <option value="" [selected]="filtros().areaId === null">Todas las áreas</option>
+        @if (opciones.value(); as datos) {
+          @for (area of datos.areas; track area.id) {
+            <option [value]="area.id" [selected]="filtros().areaId === area.id">{{ area.nombre }}</option>
+          }
+        }
+      </select>
+    </div>
+    <div class="campo">
+      <label for="consolidado-regimen">Régimen</label>
+      <select id="consolidado-regimen" (change)="cambiar('regimenId', $event)">
+        <option value="" [selected]="filtros().regimenId === null">Todos los regímenes</option>
+        @if (opciones.value(); as datos) {
+          @for (regimen of datos.regimenes; track regimen.id) {
+            <option [value]="regimen.id" [selected]="filtros().regimenId === regimen.id">{{ regimen.nombre }}</option>
+          }
+        }
+      </select>
+    </div>
+    <div class="campo">
+      <label for="consolidado-tipo">Tipo de personal</label>
+      <select id="consolidado-tipo" (change)="cambiarTipoPersonal($event)">
+        <option value="" [selected]="filtros().tipoPersonal === null">Ambos</option>
+        <option value="ADMINISTRATIVO" [selected]="filtros().tipoPersonal === 'ADMINISTRATIVO'">Administrativo</option>
+        <option value="ASISTENCIAL" [selected]="filtros().tipoPersonal === 'ASISTENCIAL'">Asistencial</option>
+      </select>
+    </div>
+    <div class="campo">
+      <label for="consolidado-estado">Estado laboral</label>
+      <select id="consolidado-estado" (change)="cambiarEstado($event)">
+        <option value="" [selected]="filtros().estado === null">Todos</option>
+        <option value="ACTIVO" [selected]="filtros().estado === 'ACTIVO'">Activos</option>
+        <option value="CESADO" [selected]="filtros().estado === 'CESADO'">Cesados</option>
+      </select>
+    </div>
+    <label class="casilla">
+      <input type="checkbox" [checked]="filtros().soloIncompletos" (change)="cambiarSoloIncompletos($event)" />
+      <span>Solo trabajadores con faltantes o vencidos</span>
+    </label>
+  </div>
+
+  @if (error(); as mensaje) {
+    <p class="aviso error" role="alert">{{ mensaje }}</p>
+  }
+
+  <div class="matriz" [class.cargando]="reporte.isLoading()">
+    <table class="tabla">
+      <thead>
+        <tr>
+          <th scope="col" class="fija">Trabajador</th>
+          <th scope="col">Área</th>
+          @if (reporte.value(); as datos) {
+            @for (columna of datos.columnas; track columna.tipoId) {
+              <th scope="col" class="tipo" [attr.title]="columna.nombre">{{ columna.codigo }}</th>
+            }
+          }
+          <th scope="col">Faltan</th>
+          <th scope="col">Vencidos</th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (reporte.value(); as datos) {
+          @for (fila of datos.items; track fila.id) {
+            <tr>
+              <th scope="row" class="fija">
+                <a class="enlace-nombre" [routerLink]="['/workers', fila.id, 'missing']">{{ fila.nombre }}</a>
+                <span class="secundario">{{ fila.numeroDoc }}</span>
+              </th>
+              <td>{{ fila.area ?? 'Sin área' }}</td>
+              @for (celda of fila.celdas; track $index) {
+                <td class="marca-celda">
+                  <span class="marca" [class]="claseSituacion[celda]" [attr.title]="textoSituacion[celda]"></span>
+                  <span class="solo-lector">{{ textoSituacion[celda] }}</span>
+                </td>
+              }
+              <td class="celda-numero">{{ fila.faltantes }}</td>
+              <td class="celda-numero">{{ fila.vencidos }}</td>
+            </tr>
+          } @empty {
+            <tr><td [attr.colspan]="columnas()" class="celda-vacia">Ningún trabajador con estos filtros.</td></tr>
+          }
+        } @else {
+          <tr><td [attr.colspan]="columnas()" class="celda-vacia">Calculando el reporte</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <div class="leyenda">
+    <span><span class="marca verde"></span> Completo</span>
+    <span><span class="marca roja"></span> Faltante</span>
+    <span><span class="marca ambar"></span> Vencido</span>
+    <span><span class="marca gris"></span> No aplica</span>
+  </div>
+
+  <footer class="paginador">
+    <span>Página {{ pagina() }} de {{ ultimaPagina() }}</span>
+    <div>
+      <button type="button" class="boton chico" [disabled]="pagina() === 1" (click)="pagina.set(pagina() - 1)">Anterior</button>
+      <button type="button" class="boton chico" [disabled]="pagina() >= ultimaPagina()" (click)="pagina.set(pagina() + 1)">Siguiente</button>
+    </div>
+  </footer>
+</section>
