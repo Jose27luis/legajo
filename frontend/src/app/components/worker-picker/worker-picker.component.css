@@ -1,0 +1,130 @@
+:host {
+  position: relative;
+  display: grid;
+  gap: 4px;
+}
+
+.buscador {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.buscador svg {
+  position: absolute;
+  left: 11px;
+  fill: none;
+  stroke: var(--tinta-suave);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  pointer-events: none;
+}
+
+input {
+  width: 100%;
+  height: 44px;
+  padding: 0 12px 0 36px;
+  border: 1px solid var(--linea);
+  border-radius: var(--radio-control);
+  background: #fff;
+  font-size: 13.5px;
+}
+
+input:hover {
+  border-color: #b9cbdb;
+}
+
+input:focus-visible {
+  border-color: var(--primario);
+  box-shadow: 0 0 0 4px rgb(28 101 160 / 0.13);
+}
+
+input[aria-invalid='true'] {
+  border-color: var(--alerta);
+}
+
+.sugerencia {
+  position: absolute;
+  left: 36px;
+  color: #93a3b1;
+  font-size: 13.5px;
+  pointer-events: none;
+}
+
+.resultados {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 5;
+  display: grid;
+  gap: 2px;
+  padding: 6px;
+  border: 1px solid var(--linea);
+  border-radius: var(--radio-control);
+  background: var(--hoja);
+  box-shadow: 0 14px 34px rgb(18 45 70 / 0.16);
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.opcion {
+  display: grid;
+  gap: 1px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--tinta);
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.opcion:hover {
+  background: var(--primario-claro);
+}
+
+.opcion:focus-visible {
+  box-shadow: var(--foco);
+}
+
+.documento {
+  color: var(--tinta-suave);
+  font-size: 12px;
+}
+
+.vacio {
+  padding: 10px;
+  color: var(--tinta-suave);
+  font-size: 12.5px;
+}
+
+.elegido {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px 8px 12px;
+  border: 1px solid #c6dcf0;
+  border-radius: var(--radio-control);
+  background: #f6fbff;
+}
+
+.datos {
+  display: grid;
+  min-width: 0;
+}
+
+.datos strong {
+  overflow: hidden;
+  font-size: 13.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.datos span {
+  color: var(--tinta-suave);
+  font-size: 12px;
+}
