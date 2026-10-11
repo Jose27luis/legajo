@@ -64,6 +64,10 @@
         <span class="fecha">{{ fechaHoy }}</span>
       </div>
 
+      @if (sesion.tiene('personal.ver')) {
+        <app-global-search />
+      }
+
       <div class="usuario" #zonaUsuario>
         <button
           type="button"
