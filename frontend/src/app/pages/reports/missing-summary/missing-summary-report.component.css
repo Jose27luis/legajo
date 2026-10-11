@@ -1,0 +1,88 @@
+.matriz {
+  overflow-x: auto;
+  border: 1px solid var(--linea);
+  border-radius: var(--radio-panel);
+  background: var(--hoja);
+}
+
+.matriz.cargando {
+  opacity: 0.6;
+}
+
+.matriz .tabla {
+  min-width: 100%;
+}
+
+.fija {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  min-width: 230px;
+  background: var(--hoja);
+  text-align: left;
+  font-weight: 600;
+}
+
+thead .fija {
+  background: #f6f9fc;
+}
+
+tbody tr:hover .fija {
+  background: #f8fbfd;
+}
+
+.tipo {
+  width: 54px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.marca-celda {
+  text-align: center;
+}
+
+.marca {
+  display: inline-block;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+}
+
+.marca.verde {
+  background: #35a06f;
+}
+
+.marca.roja {
+  background: #cf4457;
+}
+
+.marca.ambar {
+  background: #d79a21;
+}
+
+.marca.gris {
+  background: #d6dce4;
+}
+
+.leyenda {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+  color: var(--tinta-suave);
+  font-size: 12.5px;
+}
+
+.leyenda span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.paginador {
+  margin-top: 12px;
+}
+
+.aviso.error {
+  margin-bottom: 12px;
+}
