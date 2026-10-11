@@ -1,0 +1,15 @@
+<header class="cabecera-seccion">
+  <div>
+    <p class="antetitulo">Oficina de Personal</p>
+    <h2>Reportes</h2>
+    <p>Lo que se exige a cada trabajador sale de Catálogos; aquí se ve quién lo tiene, a quién le falta y cuánto avanza la digitalización.</p>
+  </div>
+</header>
+
+<nav class="pestanas" aria-label="Reportes disponibles">
+  @for (pestana of pestanas; track pestana.ruta) {
+    <a [routerLink]="pestana.ruta" routerLinkActive="activa" ariaCurrentWhenActive="page">{{ pestana.etiqueta }}</a>
+  }
+</nav>
+
+<router-outlet />
