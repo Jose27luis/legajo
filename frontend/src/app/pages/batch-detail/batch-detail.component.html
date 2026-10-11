@@ -1,0 +1,141 @@
+<nav class="migas" aria-label="Ruta">
+  <a routerLink="/bulk-upload">Carga masiva</a>
+  <span aria-hidden="true">/</span>
+  <span>Bandeja del lote</span>
+</nav>
+
+@if (error(); as mensaje) {
+  <div class="aviso error" role="alert">
+    {{ mensaje }}
+    <button type="button" class="boton chico" (click)="lote.reload()">Reintentar</button>
+  </div>
+} @else if (lote.value(); as actual) {
+  <header class="cabecera-seccion">
+    <div>
+      <p class="antetitulo">Lote del {{ fechaHora(actual.creadoEn) }}</p>
+      <h2>Bandeja del lote</h2>
+      <p>
+        Cargado por {{ actual.creadoPor }}.
+        @if (actual.pendientes > 0) {
+          Quedan {{ actual.pendientes }} archivos por atender.
+        } @else {
+          Ya no quedan archivos pendientes.
+        }
+      </p>
+    </div>
+    <span class="pastilla" [class]="claseEstadoLote[actual.estado]">{{ textoEstadoLote[actual.estado] }}</span>
+  </header>
+
+  <dl class="cifras">
+    <div>
+      <dt>Archivos del lote</dt>
+      <dd>{{ actual.total }}</dd>
+    </div>
+    <div class="verde">
+      <dt>En el legajo</dt>
+      <dd>{{ actual.clasificados }}</dd>
+    </div>
+    <div [class.ambar]="actual.pendientes > 0">
+      <dt>Pendientes</dt>
+      <dd>{{ actual.pendientes }}</dd>
+    </div>
+    <div [class.roja]="actual.conError > 0">
+      <dt>Descartados</dt>
+      <dd>{{ actual.conError }}</dd>
+    </div>
+  </dl>
+
+  <section class="tarjeta" aria-labelledby="titulo-bandeja">
+    <div class="cabecera-tarjeta">
+      <h3 id="titulo-bandeja">Archivos</h3>
+      <div class="filtros">
+        <label class="solo-lector" for="filtro-item">Estado</label>
+        <select id="filtro-item" class="filtro" (change)="filtrar($event)">
+          <option value="" [selected]="filtro() === ''">Todos ({{ actual.total }})</option>
+          @for (estado of estados; track estado) {
+            @if (total(estado) > 0) {
+              <option [value]="estado" [selected]="filtro() === estado">{{ textoEstadoItem[estado] }} ({{ total(estado) }})</option>
+            }
+          }
+        </select>
+      </div>
+    </div>
+
+    @if (items().length === 0) {
+      <p class="celda-vacia">No hay archivos con este estado.</p>
+    } @else {
+      <ul class="archivos">
+        @for (item of items(); track item.id) {
+          <li>
+            @if (item.estado === 'PENDIENTE') {
+              <button type="button" class="archivo pendiente" (click)="abrir(item)">
+                <span class="hoja" aria-hidden="true">PDF</span>
+                <span class="datos">
+                  <strong>{{ item.nombreArchivo }}</strong>
+                  <span class="motivo">{{ item.motivo }}</span>
+                </span>
+                <span class="destino">
+                  @if (item.trabajador; as trabajador) {
+                    <span>{{ trabajador.nombre }}</span>
+                    <span class="menor">{{ trabajador.numeroDoc }}</span>
+                  } @else {
+                    <span class="menor">Sin trabajador</span>
+                  }
+                </span>
+                <span class="marcas">
+                  <span class="pastilla" [class]="claseEstadoItem[item.estado]">{{ textoEstadoItem[item.estado] }}</span>
+                  <span class="menor">{{ tamanoLegible(item.tamano) }}</span>
+                </span>
+                <span class="atender">Atender</span>
+              </button>
+            } @else {
+              <div class="archivo">
+                <span class="hoja" [class.gris]="item.estado === 'ERROR'" aria-hidden="true">PDF</span>
+                <span class="datos">
+                  <strong>{{ item.nombreArchivo }}</strong>
+                  @if (item.motivo; as motivo) {
+                    <span class="motivo">{{ motivo }}</span>
+                  } @else if (item.tipo; as tipo) {
+                    <span class="menor">{{ tipo.codigo }} {{ tipo.nombre }}, sección {{ numeroSeccion(tipo.seccion) }}</span>
+                  }
+                </span>
+                <span class="destino">
+                  @if (item.trabajador; as trabajador) {
+                    <span>{{ trabajador.nombre }}</span>
+                    <span class="menor">{{ trabajador.numeroDoc }}</span>
+                  } @else {
+                    <span class="menor">Sin trabajador</span>
+                  }
+                </span>
+                <span class="marcas">
+                  <span class="pastilla" [class]="claseEstadoItem[item.estado]">{{ textoEstadoItem[item.estado] }}</span>
+                  <span class="menor">{{ tamanoLegible(item.tamano) }}</span>
+                </span>
+                <span class="enlaces">
+                  @for (documento of item.documentos; track documento.id) {
+                    <a [routerLink]="['/workers', documento.trabajadorId, 'sections', documento.seccion]">
+                      Sección {{ numeroSeccion(documento.seccion) }}
+                      <span class="menor">{{ textoEstadoDocumento[documento.estado] }}</span>
+                    </a>
+                  }
+                </span>
+              </div>
+            }
+          </li>
+        }
+      </ul>
+    }
+  </section>
+
+  @if (secciones.value(); as lista) {
+    <app-batch-item-dialog
+      [item]="seleccionado()"
+      [loteId]="actual.id"
+      [secciones]="lista"
+      (cerrar)="seleccionadoId.set(null)"
+      (actualizado)="alActualizar($event)"
+    />
+  }
+} @else {
+  <p class="celda-vacia">Cargando lote</p>
+}
