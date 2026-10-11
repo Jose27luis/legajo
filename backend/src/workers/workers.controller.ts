@@ -3,7 +3,6 @@ import {
   Controller,
   Delete,
   Get,
-  Header,
   HttpCode,
   HttpStatus,
   Param,
@@ -17,7 +16,6 @@ import {
 import { ApiOperation, ApiProduces, ApiResponse, ApiTags } from '@nestjs/swagger';
 import type { Request, Response } from 'express';
 import { datosCliente } from '../common/client';
-import { hoyEnLima } from '../common/dates';
 import { Requiere, SesionActual } from '../common/decorators';
 import type { SesionActiva } from '../common/session';
 import {
@@ -64,13 +62,11 @@ export class WorkersController {
 
   @Requiere('personal.ver', 'reportes.exportar')
   @Get('export')
-  @Header('Content-Type', 'text/csv; charset=utf-8')
-  @ApiProduces('text/csv')
-  @ApiOperation({ summary: 'Exporta el listado filtrado en CSV' })
-  @ApiResponse({ status: 200, description: 'Archivo CSV' })
-  async exportar(@Query() consulta: WorkerQueryDto, @Res({ passthrough: true }) respuesta: Response): Promise<string> {
-    respuesta.setHeader('Content-Disposition', `attachment; filename="trabajadores_${hoyEnLima()}.csv"`);
-    return this.trabajadores.exportar(consulta);
+  @ApiProduces('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+  @ApiOperation({ summary: 'Exporta el listado filtrado en Excel' })
+  @ApiResponse({ status: 200, description: 'Archivo de Excel' })
+  async exportar(@Query() consulta: WorkerQueryDto, @Res() respuesta: Response): Promise<void> {
+    await this.trabajadores.exportar(consulta, respuesta);
   }
 
   @Requiere('personal.ver')
