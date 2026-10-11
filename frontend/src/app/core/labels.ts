@@ -8,6 +8,7 @@ import type {
   MotivoFin,
   Movimiento,
   NivelAcceso,
+  SituacionCelda,
   TipoPersonal,
   TrabajadorResumen,
 } from './models';
@@ -137,3 +138,29 @@ export const CLASE_ESTADO_ITEM: Record<EstadoItemLote, string> = {
 };
 
 export const ESTADOS_ITEM: readonly EstadoItemLote[] = ['PENDIENTE', 'CLASIFICADO', 'DIVIDIDO', 'ERROR', 'SUBIENDO'];
+
+export const TEXTO_SITUACION: Record<SituacionCelda, string> = {
+  COMPLETO: 'Completo',
+  FALTANTE: 'Faltante',
+  VENCIDO: 'Vencido',
+  NO_APLICA: 'No aplica',
+};
+
+export const CLASE_SITUACION: Record<SituacionCelda, string> = {
+  COMPLETO: 'verde',
+  FALTANTE: 'roja',
+  VENCIDO: 'ambar',
+  NO_APLICA: 'gris',
+};
+
+export function diasRestantes(dias: number): string {
+  const absoluto = Math.abs(dias);
+  const plural = absoluto === 1 ? 'día' : 'días';
+  if (dias < 0) {
+    return `Venció hace ${absoluto} ${plural}`;
+  }
+  if (dias === 0) {
+    return 'Vence hoy';
+  }
+  return `Faltan ${absoluto} ${plural}`;
+}
