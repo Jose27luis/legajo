@@ -1,5 +1,7 @@
 import type {
   EstadoDocumento,
+  EstadoItemLote,
+  EstadoLote,
   EstadoTrabajador,
   MotivoCambio,
   MotivoCese,
@@ -105,3 +107,33 @@ export function tamanoLegible(bytes: number): string {
   }
   return `${(bytes / (1024 * 1024)).toFixed(1).replace('.', ',')} MB`;
 }
+
+export const TEXTO_ESTADO_LOTE: Record<EstadoLote, string> = {
+  SUBIENDO: 'Subiendo',
+  EN_BANDEJA: 'En bandeja',
+  TERMINADO: 'Terminado',
+};
+
+export const CLASE_ESTADO_LOTE: Record<EstadoLote, string> = {
+  SUBIENDO: 'azul',
+  EN_BANDEJA: 'ambar',
+  TERMINADO: 'verde',
+};
+
+export const TEXTO_ESTADO_ITEM: Record<EstadoItemLote, string> = {
+  SUBIENDO: 'Subiendo',
+  PENDIENTE: 'Pendiente',
+  CLASIFICADO: 'Clasificado',
+  DIVIDIDO: 'Dividido',
+  ERROR: 'Descartado',
+};
+
+export const CLASE_ESTADO_ITEM: Record<EstadoItemLote, string> = {
+  SUBIENDO: 'azul',
+  PENDIENTE: 'ambar',
+  CLASIFICADO: 'verde',
+  DIVIDIDO: 'verde',
+  ERROR: 'gris',
+};
+
+export const ESTADOS_ITEM: readonly EstadoItemLote[] = ['PENDIENTE', 'CLASIFICADO', 'DIVIDIDO', 'ERROR', 'SUBIENDO'];
