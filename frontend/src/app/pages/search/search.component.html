@@ -1,0 +1,274 @@
+<header class="cabecera-seccion">
+  <div>
+    <p class="antetitulo">Consulta</p>
+    <h2>Búsqueda avanzada</h2>
+    <p>
+      Un DNI completo lleva al trabajador, un número con guiones busca entre los documentos y cualquier otro texto busca por nombre,
+      cargo, área o tipo de documento.
+    </p>
+  </div>
+</header>
+
+<section class="tarjeta" aria-labelledby="titulo-filtros">
+  <div class="cabecera-tarjeta">
+    <h3 id="titulo-filtros">Qué quieres encontrar</h3>
+    @if (conFiltros() || filtros().texto !== '') {
+      <button type="button" class="boton chico" (click)="limpiar()">Quitar filtros</button>
+    }
+  </div>
+
+  <div class="campo buscar">
+    <label for="busqueda-texto">Buscar por DNI, nombre, cargo o área</label>
+    <input id="busqueda-texto" type="search" autocomplete="off" [value]="borrador()" (input)="escribir($event)" />
+  </div>
+
+  <div class="filtros">
+    <div class="campo">
+      <label for="filtro-seccion">Sección</label>
+      <select id="filtro-seccion" (change)="cambiarSeccion($event)">
+        <option value="" [selected]="filtros().seccion === null">Todas las secciones</option>
+        @if (opciones.value(); as datos) {
+          @for (seccion of datos.secciones; track seccion.id) {
+            <option [value]="seccion.numero" [selected]="filtros().seccion === seccion.numero">
+              {{ numeroSeccion(seccion.numero) }} {{ seccion.nombre }}
+            </option>
+          }
+        }
+      </select>
+    </div>
+
+    <div class="campo">
+      <label for="filtro-tipo">Tipo de documento</label>
+      <select id="filtro-tipo" (change)="cambiarTipo($event)">
+        <option value="" [selected]="filtros().tipoDocumentoId === null">Todos los tipos</option>
+        @for (tipo of tipos(); track tipo.id) {
+          <option [value]="tipo.id" [selected]="filtros().tipoDocumentoId === tipo.id">{{ tipo.codigo }} {{ tipo.nombre }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="campo">
+      <label for="filtro-desde">Emitido desde</label>
+      <input id="filtro-desde" type="date" [value]="filtros().desde" (change)="cambiarDesde($event)" />
+    </div>
+
+    <div class="campo">
+      <label for="filtro-hasta">Emitido hasta</label>
+      <input id="filtro-hasta" type="date" [value]="filtros().hasta" (change)="cambiarHasta($event)" />
+    </div>
+
+    <div class="campo">
+      <label for="filtro-area">Área</label>
+      <select id="filtro-area" (change)="cambiarArea($event)">
+        <option value="" [selected]="filtros().areaId === null">Todas las áreas</option>
+        @if (opciones.value(); as datos) {
+          @for (area of datos.areas; track area.id) {
+            <option [value]="area.id" [selected]="filtros().areaId === area.id">{{ area.nombre }}</option>
+          }
+        }
+      </select>
+    </div>
+
+    <div class="campo">
+      <label for="filtro-regimen">Régimen</label>
+      <select id="filtro-regimen" (change)="cambiarRegimen($event)">
+        <option value="" [selected]="filtros().regimenId === null">Todos los regímenes</option>
+        @if (opciones.value(); as datos) {
+          @for (regimen of datos.regimenes; track regimen.id) {
+            <option [value]="regimen.id" [selected]="filtros().regimenId === regimen.id">{{ regimen.nombre }}</option>
+          }
+        }
+      </select>
+    </div>
+
+    <div class="campo">
+      <label for="filtro-tipo-personal">Tipo de personal</label>
+      <select id="filtro-tipo-personal" (change)="cambiarTipoPersonal($event)">
+        <option value="" [selected]="filtros().tipoPersonal === null">Ambos</option>
+        <option value="ADMINISTRATIVO" [selected]="filtros().tipoPersonal === 'ADMINISTRATIVO'">Administrativo</option>
+        <option value="ASISTENCIAL" [selected]="filtros().tipoPersonal === 'ASISTENCIAL'">Asistencial</option>
+      </select>
+    </div>
+
+    <div class="campo">
+      <label for="filtro-estado">Estado laboral</label>
+      <select id="filtro-estado" (change)="cambiarEstado($event)">
+        <option value="" [selected]="filtros().estado === null">Todos</option>
+        <option value="ACTIVO" [selected]="filtros().estado === 'ACTIVO'">Activos</option>
+        <option value="CESADO" [selected]="filtros().estado === 'CESADO'">Cesados</option>
+      </select>
+    </div>
+
+    <div class="campo">
+      <label for="filtro-estado-documento">Estado del documento</label>
+      <select id="filtro-estado-documento" (change)="cambiarEstadoDocumento($event)">
+        <option value="" [selected]="filtros().estadoDocumento === null">Registrados</option>
+        @for (estado of estadosDocumento; track estado) {
+          <option [value]="estado" [selected]="filtros().estadoDocumento === estado">{{ textoEstadoDocumento[estado] }}</option>
+        }
+      </select>
+    </div>
+  </div>
+</section>
+
+@if (error(); as mensaje) {
+  <div class="aviso error" role="alert">
+    {{ mensaje }}
+    <button type="button" class="boton chico" (click)="resultado.reload()">Reintentar</button>
+  </div>
+}
+
+<section class="tarjeta" aria-labelledby="titulo-trabajadores">
+  <div class="cabecera-tarjeta">
+    <h3 id="titulo-trabajadores">Trabajadores</h3>
+    <span class="conteo" aria-live="polite">{{ totalTrabajadores() }} encontrados</span>
+  </div>
+
+  <div class="tabla-contenedor" [class.cargando]="resultado.isLoading()">
+    <table class="tabla">
+      <thead>
+        <tr>
+          <th scope="col">Trabajador</th>
+          <th scope="col">Cargo y régimen</th>
+          <th scope="col">Área</th>
+          <th scope="col">Estado</th>
+          <th scope="col">Legajo</th>
+          <th scope="col"><span class="solo-lector">Acciones</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (resultado.value(); as datos) {
+          @for (fila of datos.trabajadores.items; track fila.trabajador.id) {
+            <tr>
+              <td>
+                <a class="nombre" [routerLink]="['/workers', fila.trabajador.id]">{{ nombreCompleto(fila.trabajador) }}</a>
+                <span class="secundario">{{ fila.trabajador.tipoDocIdentidad }} {{ fila.trabajador.numeroDoc }}</span>
+              </td>
+              <td>
+                {{ fila.trabajador.vinculo?.cargo?.nombre ?? 'Sin vínculo' }}
+                @if (fila.trabajador.vinculo; as vinculo) {
+                  <span class="secundario">{{ vinculo.regimen.nombre }}, {{ textoTipoPersonal[vinculo.tipoPersonal].toLowerCase() }}</span>
+                }
+              </td>
+              <td>{{ fila.trabajador.vinculo?.area?.nombre ?? '' }}</td>
+              <td>
+                <span class="pastilla" [class.verde]="fila.trabajador.estado === 'ACTIVO'" [class.gris]="fila.trabajador.estado === 'CESADO'">
+                  {{ textoEstado[fila.trabajador.estado] }}
+                </span>
+              </td>
+              <td class="numero">{{ fila.documentos }} PDF</td>
+              <td><a class="boton chico" [routerLink]="['/workers', fila.trabajador.id]">Abrir legajo</a></td>
+            </tr>
+          } @empty {
+            <tr><td colspan="6" class="celda-vacia">Ningún trabajador coincide con la búsqueda.</td></tr>
+          }
+        } @else {
+          <tr><td colspan="6" class="celda-vacia">Buscando</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</section>
+
+@if (sesion.tiene('documentos.ver')) {
+  <section class="tarjeta" aria-labelledby="titulo-documentos">
+    <div class="cabecera-tarjeta">
+      <h3 id="titulo-documentos">Documentos</h3>
+      <div class="herramientas">
+        <span class="conteo" aria-live="polite">{{ totalDocumentos() }} encontrados</span>
+        @if (sesion.tiene('documentos.descargar')) {
+          <button type="button" class="boton chico" (click)="marcarPagina()">Marcar los de esta página</button>
+          <button type="button" class="boton principal" [disabled]="marcados().length === 0 || descargando()" (click)="descargar()">
+            {{ descargando() ? 'Preparando el ZIP' : 'Descargar ' + marcados().length + ' en ZIP' }}
+          </button>
+        }
+      </div>
+    </div>
+
+    @if (sesion.tiene('documentos.descargar')) {
+      <p class="nota">Se pueden marcar hasta {{ maximoSeleccion }} documentos por descarga.</p>
+    }
+
+    <div class="tabla-contenedor" [class.cargando]="resultado.isLoading()">
+      <table class="tabla">
+        <thead>
+          <tr>
+            @if (sesion.tiene('documentos.descargar')) {
+              <th scope="col"><span class="solo-lector">Marcar</span></th>
+            }
+            <th scope="col">Documento</th>
+            <th scope="col">Trabajador</th>
+            <th scope="col">Sección</th>
+            <th scope="col">Emisión</th>
+            <th scope="col">Estado</th>
+            <th scope="col"><span class="solo-lector">Acciones</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (resultado.value(); as datos) {
+            @for (fila of datos.documentos.items; track fila.documento.id) {
+              <tr>
+                @if (sesion.tiene('documentos.descargar')) {
+                  <td>
+                    <input
+                      type="checkbox"
+                      [checked]="marcado(fila.documento.id)"
+                      [disabled]="fila.documento.estado !== 'DISPONIBLE'"
+                      (change)="alternar(fila.documento.id)"
+                      [attr.aria-label]="'Marcar ' + fila.documento.tipo.nombre"
+                    />
+                  </td>
+                }
+                <td>
+                  <span class="nombre">{{ fila.documento.tipo.codigo }} {{ fila.documento.tipo.nombre }}</span>
+                  @if (fila.documento.numero; as numero) {
+                    <span class="secundario">N.° {{ numero }}</span>
+                  }
+                </td>
+                <td>
+                  <a class="nombre" [routerLink]="['/workers', fila.trabajadorId]">{{ fila.trabajador }}</a>
+                  <span class="secundario">{{ fila.numeroDoc }}</span>
+                </td>
+                <td class="numero">{{ numeroSeccion(fila.documento.seccion) }}</td>
+                <td>{{ fechaCorta(fila.documento.fechaEmision) }}</td>
+                <td>
+                  <span class="pastilla" [class]="claseEstadoDocumento[fila.documento.estado]">
+                    {{ textoEstadoDocumento[fila.documento.estado] }}
+                  </span>
+                </td>
+                <td>
+                  <div class="fila-acciones">
+                    @if (fila.documento.estado === 'DISPONIBLE') {
+                      <a class="boton chico" [href]="enlacePdf(fila.documento.id)" target="_blank" rel="noopener">Ver PDF</a>
+                    }
+                    <a class="boton chico" [routerLink]="['/workers', fila.trabajadorId, 'sections', fila.documento.seccion]">
+                      Ir a la sección
+                    </a>
+                  </div>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td [attr.colspan]="sesion.tiene('documentos.descargar') ? 7 : 6" class="celda-vacia">
+                  Ningún documento coincide con la búsqueda.
+                </td>
+              </tr>
+            }
+          } @else {
+            <tr>
+              <td [attr.colspan]="sesion.tiene('documentos.descargar') ? 7 : 6" class="celda-vacia">Buscando</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+}
+
+<footer class="paginas">
+  <span>Página {{ pagina() }} de {{ ultimaPagina() }}</span>
+  <div>
+    <button type="button" class="boton chico" [disabled]="pagina() === 1" (click)="pagina.set(pagina() - 1)">Anterior</button>
+    <button type="button" class="boton chico" [disabled]="pagina() >= ultimaPagina()" (click)="pagina.set(pagina() + 1)">Siguiente</button>
+  </div>
+</footer>
