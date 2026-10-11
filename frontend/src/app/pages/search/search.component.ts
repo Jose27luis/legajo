@@ -19,6 +19,7 @@ import { FilterOptionsService } from '../../services/filter-options.service';
 import { FILTROS_VACIOS, MAXIMO_SELECCION, SearchService } from '../../services/search.service';
 
 const ESPERA_MS = 300;
+const MINIMO = 2;
 
 @Component({
   selector: 'app-search',
@@ -94,9 +95,10 @@ export class SearchComponent {
   constructor() {
     effect((alLimpiar) => {
       const escrito = this.borrador().trim();
+      const aplicable = escrito.length >= MINIMO ? escrito : '';
       const temporizador = setTimeout(() => {
-        if (escrito !== this.filtros().texto) {
-          this.filtros.update((actual) => ({ ...actual, texto: escrito }));
+        if (aplicable !== this.filtros().texto) {
+          this.filtros.update((actual) => ({ ...actual, texto: aplicable }));
         }
       }, ESPERA_MS);
       alLimpiar(() => clearTimeout(temporizador));
