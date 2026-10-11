@@ -1,0 +1,133 @@
+:host {
+  display: contents;
+}
+
+.columnas {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.visor {
+  position: sticky;
+  top: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.encabezado-visor {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.archivo {
+  overflow: hidden;
+  color: var(--tinta);
+  font-size: 13.5px;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.peso {
+  flex: none;
+  color: var(--tinta-suave);
+  font-size: 12px;
+}
+
+iframe {
+  width: 100%;
+  height: min(62vh, 620px);
+  border: 1px solid var(--linea);
+  border-radius: 10px;
+  background: var(--papel);
+}
+
+.acciones {
+  display: grid;
+  gap: 14px;
+}
+
+.pestanas {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--linea);
+  border-radius: 10px;
+  background: #f5f8fb;
+}
+
+.pestanas button {
+  flex: 1;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--tinta-media);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 140ms ease, color 140ms ease;
+}
+
+.pestanas button:hover {
+  color: var(--tinta);
+}
+
+.pestanas button[aria-selected='true'] {
+  background: var(--hoja);
+  color: var(--primario-oscuro);
+  box-shadow: 0 1px 4px rgb(26 64 87 / 0.1);
+}
+
+.pestanas button:focus-visible {
+  box-shadow: var(--foco);
+}
+
+.formulario {
+  display: grid;
+  gap: 14px;
+}
+
+.rango {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--linea);
+  border-radius: 10px;
+  background: #fbfdff;
+}
+
+legend {
+  padding: 0 6px;
+  color: var(--primario);
+  font-size: 11.5px;
+  font-weight: 750;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.paginas {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  align-items: end;
+  gap: 10px;
+}
+
+@media (max-width: 1040px) {
+  .columnas {
+    grid-template-columns: 1fr;
+  }
+
+  .visor {
+    position: static;
+  }
+
+  iframe {
+    height: 44vh;
+  }
+}
