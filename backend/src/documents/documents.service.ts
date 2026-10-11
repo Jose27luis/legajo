@@ -19,7 +19,7 @@ import { aFecha, hoyEnLima } from '../common/dates';
 import { aTipoDto } from '../catalogs/document-types.service';
 import { leerCampos, validarDatos } from '../catalogs/section-fields';
 import type { CreateDocumentDto, DocumentFieldsDto, ReplaceDocumentDto, UpdateDocumentDto, VoidDocumentDto } from './dto/document-input.dto';
-import type { DocumentDto, LegajoDto } from './dto/document.dto';
+import type { DocumentDto, LegajoDto, LegajoSectionDto } from './dto/document.dto';
 import {
   aDocumentoDto,
   filtroVisibilidad,
@@ -37,7 +37,17 @@ export interface ArchivoParaEntregar {
   nombre: string;
 }
 
-interface DatosValidados {
+export interface NuevoDocumento {
+  trabajadorId: string;
+  validados: DatosValidados;
+  subidaId: string;
+  nombreOriginal: string;
+  sesion: SesionActiva;
+  cliente: DatosCliente;
+  loteItemId: string | null;
+}
+
+export interface DatosValidados {
   tipoDocumentoId: number;
   numero: string | null;
   fechaEmision: Date | null;
@@ -59,19 +69,32 @@ export class DocumentsService {
     @Inject(ENTORNO) private readonly entorno: Entorno,
   ) {}
 
+  async secciones(sesion: SesionActiva): Promise<LegajoSectionDto[]> {
+    const verRestringidos = sesion.permisos.includes('documentos.restringidos');
+    const secciones = await this.prisma.seccion.findMany({
+      orderBy: { numero: 'asc' },
+      include: {
+        tipos: {
+          where: { activo: true, ...(verRestringidos ? {} : { restringido: false }) },
+          orderBy: [{ orden: 'asc' }, { codigo: 'asc' }],
+        },
+      },
+    });
+    return secciones.map((seccion) => ({
+      id: seccion.id,
+      numero: seccion.numero,
+      nombre: seccion.nombre,
+      descripcion: seccion.descripcion,
+      campos: leerCampos(seccion.campos),
+      tipos: seccion.tipos.map(aTipoDto),
+      total: 0,
+    }));
+  }
+
   async legajo(trabajadorId: string, sesion: SesionActiva): Promise<LegajoDto> {
     await this.exigirTrabajador(trabajadorId);
-    const verRestringidos = sesion.permisos.includes('documentos.restringidos');
     const [secciones, documentos] = await Promise.all([
-      this.prisma.seccion.findMany({
-        orderBy: { numero: 'asc' },
-        include: {
-          tipos: {
-            where: { activo: true, ...(verRestringidos ? {} : { restringido: false }) },
-            orderBy: [{ orden: 'asc' }, { codigo: 'asc' }],
-          },
-        },
-      }),
+      this.secciones(sesion),
       this.prisma.documento.findMany({
         where: { trabajadorId, ...filtroVisibilidad(sesion) },
         include: incluirDocumento,
@@ -80,12 +103,7 @@ export class DocumentsService {
     ]);
     return {
       secciones: secciones.map((seccion) => ({
-        id: seccion.id,
-        numero: seccion.numero,
-        nombre: seccion.nombre,
-        descripcion: seccion.descripcion,
-        campos: leerCampos(seccion.campos),
-        tipos: seccion.tipos.map(aTipoDto),
+        ...seccion,
         total: documentos.filter(
           (documento) => documento.tipoDocumento.seccionId === seccion.id && documento.estado !== 'ANULADO',
         ).length,
@@ -98,28 +116,54 @@ export class DocumentsService {
     await this.exigirTrabajador(trabajadorId);
     const validados = await this.validar(datos, sesion, null);
     const nombreOriginal = await this.exigirSubida(datos.subidaId, sesion);
-
-    const creado = await this.prisma.$transaction(async (transaccion) => {
-      const documento = await transaccion.documento.create({
-        data: { ...validados, trabajadorId, creadoPorId: sesion.usuarioId, subidaPendiente: datos.subidaId },
-        include: incluirDocumento,
-      });
-      await this.auditoria.registrar(
-        {
-          accion: 'DOCUMENTO_SUBIR',
-          entidad: 'documento',
-          entidadId: documento.id,
-          trabajadorId,
-          usuarioId: sesion.usuarioId,
-          cliente,
-          detalle: { tipo: documento.tipoDocumento.codigo, numero: documento.numero, archivo: nombreOriginal },
-        },
-        transaccion,
-      );
-      return documento;
-    });
-    await this.cola.encolar({ documentoId: creado.id, subidaId: datos.subidaId, nombreOriginal, usuarioId: sesion.usuarioId });
+    const creado = await this.prisma.$transaction((transaccion) =>
+      this.crearDocumento(transaccion, {
+        trabajadorId,
+        validados,
+        subidaId: datos.subidaId,
+        nombreOriginal,
+        sesion,
+        cliente,
+        loteItemId: null,
+      }),
+    );
+    await this.encolar(creado.id, datos.subidaId, nombreOriginal, sesion.usuarioId);
     return aDocumentoDto(creado, sesion);
+  }
+
+  async crearDocumento(transaccion: Prisma.TransactionClient, nuevo: NuevoDocumento): Promise<DocumentoCompleto> {
+    const documento = await transaccion.documento.create({
+      data: {
+        ...nuevo.validados,
+        trabajadorId: nuevo.trabajadorId,
+        creadoPorId: nuevo.sesion.usuarioId,
+        subidaPendiente: nuevo.subidaId,
+        loteItemId: nuevo.loteItemId,
+      },
+      include: incluirDocumento,
+    });
+    await this.auditoria.registrar(
+      {
+        accion: 'DOCUMENTO_SUBIR',
+        entidad: 'documento',
+        entidadId: documento.id,
+        trabajadorId: nuevo.trabajadorId,
+        usuarioId: nuevo.sesion.usuarioId,
+        cliente: nuevo.cliente,
+        detalle: {
+          tipo: documento.tipoDocumento.codigo,
+          numero: documento.numero,
+          archivo: nuevo.nombreOriginal,
+          lote: nuevo.loteItemId,
+        },
+      },
+      transaccion,
+    );
+    return documento;
+  }
+
+  async encolar(documentoId: string, subidaId: string, nombreOriginal: string, usuarioId: string): Promise<void> {
+    await this.cola.encolar({ documentoId, subidaId, nombreOriginal, usuarioId });
   }
 
   async editar(id: string, datos: UpdateDocumentDto, sesion: SesionActiva, cliente: DatosCliente): Promise<DocumentDto> {
@@ -351,7 +395,7 @@ export class DocumentsService {
     await archivador.finalize();
   }
 
-  private async validar(datos: DocumentFieldsDto, sesion: SesionActiva, seccionId: number | null): Promise<DatosValidados> {
+  async validar(datos: DocumentFieldsDto, sesion: SesionActiva, seccionId: number | null): Promise<DatosValidados> {
     const tipo = await this.prisma.tipoDocumento.findUnique({
       where: { id: datos.tipoDocumentoId },
       include: { seccion: true },
