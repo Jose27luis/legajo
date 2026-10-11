@@ -16,6 +16,7 @@ import { ENTORNO, type Entorno } from '../environment/environment';
 import type { DatosCliente } from '../common/client';
 import type { SesionActiva } from '../common/session';
 import { hoyEnLima } from '../common/dates';
+import { nombreTrabajador } from '../common/names';
 import { leerCampos } from '../catalogs/section-fields';
 import { rutaSubida } from '../documents/document-queue';
 import type { DocumentFieldsDto } from '../documents/dto/document-input.dto';
@@ -67,10 +68,6 @@ interface Diagnostico {
 interface Archivo {
   ruta: string;
   nombre: string;
-}
-
-function nombreTrabajador(trabajador: TrabajadorBreve): string {
-  return `${[trabajador.apellidoPaterno, trabajador.apellidoMaterno].filter((parte) => parte !== null && parte !== '').join(' ')}, ${trabajador.nombres}`;
 }
 
 function aTrabajadorDto(trabajador: TrabajadorBreve | null): BatchWorkerDto | null {
