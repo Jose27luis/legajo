@@ -10,6 +10,6 @@ import { UploadServerService } from './upload-server.service';
   imports: [AuthModule],
   controllers: [LegajoController, DocumentsController],
   providers: [DocumentsService, DocumentQueueService, UploadServerService],
-  exports: [UploadServerService],
+  exports: [UploadServerService, DocumentsService],
 })
 export class DocumentsModule {}
