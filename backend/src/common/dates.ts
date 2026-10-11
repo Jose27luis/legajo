@@ -21,6 +21,13 @@ export function aTextoOpcional(fecha: Date | null): string | null {
   return fecha === null ? null : aTexto(fecha);
 }
 
+export function aTextoDeFila(valor: Date | string | null): string | null {
+  if (valor === null) {
+    return null;
+  }
+  return typeof valor === 'string' ? valor.slice(0, 10) : aTexto(valor);
+}
+
 export function diaAnterior(texto: string): string {
   const fecha = aFecha(texto);
   fecha.setUTCDate(fecha.getUTCDate() - 1);
