@@ -399,3 +399,234 @@ export interface ParteDivision extends DatosDocumento {
   desde: number;
   hasta: number;
 }
+
+export type ClaseBusqueda = 'IDENTIDAD' | 'NUMERO' | 'NOMBRE';
+
+export interface TrabajadorRapido {
+  id: string;
+  numeroDoc: string;
+  nombre: string;
+  cargo: string | null;
+  area: string | null;
+  estado: EstadoTrabajador;
+}
+
+export interface DocumentoRapido {
+  id: string;
+  trabajadorId: string;
+  trabajador: string;
+  seccion: number;
+  tipo: string;
+  numero: string | null;
+  fechaEmision: string | null;
+}
+
+export interface ResultadoRapido {
+  trabajadores: TrabajadorRapido[];
+  documentos: DocumentoRapido[];
+}
+
+export interface TrabajadorEncontrado {
+  trabajador: TrabajadorResumen;
+  documentos: number;
+}
+
+export interface DocumentoEncontrado {
+  documento: Documento;
+  trabajadorId: string;
+  trabajador: string;
+  numeroDoc: string;
+}
+
+export interface GrupoResultados<T> {
+  items: T[];
+  total: number;
+}
+
+export interface ResultadoBusqueda {
+  clase: ClaseBusqueda | null;
+  pagina: number;
+  porPagina: number;
+  trabajadores: GrupoResultados<TrabajadorEncontrado>;
+  documentos: GrupoResultados<DocumentoEncontrado>;
+}
+
+export interface FiltrosBusqueda {
+  texto: string;
+  seccion: number | null;
+  tipoDocumentoId: number | null;
+  desde: string;
+  hasta: string;
+  areaId: number | null;
+  regimenId: number | null;
+  tipoPersonal: TipoPersonal | null;
+  estado: EstadoTrabajador | null;
+  estadoDocumento: EstadoDocumento | null;
+}
+
+export type SituacionRequisito = 'COMPLETO' | 'FALTANTE' | 'VENCIDO';
+export type SituacionCelda = SituacionRequisito | 'NO_APLICA';
+
+export interface FilaPersonal {
+  id: string;
+  numeroDoc: string;
+  nombre: string;
+  regimen: string | null;
+  tipoPersonal: TipoPersonal | null;
+  cargo: string | null;
+  area: string | null;
+  fechaIngreso: string;
+  estado: EstadoTrabajador;
+  requisitos: number;
+  completos: number;
+  vencidos: number;
+  faltantes: number;
+  completitud: number;
+}
+
+export interface ReportePersonal {
+  items: FilaPersonal[];
+  total: number;
+  pagina: number;
+  porPagina: number;
+}
+
+export interface FiltrosReportePersonal {
+  areaId: number | null;
+  regimenId: number | null;
+  tipoPersonal: TipoPersonal | null;
+  estado: EstadoTrabajador | null;
+  cargoId: number | null;
+  ingresoDesde: string;
+  ingresoHasta: string;
+}
+
+export interface RequisitoTrabajador {
+  tipoId: number;
+  codigo: string;
+  tipo: string;
+  seccion: number;
+  situacion: SituacionRequisito;
+  documentoId: string | null;
+  fechaEmision: string | null;
+  fechaVencimiento: string | null;
+}
+
+export interface FaltantesTrabajador {
+  trabajadorId: string;
+  numeroDoc: string;
+  nombre: string;
+  requisitos: number;
+  completos: number;
+  vencidos: number;
+  faltantes: number;
+  completitud: number;
+  items: RequisitoTrabajador[];
+}
+
+export interface ColumnaConsolidado {
+  tipoId: number;
+  codigo: string;
+  nombre: string;
+  seccion: number;
+}
+
+export interface FilaConsolidado {
+  id: string;
+  numeroDoc: string;
+  nombre: string;
+  area: string | null;
+  celdas: SituacionCelda[];
+  requisitos: number;
+  completos: number;
+  faltantes: number;
+  vencidos: number;
+}
+
+export interface ReporteConsolidado {
+  columnas: ColumnaConsolidado[];
+  items: FilaConsolidado[];
+  total: number;
+  pagina: number;
+  porPagina: number;
+}
+
+export interface FiltrosAvance {
+  areaId: number | null;
+  regimenId: number | null;
+  tipoPersonal: TipoPersonal | null;
+  estado: EstadoTrabajador | null;
+}
+
+export interface FiltrosConsolidado extends FiltrosAvance {
+  soloIncompletos: boolean;
+}
+
+export interface FilaVencimiento {
+  documentoId: string;
+  trabajadorId: string;
+  numeroDoc: string;
+  trabajador: string;
+  area: string | null;
+  seccion: number;
+  codigo: string;
+  tipo: string;
+  numero: string | null;
+  fechaEmision: string | null;
+  fechaVencimiento: string;
+  dias: number;
+}
+
+export interface ReporteVencimientos {
+  items: FilaVencimiento[];
+  dias: number;
+  vencidos: number;
+  porVencer: number;
+}
+
+export interface FiltrosVencimientos {
+  dias: number;
+  areaId: number | null;
+  tipoDocumentoId: number | null;
+}
+
+export interface FilaDigitalizacion {
+  usuario: string;
+  dia: string;
+  documentos: number;
+  folios: number;
+  tamano: number;
+}
+
+export interface UsuarioDigitalizacion {
+  id: string;
+  nombre: string;
+}
+
+export interface ReporteDigitalizacion {
+  items: FilaDigitalizacion[];
+  usuarios: UsuarioDigitalizacion[];
+  documentos: number;
+  folios: number;
+  tamano: number;
+}
+
+export interface FiltrosDigitalizacion {
+  usuarioId: string | null;
+  desde: string;
+  hasta: string;
+}
+
+export interface FilaAvance {
+  area: string;
+  trabajadores: number;
+  completos: number;
+  parciales: number;
+  vacios: number;
+  completitud: number;
+}
+
+export interface ReporteAvance {
+  items: FilaAvance[];
+  totales: FilaAvance;
+}
