@@ -1,0 +1,15 @@
+:host {
+  display: grid;
+  gap: 16px;
+}
+
+.aviso.error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.cabecera-seccion a.boton {
+  text-decoration: none;
+}
