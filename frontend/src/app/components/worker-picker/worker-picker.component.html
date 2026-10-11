@@ -1,0 +1,44 @@
+@if (elegido(); as actual) {
+  <div class="elegido">
+    <span class="datos">
+      <strong>{{ actual.nombre }}</strong>
+      <span>{{ actual.numeroDoc }}</span>
+    </span>
+    <button type="button" class="boton chico" (click)="quitar()">Cambiar</button>
+  </div>
+} @else {
+  <div class="buscador">
+    <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><circle cx="11" cy="11" r="6.5" /><path d="m16 16 4 4" /></svg>
+    <input
+      [id]="idCampo()"
+      type="search"
+      autocomplete="off"
+      [value]="texto()"
+      (input)="alEscribir($event)"
+      (blur)="cerrar()"
+      [attr.aria-invalid]="invalido()"
+      aria-label="Buscar trabajador por documento o nombre"
+    />
+    @if (texto() === '') {
+      <span class="sugerencia" aria-hidden="true">Documento o nombre del trabajador</span>
+    }
+  </div>
+
+  @if (abierto() && texto().trim().length >= 2) {
+    <div class="resultados" animate.enter="aparece">
+      @if (resultados.value(); as lista) {
+        @for (trabajador of lista; track trabajador.id) {
+          <button type="button" class="opcion" (click)="elegir(trabajador)">
+            <span>{{ nombre(trabajador) }}</span>
+            <span class="documento">{{ trabajador.tipoDocIdentidad }} {{ trabajador.numeroDoc }}</span>
+          </button>
+        }
+        @if (sinResultados()) {
+          <p class="vacio">Ningún trabajador coincide</p>
+        }
+      } @else {
+        <p class="vacio">Buscando</p>
+      }
+    </div>
+  }
+}
