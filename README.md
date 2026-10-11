@@ -420,7 +420,7 @@ erDiagram
 
     USUARIO ||--o{ LOTE_CARGA : crea
     LOTE_CARGA ||--|{ LOTE_ITEM : contiene
-    DOCUMENTO |o--o| LOTE_ITEM : "se origina en"
+    LOTE_ITEM |o--o{ DOCUMENTO : origina
     TRABAJADOR |o--o{ LOTE_ITEM : "se asigna a"
     TIPO_DOCUMENTO |o--o{ LOTE_ITEM : "se clasifica como"
 
@@ -574,8 +574,12 @@ erDiagram
         text detalle_error
         text motivo_anulacion
         uuid archivo_actual_id FK
+        uuid lote_item_id FK "si vino de una carga masiva"
         uuid creado_por FK
         timestamptz creado_en
+        uuid modificado_por FK
+        timestamptz modificado_en
+        text motivo_modificacion
         timestamptz actualizado_en
     }
     DOCUMENTO_ARCHIVO {
@@ -606,13 +610,16 @@ erDiagram
     LOTE_ITEM {
         uuid id PK
         uuid lote_id FK
+        int orden
         varchar nombre_archivo
+        bigint tamano
         varchar subida_id "id tus"
         uuid trabajador_id FK
         int tipo_documento_id FK
         varchar estado "SUBIENDO, PENDIENTE, CLASIFICADO, DIVIDIDO, ERROR"
-        text motivo_pendiente
-        uuid documento_id FK
+        varchar motivo
+        timestamptz creado_en
+        timestamptz actualizado_en
     }
     AUDITORIA {
         bigint id PK
@@ -998,13 +1005,16 @@ flowchart TD
     J -->|"no"| PEN3["Ítem PENDIENTE<br/>motivo: tipo desconocido"]
     J -->|"sí"| K{"¿El tipo exige número y no viene?"}
     K -->|"sí"| PEN4["Ítem PENDIENTE<br/>motivo: falta el número"]
-    K -->|"no"| L["Crea documento PROCESANDO<br/>encola procesar-documento"]
+    K -->|"no"| K2{"¿La sección pide datos propios obligatorios<br/>o el tipo es restringido para esta cuenta?"}
+    K2 -->|"sí"| PEN5["Ítem PENDIENTE<br/>motivo: hay que completarlo a mano"]
+    K2 -->|"no"| L["Crea documento PROCESANDO<br/>encola procesar-documento"]
     L --> M["Ítem CLASIFICADO"]
 
     PEN --> BAN
     PEN2 --> BAN
     PEN3 --> BAN
     PEN4 --> BAN
+    PEN5 --> BAN
     BAN["Bandeja del lote"] --> O{"Acción del operador"}
     O -->|"Clasificar"| P["Elige trabajador, tipo y datos<br/>viendo el PDF en el visor"]
     P --> L
@@ -1023,6 +1033,7 @@ flowchart TD
 - Dividir: para cuando el escáner saca un solo PDF con todo el legajo.
 - Cada PDF del lote pasa por el mismo procesamiento que una subida individual.
 - Los totales del lote alimentan el reporte de digitalización.
+- Si un archivo no termina de subirse en 24 horas, su ítem queda en ERROR y se libera el espacio.
 
 ### Ver y descargar un documento
 
