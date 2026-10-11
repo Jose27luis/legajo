@@ -9,6 +9,8 @@ import { CatalogsModule } from './catalogs/catalogs.module';
 import { WorkersModule } from './workers/workers.module';
 import { DocumentsModule } from './documents/documents.module';
 import { BatchesModule } from './batches/batches.module';
+import { SearchModule } from './search/search.module';
+import { ReportsModule } from './reports/reports.module';
 import { HealthController } from './health/health.controller';
 
 @Module({
@@ -23,6 +25,8 @@ import { HealthController } from './health/health.controller';
     WorkersModule,
     DocumentsModule,
     BatchesModule,
+    SearchModule,
+    ReportsModule,
   ],
   controllers: [HealthController],
 })
