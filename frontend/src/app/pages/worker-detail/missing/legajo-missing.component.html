@@ -1,0 +1,21 @@
+<header class="cabecera-seccion">
+  <div>
+    <p class="antetitulo">Control del legajo</p>
+    <h2>Documentos faltantes</h2>
+    <p>Lo que se le exige a este trabajador según su régimen, tipo de personal y estado laboral.</p>
+  </div>
+  @if (sesion.tiene('reportes.exportar')) {
+    <a class="boton chico" [href]="enlace()" download>Exportar Excel</a>
+  }
+</header>
+
+@if (error(); as mensaje) {
+  <div class="aviso error" role="alert">
+    {{ mensaje }}
+    <button type="button" class="boton chico" (click)="faltantes.reload()">Reintentar</button>
+  </div>
+} @else if (faltantes.value(); as datos) {
+  <app-requirements-table [datos]="datos" />
+} @else {
+  <p class="celda-vacia">Calculando los requisitos</p>
+}
