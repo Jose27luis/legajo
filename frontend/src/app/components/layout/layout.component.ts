@@ -26,6 +26,7 @@ const GRUPOS: readonly GrupoMenu[] = [
     enlaces: [
       { ruta: '/', etiqueta: 'Inicio', icono: 'inicio', exacto: true, permiso: null },
       { ruta: '/workers', etiqueta: 'Personal', icono: 'personal', exacto: false, permiso: 'personal.ver' },
+      { ruta: '/bulk-upload', etiqueta: 'Carga masiva', icono: 'carga', exacto: false, permiso: 'carga_masiva.usar' },
     ],
   },
   {
@@ -41,6 +42,8 @@ const TITULOS: readonly [RegExp, string][] = [
   [/^\/$/, 'Inicio'],
   [/^\/workers\/[^/]+$/, 'Legajo del trabajador'],
   [/^\/workers$/, 'Personal'],
+  [/^\/bulk-upload\/[^/]+$/, 'Lote de carga'],
+  [/^\/bulk-upload$/, 'Carga masiva'],
   [/^\/profile$/, 'Mi perfil'],
   [/^\/users$/, 'Usuarios'],
   [/^\/catalogs$/, 'Catálogos'],
