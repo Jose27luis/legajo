@@ -1,0 +1,142 @@
+<section class="tarjeta">
+  <div class="barra-reporte">
+    <h3>Listado de personal</h3>
+    <div class="herramientas">
+      @if (reporte.value(); as datos) {
+        <span aria-live="polite">{{ datos.total }} trabajadores</span>
+      }
+      <button type="button" class="boton chico" (click)="limpiar()">Quitar filtros</button>
+      @if (sesion.tiene('reportes.exportar')) {
+        <a class="boton chico" [href]="enlace()" download>Exportar Excel</a>
+      }
+    </div>
+  </div>
+
+  <div class="filtros-reporte">
+    <div class="campo">
+      <label for="personal-area">Área</label>
+      <select id="personal-area" (change)="cambiar('areaId', $event)">
+        <option value="" [selected]="filtros().areaId === null">Todas las áreas</option>
+        @if (opciones.value(); as datos) {
+          @for (area of datos.areas; track area.id) {
+            <option [value]="area.id" [selected]="filtros().areaId === area.id">{{ area.nombre }}</option>
+          }
+        }
+      </select>
+    </div>
+    <div class="campo">
+      <label for="personal-regimen">Régimen</label>
+      <select id="personal-regimen" (change)="cambiar('regimenId', $event)">
+        <option value="" [selected]="filtros().regimenId === null">Todos los regímenes</option>
+        @if (opciones.value(); as datos) {
+          @for (regimen of datos.regimenes; track regimen.id) {
+            <option [value]="regimen.id" [selected]="filtros().regimenId === regimen.id">{{ regimen.nombre }}</option>
+          }
+        }
+      </select>
+    </div>
+    <div class="campo">
+      <label for="personal-cargo">Cargo</label>
+      <select id="personal-cargo" (change)="cambiar('cargoId', $event)">
+        <option value="" [selected]="filtros().cargoId === null">Todos los cargos</option>
+        @if (opciones.value(); as datos) {
+          @for (cargo of datos.cargos; track cargo.id) {
+            <option [value]="cargo.id" [selected]="filtros().cargoId === cargo.id">{{ cargo.nombre }}</option>
+          }
+        }
+      </select>
+    </div>
+    <div class="campo">
+      <label for="personal-tipo">Tipo de personal</label>
+      <select id="personal-tipo" (change)="cambiar('tipoPersonal', $event)">
+        <option value="" [selected]="filtros().tipoPersonal === null">Ambos</option>
+        <option value="ADMINISTRATIVO" [selected]="filtros().tipoPersonal === 'ADMINISTRATIVO'">Administrativo</option>
+        <option value="ASISTENCIAL" [selected]="filtros().tipoPersonal === 'ASISTENCIAL'">Asistencial</option>
+      </select>
+    </div>
+    <div class="campo">
+      <label for="personal-estado">Estado laboral</label>
+      <select id="personal-estado" (change)="cambiar('estado', $event)">
+        <option value="" [selected]="filtros().estado === null">Todos</option>
+        <option value="ACTIVO" [selected]="filtros().estado === 'ACTIVO'">Activos</option>
+        <option value="CESADO" [selected]="filtros().estado === 'CESADO'">Cesados</option>
+      </select>
+    </div>
+    <div class="campo">
+      <label for="personal-desde">Ingreso desde</label>
+      <input id="personal-desde" type="date" [value]="filtros().ingresoDesde" (change)="cambiar('ingresoDesde', $event)" />
+    </div>
+    <div class="campo">
+      <label for="personal-hasta">Ingreso hasta</label>
+      <input id="personal-hasta" type="date" [value]="filtros().ingresoHasta" (change)="cambiar('ingresoHasta', $event)" />
+    </div>
+  </div>
+
+  @if (error(); as mensaje) {
+    <p class="aviso error" role="alert">{{ mensaje }}</p>
+  }
+
+  <div class="tabla-contenedor" [class.cargando]="reporte.isLoading()">
+    <table class="tabla">
+      <thead>
+        <tr>
+          <th scope="col">Trabajador</th>
+          <th scope="col">Régimen y tipo</th>
+          <th scope="col">Cargo y área</th>
+          <th scope="col">Ingreso</th>
+          <th scope="col">Estado</th>
+          <th scope="col">Completitud</th>
+          <th scope="col"><span class="solo-lector">Acciones</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (reporte.value(); as datos) {
+          @for (fila of datos.items; track fila.id) {
+            <tr>
+              <td>
+                <a class="enlace-nombre" [routerLink]="['/workers', fila.id]">{{ fila.nombre }}</a>
+                <span class="secundario">{{ fila.numeroDoc }}</span>
+              </td>
+              <td>
+                {{ fila.regimen ?? 'Sin vínculo' }}
+                @if (fila.tipoPersonal; as tipo) {
+                  <span class="secundario">{{ textoTipoPersonal[tipo] }}</span>
+                }
+              </td>
+              <td>
+                {{ fila.cargo ?? '' }}
+                <span class="secundario">{{ fila.area ?? '' }}</span>
+              </td>
+              <td class="celda-numero">{{ fechaCorta(fila.fechaIngreso) }}</td>
+              <td>
+                <span class="pastilla" [class.verde]="fila.estado === 'ACTIVO'" [class.gris]="fila.estado === 'CESADO'">
+                  {{ textoEstado[fila.estado] }}
+                </span>
+              </td>
+              <td>
+                <span class="medidor">
+                  <span><span [style.width.%]="fila.completitud"></span></span>
+                  <span class="valor">{{ fila.completitud }} %</span>
+                </span>
+                <span class="secundario">{{ fila.completos }} de {{ fila.requisitos }}, {{ fila.vencidos }} vencidos</span>
+              </td>
+              <td><a class="boton chico" [routerLink]="['/workers', fila.id, 'missing']">Ver faltantes</a></td>
+            </tr>
+          } @empty {
+            <tr><td colspan="7" class="celda-vacia">Ningún trabajador con estos filtros.</td></tr>
+          }
+        } @else {
+          <tr><td colspan="7" class="celda-vacia">Calculando el reporte</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <footer class="paginador">
+    <span>Página {{ pagina() }} de {{ ultimaPagina() }}</span>
+    <div>
+      <button type="button" class="boton chico" [disabled]="pagina() === 1" (click)="pagina.set(pagina() - 1)">Anterior</button>
+      <button type="button" class="boton chico" [disabled]="pagina() >= ultimaPagina()" (click)="pagina.set(pagina() + 1)">Siguiente</button>
+    </div>
+  </footer>
+</section>
