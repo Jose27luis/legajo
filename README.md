@@ -1152,7 +1152,9 @@ flowchart TD
     M --> N(["Clic en un trabajador abre su legajo<br/>clic en un documento abre el visor"])
 ```
 
-Búsqueda rápida en la cabecera de todas las pantallas. La búsqueda avanzada tiene todos los filtros y descarga en ZIP los documentos marcados.
+Búsqueda rápida en la cabecera de todas las pantallas: se abre con Ctrl K, espera un cuarto de segundo desde la última tecla y muestra hasta seis trabajadores y cuatro documentos, con una última opción que lleva a la búsqueda avanzada. Cuando el texto no es un documento de identidad ni un número, también se compara contra los nombres de cargo, área y tipo de documento, sin tildes.
+
+La búsqueda avanzada tiene todos los filtros y descarga en ZIP los documentos marcados, hasta 100 por descarga, en carpetas por trabajador y sección.
 
 ### Documentos faltantes
 
@@ -1380,7 +1382,9 @@ Al iniciar, la app pide a la API el usuario y sus permisos y los guarda en un se
 | Digitalización | Documentos cargados por usuario y por día, con folios y tamaño | Usuario, fecha desde y hasta |
 | Avance de legajos | Legajos al 100 %, parciales y vacíos, por área | Área, régimen |
 
-Todos se ven en pantalla y se exportan a Excel, generado en streaming.
+Todos se ven en pantalla y se exportan a Excel. El archivo `.xlsx` se arma en streaming: la hoja se escribe fila por fila mientras se comprime, con la primera fila fija y las fechas como fecha, así que la memoria no depende del tamaño del reporte. El listado de personal se exporta con el mismo escritor desde la pantalla Personal.
+
+El reporte de faltantes de un trabajador también aparece dentro de su legajo, como una pestaña más.
 
 ## Rendimiento
 
