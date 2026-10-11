@@ -1,0 +1,85 @@
+<section class="tarjeta">
+  <div class="barra-reporte">
+    <h3>Digitalización</h3>
+    <div class="herramientas">
+      <span>Documentos cargados por cuenta y por día</span>
+      @if (sesion.tiene('reportes.exportar')) {
+        <a class="boton chico" [href]="enlace()" download>Exportar Excel</a>
+      }
+    </div>
+  </div>
+
+  <div class="filtros-reporte">
+    <div class="campo">
+      <label for="digital-usuario">Cuenta</label>
+      <select id="digital-usuario" (change)="cambiarUsuario($event)">
+        <option value="" [selected]="filtros().usuarioId === null">Todas las cuentas</option>
+        @if (reporte.value(); as datos) {
+          @for (usuario of datos.usuarios; track usuario.id) {
+            <option [value]="usuario.id" [selected]="filtros().usuarioId === usuario.id">{{ usuario.nombre }}</option>
+          }
+        }
+      </select>
+    </div>
+    <div class="campo">
+      <label for="digital-desde">Desde</label>
+      <input id="digital-desde" type="date" [value]="filtros().desde" (change)="cambiarDesde($event)" />
+    </div>
+    <div class="campo">
+      <label for="digital-hasta">Hasta</label>
+      <input id="digital-hasta" type="date" [value]="filtros().hasta" (change)="cambiarHasta($event)" />
+    </div>
+  </div>
+
+  @if (reporte.value(); as datos) {
+    <dl class="cifras-reporte">
+      <div>
+        <dt>Documentos</dt>
+        <dd>{{ datos.documentos }}</dd>
+      </div>
+      <div>
+        <dt>Folios digitalizados</dt>
+        <dd>{{ datos.folios }}</dd>
+      </div>
+      <div>
+        <dt>Espacio usado</dt>
+        <dd>{{ tamanoLegible(datos.tamano) }}</dd>
+      </div>
+    </dl>
+  }
+
+  @if (error(); as mensaje) {
+    <p class="aviso error" role="alert">{{ mensaje }}</p>
+  }
+
+  <div class="tabla-contenedor" [class.cargando]="reporte.isLoading()">
+    <table class="tabla">
+      <thead>
+        <tr>
+          <th scope="col">Día</th>
+          <th scope="col">Cuenta</th>
+          <th scope="col">Documentos</th>
+          <th scope="col">Folios</th>
+          <th scope="col">Tamaño</th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (reporte.value(); as datos) {
+          @for (fila of datos.items; track fila.dia + fila.usuario) {
+            <tr>
+              <td class="celda-numero">{{ fechaCorta(fila.dia) }}</td>
+              <td>{{ fila.usuario }}</td>
+              <td class="celda-numero">{{ fila.documentos }}</td>
+              <td class="celda-numero">{{ fila.folios }}</td>
+              <td class="celda-numero">{{ tamanoLegible(fila.tamano) }}</td>
+            </tr>
+          } @empty {
+            <tr><td colspan="5" class="celda-vacia">No se cargaron documentos en este periodo.</td></tr>
+          }
+        } @else {
+          <tr><td colspan="5" class="celda-vacia">Calculando el reporte</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</section>
