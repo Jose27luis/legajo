@@ -308,6 +308,120 @@ p {
   color: var(--tinta-suave);
 }
 
+.barra-reporte {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.barra-reporte h3 {
+  margin: 0;
+  font-size: 15px;
+}
+
+.barra-reporte .herramientas {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  color: var(--tinta-suave);
+  font-size: 12.5px;
+}
+
+.filtros-reporte {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.cifras-reporte {
+  margin: 0 0 14px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.cifras-reporte div {
+  padding: 13px 15px;
+  border: 1px solid var(--linea);
+  border-radius: var(--radio-panel);
+  background: var(--hoja);
+}
+
+.cifras-reporte dt {
+  color: var(--tinta-suave);
+  font-size: 12px;
+}
+
+.cifras-reporte dd {
+  margin: 3px 0 0;
+  font-size: 22px;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+}
+
+.enlace-nombre {
+  color: var(--primario);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.enlace-nombre:hover {
+  text-decoration: underline;
+}
+
+.celda-numero {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.paginador {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--tinta-suave);
+  font-size: 12.5px;
+}
+
+.paginador div {
+  display: flex;
+  gap: 8px;
+}
+
+.medidor {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 120px;
+}
+
+.medidor span:first-child {
+  position: relative;
+  flex: 1;
+  height: 7px;
+  border-radius: 999px;
+  background: #e8edf2;
+  overflow: hidden;
+}
+
+.medidor span:first-child span {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 999px;
+  background: var(--primario);
+}
+
+.medidor .valor {
+  color: var(--tinta-suave);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
 .solo-lector {
   position: absolute;
   width: 1px;
