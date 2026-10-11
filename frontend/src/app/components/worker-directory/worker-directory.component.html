@@ -4,7 +4,7 @@
     <div class="herramientas">
       <span class="conteo" aria-live="polite">{{ rango() }}</span>
       @if (sesion.tiene('reportes.exportar')) {
-        <a class="boton chico" [href]="enlaceExportacion()" download>Exportar CSV</a>
+        <a class="boton chico" [href]="enlaceExportacion()" download>Exportar Excel</a>
       }
     </div>
   </header>
