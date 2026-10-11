@@ -30,7 +30,7 @@ interface EnlaceSeccion {
   numero: number;
   nombre: string;
   ruta: string;
-  total: number | null;
+  total: number;
 }
 
 @Component({
@@ -75,24 +75,16 @@ export class WorkerDetailComponent {
     return error === undefined ? null : mensajeDeError(error);
   });
 
-  protected readonly secciones = computed<EnlaceSeccion[]>(() => {
-    const primera: EnlaceSeccion = { numero: 1, nombre: 'Información personal y familiar', ruta: 'record', total: null };
-    if (!this.contexto.legajo.hasValue()) {
-      return [primera];
-    }
-    return [
-      primera,
-      ...this.contexto.legajo
-        .value()
-        .secciones.filter((seccion) => seccion.numero > 1)
-        .map((seccion) => ({
+  protected readonly secciones = computed<EnlaceSeccion[]>(() =>
+    this.contexto.legajo.hasValue()
+      ? this.contexto.legajo.value().secciones.map((seccion) => ({
           numero: seccion.numero,
           nombre: seccion.nombre,
           ruta: `sections/${seccion.numero}`,
           total: seccion.total,
-        })),
-    ];
-  });
+        }))
+      : [],
+  );
 
   protected readonly paraSituacion = signal<TrabajadorDetalle | null>(null);
   protected readonly paraReingreso = signal<TrabajadorDetalle | null>(null);
