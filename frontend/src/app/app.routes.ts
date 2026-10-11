@@ -56,6 +56,11 @@ export const routes: Routes = [
             loadComponent: () => import('./pages/worker-detail/record/worker-record.component').then((m) => m.WorkerRecordComponent),
           },
           {
+            path: 'missing',
+            canMatch: [permisoGuard('reportes.ver')],
+            loadComponent: () => import('./pages/worker-detail/missing/legajo-missing.component').then((m) => m.LegajoMissingComponent),
+          },
+          {
             path: 'sections/:numero',
             canMatch: [permisoGuard('documentos.ver')],
             loadComponent: () =>
@@ -78,6 +83,55 @@ export const routes: Routes = [
         title: 'Lote de carga - Legajos de Personal',
         canMatch: [permisoGuard('carga_masiva.usar')],
         loadComponent: () => import('./pages/batch-detail/batch-detail.component').then((m) => m.BatchDetailComponent),
+      },
+      {
+        path: 'search',
+        title: 'Búsqueda avanzada - Legajos de Personal',
+        canMatch: [permisoGuard('personal.ver')],
+        loadComponent: () => import('./pages/search/search.component').then((m) => m.SearchComponent),
+      },
+      {
+        path: 'reports',
+        title: 'Reportes - Legajos de Personal',
+        canMatch: [permisoGuard('reportes.ver')],
+        loadComponent: () => import('./pages/reports/reports.component').then((m) => m.ReportsComponent),
+        children: [
+          {
+            path: '',
+            pathMatch: 'full',
+            redirectTo: 'staff',
+          },
+          {
+            path: 'staff',
+            loadComponent: () => import('./pages/reports/staff/staff-report.component').then((m) => m.StaffReportComponent),
+          },
+          {
+            path: 'missing-summary',
+            loadComponent: () =>
+              import('./pages/reports/missing-summary/missing-summary-report.component').then((m) => m.MissingSummaryReportComponent),
+          },
+          {
+            path: 'missing',
+            loadComponent: () => import('./pages/reports/missing/missing-report.component').then((m) => m.MissingReportComponent),
+          },
+          {
+            path: 'expiring',
+            loadComponent: () => import('./pages/reports/expiring/expiring-report.component').then((m) => m.ExpiringReportComponent),
+          },
+          {
+            path: 'digitization',
+            loadComponent: () =>
+              import('./pages/reports/digitization/digitization-report.component').then((m) => m.DigitizationReportComponent),
+          },
+          {
+            path: 'progress',
+            loadComponent: () => import('./pages/reports/progress/progress-report.component').then((m) => m.ProgressReportComponent),
+          },
+          {
+            path: '**',
+            redirectTo: 'staff',
+          },
+        ],
       },
       {
         path: 'profile',
