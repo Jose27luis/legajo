@@ -1,0 +1,218 @@
+<header class="cabecera-seccion">
+  <div>
+    <p class="antetitulo">Digitalización</p>
+    <h2>Carga masiva de documentos</h2>
+    <p>
+      Elige la carpeta escaneada o los PDF sueltos. Los archivos cuyo nombre siga la convención entran solos al legajo; el resto
+      queda en la bandeja del lote para clasificarlos, dividirlos o descartarlos.
+    </p>
+  </div>
+</header>
+
+<section class="tarjeta convencion" aria-labelledby="titulo-convencion">
+  <h3 id="titulo-convencion">Cómo nombrar los archivos</h3>
+  <p class="patron"><b>DNI_CÓDIGO</b>, luego el número y la fecha si los tiene, separados por guion bajo.</p>
+  <ul class="ejemplos">
+    <li><code>45781236_0101.pdf</code><span>DNI del trabajador 45781236</span></li>
+    <li><code>45781236_0202_036-2022_20220115.pdf</code><span>Contrato CAS N.° 036-2022 del 15/01/2022</span></li>
+    <li><code>45781236_0302_20190520.pdf</code><span>Título profesional del 20/05/2019</span></li>
+  </ul>
+  <p class="nota">La fecha va siempre al final, con ocho dígitos. El código de cuatro dígitos es el del tipo de documento.</p>
+</section>
+
+@if (subiendo()) {
+  <section class="tarjeta progreso" aria-labelledby="titulo-progreso">
+    <div class="cabecera-tarjeta">
+      <h3 id="titulo-progreso">Subiendo {{ avances().length }} archivos</h3>
+      <button type="button" class="boton chico peligro" (click)="cancelar()">Cancelar carga</button>
+    </div>
+    <div class="total">
+      <span class="barra" role="progressbar" [attr.aria-valuenow]="avanceTotal()" aria-valuemin="0" aria-valuemax="100">
+        <span [style.width.%]="avanceTotal()"></span>
+      </span>
+      <span class="cifra">{{ avanceTotal() }} %</span>
+    </div>
+    <p class="nota">{{ subidos() }} listos, {{ fallidos() }} con error. No cierres esta página hasta que termine.</p>
+    <ul class="archivos">
+      @for (avance of avances(); track avance.nombre) {
+        <li [class.listo]="avance.estado === 'listo'" [class.fallo]="avance.estado === 'error'">
+          <span class="nombre">{{ avance.nombre }}</span>
+          @switch (avance.estado) {
+            @case ('listo') {
+              <span class="marca">Listo</span>
+            }
+            @case ('error') {
+              <span class="marca">{{ avance.motivo }}</span>
+            }
+            @case ('subiendo') {
+              <span class="marca">{{ avance.porcentaje }} %</span>
+            }
+            @default {
+              <span class="marca">En espera</span>
+            }
+          }
+        </li>
+      }
+    </ul>
+  </section>
+} @else {
+  <section
+    class="zona"
+    [class.encima]="arrastrando()"
+    (dragover)="alArrastrar($event, true)"
+    (dragleave)="alArrastrar($event, false)"
+    (drop)="alSoltar($event)"
+  >
+    <svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true">
+      <path d="M12 16V5M8 8.5 12 4.5l4 4" />
+      <path d="M4 15v3.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V15" />
+    </svg>
+    <p><b>Arrastra la carpeta escaneada</b> o los PDF aquí</p>
+    <p class="nota">Hasta {{ maximoArchivos }} archivos por lote, {{ tamanoMaximo }} MB cada uno.</p>
+    <div class="botones">
+      <button type="button" class="boton" (click)="abrirCarpeta()">Elegir carpeta</button>
+      <button type="button" class="boton principal" (click)="abrirArchivos()">Elegir PDF</button>
+    </div>
+    <input #selectorArchivos class="solo-lector" type="file" accept="application/pdf,.pdf" multiple (change)="alElegir($event)" />
+    <input #selectorCarpeta class="solo-lector" type="file" webkitdirectory multiple (change)="alElegir($event)" />
+  </section>
+}
+
+@if (error(); as mensaje) {
+  <p class="aviso error" role="alert" animate.enter="aparece">{{ mensaje }}</p>
+}
+
+@if (elegidos().length > 0) {
+  <section class="tarjeta" aria-labelledby="titulo-previa">
+    <div class="cabecera-tarjeta">
+      <h3 id="titulo-previa">{{ elegidos().length }} archivos elegidos</h3>
+      <div class="acciones">
+        <button type="button" class="boton chico" (click)="limpiar()" [disabled]="subiendo()">Quitar todos</button>
+        <button type="button" class="boton principal" (click)="iniciar()" [disabled]="subiendo() || analizando() || validos().length === 0">
+          Iniciar carga de {{ validos().length }} archivos
+        </button>
+      </div>
+    </div>
+
+    <dl class="cifras">
+      <div class="verde"><dt>Entran directo</dt><dd>{{ reconocidos().length }}</dd></div>
+      <div class="ambar"><dt>Irán a la bandeja</dt><dd>{{ porRevisar().length }}</dd></div>
+      <div class="roja"><dt>No se pueden subir</dt><dd>{{ rechazados().length }}</dd></div>
+    </dl>
+
+    @if (analizando()) {
+      <p class="nota">Revisando los nombres</p>
+    }
+
+    <div class="tabla-contenedor">
+      <table class="tabla">
+        <thead>
+          <tr>
+            <th scope="col">Archivo</th>
+            <th scope="col">Trabajador</th>
+            <th scope="col">Tipo detectado</th>
+            <th scope="col">Resultado</th>
+            <th scope="col"><span class="solo-lector">Acciones</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of elegidos(); track item.archivo.name) {
+            <tr [class.fila-inactiva]="item.invalido !== null">
+              <td>
+                <span class="archivo">{{ item.archivo.name }}</span>
+                <span class="secundario">{{ tamanoLegible(item.archivo.size) }}</span>
+              </td>
+              <td>
+                @if (item.previa?.trabajador; as trabajador) {
+                  <span>{{ trabajador.nombre }}</span>
+                  <span class="secundario">{{ trabajador.numeroDoc }}</span>
+                } @else {
+                  <span class="secundario">Sin detectar</span>
+                }
+              </td>
+              <td>
+                @if (item.previa; as previa) {
+                  @if (previa.tipo; as tipo) {
+                    <span>{{ tipo.codigo }} {{ tipo.nombre }}</span>
+                    <span class="secundario">
+                      Sección {{ numeroSeccion(tipo.seccion) }}
+                      @if (previa.numero; as numero) {
+                        · N.° {{ numero }}
+                      }
+                      @if (previa.fechaEmision; as fecha) {
+                        · {{ fecha }}
+                      }
+                    </span>
+                  } @else {
+                    <span class="secundario">Sin detectar</span>
+                  }
+                } @else {
+                  <span class="secundario">Sin detectar</span>
+                }
+              </td>
+              <td>
+                @if (item.invalido; as motivo) {
+                  <span class="pastilla roja">No se sube</span>
+                  <span class="secundario">{{ motivo }}</span>
+                } @else if (item.previa === null) {
+                  <span class="secundario">Revisando</span>
+                } @else if (item.previa.reconocido) {
+                  <span class="pastilla verde">Entra directo</span>
+                } @else {
+                  <span class="pastilla ambar">A la bandeja</span>
+                  <span class="secundario">{{ item.previa.motivo }}</span>
+                }
+              </td>
+              <td>
+                <button type="button" class="boton chico" (click)="quitar(item.archivo.name)" [disabled]="subiendo()">Quitar</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+}
+
+<section class="tarjeta" aria-labelledby="titulo-lotes">
+  <h3 id="titulo-lotes">Lotes recientes</h3>
+  @if (lotes.value(); as lista) {
+    @if (lista.length === 0) {
+      <p class="nota">Todavía no se ha hecho ninguna carga masiva.</p>
+    } @else {
+      <div class="tabla-contenedor">
+        <table class="tabla">
+          <thead>
+            <tr>
+              <th scope="col">Carga</th>
+              <th scope="col">Estado</th>
+              <th scope="col">Archivos</th>
+              <th scope="col">Pendientes</th>
+              <th scope="col">Descartados</th>
+              <th scope="col"><span class="solo-lector">Acciones</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (lote of lista; track lote.id) {
+              <tr>
+                <td>
+                  <span>{{ fechaHora(lote.creadoEn) }}</span>
+                  <span class="secundario">{{ lote.creadoPor }}</span>
+                </td>
+                <td><span class="pastilla" [class]="claseEstadoLote[lote.estado]">{{ textoEstadoLote[lote.estado] }}</span></td>
+                <td>{{ lote.clasificados }} de {{ lote.total }}</td>
+                <td>{{ lote.pendientes }}</td>
+                <td>{{ lote.conError }}</td>
+                <td>
+                  <a class="boton chico" [routerLink]="['/bulk-upload', lote.id]">Abrir bandeja</a>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  } @else {
+    <p class="celda-vacia">Cargando lotes</p>
+  }
+</section>
