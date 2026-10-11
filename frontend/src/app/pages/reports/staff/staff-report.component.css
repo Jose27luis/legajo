@@ -1,0 +1,15 @@
+.tabla-contenedor.cargando {
+  opacity: 0.6;
+}
+
+.tabla td .medidor {
+  margin-bottom: 2px;
+}
+
+.paginador {
+  margin-top: 12px;
+}
+
+.aviso.error {
+  margin-bottom: 12px;
+}
