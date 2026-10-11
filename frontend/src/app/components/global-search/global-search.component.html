@@ -1,0 +1,51 @@
+<div class="buscador">
+  <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><circle cx="11" cy="11" r="6.5" /><path d="m16 16 4 4" /></svg>
+  <input
+    #campo
+    id="busqueda-global"
+    type="search"
+    role="combobox"
+    autocomplete="off"
+    (keydown)="alTeclear($event)"
+    aria-label="Buscar por DNI, nombre, cargo o área"
+    aria-controls="resultados-globales"
+    [attr.aria-expanded]="abierto()"
+    [value]="texto()"
+    (input)="alEscribir($event)"
+    (focus)="abierto.set(true)"
+  />
+  @if (texto() === '') {
+    <span class="sugerencia" aria-hidden="true">Buscar por DNI, nombre, cargo o área</span>
+    <span class="atajo" aria-hidden="true">Ctrl K</span>
+  }
+
+  @if (abierto() && opciones().length > 0) {
+    <div class="panel" id="resultados-globales" role="listbox" animate.enter="aparece">
+      @if (buscando()) {
+        <p class="aviso-panel">Buscando</p>
+      }
+      @for (opcion of opciones(); track opcion.clave; let i = $index) {
+        @if (opcion.grupo !== '' && opcion.grupo !== opciones()[i - 1]?.grupo) {
+          <p class="grupo">{{ opcion.grupo }}</p>
+        }
+        <button
+          type="button"
+          class="opcion"
+          role="option"
+          [class.activa]="activo() === i"
+          [attr.aria-selected]="activo() === i"
+          [class.avanzada]="opcion.clave === 'todos'"
+          (click)="ir(opcion)"
+          (mouseenter)="activo.set(i)"
+        >
+          <span class="etiqueta">{{ opcion.etiqueta }}</span>
+          <span class="detalle">{{ opcion.detalle }}</span>
+        </button>
+      }
+    </div>
+  }
+</div>
+
+<button type="button" class="lupa" aria-label="Ir a la búsqueda avanzada" (click)="irAvanzada()">
+  <svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true"><circle cx="11" cy="11" r="6.5" /><path d="m16 16 4 4" /></svg>
+</button>
