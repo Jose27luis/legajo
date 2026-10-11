@@ -56,10 +56,6 @@ export const routes: Routes = [
             loadComponent: () => import('./pages/worker-detail/record/worker-record.component').then((m) => m.WorkerRecordComponent),
           },
           {
-            path: 'sections/1',
-            redirectTo: 'record',
-          },
-          {
             path: 'sections/:numero',
             canMatch: [permisoGuard('documentos.ver')],
             loadComponent: () =>
@@ -70,6 +66,18 @@ export const routes: Routes = [
             redirectTo: '',
           },
         ],
+      },
+      {
+        path: 'bulk-upload',
+        title: 'Carga masiva - Legajos de Personal',
+        canMatch: [permisoGuard('carga_masiva.usar')],
+        loadComponent: () => import('./pages/batches/batches.component').then((m) => m.BatchesComponent),
+      },
+      {
+        path: 'bulk-upload/:id',
+        title: 'Lote de carga - Legajos de Personal',
+        canMatch: [permisoGuard('carga_masiva.usar')],
+        loadComponent: () => import('./pages/batch-detail/batch-detail.component').then((m) => m.BatchDetailComponent),
       },
       {
         path: 'profile',
