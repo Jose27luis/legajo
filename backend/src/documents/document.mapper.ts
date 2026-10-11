@@ -3,6 +3,7 @@ import { aTipoDto } from '../catalogs/document-types.service';
 import { leerDatosGuardados } from '../catalogs/section-fields';
 import type { SesionActiva } from '../common/session';
 import { aTextoOpcional } from '../common/dates';
+import type { PartesNombre } from '../common/names';
 import type { DocumentDto } from './dto/document.dto';
 
 export const incluirDocumento = {
@@ -81,6 +82,10 @@ export function slug(texto: string, maximo: number): string {
     .replace(/[^A-Za-z0-9-]+/g, '_')
     .replace(/^_+|_+$/g, '')
     .slice(0, maximo);
+}
+
+export function carpetaTrabajador(trabajador: PartesNombre & { numeroDoc: string }): string {
+  return slug(`${trabajador.numeroDoc}_${trabajador.apellidoPaterno}_${trabajador.apellidoMaterno ?? ''}_${trabajador.nombres}`, 90).toUpperCase();
 }
 
 export function nombreDescarga(documento: DocumentoCompleto): string {
