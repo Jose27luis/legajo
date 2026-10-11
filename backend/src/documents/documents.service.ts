@@ -22,17 +22,22 @@ import type { CreateDocumentDto, DocumentFieldsDto, ReplaceDocumentDto, UpdateDo
 import type { DocumentDto, LegajoDto, LegajoSectionDto } from './dto/document.dto';
 import {
   aDocumentoDto,
+  carpetaTrabajador,
   filtroVisibilidad,
   incluirDocumento,
   nombreDescarga,
   puedeEditar,
-  slug,
   type DocumentoCompleto,
 } from './document.mapper';
 import { DocumentQueueService } from './document-queue.service';
 import { UploadServerService } from './upload-server.service';
 
 export interface ArchivoParaEntregar {
+  ruta: string;
+  nombre: string;
+}
+
+interface EntradaZip {
   ruta: string;
   nombre: string;
 }
@@ -367,9 +372,53 @@ export class DocumentsService {
       detalle: { secciones, documentos: documentos.map((documento) => documento.id) },
     });
 
-    const raiz = slug(`${trabajador.numeroDoc}_${trabajador.apellidoPaterno}_${trabajador.apellidoMaterno ?? ''}_${trabajador.nombres}`, 90).toUpperCase();
+    const raiz = carpetaTrabajador(trabajador);
+    await this.enviarZip(respuesta, raiz, this.entradas(documentos, (documento) => `${raiz}/${documento.tipoDocumento.seccion.carpeta}`));
+  }
+
+  async zipSeleccion(ids: string[], sesion: SesionActiva, cliente: DatosCliente, respuesta: Response): Promise<void> {
+    const documentos = await this.prisma.documento.findMany({
+      where: { id: { in: ids }, estado: 'DISPONIBLE', ...filtroVisibilidad(sesion) },
+      include: {
+        ...incluirDocumento,
+        trabajador: { select: { numeroDoc: true, nombres: true, apellidoPaterno: true, apellidoMaterno: true } },
+      },
+      orderBy: [{ trabajador: { apellidoPaterno: 'asc' } }, { tipoDocumento: { codigo: 'asc' } }, { fechaEmision: 'asc' }],
+    });
+    if (documentos.length === 0) {
+      throw new NotFoundException('No hay documentos disponibles para descargar');
+    }
+    await this.auditoria.registrar({
+      accion: 'DOCUMENTOS_DESCARGAR_SELECCION',
+      entidad: 'documento',
+      usuarioId: sesion.usuarioId,
+      cliente,
+      detalle: { documentos: documentos.map((documento) => documento.id) },
+    });
+
+    const raiz = `seleccion_${hoyEnLima()}`;
+    const carpetas = new Map(documentos.map((documento) => [documento.trabajadorId, carpetaTrabajador(documento.trabajador)]));
+    await this.enviarZip(
+      respuesta,
+      raiz,
+      this.entradas(documentos, (documento) => `${raiz}/${carpetas.get(documento.trabajadorId) ?? ''}/${documento.tipoDocumento.seccion.carpeta}`),
+    );
+  }
+
+  private entradas(documentos: DocumentoCompleto[], carpeta: (documento: DocumentoCompleto) => string): EntradaZip[] {
+    const entradas: EntradaZip[] = [];
+    for (const documento of documentos) {
+      const archivo = documento.archivos.find((item) => item.id === documento.archivoActualId);
+      if (archivo !== undefined) {
+        entradas.push({ ruta: archivo.ruta, nombre: `${carpeta(documento)}/${nombreDescarga(documento)}` });
+      }
+    }
+    return entradas;
+  }
+
+  private async enviarZip(respuesta: Response, nombreArchivo: string, entradas: EntradaZip[]): Promise<void> {
     respuesta.setHeader('Content-Type', 'application/zip');
-    respuesta.setHeader('Content-Disposition', `attachment; filename="${raiz}.zip"`);
+    respuesta.setHeader('Content-Disposition', `attachment; filename="${nombreArchivo}.zip"`);
     respuesta.setHeader('X-Accel-Buffering', 'no');
 
     const archivador = new ZipArchive({ store: true });
@@ -381,16 +430,11 @@ export class DocumentsService {
     });
     archivador.on('error', () => respuesta.destroy());
     archivador.pipe(respuesta);
-    for (const documento of documentos) {
-      const archivo = documento.archivos.find((item) => item.id === documento.archivoActualId);
-      if (archivo === undefined) {
-        continue;
-      }
-      const base = `${raiz}/${documento.tipoDocumento.seccion.carpeta}/${nombreDescarga(documento)}`;
-      const repeticion = (usados.get(base) ?? 0) + 1;
-      usados.set(base, repeticion);
-      const nombre = repeticion === 1 ? base : base.replace(/\.pdf$/, `_${repeticion}.pdf`);
-      archivador.append(createReadStream(`${this.entorno.DIR_ARCHIVOS}/${archivo.ruta}`), { name: nombre, store: true });
+    for (const entrada of entradas) {
+      const repeticion = (usados.get(entrada.nombre) ?? 0) + 1;
+      usados.set(entrada.nombre, repeticion);
+      const nombre = repeticion === 1 ? entrada.nombre : entrada.nombre.replace(/\.pdf$/, `_${repeticion}.pdf`);
+      archivador.append(createReadStream(`${this.entorno.DIR_ARCHIVOS}/${entrada.ruta}`), { name: nombre, store: true });
     }
     await archivador.finalize();
   }
