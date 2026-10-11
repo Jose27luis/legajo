@@ -1,0 +1,111 @@
+:host {
+  display: grid;
+  gap: 16px;
+}
+
+h3 {
+  font-size: 15px;
+}
+
+.cabecera-tarjeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.cabecera-tarjeta h3 {
+  margin: 0;
+}
+
+.herramientas {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.conteo {
+  color: var(--tinta-suave);
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.buscar {
+  margin-bottom: 14px;
+}
+
+.buscar input {
+  height: 46px;
+  font-size: 15px;
+}
+
+.filtros {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px;
+}
+
+.nota {
+  margin: 0 0 10px;
+  color: var(--tinta-suave);
+  font-size: 12.5px;
+}
+
+.tabla-contenedor.cargando {
+  opacity: 0.6;
+}
+
+.nombre {
+  color: var(--primario);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.nombre:hover {
+  text-decoration: underline;
+}
+
+.numero {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.fila-acciones {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.fila-acciones a {
+  text-decoration: none;
+}
+
+input[type='checkbox'] {
+  width: 17px;
+  height: 17px;
+  accent-color: var(--primario);
+}
+
+.paginas {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--tinta-suave);
+  font-size: 12.5px;
+}
+
+.paginas div {
+  display: flex;
+  gap: 8px;
+}
+
+.aviso.error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
