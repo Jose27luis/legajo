@@ -7,6 +7,8 @@ export type NombreIcono =
   | 'usuarios'
   | 'catalogos'
   | 'carga'
+  | 'buscar'
+  | 'reportes'
   | 'salir'
   | 'menu'
   | 'contraer'
