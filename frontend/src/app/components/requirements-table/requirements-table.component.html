@@ -1,0 +1,57 @@
+<dl class="cifras-reporte">
+  <div>
+    <dt>Requisitos que le aplican</dt>
+    <dd>{{ datos().requisitos }}</dd>
+  </div>
+  <div>
+    <dt>Completos</dt>
+    <dd>{{ datos().completos }}</dd>
+  </div>
+  <div>
+    <dt>Faltantes</dt>
+    <dd>{{ datos().faltantes }}</dd>
+  </div>
+  <div>
+    <dt>Vencidos</dt>
+    <dd>{{ datos().vencidos }}</dd>
+  </div>
+  <div>
+    <dt>Completitud</dt>
+    <dd>{{ datos().completitud }} %</dd>
+  </div>
+</dl>
+
+<div class="tabla-contenedor">
+  <table class="tabla">
+    <thead>
+      <tr>
+        <th scope="col">Código</th>
+        <th scope="col">Tipo de documento</th>
+        <th scope="col">Sección</th>
+        <th scope="col">Situación</th>
+        <th scope="col">Emisión</th>
+        <th scope="col">Vencimiento</th>
+        <th scope="col"><span class="solo-lector">Acciones</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (item of datos().items; track item.tipoId) {
+        <tr>
+          <td class="celda-numero">{{ item.codigo }}</td>
+          <td>{{ item.tipo }}</td>
+          <td class="celda-numero">{{ numeroSeccion(item.seccion) }}</td>
+          <td><span class="pastilla" [class]="claseSituacion[item.situacion]">{{ textoSituacion[item.situacion] }}</span></td>
+          <td>{{ item.fechaEmision === null ? '' : fechaCorta(item.fechaEmision) }}</td>
+          <td>{{ item.fechaVencimiento === null ? '' : fechaCorta(item.fechaVencimiento) }}</td>
+          <td>
+            <a class="boton chico" [routerLink]="['/workers', datos().trabajadorId, 'sections', item.seccion]">
+              {{ item.situacion === 'COMPLETO' ? 'Ver en el legajo' : 'Subir el documento' }}
+            </a>
+          </td>
+        </tr>
+      } @empty {
+        <tr><td colspan="7" class="celda-vacia">No hay requisitos configurados para este trabajador.</td></tr>
+      }
+    </tbody>
+  </table>
+</div>
