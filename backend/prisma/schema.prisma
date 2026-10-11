@@ -312,6 +312,8 @@ model Documento {
   @@index([trabajadorId, tipoDocumentoId, fechaEmision], map: "ix_documento_legajo")
   @@index([estado], map: "ix_documento_estado")
   @@index([loteItemId], map: "ix_documento_lote_item")
+  @@index([fechaVencimiento], map: "ix_documento_vencimiento")
+  @@index([creadoPorId, creadoEn], map: "ix_documento_creado")
   @@map("documento")
 }
 
