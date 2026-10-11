@@ -326,3 +326,76 @@ export interface DatosDocumento {
   nivelAcceso: NivelAcceso;
   datos: Record<string, ValorCampo>;
 }
+
+export type EstadoLote = 'SUBIENDO' | 'EN_BANDEJA' | 'TERMINADO';
+export type EstadoItemLote = 'SUBIENDO' | 'PENDIENTE' | 'CLASIFICADO' | 'DIVIDIDO' | 'ERROR';
+
+export interface TrabajadorLote {
+  id: string;
+  numeroDoc: string;
+  nombre: string;
+}
+
+export interface TipoLote {
+  id: number;
+  codigo: string;
+  nombre: string;
+  seccion: number;
+}
+
+export interface VistaPreviaArchivo {
+  nombre: string;
+  reconocido: boolean;
+  motivo: string | null;
+  trabajador: TrabajadorLote | null;
+  tipo: TipoLote | null;
+  numero: string | null;
+  fechaEmision: string | null;
+}
+
+export interface DocumentoLote {
+  id: string;
+  estado: EstadoDocumento;
+  seccion: number;
+  trabajadorId: string;
+}
+
+export interface ItemLote {
+  id: string;
+  orden: number;
+  nombreArchivo: string;
+  tamano: number;
+  estado: EstadoItemLote;
+  motivo: string | null;
+  trabajador: TrabajadorLote | null;
+  tipo: TipoLote | null;
+  documentos: DocumentoLote[];
+}
+
+export interface Lote {
+  id: string;
+  estado: EstadoLote;
+  total: number;
+  clasificados: number;
+  pendientes: number;
+  conError: number;
+  creadoPor: string;
+  creadoEn: string;
+  terminadoEn: string | null;
+  propio: boolean;
+}
+
+export interface LoteDetalle extends Lote {
+  items: ItemLote[];
+}
+
+export interface ArchivoLote {
+  nombre: string;
+  tamano: number;
+}
+
+export interface ParteDivision extends DatosDocumento {
+  trabajadorId: string;
+  desde: number;
+  hasta: number;
+}
