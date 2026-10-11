@@ -64,6 +64,14 @@
           </span>
           <span class="nombre">Ficha del trabajador</span>
         </a>
+        @if (sesion.tiene('reportes.ver')) {
+          <a routerLink="missing" routerLinkActive="activo" class="enlace general">
+            <span class="numero" aria-hidden="true">
+              <svg viewBox="0 0 16 16" width="14" height="14"><path d="M3.5 2.5h9v11h-9zM6 6h4.5M6 9h4.5" /></svg>
+            </span>
+            <span class="nombre">Faltantes</span>
+          </a>
+        }
         @for (seccion of secciones(); track seccion.numero) {
           <a [routerLink]="seccion.ruta" routerLinkActive="activo" class="enlace">
             <span class="numero">{{ numeroSeccion(seccion.numero) }}</span>
