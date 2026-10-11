@@ -96,6 +96,7 @@ services:
     restart: unless-stopped
     volumes:
       - archivos:/data/archivos:ro
+      - subidas:/data/subidas:ro
     depends_on:
       api:
         condition: service_healthy
