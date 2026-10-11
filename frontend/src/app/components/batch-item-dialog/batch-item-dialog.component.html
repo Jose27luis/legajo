@@ -1,0 +1,141 @@
+<app-dialog [abierto]="item() !== null" [ancho]="true" titulo="Archivo de la bandeja" (cerrar)="alCerrar()">
+  @if (item(); as actual) {
+    <div class="columnas">
+      <section class="visor" aria-label="Vista del PDF">
+        <div class="encabezado-visor">
+          <span class="archivo">{{ actual.nombreArchivo }}</span>
+          <span class="peso">{{ tamanoLegible(actual.tamano) }}</span>
+        </div>
+        <iframe [src]="enlace()" title="Vista del documento"></iframe>
+        @if (actual.motivo; as motivo) {
+          <p class="aviso sensible">{{ motivo }}</p>
+        }
+      </section>
+
+      <section class="acciones" aria-label="Qué hacer con el archivo">
+        <div class="pestanas" role="tablist">
+          <button type="button" role="tab" [attr.aria-selected]="pestana() === 'clasificar'" (click)="cambiarPestana('clasificar')">
+            Clasificar
+          </button>
+          <button type="button" role="tab" [attr.aria-selected]="pestana() === 'dividir'" (click)="cambiarPestana('dividir')">
+            Dividir
+          </button>
+          <button type="button" role="tab" [attr.aria-selected]="pestana() === 'descartar'" (click)="cambiarPestana('descartar')">
+            Descartar
+          </button>
+        </div>
+
+        @switch (pestana()) {
+          @case ('clasificar') {
+            <form id="formulario-clasificar" class="formulario" (submit)="$event.preventDefault(); clasificar()" novalidate>
+              <div class="campo">
+                <label for="clasificar-trabajador">Trabajador</label>
+                <app-worker-picker idCampo="clasificar-trabajador" [(elegido)]="trabajador" />
+              </div>
+              <div class="campo">
+                <label for="clasificar-seccion">Sección del legajo</label>
+                <select id="clasificar-seccion" (change)="elegirSeccion($event)">
+                  <option value="" [selected]="seccionId() === null" disabled>Selecciona la sección</option>
+                  @for (seccion of secciones(); track seccion.id) {
+                    <option [value]="seccion.id" [selected]="seccionId() === seccion.id">
+                      {{ numeroSeccion(seccion.numero) }} {{ seccion.nombre }}
+                    </option>
+                  }
+                </select>
+              </div>
+              @if (seccion(); as elegida) {
+                <app-document-fields [grupo]="formulario" [seccion]="elegida" prefijo="clasificar" [compacto]="true" />
+              }
+            </form>
+          }
+
+          @case ('dividir') {
+            <form id="formulario-dividir" class="formulario" (submit)="$event.preventDefault(); dividir()" novalidate>
+              <p class="aviso info">
+                Para el escaneo que trae todo el legajo en un solo PDF. Indica desde y hasta qué página va cada documento; los rangos
+                no se pueden cruzar.
+              </p>
+              @for (rango of rangos(); track rango.clave) {
+                <fieldset class="rango" animate.enter="aparece">
+                  <legend>Documento {{ $index + 1 }}</legend>
+                  <div class="paginas">
+                    <div class="campo">
+                      <label [for]="'rango-desde-' + rango.clave">Desde la página</label>
+                      <input [id]="'rango-desde-' + rango.clave" type="number" min="1" [formControl]="rango.desde" />
+                    </div>
+                    <div class="campo">
+                      <label [for]="'rango-hasta-' + rango.clave">Hasta la página</label>
+                      <input [id]="'rango-hasta-' + rango.clave" type="number" min="1" [formControl]="rango.hasta" />
+                    </div>
+                    @if (rangos().length > 1) {
+                      <button type="button" class="boton chico peligro" (click)="quitarRango(rango.clave)">Quitar</button>
+                    }
+                  </div>
+                  <div class="campo">
+                    <label [for]="'rango-trabajador-' + rango.clave">Trabajador</label>
+                    <app-worker-picker
+                      [idCampo]="'rango-trabajador-' + rango.clave"
+                      (elegidoChange)="elegirTrabajadorRango(rango, $event)"
+                    />
+                  </div>
+                  <div class="campo">
+                    <label [for]="'rango-seccion-' + rango.clave">Sección del legajo</label>
+                    <select [id]="'rango-seccion-' + rango.clave" (change)="elegirSeccionRango(rango, $event)">
+                      <option value="" [selected]="rango.seccionId === null" disabled>Selecciona la sección</option>
+                      @for (seccion of secciones(); track seccion.id) {
+                        <option [value]="seccion.id" [selected]="rango.seccionId === seccion.id">
+                          {{ numeroSeccion(seccion.numero) }} {{ seccion.nombre }}
+                        </option>
+                      }
+                    </select>
+                  </div>
+                  @if (seccionDeRango(rango); as elegida) {
+                    <app-document-fields [grupo]="rango.formulario" [seccion]="elegida" [prefijo]="'rango-' + rango.clave" [compacto]="true" />
+                  }
+                </fieldset>
+              }
+              <button type="button" class="boton" (click)="agregarRango()">Agregar otro documento</button>
+            </form>
+          }
+
+          @case ('descartar') {
+            <form id="formulario-descartar" class="formulario" (submit)="$event.preventDefault(); descartar()" novalidate>
+              <p class="aviso sensible">
+                El archivo no entra al legajo y queda registrado como descartado con su motivo. El PDF temporal se elimina.
+              </p>
+              <div class="campo">
+                <label for="descartar-motivo">Motivo</label>
+                <textarea id="descartar-motivo" [formControl]="motivo" maxlength="300" rows="3" [attr.aria-invalid]="motivoInvalido()"></textarea>
+              </div>
+            </form>
+          }
+        }
+
+        @if (error(); as mensaje) {
+          <p class="aviso error" role="alert" animate.enter="aparece">{{ mensaje }}</p>
+        }
+      </section>
+    </div>
+  }
+
+  <ng-container pie>
+    <button type="button" class="boton" (click)="alCerrar()" [disabled]="ocupado()">Cerrar</button>
+    @switch (pestana()) {
+      @case ('clasificar') {
+        <button type="submit" form="formulario-clasificar" class="boton principal" [disabled]="ocupado()">
+          {{ ocupado() ? 'Guardando' : 'Registrar en el legajo' }}
+        </button>
+      }
+      @case ('dividir') {
+        <button type="submit" form="formulario-dividir" class="boton principal" [disabled]="ocupado()">
+          {{ ocupado() ? 'Dividiendo' : 'Dividir y registrar' }}
+        </button>
+      }
+      @case ('descartar') {
+        <button type="submit" form="formulario-descartar" class="boton peligro lleno" [disabled]="ocupado()">
+          {{ ocupado() ? 'Descartando' : 'Descartar archivo' }}
+        </button>
+      }
+    }
+  </ng-container>
+</app-dialog>
