@@ -1,0 +1,13 @@
+:host {
+  display: grid;
+  gap: 14px;
+}
+
+.cifras-reporte {
+  margin: 0;
+}
+
+.tabla td a {
+  text-decoration: none;
+  white-space: nowrap;
+}
