@@ -13,6 +13,7 @@ import {
   type TrabajoProcesar,
 } from './document-queue';
 import { argumentosGhostscript, ejecutar, hashArchivo } from './pdf-tools';
+import { bloquearLote, recalcularLote } from '../batches/batch-counters';
 
 const UMBRAL_OPTIMIZACION = 0.95;
 const VIGENCIA_SUBIDA_MS = 24 * 60 * 60 * 1000;
@@ -222,12 +223,16 @@ export class DocumentProcessorService implements OnModuleInit, OnModuleDestroy {
   }
 
   private async limpiarSubidas(): Promise<void> {
-    const pendientes = new Set(
-      (
-        await this.prisma.documento.findMany({ where: { subidaPendiente: { not: null } }, select: { subidaPendiente: true } })
-      ).map((documento) => documento.subidaPendiente),
-    );
     const limite = Date.now() - VIGENCIA_SUBIDA_MS;
+    await this.cerrarSubidasIncompletas(new Date(limite));
+    const [documentos, items] = await Promise.all([
+      this.prisma.documento.findMany({ where: { subidaPendiente: { not: null } }, select: { subidaPendiente: true } }),
+      this.prisma.loteItem.findMany({ where: { estado: 'PENDIENTE', subidaId: { not: null } }, select: { subidaId: true } }),
+    ]);
+    const pendientes = new Set([
+      ...documentos.map((documento) => documento.subidaPendiente),
+      ...items.map((item) => item.subidaId),
+    ]);
     let borradas = 0;
     for (const nombre of await readdir(this.entorno.DIR_SUBIDAS)) {
       const id = nombre.split('.')[0];
@@ -242,6 +247,27 @@ export class DocumentProcessorService implements OnModuleInit, OnModuleDestroy {
     }
     if (borradas > 0) {
       this.bitacora.log(`Subidas abandonadas eliminadas: ${borradas}`);
+    }
+  }
+
+  private async cerrarSubidasIncompletas(limite: Date): Promise<void> {
+    const lotes = await this.prisma.loteItem.findMany({
+      where: { estado: 'SUBIENDO', creadoEn: { lt: limite } },
+      distinct: ['loteId'],
+      select: { loteId: true },
+    });
+    for (const { loteId } of lotes) {
+      await this.prisma.$transaction(async (transaccion) => {
+        await bloquearLote(transaccion, loteId);
+        await transaccion.loteItem.updateMany({
+          where: { loteId, estado: 'SUBIENDO', creadoEn: { lt: limite } },
+          data: { estado: 'ERROR', motivo: 'Subida incompleta: el archivo no terminó de subirse en 24 horas' },
+        });
+        await recalcularLote(transaccion, loteId);
+      });
+    }
+    if (lotes.length > 0) {
+      this.bitacora.log(`Lotes con subidas incompletas cerradas: ${lotes.length}`);
     }
   }
 }
