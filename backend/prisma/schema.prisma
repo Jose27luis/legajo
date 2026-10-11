@@ -62,6 +62,20 @@ enum EstadoDocumento {
   ANULADO
 }
 
+enum EstadoLote {
+  SUBIENDO
+  EN_BANDEJA
+  TERMINADO
+}
+
+enum EstadoItemLote {
+  SUBIENDO
+  PENDIENTE
+  CLASIFICADO
+  DIVIDIDO
+  ERROR
+}
+
 model Regimen {
   id         Int         @id @default(autoincrement())
   codigo     String      @unique @db.VarChar(20)
@@ -122,6 +136,7 @@ model Trabajador {
   familiares       Familiar[]
   documentos       Documento[]
   auditorias       Auditoria[]
+  itemsLote        LoteItem[]
 
   @@unique([tipoDocIdentidad, numeroDoc], map: "ux_trabajador_doc")
   @@index([estado, movimientoActual], map: "ix_trabajador_estado")
@@ -190,6 +205,7 @@ model TipoDocumento {
   seccion          Seccion     @relation(fields: [seccionId], references: [id], onDelete: Restrict)
   requisitos       Requisito[]
   documentos       Documento[]
+  itemsLote        LoteItem[]
 
   @@index([seccionId, orden], map: "ix_tipo_documento_seccion")
   @@map("tipo_documento")
@@ -256,6 +272,7 @@ model Usuario {
   documentosCreados     Documento[]        @relation("DocumentoCreador")
   documentosModificados Documento[]        @relation("DocumentoModificador")
   archivosSubidos       DocumentoArchivo[]
+  lotes                 LoteCarga[]
 
   @@map("usuario")
 }
@@ -282,7 +299,9 @@ model Documento {
   modificadoPorId    String?            @map("modificado_por") @db.Uuid
   modificadoEn       DateTime?          @map("modificado_en") @db.Timestamptz(3)
   motivoModificacion String?            @map("motivo_modificacion") @db.VarChar(500)
+  loteItemId         String?            @map("lote_item_id") @db.Uuid
   actualizadoEn      DateTime           @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  loteItem           LoteItem?          @relation(fields: [loteItemId], references: [id], onDelete: Restrict)
   trabajador         Trabajador         @relation(fields: [trabajadorId], references: [id], onDelete: Restrict)
   tipoDocumento      TipoDocumento      @relation(fields: [tipoDocumentoId], references: [id], onDelete: Restrict)
   creadoPor          Usuario            @relation("DocumentoCreador", fields: [creadoPorId], references: [id], onDelete: Restrict)
@@ -292,7 +311,48 @@ model Documento {
 
   @@index([trabajadorId, tipoDocumentoId, fechaEmision], map: "ix_documento_legajo")
   @@index([estado], map: "ix_documento_estado")
+  @@index([loteItemId], map: "ix_documento_lote_item")
   @@map("documento")
+}
+
+model LoteCarga {
+  id           String     @id @default(uuid()) @db.Uuid
+  usuarioId    String     @map("usuario_id") @db.Uuid
+  estado       EstadoLote @default(SUBIENDO)
+  total        Int
+  clasificados Int        @default(0)
+  pendientes   Int        @default(0)
+  conError     Int        @default(0) @map("con_error")
+  creadoEn     DateTime   @default(now()) @map("creado_en") @db.Timestamptz(3)
+  terminadoEn  DateTime?  @map("terminado_en") @db.Timestamptz(3)
+  usuario      Usuario    @relation(fields: [usuarioId], references: [id], onDelete: Restrict)
+  items        LoteItem[]
+
+  @@index([creadoEn], map: "ix_lote_carga_creado")
+  @@map("lote_carga")
+}
+
+model LoteItem {
+  id              String         @id @default(uuid()) @db.Uuid
+  loteId          String         @map("lote_id") @db.Uuid
+  orden           Int
+  nombreArchivo   String         @map("nombre_archivo") @db.VarChar(255)
+  tamano          BigInt
+  subidaId        String?        @unique @map("subida_id") @db.VarChar(64)
+  trabajadorId    String?        @map("trabajador_id") @db.Uuid
+  tipoDocumentoId Int?           @map("tipo_documento_id")
+  estado          EstadoItemLote @default(SUBIENDO)
+  motivo          String?        @db.VarChar(300)
+  creadoEn        DateTime       @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoEn   DateTime       @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  lote            LoteCarga      @relation(fields: [loteId], references: [id], onDelete: Restrict)
+  trabajador      Trabajador?    @relation(fields: [trabajadorId], references: [id], onDelete: Restrict)
+  tipoDocumento   TipoDocumento? @relation(fields: [tipoDocumentoId], references: [id], onDelete: Restrict)
+  documentos      Documento[]
+
+  @@unique([loteId, orden], map: "ux_lote_item_orden")
+  @@index([estado, actualizadoEn], map: "ix_lote_item_estado")
+  @@map("lote_item")
 }
 
 model DocumentoArchivo {
