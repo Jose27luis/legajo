@@ -1,0 +1,109 @@
+<section class="tarjeta">
+  <div class="barra-reporte">
+    <h3>Documentos por vencer y vencidos</h3>
+    <div class="herramientas">
+      <button type="button" class="boton chico" (click)="reporte.reload()">Actualizar</button>
+      @if (sesion.tiene('reportes.exportar')) {
+        <a class="boton chico" [href]="enlace()" download>Exportar Excel</a>
+      }
+    </div>
+  </div>
+
+  <div class="filtros-reporte">
+    <div class="campo">
+      <label for="vencer-dias">Anticipación</label>
+      <select id="vencer-dias" (change)="cambiarDias($event)">
+        @for (dias of opcionesDias; track dias) {
+          <option [value]="dias" [selected]="filtros().dias === dias">Próximos {{ dias }} días</option>
+        }
+      </select>
+    </div>
+    <div class="campo">
+      <label for="vencer-area">Área</label>
+      <select id="vencer-area" (change)="cambiarArea($event)">
+        <option value="" [selected]="filtros().areaId === null">Todas las áreas</option>
+        @if (opciones.value(); as datos) {
+          @for (area of datos.areas; track area.id) {
+            <option [value]="area.id" [selected]="filtros().areaId === area.id">{{ area.nombre }}</option>
+          }
+        }
+      </select>
+    </div>
+    <div class="campo">
+      <label for="vencer-tipo">Tipo de documento</label>
+      <select id="vencer-tipo" (change)="cambiarTipo($event)">
+        <option value="" [selected]="filtros().tipoDocumentoId === null">Todos los que vencen</option>
+        @for (tipo of tipos(); track tipo.id) {
+          <option [value]="tipo.id" [selected]="filtros().tipoDocumentoId === tipo.id">{{ tipo.codigo }} {{ tipo.nombre }}</option>
+        }
+      </select>
+    </div>
+  </div>
+
+  @if (reporte.value(); as datos) {
+    <dl class="cifras-reporte">
+      <div class="roja">
+        <dt>Ya vencidos</dt>
+        <dd>{{ datos.vencidos }}</dd>
+      </div>
+      <div class="ambar">
+        <dt>Por vencer</dt>
+        <dd>{{ datos.porVencer }}</dd>
+      </div>
+      <div>
+        <dt>Anticipación</dt>
+        <dd>{{ datos.dias }} días</dd>
+      </div>
+    </dl>
+  }
+
+  @if (error(); as mensaje) {
+    <p class="aviso error" role="alert">{{ mensaje }}</p>
+  }
+
+  <div class="tabla-contenedor" [class.cargando]="reporte.isLoading()">
+    <table class="tabla">
+      <thead>
+        <tr>
+          <th scope="col">Vence</th>
+          <th scope="col">Documento</th>
+          <th scope="col">Trabajador</th>
+          <th scope="col">Área</th>
+          <th scope="col">Sección</th>
+          <th scope="col"><span class="solo-lector">Acciones</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (reporte.value(); as datos) {
+          @for (fila of datos.items; track fila.documentoId) {
+            <tr [class.vencida]="fila.dias < 0">
+              <td class="celda-numero">
+                {{ fechaCorta(fila.fechaVencimiento) }}
+                <span class="secundario">{{ diasRestantes(fila.dias) }}</span>
+              </td>
+              <td>
+                {{ fila.codigo }} {{ fila.tipo }}
+                @if (fila.numero; as numero) {
+                  <span class="secundario">N.° {{ numero }}</span>
+                }
+              </td>
+              <td>
+                <a class="enlace-nombre" [routerLink]="['/workers', fila.trabajadorId]">{{ fila.trabajador }}</a>
+                <span class="secundario">{{ fila.numeroDoc }}</span>
+              </td>
+              <td>{{ fila.area ?? 'Sin área' }}</td>
+              <td class="celda-numero">{{ numeroSeccion(fila.seccion) }}</td>
+              <td>
+                <a class="boton chico" [routerLink]="['/workers', fila.trabajadorId, 'sections', fila.seccion]">Ir a la sección</a>
+              </td>
+            </tr>
+          } @empty {
+            <tr><td colspan="6" class="celda-vacia">Ningún documento vence en este plazo.</td></tr>
+          }
+        } @else {
+          <tr><td colspan="6" class="celda-vacia">Buscando vencimientos</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</section>
