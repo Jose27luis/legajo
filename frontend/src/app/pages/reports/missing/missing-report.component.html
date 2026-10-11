@@ -1,0 +1,33 @@
+<section class="tarjeta">
+  <div class="barra-reporte">
+    <h3>Faltantes por trabajador</h3>
+    <div class="herramientas">
+      @if (elegido() !== null && sesion.tiene('reportes.exportar')) {
+        <a class="boton chico" [href]="enlace()" download>Exportar Excel</a>
+      }
+    </div>
+  </div>
+
+  <div class="campo elegir">
+    <label for="faltantes-trabajador">Trabajador</label>
+    <app-worker-picker idCampo="faltantes-trabajador" [(elegido)]="elegido" />
+  </div>
+
+  @if (error(); as mensaje) {
+    <p class="aviso error" role="alert">{{ mensaje }}</p>
+  }
+
+  @if (elegido(); as trabajador) {
+    <div class="elegido-datos">
+      <strong>{{ trabajador.nombre }}</strong>
+      <span class="secundario">{{ trabajador.numeroDoc }}</span>
+    </div>
+    @if (reporte.value(); as datos) {
+      <app-requirements-table [datos]="datos" />
+    } @else {
+      <p class="celda-vacia">Calculando los requisitos</p>
+    }
+  } @else {
+    <p class="aviso info">Elige un trabajador para ver qué requisitos le aplican y cuáles le faltan.</p>
+  }
+</section>
