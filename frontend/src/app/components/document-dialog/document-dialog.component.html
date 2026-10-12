@@ -31,7 +31,7 @@
         <dl class="datos">
           <div><dt>Sección</dt><dd>{{ numeroSeccion(doc.seccion) }} {{ seccion()?.nombre }}</dd></div>
           <div><dt>Fecha de emisión</dt><dd>{{ doc.fechaEmision ? fechaCorta(doc.fechaEmision) : 'Sin registrar' }}</dd></div>
-          @if (doc.tipo.tieneVencimiento) {
+          @if (doc.tipo.tieneVencimiento || doc.fechaVencimiento !== null) {
             <div><dt>Vencimiento</dt><dd>{{ doc.fechaVencimiento ? fechaCorta(doc.fechaVencimiento) : 'Sin registrar' }}</dd></div>
           }
           <div><dt>Emitido por</dt><dd>{{ doc.emisor ?? 'Sin registrar' }}</dd></div>
