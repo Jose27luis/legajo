@@ -52,6 +52,11 @@
           </span>
         </div>
       } @else {
+        <ul class="leyenda">
+          @for (estado of estados; track estado) {
+            <li><span class="pastilla" [class]="claseEstado[estado]">{{ textoEstado[estado] }}</span></li>
+          }
+        </ul>
         <ul class="documentos">
           @for (documento of documentos(); track documento.id) {
             <li animate.enter="aparece">
@@ -95,6 +100,12 @@
             Se guardará en el legajo de <b>{{ nombreCompleto(trabajador) }}</b>, sección {{ numeroSeccion(actual.numero) }}.
           </p>
         }
+        @if (actual.campos.length > 0) {
+          <p class="propios">
+            <b>Formulario específico:</b>
+            {{ etiquetasPropias(actual) }}
+          </p>
+        }
         <form class="formulario" (submit)="$event.preventDefault(); registrar()" novalidate>
           <app-pdf-picker
             idCampo="nuevo-archivo"
@@ -103,7 +114,7 @@
             [deshabilitado]="ocupado()"
             [invalido]="archivoFaltante() && archivo() === null"
           />
-          <app-document-fields [grupo]="formulario" [seccion]="actual" prefijo="nuevo" [compacto]="true" />
+          <app-document-fields [grupo]="formulario" [seccion]="actual" prefijo="nuevo" [compacto]="true" [nuevo]="true" />
           @if (error(); as mensaje) {
             <p class="aviso error" role="alert" animate.enter="aparece">{{ mensaje }}</p>
           }
@@ -121,6 +132,11 @@
       </aside>
     }
   </div>
+
+  <p class="tipos">
+    <b>Tipos documentales de esta sección:</b>
+    {{ listaTipos(actual) }}
+  </p>
 
   <app-document-dialog
     [documento]="seleccionado()"
