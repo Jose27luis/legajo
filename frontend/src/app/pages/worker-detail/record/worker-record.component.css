@@ -127,6 +127,12 @@ dd {
   gap: 14px;
 }
 
+.acciones-cabecera {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 @media (max-width: 1180px) {
   .rejilla {
     grid-template-columns: 1fr;
