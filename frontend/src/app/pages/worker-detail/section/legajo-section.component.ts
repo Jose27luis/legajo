@@ -30,7 +30,7 @@ import {
   nombreCompleto,
   numeroSeccion,
 } from '../../../core/labels';
-import type { Documento, EstadoDocumento } from '../../../core/models';
+import type { Documento, EstadoDocumento, SeccionLegajo } from '../../../core/models';
 import { SessionService } from '../../../core/session.service';
 import { ToastService } from '../../../core/toast.service';
 import { DocumentsService, mensajeDeSubida, type SubidaEnCurso } from '../../../services/documents.service';
@@ -132,6 +132,15 @@ export class LegajoSectionComponent implements OnDestroy {
   });
 
   protected readonly hayDisponibles = computed(() => this.todos().some((documento) => documento.estado === 'DISPONIBLE'));
+
+  protected etiquetasPropias(seccion: SeccionLegajo): string {
+    return seccion.campos.map((campo) => campo.etiqueta).join(' · ');
+  }
+
+  protected listaTipos(seccion: SeccionLegajo): string {
+    return seccion.tipos.map((tipo) => `${tipo.codigo} ${tipo.nombre}`).join(' · ');
+  }
+
   protected readonly enlaceZip = computed(() => this.servicio.enlaceZip(this.contexto.id(), [Number(this.numero())]));
 
   protected readonly seleccionadoId = signal<string | null>(null);
