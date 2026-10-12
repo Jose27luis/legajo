@@ -184,8 +184,12 @@ export interface TrabajadorDetalle extends TrabajadorResumen {
   familiares: Familiar[];
 }
 
+export interface TrabajadorDirectorio extends TrabajadorResumen {
+  documentos: number;
+}
+
 export interface PaginaTrabajadores {
-  items: TrabajadorResumen[];
+  items: TrabajadorDirectorio[];
   total: number;
   pagina: number;
   porPagina: number;
