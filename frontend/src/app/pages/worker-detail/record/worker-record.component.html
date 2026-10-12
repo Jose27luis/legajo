@@ -24,6 +24,8 @@
           <div><dt>Área o dependencia</dt><dd>{{ vinculo.area.nombre }}</dd></div>
         }
         <div><dt>Fecha de ingreso actual</dt><dd>{{ fechaCorta(trabajador.fechaIngreso) }}</dd></div>
+        <div><dt>Referencia de ingreso</dt><dd>{{ trabajador.vinculo?.referencia ?? 'No registrada' }}</dd></div>
+        <div><dt>Registrado en el sistema</dt><dd>{{ fechaHora(trabajador.creadoEn) }}</dd></div>
         <div><dt>Estado laboral</dt><dd>{{ textoEstado[trabajador.estado] }}</dd></div>
         <div>
           <dt>Último movimiento</dt>
@@ -80,6 +82,11 @@
         }
       </ol>
       <p class="nota">Si reingresa, se conserva este mismo legajo y se agrega un nuevo período.</p>
+      <h4>Eventos de salida</h4>
+      <p class="nota">
+        Renuncia, jubilación, fallecimiento, término de contrato u otra causa. Cada salida queda con su fecha y su sustento en la
+        sección 11, y el estado laboral solo cambia desde "Estado y movimiento".
+      </p>
     </section>
   </div>
 
