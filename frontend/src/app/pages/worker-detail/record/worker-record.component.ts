@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DialogComponent } from '../../../components/dialog/dialog.component';
 import { mensajeDeError } from '../../../core/errors';
+import { fechaHora } from '../../../core/format';
 import { TEXTO_ESTADO, TEXTO_MOTIVO_FIN, TEXTO_MOVIMIENTO, TEXTO_TIPO_PERSONAL, fechaCorta, hoy } from '../../../core/labels';
 import type { Familiar, TrabajadorDetalle } from '../../../core/models';
 import { SessionService } from '../../../core/session.service';
@@ -29,6 +30,7 @@ export class WorkerRecordComponent {
   protected readonly textoMotivoFin = TEXTO_MOTIVO_FIN;
   protected readonly textoTipoPersonal = TEXTO_TIPO_PERSONAL;
   protected readonly fechaCorta = fechaCorta;
+  protected readonly fechaHora = fechaHora;
   protected readonly hoy = hoy();
 
   protected readonly familiarAbierto = signal(false);
