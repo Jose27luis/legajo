@@ -19,6 +19,7 @@ export class DocumentFieldsComponent {
   readonly seccion = input.required<SeccionLegajo>();
   readonly prefijo = input.required<string>();
   readonly compacto = input(false);
+  readonly nuevo = input(false);
 
   protected readonly hoy = hoy();
   protected readonly textoNivel = TEXTO_NIVEL_ACCESO;
