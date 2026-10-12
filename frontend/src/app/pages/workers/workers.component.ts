@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal, untracked, viewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { NewWorkerDialogComponent } from '../../components/new-worker-dialog/new-worker-dialog.component';
 import { ReentryDialogComponent } from '../../components/reentry-dialog/reentry-dialog.component';
@@ -22,6 +22,7 @@ export class WorkersComponent {
 
   readonly estado = input<string>();
   readonly movimiento = input<string>();
+  readonly nuevo = input<string>();
 
   private readonly nuevoIngreso = viewChild.required(NewWorkerDialogComponent);
   private readonly reingreso = viewChild.required(ReentryDialogComponent);
@@ -36,6 +37,15 @@ export class WorkersComponent {
   );
   protected readonly nuevoAbierto = signal(false);
   protected readonly paraReingreso = signal<TrabajadorResumen | null>(null);
+
+  constructor() {
+    effect(() => {
+      if (this.nuevo() === '1' && this.sesion.tiene('personal.editar') && !untracked(this.nuevoAbierto)) {
+        this.abrirNuevo();
+        void this.router.navigate([], { queryParams: { nuevo: null }, queryParamsHandling: 'merge', replaceUrl: true });
+      }
+    });
+  }
 
   protected abrirNuevo(): void {
     this.nuevoIngreso().reiniciar();
