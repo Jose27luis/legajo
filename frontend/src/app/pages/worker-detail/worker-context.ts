@@ -6,6 +6,7 @@ import { mensajeDeError } from '../../core/errors';
 import type { Documento } from '../../core/models';
 import { SessionService } from '../../core/session.service';
 import { DocumentsService } from '../../services/documents.service';
+import { SelectedWorkerService } from '../../services/selected-worker.service';
 import { WorkersService } from '../../services/workers.service';
 
 const INTERVALO_CONSULTA_MS = 2000;
@@ -15,6 +16,7 @@ export class WorkerContext {
   private readonly trabajadores = inject(WorkersService);
   private readonly documentos = inject(DocumentsService);
   private readonly sesion = inject(SessionService);
+  private readonly elegido = inject(SelectedWorkerService);
 
   readonly id = toSignal(inject(ActivatedRoute).paramMap.pipe(map((parametros) => parametros.get('id') ?? '')), {
     initialValue: '',
@@ -36,6 +38,11 @@ export class WorkerContext {
   });
 
   constructor() {
+    effect(() => {
+      if (this.detalle.hasValue()) {
+        this.elegido.fijar(this.detalle.value());
+      }
+    });
     effect((alLimpiar) => {
       if (!this.legajo.hasValue()) {
         return;
