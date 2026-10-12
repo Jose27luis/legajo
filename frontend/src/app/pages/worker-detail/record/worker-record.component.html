@@ -1,10 +1,24 @@
 @if (contexto.detalle.value(); as trabajador) {
   <header class="cabecera-seccion">
     <div>
-      <p class="antetitulo">Ficha de datos</p>
+      <p class="antetitulo">Datos estructurados</p>
       <h2>Ficha del trabajador</h2>
-      <p>Identificación, vínculo vigente, historial de vínculos y datos familiares. Sus sustentos en PDF van en la sección 01.</p>
+      <p>
+        Identificación, vínculo vigente, historial de vínculos y datos familiares. Aquí no se suben PDF: sus sustentos van en la
+        sección 01. El estado activo o cesado es independiente del estado de los PDF.
+      </p>
     </div>
+    @if (sesion.tiene('personal.editar')) {
+      <div class="acciones-cabecera">
+        <button type="button" class="boton chico" (click)="abrirFicha(trabajador)">Editar ficha</button>
+        @if (trabajador.estado === 'ACTIVO') {
+          <button type="button" class="boton chico" (click)="abrirSituacion(trabajador)">Estado y movimiento</button>
+          <button type="button" class="boton chico" (click)="abrirCambio(trabajador)">Cambio de vínculo</button>
+        } @else if (puedeReingresar(trabajador)) {
+          <button type="button" class="boton chico principal" (click)="abrirReingreso(trabajador)">Registrar reingreso</button>
+        }
+      </div>
+    }
   </header>
 
   <div class="rejilla">
@@ -186,5 +200,135 @@
   <ng-container pie>
     <button type="button" class="boton" (click)="cerrarQuitar()" [disabled]="quitando()">Cancelar</button>
     <button type="button" class="boton peligro lleno" (click)="confirmarQuitar()" [disabled]="quitando()">Quitar</button>
+  </ng-container>
+</app-dialog>
+<app-situation-dialog
+  [trabajador]="paraSituacion()"
+  (cerrar)="paraSituacion.set(null)"
+  (actualizado)="alActualizar($event, 'Situación actualizada')"
+/>
+<app-reentry-dialog
+  [trabajador]="paraReingreso()"
+  (cerrar)="paraReingreso.set(null)"
+  (actualizado)="alActualizar($event, 'Reingreso registrado')"
+/>
+
+<app-dialog [abierto]="fichaAbierta()" titulo="Editar ficha del trabajador" (cerrar)="cerrarFicha()">
+  <form id="formulario-ficha" class="campos" [formGroup]="ficha" (ngSubmit)="guardarFicha()" novalidate>
+    <div class="campo">
+      <label for="ficha-tipo-doc">Documento de identidad</label>
+      <select id="ficha-tipo-doc" formControlName="tipoDocIdentidad">
+        <option value="DNI">DNI</option>
+        <option value="CE">Carné de extranjería</option>
+      </select>
+    </div>
+    <div class="campo">
+      <label for="ficha-numero">Número</label>
+      <input id="ficha-numero" formControlName="numeroDoc" maxlength="12" autocomplete="off" [attr.aria-invalid]="campoInvalido('numeroDoc')" />
+    </div>
+    <div class="campo completo">
+      <label for="ficha-nombres">Nombres</label>
+      <input id="ficha-nombres" formControlName="nombres" autocomplete="off" [attr.aria-invalid]="campoInvalido('nombres')" />
+    </div>
+    <div class="campo">
+      <label for="ficha-paterno">Apellido paterno</label>
+      <input id="ficha-paterno" formControlName="apellidoPaterno" autocomplete="off" [attr.aria-invalid]="campoInvalido('apellidoPaterno')" />
+    </div>
+    <div class="campo">
+      <label for="ficha-materno">Apellido materno</label>
+      <input id="ficha-materno" formControlName="apellidoMaterno" autocomplete="off" />
+    </div>
+    <div class="campo">
+      <label for="ficha-nacimiento">Fecha de nacimiento</label>
+      <input id="ficha-nacimiento" type="date" formControlName="fechaNacimiento" [max]="hoy" />
+    </div>
+    <div class="campo">
+      <label for="ficha-ingreso">Fecha de ingreso actual</label>
+      <input id="ficha-ingreso" type="date" formControlName="fechaIngreso" [max]="hoy" [attr.aria-invalid]="campoInvalido('fechaIngreso')" />
+    </div>
+    <div class="campo">
+      <label for="ficha-sexo">Sexo</label>
+      <select id="ficha-sexo" formControlName="sexo">
+        <option value="">No registrado</option>
+        <option value="F">Femenino</option>
+        <option value="M">Masculino</option>
+      </select>
+    </div>
+    <div class="campo">
+      <label for="ficha-civil">Estado civil</label>
+      <select id="ficha-civil" formControlName="estadoCivil">
+        <option value="">No registrado</option>
+        <option>Soltero(a)</option>
+        <option>Casado(a)</option>
+        <option>Conviviente</option>
+        <option>Divorciado(a)</option>
+        <option>Viudo(a)</option>
+      </select>
+    </div>
+    <div class="campo">
+      <label for="ficha-telefono">Teléfono</label>
+      <input id="ficha-telefono" type="tel" formControlName="telefono" autocomplete="off" />
+    </div>
+    <div class="campo">
+      <label for="ficha-correo">Correo</label>
+      <input id="ficha-correo" type="email" formControlName="correo" autocomplete="off" [attr.aria-invalid]="campoInvalido('correo')" />
+    </div>
+    <div class="campo completo">
+      <label for="ficha-direccion">Dirección</label>
+      <input id="ficha-direccion" formControlName="direccion" autocomplete="off" />
+    </div>
+    <div class="campo">
+      <label for="ficha-distrito">Distrito</label>
+      <input id="ficha-distrito" formControlName="distrito" autocomplete="off" />
+    </div>
+    <div class="campo">
+      <label for="ficha-provincia">Provincia</label>
+      <input id="ficha-provincia" formControlName="provincia" autocomplete="off" />
+    </div>
+    <div class="campo">
+      <label for="ficha-departamento">Departamento</label>
+      <input id="ficha-departamento" formControlName="departamento" autocomplete="off" />
+    </div>
+    @if (errorFicha(); as mensaje) {
+      <p class="aviso error completo" role="alert" animate.enter="aparece">{{ mensaje }}</p>
+    }
+  </form>
+  <ng-container pie>
+    <button type="button" class="boton" (click)="cerrarFicha()" [disabled]="guardandoFicha()">Cancelar</button>
+    <button type="submit" form="formulario-ficha" class="boton principal" [disabled]="guardandoFicha()">
+      {{ guardandoFicha() ? 'Guardando' : 'Guardar ficha' }}
+    </button>
+  </ng-container>
+</app-dialog>
+
+<app-dialog [abierto]="cambioAbierto()" titulo="Cambio de vínculo" (cerrar)="cerrarCambio()">
+  <p class="explicacion">
+    El vínculo vigente se cierra el día anterior a la fecha de inicio y se abre uno nuevo con estos datos.
+  </p>
+  <form id="formulario-cambio" class="formulario" (submit)="$event.preventDefault(); guardarCambio()" novalidate>
+    <div class="campos">
+      <div class="campo">
+        <label for="cambio-motivo">Motivo</label>
+        <select id="cambio-motivo" [formControl]="motivoCambio">
+          @for (motivo of motivosCambio; track motivo) {
+            <option [ngValue]="motivo">{{ textoMotivoCambio[motivo] }}</option>
+          }
+        </select>
+      </div>
+      <div class="campo">
+        <label for="cambio-fecha">Inicio del nuevo vínculo</label>
+        <input id="cambio-fecha" type="date" [formControl]="fechaCambio" [max]="hoy" />
+      </div>
+    </div>
+    <app-link-fields [grupo]="vinculoCambio" />
+    @if (errorCambio(); as mensaje) {
+      <p class="aviso error" role="alert" animate.enter="aparece">{{ mensaje }}</p>
+    }
+  </form>
+  <ng-container pie>
+    <button type="button" class="boton" (click)="cerrarCambio()" [disabled]="guardandoCambio()">Cancelar</button>
+    <button type="submit" form="formulario-cambio" class="boton principal" [disabled]="guardandoCambio()">
+      {{ guardandoCambio() ? 'Guardando' : 'Registrar nuevo vínculo' }}
+    </button>
   </ng-container>
 </app-dialog>
