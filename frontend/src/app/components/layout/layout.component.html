@@ -9,6 +9,12 @@
     </a>
 
     <nav class="navegacion" aria-label="Menú principal">
+      @if (sesion.tiene('personal.editar')) {
+        <a class="enlace nuevo" routerLink="/workers" [queryParams]="{ nuevo: 1 }" [attr.title]="contraido() ? 'Registrar nuevo ingreso' : null">
+          <span class="numero" aria-hidden="true">+</span>
+          <span class="etiqueta">Registrar nuevo ingreso</span>
+        </a>
+      }
       @for (grupo of grupos(); track grupo.titulo) {
         <p class="grupo">{{ grupo.titulo }}</p>
         <ul>
@@ -22,7 +28,11 @@
                 ariaCurrentWhenActive="page"
                 [attr.title]="contraido() ? enlace.etiqueta : null"
               >
-                <app-icon [nombre]="enlace.icono" />
+                @if (enlace.numero; as numero) {
+                  <span class="numero" aria-hidden="true">{{ numero }}</span>
+                } @else if (enlace.icono; as icono) {
+                  <app-icon [nombre]="icono" />
+                }
                 <span class="etiqueta">{{ enlace.etiqueta }}</span>
               </a>
             </li>
@@ -109,6 +119,38 @@
     </header>
 
     <main class="contenido">
+      @if (elegido(); as trabajador) {
+        <section class="trabajador" aria-label="Legajo seleccionado">
+          <span class="avatar" aria-hidden="true">{{ trabajador.iniciales }}</span>
+          <div class="identidad">
+            <a [routerLink]="['/workers', trabajador.id]">{{ trabajador.nombre }}</a>
+            <p class="meta">
+              <span>{{ trabajador.tipoDocIdentidad }} {{ trabajador.numeroDoc }}</span>
+              @if (trabajador.regimen; as regimen) {
+                <span>{{ regimen }}</span>
+              }
+              @if (trabajador.cargo; as cargo) {
+                <span>{{ cargo }}</span>
+              }
+              @if (trabajador.area; as area) {
+                <span>{{ area }}</span>
+              }
+            </p>
+          </div>
+          <div class="marcas">
+            <span class="pastilla" [class.verde]="trabajador.estado === 'ACTIVO'" [class.gris]="trabajador.estado === 'CESADO'">
+              {{ textoEstado[trabajador.estado] }}
+            </span>
+            @if (trabajador.movimiento !== 'SIN_MOVIMIENTO') {
+              <span class="pastilla azul">{{ textoMovimiento[trabajador.movimiento] }}</span>
+            }
+          </div>
+          <div class="acciones">
+            <a class="boton chico" routerLink="/workers">Cambiar trabajador</a>
+            <button type="button" class="boton chico" (click)="soltarTrabajador()">Quitar</button>
+          </div>
+        </section>
+      }
       <router-outlet />
     </main>
   </div>
