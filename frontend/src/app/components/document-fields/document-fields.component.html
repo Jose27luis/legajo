@@ -1,6 +1,6 @@
 <div class="campos" [class.compacto]="compacto()" [formGroup]="grupo()">
   <div class="campo completo">
-    <label [for]="id('tipo')">Tipo de documento</label>
+    <label [for]="id('tipo')">Tipo de documento <span class="obligatorio" aria-hidden="true">*</span></label>
     <select [id]="id('tipo')" formControlName="tipoDocumentoId" [attr.aria-invalid]="tipoInvalido()">
       <option [ngValue]="null" disabled>Selecciona el tipo</option>
       @for (tipo of seccion().tipos; track tipo.id) {
@@ -12,24 +12,35 @@
   <div class="campo">
     <label [for]="id('numero')">
       Número de documento
-      @if (tipoElegido()?.requiereNumero !== true) {
+      @if (tipoElegido()?.requiereNumero === true) {
+        <span class="obligatorio" aria-hidden="true">*</span>
+      } @else {
         <span class="opcional">opcional</span>
       }
     </label>
     <input [id]="id('numero')" formControlName="numero" maxlength="60" autocomplete="off" [attr.aria-invalid]="numeroInvalido()" />
+    @if (tipoElegido()?.requiereNumero === true) {
+      <span class="ayuda">Este tipo siempre lleva número de resolución, memorando o contrato.</span>
+    }
   </div>
 
   <div class="campo">
-    <label [for]="id('emision')">Fecha de emisión</label>
+    <label [for]="id('emision')">Fecha de emisión <span class="opcional">del documento</span></label>
     <input [id]="id('emision')" type="date" formControlName="fechaEmision" [max]="hoy" />
   </div>
 
-  @if (tipoElegido()?.tieneVencimiento === true) {
-    <div class="campo">
-      <label [for]="id('vencimiento')">Fecha de vencimiento</label>
-      <input [id]="id('vencimiento')" type="date" formControlName="fechaVencimiento" />
-    </div>
-  }
+  <div class="campo">
+    <label [for]="id('vencimiento')">
+      Fecha de vencimiento
+      @if (tipoElegido()?.tieneVencimiento !== true) {
+        <span class="opcional">si corresponde</span>
+      }
+    </label>
+    <input [id]="id('vencimiento')" type="date" formControlName="fechaVencimiento" />
+    @if (tipoElegido()?.tieneVencimiento === true) {
+      <span class="ayuda">Este tipo vence: con la fecha puesta aparece en el reporte de documentos por vencer.</span>
+    }
+  </div>
 
   <div class="campo">
     <label [for]="id('emisor')">Emitido por <span class="opcional">opcional</span></label>
@@ -41,7 +52,9 @@
       <div class="campo" [class.completo]="campo.tipo === 'parrafo'">
         <label [for]="id('dato-' + campo.clave)">
           {{ campo.etiqueta }}
-          @if (!campo.obligatorio) {
+          @if (campo.obligatorio) {
+            <span class="obligatorio" aria-hidden="true">*</span>
+          } @else {
             <span class="opcional">opcional</span>
           }
         </label>
@@ -70,6 +83,7 @@
               [formControlName]="campo.clave"
               [attr.maxlength]="campo.tipo === 'texto' ? 200 : null"
               [attr.min]="campo.tipo === 'numero' ? 0 : null"
+              [attr.max]="campo.tipo === 'numero' ? 366 : null"
               autocomplete="off"
               [attr.aria-invalid]="campoInvalido(campo)"
             />
@@ -100,6 +114,19 @@
       @if (tipoElegido()?.restringido === true) {
         <span class="ayuda">Este tipo se guarda siempre como restringido.</span>
       }
+    </div>
+  }
+
+  @if (nuevo()) {
+    <div class="campo completo automatico">
+      <span class="etiqueta">Estado del documento</span>
+      <span class="valor">
+        <span class="pastilla verde">Registrado</span>
+        <span class="ayuda">
+          La cuenta y la fecha de carga se registran solas, y la última modificación queda en "Sin modificaciones" hasta que
+          alguien edite o reemplace el PDF.
+        </span>
+      </span>
     </div>
   }
 </div>
