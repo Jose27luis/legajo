@@ -1,13 +1,22 @@
 import { BadRequestException } from '@nestjs/common';
 import type { Prisma } from '../generated/prisma/client';
 import { aTexto, aTextoOpcional } from '../common/dates';
-import type { LinkDto, RelativeDto, WorkerDetailDto, WorkerListItemDto } from './dto/worker.dto';
+import type { SesionActiva } from '../common/session';
+import { filtroVisibilidad } from '../documents/document.mapper';
+import type { LinkDto, RelativeDto, WorkerDetailDto, WorkerDirectoryItemDto, WorkerListItemDto } from './dto/worker.dto';
 
 export const incluirVinculo = { regimen: true, cargo: true, area: true } as const;
 
 export const incluirListado = {
   vinculos: { where: { actual: true }, include: incluirVinculo, take: 1 },
 } as const;
+
+export function incluirDirectorio(sesion: SesionActiva) {
+  return {
+    vinculos: { where: { actual: true }, include: incluirVinculo, take: 1 },
+    _count: { select: { documentos: { where: { estado: 'DISPONIBLE', ...filtroVisibilidad(sesion) } } } },
+  } as const satisfies Prisma.TrabajadorInclude;
+}
 
 export const incluirDetalle = {
   vinculos: { include: incluirVinculo, orderBy: [{ fechaInicio: 'desc' }, { creadoEn: 'desc' }] },
@@ -51,6 +60,10 @@ function base(trabajador: TrabajadorListado | TrabajadorDetalle, vinculo: Vincul
 
 export function aListadoDto(trabajador: TrabajadorListado): WorkerListItemDto {
   return base(trabajador, trabajador.vinculos[0]);
+}
+
+export function aDirectorioDto(trabajador: TrabajadorListado & { _count: { documentos: number } }): WorkerDirectoryItemDto {
+  return { ...base(trabajador, trabajador.vinculos[0]), documentos: trabajador._count.documentos };
 }
 
 export function aFamiliarDto(familiar: TrabajadorDetalle['familiares'][number]): RelativeDto {
