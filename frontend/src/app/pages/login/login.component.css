@@ -70,9 +70,19 @@ h2 {
   line-height: 1.65;
 }
 
-.ilustracion {
-  width: min(300px, 82%);
+.emblema {
+  width: min(290px, 76%);
   margin: auto auto 0;
+  padding: 16px;
+  border-radius: 26px;
+  background: #fff;
+  box-shadow: 0 24px 48px rgb(4 22 40 / 0.36);
+}
+
+.emblema img {
+  display: block;
+  width: 100%;
+  height: auto;
 }
 
 .oficina {
@@ -216,9 +226,17 @@ h1 {
   }
 
   .lema,
-  .ilustracion,
   .oficina {
     display: none;
+  }
+
+  .emblema {
+    order: -1;
+    width: 56px;
+    margin: 0;
+    padding: 5px;
+    border-radius: 14px;
+    box-shadow: none;
   }
 
   .acceso {
