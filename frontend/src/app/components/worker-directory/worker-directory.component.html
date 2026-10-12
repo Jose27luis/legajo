@@ -57,13 +57,14 @@
           <th scope="col">Área</th>
           <th scope="col">Estado laboral</th>
           <th scope="col">Movimiento</th>
+          <th scope="col">Legajo</th>
           <th scope="col"><span class="solo-lector">Acciones</span></th>
         </tr>
       </thead>
       <tbody>
         @if (errorListado(); as mensaje) {
           <tr>
-            <td colspan="6" class="celda-vacia">
+            <td colspan="7" class="celda-vacia">
               {{ mensaje }}
               <button type="button" class="boton chico" (click)="recargar()">Reintentar</button>
             </td>
@@ -98,6 +99,7 @@
                   <span class="pastilla azul">{{ textoMovimiento[trabajador.movimientoActual] }}</span>
                 }
               </td>
+              <td class="legajo">{{ trabajador.documentos }} PDF</td>
               <td>
                 <div class="fila-acciones">
                   <a class="boton chico" [routerLink]="['/workers', trabajador.id]">Abrir legajo</a>
@@ -113,12 +115,12 @@
             </tr>
           } @empty {
             <tr>
-              <td colspan="6" class="celda-vacia">No hay trabajadores con estos filtros.</td>
+              <td colspan="7" class="celda-vacia">No hay trabajadores con estos filtros.</td>
             </tr>
           }
           } @else {
             <tr>
-              <td colspan="6" class="celda-vacia">Cargando trabajadores</td>
+              <td colspan="7" class="celda-vacia">Cargando trabajadores</td>
             </tr>
           }
         }
