@@ -1,8 +1,11 @@
-import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, resource, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { filter, map } from 'rxjs';
+import { TEXTO_ESTADO, TEXTO_MOVIMIENTO, numeroSeccion } from '../../core/labels';
 import { SessionService } from '../../core/session.service';
+import { FilterOptionsService } from '../../services/filter-options.service';
+import { SelectedWorkerService } from '../../services/selected-worker.service';
 import { BrandComponent } from '../brand/brand.component';
 import { GlobalSearchComponent } from '../global-search/global-search.component';
 import { IconComponent, type NombreIcono } from '../icon/icon.component';
@@ -11,7 +14,8 @@ import { ToastComponent } from '../toast/toast.component';
 interface EnlaceMenu {
   ruta: string;
   etiqueta: string;
-  icono: NombreIcono;
+  icono: NombreIcono | null;
+  numero: string | null;
   exacto: boolean;
   permiso: string | null;
 }
@@ -21,30 +25,31 @@ interface GrupoMenu {
   enlaces: EnlaceMenu[];
 }
 
-const GRUPOS: readonly GrupoMenu[] = [
-  {
-    titulo: 'Gestión',
-    enlaces: [
-      { ruta: '/', etiqueta: 'Inicio', icono: 'inicio', exacto: true, permiso: null },
-      { ruta: '/workers', etiqueta: 'Personal', icono: 'personal', exacto: false, permiso: 'personal.ver' },
-      { ruta: '/bulk-upload', etiqueta: 'Carga masiva', icono: 'carga', exacto: false, permiso: 'carga_masiva.usar' },
-      { ruta: '/search', etiqueta: 'Búsqueda', icono: 'buscar', exacto: false, permiso: 'personal.ver' },
-      { ruta: '/reports', etiqueta: 'Reportes', icono: 'reportes', exacto: false, permiso: 'reportes.ver' },
-    ],
-  },
-  {
-    titulo: 'Administración',
-    enlaces: [
-      { ruta: '/users', etiqueta: 'Usuarios', icono: 'usuarios', exacto: false, permiso: 'usuarios.gestionar' },
-      { ruta: '/catalogs', etiqueta: 'Catálogos', icono: 'catalogos', exacto: false, permiso: 'catalogos.gestionar' },
-    ],
-  },
+function enlace(ruta: string, etiqueta: string, icono: NombreIcono, permiso: string | null, exacto = false): EnlaceMenu {
+  return { ruta, etiqueta, icono, numero: null, exacto, permiso };
+}
+
+const NAVEGACION: readonly EnlaceMenu[] = [
+  enlace('/', 'Panel general y estadísticas', 'inicio', null, true),
+  enlace('/workers', 'Lista de trabajadores', 'personal', 'personal.ver'),
+  enlace('/search', 'Búsqueda avanzada', 'buscar', 'personal.ver'),
+  enlace('/bulk-upload', 'Carga masiva', 'carga', 'carga_masiva.usar'),
+  enlace('/reports', 'Reportes', 'reportes', 'reportes.ver'),
+];
+
+const CUENTA: readonly EnlaceMenu[] = [
+  enlace('/profile', 'Mi perfil', 'perfil', null),
+  enlace('/users', 'Gestión de usuarios', 'usuarios', 'usuarios.gestionar'),
+  enlace('/catalogs', 'Catálogos', 'catalogos', 'catalogos.gestionar'),
 ];
 
 const TITULOS: readonly [RegExp, string][] = [
-  [/^\/$/, 'Inicio'],
+  [/^\/$/, 'Panel general'],
+  [/^\/workers\/[^/]+\/record$/, 'Ficha del trabajador'],
+  [/^\/workers\/[^/]+\/missing$/, 'Documentos faltantes'],
+  [/^\/workers\/[^/]+\/sections\/\d+$/, 'Sección del legajo'],
   [/^\/workers\/[^/]+$/, 'Legajo del trabajador'],
-  [/^\/workers$/, 'Personal'],
+  [/^\/workers$/, 'Lista de trabajadores'],
   [/^\/bulk-upload\/[^/]+$/, 'Lote de carga'],
   [/^\/bulk-upload$/, 'Carga masiva'],
   [/^\/search$/, 'Búsqueda avanzada'],
@@ -77,8 +82,12 @@ function leerContraido(): boolean {
 })
 export class LayoutComponent {
   private readonly router = inject(Router);
+  private readonly opciones = inject(FilterOptionsService);
   protected readonly sesion = inject(SessionService);
   private readonly zonaUsuario = viewChild.required<ElementRef<HTMLElement>>('zonaUsuario');
+
+  protected readonly textoEstado = TEXTO_ESTADO;
+  protected readonly textoMovimiento = TEXTO_MOVIMIENTO;
 
   protected readonly saliendo = signal(false);
   protected readonly contraido = signal(leerContraido());
@@ -101,12 +110,48 @@ export class LayoutComponent {
 
   protected readonly titulo = computed(() => TITULOS.find(([patron]) => patron.test(this.ruta()))?.[1] ?? 'Legajos de Personal');
 
-  protected readonly grupos = computed(() =>
-    GRUPOS.map((grupo) => ({
-      titulo: grupo.titulo,
-      enlaces: grupo.enlaces.filter((enlace) => enlace.permiso === null || this.sesion.tiene(enlace.permiso)),
-    })).filter((grupo) => grupo.enlaces.length > 0),
-  );
+  private readonly trabajadorElegido = inject(SelectedWorkerService);
+  protected readonly elegido = this.trabajadorElegido.actual;
+
+  private readonly secciones = resource({
+    loader: async () => (await this.opciones.cargar()).secciones,
+  });
+
+  protected readonly grupos = computed<GrupoMenu[]>(() => {
+    const grupos: GrupoMenu[] = [{ titulo: 'Navegación', enlaces: [...NAVEGACION] }];
+    const trabajador = this.elegido();
+    if (trabajador !== null && this.sesion.tiene('personal.ver')) {
+      grupos.push({ titulo: 'Legajo seleccionado', enlaces: this.enlacesLegajo(trabajador.id) });
+    }
+    grupos.push({ titulo: 'Cuenta y seguridad', enlaces: [...CUENTA] });
+    return grupos
+      .map((grupo) => ({
+        titulo: grupo.titulo,
+        enlaces: grupo.enlaces.filter((enlace) => enlace.permiso === null || this.sesion.tiene(enlace.permiso)),
+      }))
+      .filter((grupo) => grupo.enlaces.length > 0);
+  });
+
+  private enlacesLegajo(id: string): EnlaceMenu[] {
+    const base = `/workers/${id}`;
+    const enlaces: EnlaceMenu[] = [
+      { ruta: base, etiqueta: 'Vista general de las 13 secciones', icono: 'inicio', numero: null, exacto: true, permiso: null },
+      { ruta: `${base}/record`, etiqueta: 'Ficha del trabajador', icono: 'perfil', numero: null, exacto: false, permiso: null },
+      { ruta: `${base}/missing`, etiqueta: 'Documentos faltantes', icono: 'reportes', numero: null, exacto: false, permiso: 'reportes.ver' },
+    ];
+    const secciones = this.secciones.hasValue() ? this.secciones.value() : [];
+    for (const seccion of secciones) {
+      enlaces.push({
+        ruta: `${base}/sections/${seccion.numero}`,
+        etiqueta: seccion.nombre,
+        icono: null,
+        numero: numeroSeccion(seccion.numero),
+        exacto: false,
+        permiso: 'documentos.ver',
+      });
+    }
+    return enlaces;
+  }
 
   protected readonly iniciales = computed(() => {
     const nombre = this.sesion.usuario()?.nombreCompleto ?? '';
@@ -157,8 +202,13 @@ export class LayoutComponent {
     try {
       await this.sesion.cerrar();
     } finally {
+      this.trabajadorElegido.limpiar();
       this.saliendo.set(false);
       await this.router.navigateByUrl('/login');
     }
+  }
+
+  protected soltarTrabajador(): void {
+    this.trabajadorElegido.limpiar();
   }
 }
