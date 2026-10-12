@@ -234,6 +234,38 @@ h3 {
   color: var(--tinta-media);
 }
 
+.propios {
+  padding: 9px 11px;
+  border-radius: var(--radio-control);
+  background: #f3f7fb;
+  color: var(--tinta-suave);
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+
+.propios b {
+  color: var(--tinta-media);
+}
+
+.leyenda {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+}
+
+.tipos {
+  color: var(--tinta-suave);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.tipos b {
+  color: var(--tinta-media);
+}
+
 .formulario {
   display: grid;
   gap: 14px;
