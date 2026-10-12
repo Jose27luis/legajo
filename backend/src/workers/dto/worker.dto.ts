@@ -91,9 +91,14 @@ export class WorkerListItemDto {
   vinculo: LinkDto | null;
 }
 
+export class WorkerDirectoryItemDto extends WorkerListItemDto {
+  @ApiProperty({ description: 'Documentos registrados que la cuenta puede ver' })
+  documentos: number;
+}
+
 export class WorkerPageDto {
-  @ApiProperty({ type: [WorkerListItemDto] })
-  items: WorkerListItemDto[];
+  @ApiProperty({ type: [WorkerDirectoryItemDto] })
+  items: WorkerDirectoryItemDto[];
 
   @ApiProperty()
   total: number;
