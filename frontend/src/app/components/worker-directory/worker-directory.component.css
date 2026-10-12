@@ -65,6 +65,11 @@ h2 {
   font-size: 13px;
 }
 
+.legajo {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
 .fila-acciones a {
   text-decoration: none;
   color: var(--tinta);
