@@ -48,8 +48,8 @@ export class WorkersController {
   @Get()
   @ApiOperation({ summary: 'Listado de trabajadores con búsqueda y filtros' })
   @ApiResponse({ status: 200, type: WorkerPageDto })
-  async listar(@Query() consulta: WorkerQueryDto): Promise<WorkerPageDto> {
-    return this.trabajadores.listar(consulta);
+  async listar(@Query() consulta: WorkerQueryDto, @SesionActual() sesion: SesionActiva): Promise<WorkerPageDto> {
+    return this.trabajadores.listar(consulta, sesion);
   }
 
   @Requiere('personal.ver')
