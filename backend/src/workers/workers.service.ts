@@ -11,7 +11,7 @@ import { enviarLibro, type CeldaValor, type ColumnaHoja } from '../common/xlsx-s
 import type { CreateWorkerDto, LookupQueryDto, UpdateWorkerDto, WorkerQueryDto } from './dto/worker-input.dto';
 import type { WorkerDetailDto, WorkerLookupDto, WorkerPageDto, WorkerSummaryDto } from './dto/worker.dto';
 import { exigirCatalogosActivos } from './catalog-guard';
-import { aDetalleDto, aListadoDto, incluirDetalle, incluirListado, validarDocumento } from './worker.mapper';
+import { aDetalleDto, aDirectorioDto, aListadoDto, incluirDetalle, incluirDirectorio, incluirListado, validarDocumento } from './worker.mapper';
 
 const MENSAJE_DUPLICADO = 'Ya existe un trabajador registrado con ese documento';
 const LIMITE_EXPORTACION = 10000;
@@ -43,7 +43,7 @@ export class WorkersService {
     private readonly auditoria: AuditService,
   ) {}
 
-  async listar(consulta: WorkerQueryDto): Promise<WorkerPageDto> {
+  async listar(consulta: WorkerQueryDto, sesion: SesionActiva): Promise<WorkerPageDto> {
     const pagina = consulta.pagina ?? 1;
     const porPagina = consulta.porPagina ?? 25;
     const where = this.filtro(consulta);
@@ -51,13 +51,13 @@ export class WorkersService {
       this.prisma.trabajador.count({ where }),
       this.prisma.trabajador.findMany({
         where,
-        include: incluirListado,
+        include: incluirDirectorio(sesion),
         orderBy: [{ apellidoPaterno: 'asc' }, { apellidoMaterno: 'asc' }, { nombres: 'asc' }],
         skip: (pagina - 1) * porPagina,
         take: porPagina,
       }),
     ]);
-    return { items: trabajadores.map(aListadoDto), total, pagina, porPagina };
+    return { items: trabajadores.map(aDirectorioDto), total, pagina, porPagina };
   }
 
   async resumen(): Promise<WorkerSummaryDto> {
