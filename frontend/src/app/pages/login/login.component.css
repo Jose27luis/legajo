@@ -71,12 +71,11 @@ h2 {
 }
 
 .emblema {
-  width: min(178px, 48%);
-  margin: auto auto 0;
-  padding: 10px;
+  width: 128px;
+  padding: 9px;
   border-radius: 18px;
   background: #fff;
-  box-shadow: 0 12px 26px rgb(4 22 40 / 0.22);
+  box-shadow: 0 10px 22px rgb(4 22 40 / 0.2);
 }
 
 .emblema img {
@@ -86,6 +85,7 @@ h2 {
 }
 
 .oficina {
+  margin-top: auto;
   color: #8fb3cc;
   font-size: 12.5px;
   font-weight: 500;
@@ -231,11 +231,9 @@ h1 {
   }
 
   .emblema {
-    order: -1;
-    width: 56px;
-    margin: 0;
+    width: 54px;
     padding: 5px;
-    border-radius: 14px;
+    border-radius: 13px;
     box-shadow: none;
   }
 
