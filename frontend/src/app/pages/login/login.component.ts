@@ -14,13 +14,12 @@ import { SessionService } from '../../core/session.service';
 import { mensajeDeError } from '../../core/errors';
 import { prefiereMenosMovimiento } from '../../core/motion';
 import { BrandComponent } from '../../components/brand/brand.component';
-import { CabinetIllustrationComponent } from '../../components/cabinet-illustration/cabinet-illustration.component';
 
 const CURVA_SUAVE: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule, BrandComponent, CabinetIllustrationComponent],
+  imports: [ReactiveFormsModule, BrandComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './login.component.html',
   styleUrl: './login.component.css',
@@ -30,6 +29,7 @@ export class LoginComponent implements AfterViewInit {
   private readonly router = inject(Router);
   private readonly tarjeta = viewChild.required<ElementRef<HTMLElement>>('tarjeta');
   private readonly formularioAcceso = viewChild.required<ElementRef<HTMLFormElement>>('formularioAcceso');
+  private readonly emblema = viewChild.required<ElementRef<HTMLElement>>('emblema');
 
   protected readonly enviando = signal(false);
   protected readonly error = signal<string | null>(null);
@@ -57,6 +57,11 @@ export class LoginComponent implements AfterViewInit {
       this.formularioAcceso().nativeElement.querySelectorAll<HTMLElement>('.entra'),
       { opacity: [0, 1], transform: ['translateX(16px)', 'translateX(0px)'] },
       { delay: stagger(0.06, { startDelay: 0.25 }), duration: 0.5, ease: CURVA_SUAVE },
+    );
+    animate(
+      this.emblema().nativeElement,
+      { opacity: [0, 1], transform: ['translateY(14px) scale(0.94)', 'translateY(0px) scale(1)'] },
+      { delay: 0.2, duration: 0.7, ease: CURVA_SUAVE },
     );
   }
 
