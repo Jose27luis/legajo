@@ -42,6 +42,7 @@ const CUENTA: readonly EnlaceMenu[] = [
   enlace('/users', 'Gestión de usuarios', 'usuarios', 'usuarios.gestionar'),
   enlace('/catalogs', 'Catálogos', 'catalogos', 'catalogos.gestionar'),
   enlace('/audit', 'Auditoría del sistema', 'auditoria', 'auditoria.ver'),
+  enlace('/backups', 'Copias de seguridad', 'respaldo', 'backup.gestionar'),
 ];
 
 const TITULOS: readonly [RegExp, string][] = [
@@ -60,6 +61,7 @@ const TITULOS: readonly [RegExp, string][] = [
   [/^\/users$/, 'Usuarios'],
   [/^\/catalogs$/, 'Catálogos'],
   [/^\/audit$/, 'Auditoría del sistema'],
+  [/^\/backups$/, 'Copias de seguridad'],
 ];
 
 const CLAVE_CONTRAIDO = 'legajos.menu-contraido';
