@@ -88,6 +88,12 @@ h1 {
   font-size: 13px;
 }
 
+.nota-pie {
+  color: var(--tinta-suave);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
 .recientes {
   padding: 16px 20px;
   border: 1px solid var(--linea);
