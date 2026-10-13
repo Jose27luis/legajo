@@ -1,0 +1,55 @@
+:host {
+  display: block;
+}
+
+.tabla-contenedor.cargando {
+  opacity: 0.6;
+}
+
+.tabla {
+  min-width: 760px;
+}
+
+.limpiar {
+  align-self: end;
+}
+
+.fecha {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.secundario {
+  display: block;
+  color: var(--tinta-suave);
+  font-size: 12px;
+}
+
+.detalle {
+  max-width: 420px;
+  font-size: 12.5px;
+}
+
+details {
+  margin-top: 4px;
+}
+
+summary {
+  color: var(--primario);
+  font-weight: 650;
+  cursor: pointer;
+}
+
+pre {
+  margin: 6px 0 0;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: #f5f8fa;
+  font-size: 11.5px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.aviso.error {
+  margin-bottom: 12px;
+}
