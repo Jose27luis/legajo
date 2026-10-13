@@ -17,7 +17,9 @@
 }
 
 h2 {
-  font-size: 16px;
+  color: var(--marino);
+  font-size: 17px;
+  font-weight: 700;
 }
 
 .herramientas {
@@ -51,8 +53,9 @@ h2 {
 }
 
 .nombre {
-  color: var(--primario);
-  font-weight: 650;
+  color: var(--primario-oscuro);
+  font-size: 14px;
+  font-weight: 700;
   text-decoration: none;
 }
 
@@ -66,8 +69,27 @@ h2 {
 }
 
 .legajo {
+  color: var(--tinta-suave);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+}
+
+.legajo .cantidad {
+  display: inline-grid;
+  place-items: center;
+  min-width: 26px;
+  height: 22px;
+  margin-right: 2px;
+  padding: 0 6px;
+  border-radius: 6px;
+  background: var(--primario-claro);
+  color: var(--primario-oscuro);
+  font-weight: 750;
+}
+
+.legajo.vacio .cantidad {
+  background: var(--ambar-claro);
+  color: var(--ambar);
 }
 
 .fila-acciones a {
