@@ -1,5 +1,5 @@
 @if (seccion(); as actual) {
-  <header class="cabecera-seccion">
+  <header class="cabecera-seccion" [style.--tono]="tono(actual.numero)">
     <div>
       <p class="antetitulo">Sección {{ numeroSeccion(actual.numero) }} de 13</p>
       <h2>{{ actual.nombre }}</h2>
