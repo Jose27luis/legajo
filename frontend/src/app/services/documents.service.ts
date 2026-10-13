@@ -23,7 +23,7 @@ export function mensajeDeSubida(error: unknown): string {
       return cuerpo;
     }
     if (respuesta.getStatus() === 413) {
-      return `El archivo supera los ${TAMANO_MAXIMO_MB} MB permitidos.`;
+      return 'El servidor rechazó el envío por tamaño, aunque el archivo está dentro del límite. Avisa al administrador del sistema.';
     }
   }
   return 'No se pudo subir el archivo. Intenta de nuevo.';
