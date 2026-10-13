@@ -1,8 +1,9 @@
 <div class="pagina">
   <header class="encabezado">
     <div>
-      <h1>Usuarios</h1>
-      <p>Cuentas con acceso al sistema y su rol.</p>
+      <p class="antetitulo">Administración del sistema</p>
+      <h1>Gestión de usuarios y roles</h1>
+      <p>Alta, activación y desbloqueo de las cuentas con acceso al sistema. Cada cambio queda registrado en la auditoría.</p>
     </div>
     <button type="button" class="boton principal" (click)="nuevo()" [disabled]="cargando()">Nuevo usuario</button>
   </header>
@@ -16,27 +17,39 @@
     <div class="resumen">
       <div class="cifra">
         <strong>{{ resumen().total }}</strong>
-        <span>cuentas</span>
+        <span>Usuarios registrados</span>
       </div>
       <div class="cifra">
         <strong>{{ resumen().activos }}</strong>
-        <span>activas</span>
+        <span>Cuentas activas</span>
       </div>
-      <div class="cifra" [class.alerta]="resumen().bloqueados > 0">
-        <strong>{{ resumen().bloqueados }}</strong>
-        <span>bloqueadas</span>
+      <div class="cifra">
+        <strong>{{ roles().length }}</strong>
+        <span>Perfiles de acceso</span>
       </div>
-      <div class="campo buscador">
-        <label for="buscar-usuario">Buscar</label>
-        <input
-          id="buscar-usuario"
-          type="search"
-          autocomplete="off"
-          [value]="busqueda()"
-          (input)="actualizarBusqueda($event)"
-        />
-      </div>
+      @if (resumen().bloqueados > 0) {
+        <div class="cifra alerta">
+          <strong>{{ resumen().bloqueados }}</strong>
+          <span>Cuentas bloqueadas</span>
+        </div>
+      }
     </div>
+
+    <section class="tarjeta">
+      <div class="cabecera-tarjeta">
+        <h2>Cuentas del sistema</h2>
+        <span class="pastilla azul">Solo administrador</span>
+        <div class="campo buscador">
+          <label for="buscar-usuario">Buscar</label>
+          <input
+            id="buscar-usuario"
+            type="search"
+            autocomplete="off"
+            [value]="busqueda()"
+            (input)="actualizarBusqueda($event)"
+          />
+        </div>
+      </div>
 
     <div class="tabla-contenedor">
       <table class="tabla">
@@ -110,6 +123,12 @@
         </tbody>
       </table>
     </div>
+      <p class="nota roles">
+        <strong>Administrador:</strong> configuración y gestión completa · <strong>Operador:</strong> registro de trabajadores y
+        documentos · <strong>Consulta:</strong> solo lectura. Los permisos se validan en el servidor y cada evento queda en la
+        auditoría.
+      </p>
+    </section>
   }
 </div>
 
