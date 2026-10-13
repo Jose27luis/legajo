@@ -29,7 +29,13 @@
 
   <div class="indicadores">
     @for (indicador of indicadores(); track indicador.titulo) {
-      <button type="button" class="indicador" (click)="filtrar(indicador)" [attr.aria-label]="indicador.titulo + ': ver listado'">
+      <button
+        type="button"
+        class="indicador"
+        [style.--tono]="indicador.tono"
+        (click)="filtrar(indicador)"
+        [attr.aria-label]="indicador.titulo + ': ver listado'"
+      >
         <span class="titulo">{{ indicador.titulo }}</span>
         <strong [class.atenuado]="!resumen.hasValue()">{{ indicador.valor }}</strong>
         <span class="nota">{{ indicador.nota }}</span>
