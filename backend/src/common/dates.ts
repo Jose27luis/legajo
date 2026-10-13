@@ -34,6 +34,12 @@ export function diaAnterior(texto: string): string {
   return aTexto(fecha);
 }
 
+export function diaSiguiente(texto: string): string {
+  const fecha = aFecha(texto);
+  fecha.setUTCDate(fecha.getUTCDate() + 1);
+  return aTexto(fecha);
+}
+
 export function normalizarBusqueda(valor: string): string {
   return valor
     .normalize('NFD')
