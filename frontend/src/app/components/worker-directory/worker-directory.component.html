@@ -96,10 +96,14 @@
                 @if (trabajador.movimientoActual === 'SIN_MOVIMIENTO') {
                   <span class="sin-movimiento">Sin movimiento</span>
                 } @else {
-                  <span class="pastilla azul">{{ textoMovimiento[trabajador.movimientoActual] }}</span>
+                  <span class="pastilla" [class]="claseMovimiento[trabajador.movimientoActual]">
+                    {{ textoMovimiento[trabajador.movimientoActual] }}
+                  </span>
                 }
               </td>
-              <td class="legajo">{{ trabajador.documentos }} PDF</td>
+              <td class="legajo" [class.vacio]="trabajador.documentos === 0">
+                <span class="cantidad">{{ trabajador.documentos }}</span> PDF
+              </td>
               <td>
                 <div class="fila-acciones">
                   <a class="boton chico" [routerLink]="['/workers', trabajador.id]">Abrir legajo</a>
