@@ -65,12 +65,30 @@ const TITULOS: readonly [RegExp, string][] = [
 ];
 
 const CLAVE_CONTRAIDO = 'legajos.menu-contraido';
+const CLAVE_GRUPOS = 'legajos.menu-grupos-cerrados';
 
 function leerContraido(): boolean {
   try {
     return localStorage.getItem(CLAVE_CONTRAIDO) === '1';
   } catch {
     return false;
+  }
+}
+
+function leerGruposCerrados(): readonly string[] {
+  try {
+    const guardado: unknown = JSON.parse(localStorage.getItem(CLAVE_GRUPOS) ?? '[]');
+    return Array.isArray(guardado) ? guardado.filter((titulo): titulo is string => typeof titulo === 'string') : [];
+  } catch {
+    return [];
+  }
+}
+
+function guardar(clave: string, valor: string): void {
+  try {
+    localStorage.setItem(clave, valor);
+  } catch {
+    return;
   }
 }
 
@@ -96,6 +114,7 @@ export class LayoutComponent {
 
   protected readonly saliendo = signal(false);
   protected readonly contraido = signal(leerContraido());
+  protected readonly gruposCerrados = signal<readonly string[]>(leerGruposCerrados());
   protected readonly menuMovil = signal(false);
   protected readonly menuUsuario = signal(false);
   protected readonly fechaHoy = new Intl.DateTimeFormat('es-PE', {
@@ -181,11 +200,18 @@ export class LayoutComponent {
   protected alternarContraido(): void {
     const nuevo = !this.contraido();
     this.contraido.set(nuevo);
-    try {
-      localStorage.setItem(CLAVE_CONTRAIDO, nuevo ? '1' : '0');
-    } catch {
-      return;
-    }
+    guardar(CLAVE_CONTRAIDO, nuevo ? '1' : '0');
+  }
+
+  protected grupoCerrado(titulo: string): boolean {
+    return this.gruposCerrados().includes(titulo);
+  }
+
+  protected alternarGrupo(titulo: string): void {
+    const actuales = this.gruposCerrados();
+    const nuevos = actuales.includes(titulo) ? actuales.filter((cerrado) => cerrado !== titulo) : [...actuales, titulo];
+    this.gruposCerrados.set(nuevos);
+    guardar(CLAVE_GRUPOS, JSON.stringify(nuevos));
   }
 
   protected alternarMenuUsuario(): void {
