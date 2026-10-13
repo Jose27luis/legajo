@@ -11,6 +11,7 @@ import { DocumentsModule } from './documents/documents.module';
 import { BatchesModule } from './batches/batches.module';
 import { SearchModule } from './search/search.module';
 import { ReportsModule } from './reports/reports.module';
+import { BackupsModule } from './backups/backups.module';
 import { HealthController } from './health/health.controller';
 
 @Module({
@@ -27,6 +28,7 @@ import { HealthController } from './health/health.controller';
     BatchesModule,
     SearchModule,
     ReportsModule,
+    BackupsModule,
   ],
   controllers: [HealthController],
 })
