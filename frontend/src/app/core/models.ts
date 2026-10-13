@@ -680,3 +680,41 @@ export interface FiltrosAuditoria {
   desde: string;
   hasta: string;
 }
+
+export type EstadoRespaldo = 'EN_CURSO' | 'CORRECTO' | 'ERROR';
+
+export interface EjecucionRespaldo {
+  id: string;
+  origen: 'PROGRAMADO' | 'MANUAL';
+  usuario: string | null;
+  inicio: string;
+  fin: string | null;
+  estado: EstadoRespaldo;
+  snapshotBd: string | null;
+  snapshotArchivos: string | null;
+  bytesAgregados: number | null;
+  verificado: boolean | null;
+  error: string | null;
+}
+
+export interface EstadoRespaldos {
+  configurado: boolean;
+  pendiente: boolean;
+  ultima: EjecucionRespaldo | null;
+  ultimaCorrecta: EjecucionRespaldo | null;
+}
+
+export interface CopiaGuardada {
+  id: string;
+  fecha: string;
+  contenido: 'bd' | 'archivos' | 'otro';
+  ejecucionId: string | null;
+}
+
+export interface PanelRespaldos extends EstadoRespaldos {
+  repositorio: { actualizado: string; espacio: number; snapshots: CopiaGuardada[] } | null;
+  historial: EjecucionRespaldo[];
+  total: number;
+  pagina: number;
+  porPagina: number;
+}
