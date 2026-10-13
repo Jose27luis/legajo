@@ -42,11 +42,14 @@ export class LegajoOverviewComponent {
   }
 
   protected tipos(seccion: SeccionLegajo): string {
-    const nombres = seccion.tipos.map((tipo) => tipo.nombre);
-    return nombres.length > 3 ? `${nombres.slice(0, 3).join(', ')} y ${nombres.length - 3} más` : nombres.join(', ');
+    return seccion.tipos
+      .map((tipo) => tipo.nombre)
+      .slice(0, 3)
+      .join(' · ');
   }
 
   protected campos(seccion: SeccionLegajo): string {
-    return seccion.campos.map((campo) => campo.etiqueta).join(', ');
+    const etiquetas = seccion.campos.map((campo) => campo.etiqueta).slice(0, 3);
+    return etiquetas.length === 0 ? 'Datos comunes del documento' : etiquetas.join(' · ');
   }
 }
