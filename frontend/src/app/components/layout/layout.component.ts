@@ -18,16 +18,34 @@ interface EnlaceMenu {
   numero: string | null;
   exacto: boolean;
   permiso: string | null;
+  inactivo: boolean;
 }
 
 interface GrupoMenu {
   titulo: string;
+  nota: string | null;
   enlaces: EnlaceMenu[];
 }
 
 function enlace(ruta: string, etiqueta: string, icono: NombreIcono, permiso: string | null, exacto = false): EnlaceMenu {
-  return { ruta, etiqueta, icono, numero: null, exacto, permiso };
+  return { ruta, etiqueta, icono, numero: null, exacto, permiso, inactivo: false };
 }
+
+const NOMBRES_SECCION: Readonly<Record<number, string>> = {
+  1: 'Información personal y familiar',
+  2: 'Incorporación',
+  3: 'Formación académica y capacitación',
+  4: 'Experiencia laboral',
+  5: 'Movimientos del personal',
+  6: 'Compensaciones',
+  7: 'Evaluación de desempeño y progresión',
+  8: 'Reconocimientos y sanciones',
+  9: 'Relaciones laborales individuales y colectivas',
+  10: 'Seguridad, salud en el trabajo y bienestar',
+  11: 'Desvinculación',
+  12: 'Otros documentos',
+  13: 'Vacaciones, licencias y permisos',
+};
 
 const NAVEGACION: readonly EnlaceMenu[] = [
   enlace('/', 'Panel general y estadísticas', 'inicio', null, true),
@@ -142,39 +160,47 @@ export class LayoutComponent {
   });
 
   protected readonly grupos = computed<GrupoMenu[]>(() => {
-    const grupos: GrupoMenu[] = [{ titulo: 'Navegación', enlaces: [...NAVEGACION] }];
-    const trabajador = this.elegido();
-    if (trabajador !== null && this.sesion.tiene('personal.ver')) {
-      grupos.push({ titulo: 'Legajo seleccionado', enlaces: this.enlacesLegajo(trabajador.id) });
+    const grupos: GrupoMenu[] = [{ titulo: 'Navegación', nota: null, enlaces: [...NAVEGACION] }];
+    if (this.sesion.tiene('personal.ver')) {
+      const trabajador = this.elegido();
+      grupos.push({
+        titulo: 'Legajo seleccionado',
+        nota: trabajador === null ? 'Elige un trabajador de la lista para abrir su legajo.' : null,
+        enlaces: this.enlacesLegajo(trabajador?.id ?? null),
+      });
     }
-    grupos.push({ titulo: 'Cuenta y seguridad', enlaces: [...CUENTA] });
+    grupos.push({ titulo: 'Cuenta y seguridad', nota: null, enlaces: [...CUENTA] });
     return grupos
       .map((grupo) => ({
-        titulo: grupo.titulo,
+        ...grupo,
         enlaces: grupo.enlaces.filter((enlace) => enlace.permiso === null || this.sesion.tiene(enlace.permiso)),
       }))
       .filter((grupo) => grupo.enlaces.length > 0);
   });
 
-  private enlacesLegajo(id: string): EnlaceMenu[] {
-    const base = `/workers/${id}`;
+  private enlacesLegajo(id: string | null): EnlaceMenu[] {
+    const inactivo = id === null;
+    const base = inactivo ? '/workers' : `/workers/${id}`;
+    const ruta = (sufijo: string) => (inactivo ? '/workers' : `${base}${sufijo}`);
     const enlaces: EnlaceMenu[] = [
-      { ruta: base, etiqueta: 'Vista general de las 13 secciones', icono: 'inicio', numero: null, exacto: true, permiso: null },
-      { ruta: `${base}/record`, etiqueta: 'Ficha del trabajador', icono: 'perfil', numero: null, exacto: false, permiso: null },
-      { ruta: `${base}/missing`, etiqueta: 'Documentos faltantes', icono: 'reportes', numero: null, exacto: false, permiso: 'reportes.ver' },
-      { ruta: `${base}/history`, etiqueta: 'Historial del legajo', icono: 'historial', numero: null, exacto: false, permiso: 'auditoria.ver' },
+      { ruta: base, etiqueta: 'Vista general · 13 secciones', icono: 'inicio', numero: null, exacto: true, permiso: null, inactivo },
     ];
     const secciones = this.secciones.hasValue() ? this.secciones.value() : [];
     for (const seccion of secciones) {
       enlaces.push({
-        ruta: `${base}/sections/${seccion.numero}`,
-        etiqueta: seccion.nombre,
+        ruta: ruta(seccion.numero === 1 ? '/record' : `/sections/${seccion.numero}`),
+        etiqueta: NOMBRES_SECCION[seccion.numero] ?? seccion.nombre,
         icono: null,
         numero: numeroSeccion(seccion.numero),
         exacto: false,
-        permiso: 'documentos.ver',
+        permiso: seccion.numero === 1 ? null : 'documentos.ver',
+        inactivo,
       });
     }
+    enlaces.push(
+      { ruta: ruta('/missing'), etiqueta: 'Documentos faltantes', icono: 'reportes', numero: null, exacto: false, permiso: 'reportes.ver', inactivo },
+      { ruta: ruta('/history'), etiqueta: 'Historial del legajo', icono: 'historial', numero: null, exacto: false, permiso: 'auditoria.ver', inactivo },
+    );
     return enlaces;
   }
 
