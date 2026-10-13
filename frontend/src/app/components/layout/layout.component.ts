@@ -58,7 +58,7 @@ const TITULOS: readonly [RegExp, string][] = [
   [/^\/search$/, 'Búsqueda avanzada'],
   [/^\/reports/, 'Reportes'],
   [/^\/profile$/, 'Mi perfil'],
-  [/^\/users$/, 'Usuarios'],
+  [/^\/users$/, 'Gestión de usuarios'],
   [/^\/catalogs$/, 'Catálogos'],
   [/^\/audit$/, 'Auditoría del sistema'],
   [/^\/backups$/, 'Copias de seguridad'],
