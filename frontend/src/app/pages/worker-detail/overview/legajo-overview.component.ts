@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { numeroSeccion } from '../../../core/labels';
+import { numeroSeccion, tonoSeccion } from '../../../core/labels';
 import type { SeccionLegajo } from '../../../core/models';
 import { SessionService } from '../../../core/session.service';
 import { DocumentsService } from '../../../services/documents.service';
@@ -18,6 +18,7 @@ export class LegajoOverviewComponent {
   protected readonly contexto = inject(WorkerContext);
   protected readonly sesion = inject(SessionService);
   protected readonly numeroSeccion = numeroSeccion;
+  protected readonly tono = tonoSeccion;
 
   protected readonly resumen = computed(() => {
     if (!this.contexto.legajo.hasValue()) {
