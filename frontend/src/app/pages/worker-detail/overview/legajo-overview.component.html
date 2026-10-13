@@ -53,9 +53,9 @@
 @if (contexto.legajo.value(); as legajo) {
   <div class="secciones">
     @for (seccion of legajo.secciones; track seccion.id) {
-      <article class="seccion">
+      <article class="seccion" [style.--tono]="tono(seccion.numero)">
         <div class="interior">
-          <p class="numero">Sección {{ numeroSeccion(seccion.numero) }}</p>
+          <p class="numero"><span class="ficha">{{ numeroSeccion(seccion.numero) }}</span> Sección</p>
           <h3>{{ seccion.nombre }}</h3>
           <p class="descripcion">{{ seccion.descripcion }}</p>
           <p class="ejemplos">
