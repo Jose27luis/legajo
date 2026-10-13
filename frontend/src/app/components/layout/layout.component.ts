@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, resou
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { filter, map } from 'rxjs';
-import { TEXTO_ESTADO, TEXTO_MOVIMIENTO, numeroSeccion } from '../../core/labels';
+import { CLASE_MOVIMIENTO, TEXTO_ESTADO, TEXTO_MOVIMIENTO, numeroSeccion } from '../../core/labels';
 import { SessionService } from '../../core/session.service';
 import { FilterOptionsService } from '../../services/filter-options.service';
 import { SelectedWorkerService } from '../../services/selected-worker.service';
@@ -129,6 +129,7 @@ export class LayoutComponent {
 
   protected readonly textoEstado = TEXTO_ESTADO;
   protected readonly textoMovimiento = TEXTO_MOVIMIENTO;
+  protected readonly claseMovimiento = CLASE_MOVIMIENTO;
 
   protected readonly saliendo = signal(false);
   protected readonly contraido = signal(leerContraido());
