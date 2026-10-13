@@ -78,6 +78,7 @@ services:
     volumes:
       - subidas:/data/subidas
       - archivos:/data/archivos
+      - respaldos:/data/respaldos
     depends_on:
       api:
         condition: service_healthy
@@ -114,6 +115,7 @@ volumes:
   datos_redis:
   subidas:
   archivos:
+  respaldos:
 
 networks:
   interna:
