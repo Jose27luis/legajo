@@ -1,0 +1,161 @@
+<header class="cabecera-seccion">
+  <div>
+    <p class="antetitulo">Control y trazabilidad</p>
+    <h2>Copias de seguridad</h2>
+    <p>
+      Cada noche a la 01:00 se copia la base de datos y los PDF. Las copias van cifradas y solo guardan lo que cambió desde la
+      anterior. Se conservan 7 diarias, 4 semanales y 12 mensuales; los domingos se revisa una muestra del repositorio.
+    </p>
+  </div>
+  @if (panel.value(); as datos) {
+    <button
+      type="button"
+      class="boton principal"
+      [disabled]="!datos.configurado || datos.pendiente || lanzando()"
+      (click)="lanzar()"
+    >
+      {{ datos.pendiente ? 'Copia en curso' : 'Hacer una copia ahora' }}
+    </button>
+  }
+</header>
+
+@if (error(); as mensaje) {
+  <div class="aviso error" role="alert">
+    {{ mensaje }}
+    <button type="button" class="boton chico" (click)="panel.reload()">Reintentar</button>
+  </div>
+}
+
+@if (panel.value(); as datos) {
+  @if (!datos.configurado) {
+    <p class="aviso error" role="alert">Las copias no están configuradas: falta la clave de las copias en el servidor.</p>
+  } @else if (datos.ultima?.estado === 'ERROR') {
+    <p class="aviso error" role="alert">La última copia falló: {{ datos.ultima.error }}</p>
+  }
+
+  <dl class="cifras-reporte">
+    <div>
+      <dt>Última copia correcta</dt>
+      <dd class="texto">{{ datos.ultimaCorrecta === null ? 'Ninguna todavía' : fechaHora(datos.ultimaCorrecta.inicio) }}</dd>
+    </div>
+    <div>
+      <dt>Espacio usado</dt>
+      <dd>{{ datos.repositorio === null ? 'Sin datos' : tamanoLegible(datos.repositorio.espacio) }}</dd>
+    </div>
+    <div>
+      <dt>Copias guardadas</dt>
+      <dd>{{ datos.repositorio === null ? 0 : datos.repositorio.snapshots.length }}</dd>
+    </div>
+    <div>
+      <dt>Ejecuciones registradas</dt>
+      <dd>{{ datos.total }}</dd>
+    </div>
+  </dl>
+
+  <section class="tarjeta">
+    <div class="barra-reporte">
+      <h3>Historial de ejecuciones</h3>
+      <div class="herramientas">
+        <button type="button" class="boton chico" (click)="panel.reload()">Actualizar</button>
+      </div>
+    </div>
+    <div class="tabla-contenedor" [class.cargando]="panel.isLoading()">
+      <table class="tabla">
+        <thead>
+          <tr>
+            <th scope="col">Inicio</th>
+            <th scope="col">Origen</th>
+            <th scope="col">Estado</th>
+            <th scope="col">Duración</th>
+            <th scope="col">Datos nuevos</th>
+            <th scope="col">Id para restaurar</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (ejecucion of datos.historial; track ejecucion.id) {
+            <tr>
+              <td class="fecha">{{ fechaHora(ejecucion.inicio) }}</td>
+              <td>
+                {{ ejecucion.origen === 'MANUAL' ? 'Manual' : 'Programada' }}
+                @if (ejecucion.usuario; as usuario) {
+                  <span class="secundario">{{ usuario }}</span>
+                }
+              </td>
+              <td>
+                <span class="pastilla" [class]="claseEstado[ejecucion.estado]">{{ textoEstado[ejecucion.estado] }}</span>
+                @if (ejecucion.verificado) {
+                  <span class="secundario">Verificada</span>
+                }
+                @if (ejecucion.error; as detalle) {
+                  <span class="secundario error-texto">{{ detalle }}</span>
+                }
+              </td>
+              <td class="celda-numero">{{ duracion(ejecucion) }}</td>
+              <td class="celda-numero">{{ ejecucion.bytesAgregados === null ? 'Sin datos' : tamanoLegible(ejecucion.bytesAgregados) }}</td>
+              <td>
+                @if (ejecucion.estado === 'CORRECTO') {
+                  <code>{{ ejecucion.id }}</code>
+                } @else {
+                  <span class="secundario">No disponible</span>
+                }
+              </td>
+            </tr>
+          } @empty {
+            <tr><td colspan="6" class="celda-vacia">Todavía no se hizo ninguna copia.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <footer class="paginador">
+      <span>Página {{ pagina() }} de {{ ultimaPagina() }}</span>
+      <div>
+        <button type="button" class="boton chico" [disabled]="pagina() === 1" (click)="pagina.set(pagina() - 1)">Anterior</button>
+        <button type="button" class="boton chico" [disabled]="pagina() >= ultimaPagina()" (click)="pagina.set(pagina() + 1)">Siguiente</button>
+      </div>
+    </footer>
+  </section>
+
+  @if (datos.repositorio; as repositorio) {
+    <section class="tarjeta">
+      <div class="barra-reporte">
+        <h3>Copias guardadas en el repositorio</h3>
+        <div class="herramientas">
+          <span>Actualizado {{ fechaHora(repositorio.actualizado) }}</span>
+        </div>
+      </div>
+      <div class="tabla-contenedor">
+        <table class="tabla">
+          <thead>
+            <tr>
+              <th scope="col">Fecha</th>
+              <th scope="col">Contenido</th>
+              <th scope="col">Copia</th>
+              <th scope="col">Id para restaurar</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (copia of repositorio.snapshots; track copia.id) {
+              <tr>
+                <td class="fecha">{{ fechaHora(copia.fecha) }}</td>
+                <td>{{ copia.contenido === 'bd' ? 'Base de datos' : copia.contenido === 'archivos' ? 'Archivos PDF' : 'Otro' }}</td>
+                <td><code>{{ corto(copia.id) }}</code></td>
+                <td>
+                  @if (copia.ejecucionId; as id) {
+                    <code>{{ id }}</code>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+  }
+
+  <p class="nota">
+    La restauración se hace desde la consola del servidor con el script de restauración y el id de la copia. Detiene el sistema,
+    reemplaza la base de datos y los archivos, y comprueba que cada documento tenga su PDF.
+  </p>
+} @else if (error() === null) {
+  <p class="celda-vacia">Cargando las copias</p>
+}
