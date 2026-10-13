@@ -9,6 +9,8 @@ export type NombreIcono =
   | 'carga'
   | 'buscar'
   | 'reportes'
+  | 'auditoria'
+  | 'historial'
   | 'salir'
   | 'menu'
   | 'contraer'
