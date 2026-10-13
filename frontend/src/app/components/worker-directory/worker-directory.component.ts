@@ -16,6 +16,7 @@ import { ReentryDialogComponent } from '../reentry-dialog/reentry-dialog.compone
 import { SituationDialogComponent } from '../situation-dialog/situation-dialog.component';
 import { mensajeDeError } from '../../core/errors';
 import {
+  CLASE_MOVIMIENTO,
   MOVIMIENTOS,
   TEXTO_ESTADO,
   TEXTO_MOTIVO_FIN,
@@ -57,6 +58,7 @@ export class WorkerDirectoryComponent implements OnInit {
   protected readonly movimientos = MOVIMIENTOS;
   protected readonly textoEstado = TEXTO_ESTADO;
   protected readonly textoMovimiento = TEXTO_MOVIMIENTO;
+  protected readonly claseMovimiento = CLASE_MOVIMIENTO;
   protected readonly textoMotivo = TEXTO_MOTIVO_FIN;
   protected readonly textoTipoPersonal = TEXTO_TIPO_PERSONAL;
   protected readonly nombreCompleto = nombreCompleto;
