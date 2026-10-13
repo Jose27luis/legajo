@@ -1,37 +1,65 @@
 <div class="perfil">
-  <header class="encabezado">
-    <h1>Mi perfil</h1>
-    <p>Datos de tu cuenta de acceso.</p>
+  <header class="cabecera-seccion">
+    <div>
+      <p class="antetitulo">Cuenta de acceso</p>
+      <h2>Mi perfil</h2>
+      <p>Identidad de la cuenta con la que iniciaste sesión.</p>
+    </div>
   </header>
 
   @if (sesion.usuario(); as usuario) {
-    <dl class="datos">
-      <div>
-        <dt>Nombre</dt>
-        <dd>{{ usuario.nombreCompleto }}</dd>
+    <section class="tarjeta">
+      <div class="cabecera-tarjeta">
+        <h3>Información del usuario</h3>
+        <span class="pastilla azul">{{ usuario.rol }}</span>
       </div>
-      <div>
-        <dt>Usuario</dt>
-        <dd>{{ usuario.usuario }}</dd>
+      <dl class="datos">
+        <div>
+          <dt>Nombre</dt>
+          <dd>{{ usuario.nombreCompleto }}</dd>
+        </div>
+        <div>
+          <dt>Usuario</dt>
+          <dd>{{ usuario.usuario }}</dd>
+        </div>
+        <div>
+          <dt>Perfil</dt>
+          <dd>{{ usuario.rol }}</dd>
+        </div>
+        <div>
+          <dt>Correo</dt>
+          <dd>{{ usuario.correo }}</dd>
+        </div>
+        <div>
+          <dt>Estado</dt>
+          <dd>ACTIVO</dd>
+        </div>
+        <div>
+          <dt>Ingreso actual</dt>
+          <dd>{{ ultimoIngreso() }}</dd>
+        </div>
+      </dl>
+      <div class="acciones">
+        <button type="button" class="boton" [attr.aria-expanded]="cambiandoClave()" (click)="cambiandoClave.set(!cambiandoClave())">
+          Cambiar clave
+        </button>
+        <button type="button" class="boton principal" [disabled]="saliendo()" (click)="cerrarSesion()">
+          {{ saliendo() ? 'Cerrando sesión' : 'Cerrar sesión' }}
+        </button>
       </div>
-      <div>
-        <dt>Correo</dt>
-        <dd>{{ usuario.correo }}</dd>
-      </div>
-      <div>
-        <dt>Rol</dt>
-        <dd>{{ usuario.rol }}</dd>
-      </div>
-      <div>
-        <dt>Ingreso actual</dt>
-        <dd>{{ ultimoIngreso() }}</dd>
-      </div>
-    </dl>
+    </section>
   }
 
-  <section class="bloque" aria-labelledby="titulo-clave">
-    <h2 id="titulo-clave">Cambiar contraseña</h2>
-    <p class="nota">Al guardarla se cierran tus sesiones abiertas en otros equipos.</p>
-    <app-password-form />
-  </section>
+  @if (cambiandoClave()) {
+    <section class="tarjeta bloque" aria-labelledby="titulo-clave" animate.enter="aparece">
+      <h3 id="titulo-clave">Cambiar clave</h3>
+      <p class="nota">Al guardarla se cierran tus sesiones abiertas en otros equipos.</p>
+      <app-password-form />
+    </section>
+  }
+
+  <p class="nota">
+    La clave se guarda cifrada en el servidor y nadie puede verla, ni siquiera el administrador. Si la olvidas, el administrador
+    puede generarte una temporal desde Gestión de usuarios.
+  </p>
 </div>
