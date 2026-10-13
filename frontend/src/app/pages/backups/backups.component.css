@@ -1,0 +1,57 @@
+:host {
+  display: grid;
+  gap: 16px;
+}
+
+.aviso {
+  margin: 0;
+}
+
+.cifras-reporte {
+  margin: 0;
+}
+
+.cifras-reporte dd.texto {
+  font-size: 16px;
+}
+
+.tabla-contenedor.cargando {
+  opacity: 0.6;
+}
+
+.tabla {
+  min-width: 720px;
+}
+
+.fecha {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.secundario {
+  display: block;
+  margin-top: 2px;
+  color: var(--tinta-suave);
+  font-size: 12px;
+}
+
+.error-texto {
+  max-width: 320px;
+  color: var(--alerta);
+  overflow-wrap: anywhere;
+}
+
+code {
+  font-size: 11.5px;
+  overflow-wrap: anywhere;
+}
+
+.paginador {
+  margin-top: 12px;
+}
+
+.nota {
+  color: var(--tinta-suave);
+  font-size: 13px;
+  line-height: 1.5;
+}
