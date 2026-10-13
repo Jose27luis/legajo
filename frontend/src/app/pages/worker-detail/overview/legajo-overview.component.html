@@ -1,8 +1,11 @@
 <header class="cabecera-seccion">
   <div>
-    <p class="antetitulo">Legajo del trabajador</p>
-    <h2>Las 13 secciones del legajo</h2>
-    <p>La sección 01 guarda la ficha y el historial; de la 02 a la 13 se registran los PDF con sus datos propios.</p>
+    <p class="antetitulo">Panel del trabajador</p>
+    <h2>Las 13 secciones del legajo digital</h2>
+    <p>
+      Entra a cada sección con su contenido y su formulario particular. Las secciones 02 a 13 gestionan archivos PDF; la 01
+      administra los datos estructurados del trabajador.
+    </p>
   </div>
   @if (sesion.tiene('documentos.descargar') && (resumen()?.disponibles ?? 0) > 0) {
     <a class="boton principal" [href]="enlaceZip()" download>Descargar legajo en ZIP</a>
@@ -17,58 +20,64 @@
 }
 
 @if (resumen(); as datos) {
-  <dl class="cifras">
+  <dl class="resumen">
     <div>
-      <dt>Documentos en el legajo</dt>
-      <dd>{{ datos.vigentes }}</dd>
+      <dt>Secciones distintas</dt>
+      <dd>13</dd>
     </div>
     <div>
-      <dt>Folios digitalizados</dt>
-      <dd>{{ datos.folios }}</dd>
+      <dt>Secciones documentales</dt>
+      <dd>12</dd>
     </div>
-    <div [class.atento]="datos.procesando > 0">
-      <dt>En procesamiento</dt>
-      <dd>{{ datos.procesando }}</dd>
-    </div>
-    <div [class.alerta]="datos.conError > 0">
-      <dt>Con error</dt>
-      <dd>{{ datos.conError }}</dd>
+    <div>
+      <dt>PDF registrados</dt>
+      <dd>{{ datos.disponibles }}</dd>
     </div>
   </dl>
+  @if (datos.procesando > 0 || datos.conError > 0) {
+    <p class="aviso" [class.error]="datos.conError > 0" role="status">
+      @if (datos.procesando > 0) {
+        {{ datos.procesando === 1 ? '1 PDF se está procesando.' : datos.procesando + ' PDF se están procesando.' }}
+      }
+      @if (datos.conError > 0) {
+        {{
+          datos.conError === 1
+            ? '1 PDF no se pudo procesar; ábrelo en su sección para reintentar.'
+            : datos.conError + ' PDF no se pudieron procesar; ábrelos en su sección para reintentar.'
+        }}
+      }
+    </p>
+  }
 }
 
 @if (contexto.legajo.value(); as legajo) {
-  <ul class="secciones">
+  <div class="secciones">
     @for (seccion of legajo.secciones; track seccion.id) {
-      <li>
-        <a class="seccion" [routerLink]="ruta(seccion)">
-          <span class="cabecera">
-            <span class="numero">Sección {{ numeroSeccion(seccion.numero) }}</span>
-            <span class="cuenta" [class.vacia]="seccion.numero > 1 && seccion.total === 0">
-              {{ seccion.numero === 1 ? 'Ficha' : seccion.total === 1 ? '1 documento' : seccion.total + ' documentos' }}
-            </span>
-          </span>
-          <strong>{{ seccion.nombre }}</strong>
-          <span class="descripcion">{{ seccion.descripcion }}</span>
-          @if (seccion.numero > 1) {
-            <span class="detalle"><b>Tipos:</b> {{ tipos(seccion) }}</span>
-            @if (campos(seccion); as propios) {
-              <span class="detalle"><b>Datos propios:</b> {{ propios }}</span>
+      <article class="seccion">
+        <div class="interior">
+          <p class="numero">Sección {{ numeroSeccion(seccion.numero) }}</p>
+          <h3>{{ seccion.nombre }}</h3>
+          <p class="descripcion">{{ seccion.descripcion }}</p>
+          <p class="ejemplos">
+            @if (seccion.numero === 1) {
+              <b>Campos principales:</b> DNI · nombre · régimen · estado laboral · historial<br />
+              <b>Campos propios:</b> Fecha de ingreso · motivo de cese · reingreso
+            } @else {
+              <b>Tipos de documentos:</b> {{ tipos(seccion) }}<br />
+              <b>Campos propios:</b> {{ campos(seccion) }}
             }
-          } @else {
-            <span class="detalle"><b>Contiene:</b> ficha, vínculos, movimientos y familiares</span>
-          }
-          <span class="abrir">
-            Abrir sección
-            <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5" /></svg>
-          </span>
-        </a>
-      </li>
+          </p>
+        </div>
+        <footer>
+          <small>{{ seccion.numero === 1 ? 'Ficha editable' : seccion.total === 1 ? '1 PDF' : seccion.total + ' PDF' }}</small>
+          <a class="boton chico" [routerLink]="ruta(seccion)">Abrir sección</a>
+        </footer>
+      </article>
     }
-  </ul>
+  </div>
   <p class="nota">
-    Los documentos de distintos años conviven en la misma sección. Corregir un PDF crea una versión nueva del mismo documento y
-    anular no lo borra: sigue visible con su motivo.
+    <b>Reglas comunes:</b> los documentos de distintos años permanecen registrados; un PDF solo se reemplaza cuando se corrige el
+    <b>mismo</b> documento. Los anulados y reemplazados siguen visibles. Si nunca se editó un documento, figura «Sin modificaciones».
   </p>
 } @else if (contexto.errorLegajo() === null) {
   <p class="celda-vacia">Cargando secciones</p>
