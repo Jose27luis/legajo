@@ -30,12 +30,16 @@
           </button>
           <div class="plegable" [id]="'grupo-menu-' + indice" [inert]="grupoCerrado(grupo.titulo)">
             <ul>
+              @if (grupo.nota; as nota) {
+                <li class="nota-grupo">{{ nota }}</li>
+              }
               @for (enlace of grupo.enlaces; track enlace.ruta) {
                 <li>
                   <a
                     class="enlace"
+                    [class.inactivo]="enlace.inactivo"
                     [routerLink]="enlace.ruta"
-                    routerLinkActive="activo"
+                    [routerLinkActive]="enlace.inactivo ? [] : 'activo'"
                     [routerLinkActiveOptions]="{ exact: enlace.exacto }"
                     ariaCurrentWhenActive="page"
                     [attr.title]="contraido() ? enlace.etiqueta : null"
