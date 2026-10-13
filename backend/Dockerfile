@@ -32,7 +32,9 @@ CMD ["node", "dist/main.js"]
 
 FROM ejecucion AS worker
 USER root
-RUN apk add --no-cache ghostscript
+RUN apk add --no-cache ghostscript restic postgresql17-client \
+    && mkdir -p /data/respaldos \
+    && chown legajos:legajos /data/respaldos
 USER legajos
 ENTRYPOINT []
 CMD ["node", "dist/worker.js"]
