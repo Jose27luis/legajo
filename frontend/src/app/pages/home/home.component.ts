@@ -19,6 +19,7 @@ interface Indicador {
   nota: string;
   estado: EstadoTrabajador | '';
   movimiento: Movimiento | '';
+  tono: string;
 }
 
 @Component({
@@ -71,11 +72,46 @@ export class HomeComponent {
   protected readonly indicadores = computed<Indicador[]>(() => {
     const datos = this.resumen.value();
     return [
-      { titulo: 'Total de trabajadores', valor: datos?.total ?? 0, nota: 'Registros únicos', estado: '', movimiento: '' },
-      { titulo: 'Personal activo', valor: datos?.activos ?? 0, nota: 'Laboran actualmente', estado: 'ACTIVO', movimiento: '' },
-      { titulo: 'Personal cesado', valor: datos?.cesados ?? 0, nota: 'Ya no laboran', estado: 'CESADO', movimiento: '' },
-      { titulo: 'Personal rotado', valor: datos?.rotados ?? 0, nota: 'Incluidos en activos', estado: 'ACTIVO', movimiento: 'ROTACION' },
-      { titulo: 'Personal destacado', valor: datos?.destacados ?? 0, nota: 'Incluidos en activos', estado: 'ACTIVO', movimiento: 'DESTAQUE' },
+      {
+        titulo: 'Total de trabajadores',
+        valor: datos?.total ?? 0,
+        nota: 'Registros únicos',
+        estado: '',
+        movimiento: '',
+        tono: 'var(--primario)',
+      },
+      {
+        titulo: 'Personal activo',
+        valor: datos?.activos ?? 0,
+        nota: 'Laboran actualmente',
+        estado: 'ACTIVO',
+        movimiento: '',
+        tono: 'var(--exito)',
+      },
+      {
+        titulo: 'Personal cesado',
+        valor: datos?.cesados ?? 0,
+        nota: 'Ya no laboran',
+        estado: 'CESADO',
+        movimiento: '',
+        tono: 'var(--pizarra)',
+      },
+      {
+        titulo: 'Personal rotado',
+        valor: datos?.rotados ?? 0,
+        nota: 'Incluidos en activos',
+        estado: 'ACTIVO',
+        movimiento: 'ROTACION',
+        tono: 'var(--violeta)',
+      },
+      {
+        titulo: 'Personal destacado',
+        valor: datos?.destacados ?? 0,
+        nota: 'Incluidos en activos',
+        estado: 'ACTIVO',
+        movimiento: 'DESTAQUE',
+        tono: 'var(--turquesa)',
+      },
     ];
   });
 
