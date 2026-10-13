@@ -138,7 +138,7 @@
 
     <main class="contenido">
       @if (elegido(); as trabajador) {
-        <section class="trabajador" aria-label="Legajo seleccionado">
+        <section class="trabajador" [class.cesado]="trabajador.estado === 'CESADO'" aria-label="Legajo seleccionado">
           <span class="avatar" aria-hidden="true">{{ trabajador.iniciales }}</span>
           <div class="identidad">
             <a [routerLink]="['/workers', trabajador.id]">{{ trabajador.nombre }}</a>
@@ -160,7 +160,7 @@
               {{ textoEstado[trabajador.estado] }}
             </span>
             @if (trabajador.movimiento !== 'SIN_MOVIMIENTO') {
-              <span class="pastilla azul">{{ textoMovimiento[trabajador.movimiento] }}</span>
+              <span class="pastilla" [class]="claseMovimiento[trabajador.movimiento]">{{ textoMovimiento[trabajador.movimiento] }}</span>
             }
           </div>
           <div class="acciones">
