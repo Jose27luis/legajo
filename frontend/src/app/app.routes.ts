@@ -161,6 +161,12 @@ export const routes: Routes = [
         canMatch: [permisoGuard('auditoria.ver')],
         loadComponent: () => import('./pages/audit/audit.component').then((m) => m.AuditComponent),
       },
+      {
+        path: 'backups',
+        title: 'Copias de seguridad - Legajos de Personal',
+        canMatch: [permisoGuard('backup.gestionar')],
+        loadComponent: () => import('./pages/backups/backups.component').then((m) => m.BackupsComponent),
+      },
     ],
   },
   { path: '**', redirectTo: '' },
