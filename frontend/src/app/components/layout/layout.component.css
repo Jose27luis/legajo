@@ -223,6 +223,26 @@ ul {
   color: var(--celeste);
 }
 
+.enlace.inactivo {
+  color: #7f9db5;
+}
+
+.enlace.inactivo .numero {
+  color: #5f819c;
+}
+
+.nota-grupo {
+  padding: 4px 12px 6px;
+  color: #8fb0c9;
+  font-size: 12px;
+  line-height: 1.4;
+  white-space: normal;
+}
+
+.contraido .nota-grupo {
+  display: none;
+}
+
 .enlace.nuevo {
   height: 40px;
   margin: 2px 0;
