@@ -129,7 +129,9 @@
   </div>
 
   <footer class="pie">
-    <p>Rotación, destaque y encargatura son movimientos, no estados: un trabajador rotado sigue activo.</p>
+    <p>
+      Los movimientos (rotación, destaque, encargatura) no son estados laborales. Un trabajador rotado puede continuar ACTIVO.
+    </p>
     <div class="paginas">
       <button type="button" class="boton chico" [disabled]="!hayAnterior()" (click)="pagina.set(pagina() - 1)">Anterior</button>
       <button type="button" class="boton chico" [disabled]="!haySiguiente()" (click)="pagina.set(pagina() + 1)">Siguiente</button>
