@@ -1,0 +1,9 @@
+<header class="cabecera-seccion">
+  <div>
+    <p class="antetitulo">Control del legajo</p>
+    <h2>Historial del legajo</h2>
+    <p>Quién consultó, descargó, cargó o modificó algo de este trabajador y cuándo lo hizo.</p>
+  </div>
+</header>
+
+<app-audit-log titulo="Acciones sobre este legajo" [trabajadorId]="contexto.id()" />
