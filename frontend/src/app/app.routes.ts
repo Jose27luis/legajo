@@ -61,6 +61,11 @@ export const routes: Routes = [
             loadComponent: () => import('./pages/worker-detail/missing/legajo-missing.component').then((m) => m.LegajoMissingComponent),
           },
           {
+            path: 'history',
+            canMatch: [permisoGuard('auditoria.ver')],
+            loadComponent: () => import('./pages/worker-detail/history/legajo-history.component').then((m) => m.LegajoHistoryComponent),
+          },
+          {
             path: 'sections/:numero',
             canMatch: [permisoGuard('documentos.ver')],
             loadComponent: () =>
@@ -149,6 +154,12 @@ export const routes: Routes = [
         title: 'Catálogos - Legajos de Personal',
         canMatch: [permisoGuard('catalogos.gestionar')],
         loadComponent: () => import('./pages/catalogs/catalogs.component').then((m) => m.CatalogsComponent),
+      },
+      {
+        path: 'audit',
+        title: 'Auditoría - Legajos de Personal',
+        canMatch: [permisoGuard('auditoria.ver')],
+        loadComponent: () => import('./pages/audit/audit.component').then((m) => m.AuditComponent),
       },
     ],
   },
