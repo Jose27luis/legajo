@@ -11,6 +11,7 @@ export type NombreIcono =
   | 'reportes'
   | 'auditoria'
   | 'historial'
+  | 'respaldo'
   | 'salir'
   | 'menu'
   | 'contraer'
