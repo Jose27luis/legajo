@@ -15,29 +15,43 @@
           <span class="etiqueta">Registrar nuevo ingreso</span>
         </a>
       }
-      @for (grupo of grupos(); track grupo.titulo) {
-        <p class="grupo">{{ grupo.titulo }}</p>
-        <ul>
-          @for (enlace of grupo.enlaces; track enlace.ruta) {
-            <li>
-              <a
-                class="enlace"
-                [routerLink]="enlace.ruta"
-                routerLinkActive="activo"
-                [routerLinkActiveOptions]="{ exact: enlace.exacto }"
-                ariaCurrentWhenActive="page"
-                [attr.title]="contraido() ? enlace.etiqueta : null"
-              >
-                @if (enlace.numero; as numero) {
-                  <span class="numero" aria-hidden="true">{{ numero }}</span>
-                } @else if (enlace.icono; as icono) {
-                  <app-icon [nombre]="icono" />
-                }
-                <span class="etiqueta">{{ enlace.etiqueta }}</span>
-              </a>
-            </li>
-          }
-        </ul>
+      @for (grupo of grupos(); track grupo.titulo; let indice = $index) {
+        <div class="bloque" [class.cerrado]="grupoCerrado(grupo.titulo)">
+          <button
+            type="button"
+            class="grupo"
+            [attr.aria-expanded]="!grupoCerrado(grupo.titulo)"
+            [attr.aria-controls]="'grupo-menu-' + indice"
+            [attr.tabindex]="contraido() ? -1 : null"
+            (click)="alternarGrupo(grupo.titulo)"
+          >
+            <span class="titulo-grupo">{{ grupo.titulo }}</span>
+            <app-icon nombre="abajo" [tamano]="16" class="flecha-grupo" />
+          </button>
+          <div class="plegable" [id]="'grupo-menu-' + indice" [inert]="grupoCerrado(grupo.titulo)">
+            <ul>
+              @for (enlace of grupo.enlaces; track enlace.ruta) {
+                <li>
+                  <a
+                    class="enlace"
+                    [routerLink]="enlace.ruta"
+                    routerLinkActive="activo"
+                    [routerLinkActiveOptions]="{ exact: enlace.exacto }"
+                    ariaCurrentWhenActive="page"
+                    [attr.title]="contraido() ? enlace.etiqueta : null"
+                  >
+                    @if (enlace.numero; as numero) {
+                      <span class="numero" aria-hidden="true">{{ numero }}</span>
+                    } @else if (enlace.icono; as icono) {
+                      <app-icon [nombre]="icono" [tamano]="19" />
+                    }
+                    <span class="etiqueta">{{ enlace.etiqueta }}</span>
+                  </a>
+                </li>
+              }
+            </ul>
+          </div>
+        </div>
       }
     </nav>
 
@@ -46,11 +60,11 @@
       class="contraer"
       (click)="alternarContraido()"
       [attr.aria-label]="contraido() ? 'Expandir menú' : 'Contraer menú'"
+      [attr.title]="contraido() ? 'Expandir menú' : 'Contraer menú'"
       [attr.aria-expanded]="!contraido()"
       aria-controls="menu-lateral"
     >
-      <app-icon nombre="contraer" />
-      <span class="etiqueta">Contraer menú</span>
+      <app-icon nombre="contraer" [tamano]="16" />
     </button>
   </aside>
 
