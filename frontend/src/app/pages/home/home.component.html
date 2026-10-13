@@ -1,8 +1,9 @@
 <div class="pagina">
   <header class="encabezado">
     <div>
-      <h1>Panel del personal</h1>
-      <p>Cuántos trabajadores están activos o cesados, quiénes tienen movimientos y el acceso a cada legajo.</p>
+      <p class="antetitulo">Inicio · Gestión de trabajadores</p>
+      <h1>Panel de control del personal</h1>
+      <p>Consulta cuántos trabajadores están activos o cesados, identifica rotaciones y abre sus legajos digitales de 13 secciones.</p>
     </div>
     <div class="acciones">
       @if (sesion.tiene('personal.editar')) {
@@ -30,8 +31,8 @@
   </div>
 
   <p class="aclaracion">
-    <strong>Activo</strong> y <strong>cesado</strong> son estados laborales: uno excluye al otro. Rotación y destaque son
-    movimientos y se cuentan dentro de los activos, así que no se suman a los estados.
+    <strong>Importante:</strong> ACTIVO y CESADO son estados laborales excluyentes. ROTACIÓN, DESTAQUE y ENCARGATURA son
+    movimientos; por eso sus cantidades pueden estar incluidas en el total de activos y <strong>no deben sumarse a los estados</strong>.
   </p>
 
   @if (resumen.value(); as datos) {
@@ -58,7 +59,12 @@
     }
   }
 
-  <app-worker-directory titulo="Buscar trabajador" (cambio)="resumen.reload()" />
+  <app-worker-directory titulo="Buscar y seleccionar trabajador" (cambio)="resumen.reload()" />
+
+  <p class="nota-pie">
+    <strong>Al abrir un trabajador</strong> se muestra su ficha personal y únicamente sus PDF. Si reingresa a la institución, se
+    conserva su mismo registro y legajo.
+  </p>
 </div>
 
 <app-new-worker-dialog
