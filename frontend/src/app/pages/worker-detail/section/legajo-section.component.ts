@@ -29,6 +29,7 @@ import {
   TEXTO_NIVEL_ACCESO,
   nombreCompleto,
   numeroSeccion,
+  tonoSeccion,
 } from '../../../core/labels';
 import type { Documento, EstadoDocumento, SeccionLegajo } from '../../../core/models';
 import { SessionService } from '../../../core/session.service';
@@ -85,6 +86,7 @@ export class LegajoSectionComponent implements OnDestroy {
   protected readonly claseEstado = CLASE_ESTADO_DOCUMENTO;
   protected readonly textoNivel = TEXTO_NIVEL_ACCESO;
   protected readonly numeroSeccion = numeroSeccion;
+  protected readonly tono = tonoSeccion;
   protected readonly nombreCompleto = nombreCompleto;
   protected readonly fechaHora = fechaHora;
 
