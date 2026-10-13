@@ -1,0 +1,133 @@
+<section class="tarjeta">
+  <div class="barra-reporte">
+    <h3>{{ titulo() }}</h3>
+    <div class="herramientas">
+      @if (registros.value(); as datos) {
+        <span class="pastilla azul">{{ datos.total === 1 ? '1 evento' : datos.total + ' eventos' }}</span>
+      }
+      <button type="button" class="boton chico" (click)="registros.reload()">Actualizar</button>
+      @if (sesion.tiene('reportes.exportar')) {
+        <a class="boton chico" [href]="enlace()" download>Exportar Excel</a>
+      }
+    </div>
+  </div>
+
+  <div class="filtros-reporte">
+    <div class="campo">
+      <label for="auditoria-usuario">Usuario</label>
+      <select id="auditoria-usuario" (change)="cambiar('usuarioId', $event)">
+        <option value="" [selected]="filtros().usuarioId === ''">Todos los usuarios</option>
+        @if (opciones.value(); as datos) {
+          @for (usuario of datos.usuarios; track usuario.id) {
+            <option [value]="usuario.id" [selected]="filtros().usuarioId === usuario.id">{{ usuario.nombre }} ({{ usuario.usuario }})</option>
+          }
+        }
+      </select>
+    </div>
+    <div class="campo">
+      <label for="auditoria-accion">Acción</label>
+      <select id="auditoria-accion" (change)="cambiar('accion', $event)">
+        <option value="" [selected]="filtros().accion === ''">Todas las acciones</option>
+        @if (opciones.value(); as datos) {
+          @for (accion of datos.acciones; track accion) {
+            <option [value]="accion" [selected]="filtros().accion === accion">{{ accion }}</option>
+          }
+        }
+      </select>
+    </div>
+    @if (trabajadorId() === '') {
+      <div class="campo">
+        <label for="auditoria-trabajador">DNI del trabajador</label>
+        <input id="auditoria-trabajador" inputmode="numeric" maxlength="12" [value]="filtros().numeroDoc" (change)="cambiar('numeroDoc', $event)" />
+      </div>
+    }
+    <div class="campo">
+      <label for="auditoria-desde">Desde</label>
+      <input id="auditoria-desde" type="date" [value]="filtros().desde" (change)="cambiar('desde', $event)" />
+    </div>
+    <div class="campo">
+      <label for="auditoria-hasta">Hasta</label>
+      <input id="auditoria-hasta" type="date" [value]="filtros().hasta" (change)="cambiar('hasta', $event)" />
+    </div>
+    <div class="campo limpiar">
+      <button type="button" class="boton chico" (click)="limpiar()">Limpiar filtros</button>
+    </div>
+  </div>
+
+  @if (error(); as mensaje) {
+    <p class="aviso error" role="alert">{{ mensaje }}</p>
+  }
+
+  <div class="tabla-contenedor" [class.cargando]="registros.isLoading()">
+    <table class="tabla">
+      <thead>
+        <tr>
+          <th scope="col">Fecha y hora</th>
+          <th scope="col">Usuario</th>
+          <th scope="col">Acción</th>
+          @if (trabajadorId() === '') {
+            <th scope="col">Trabajador</th>
+          }
+          <th scope="col">Detalle</th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (registros.value(); as datos) {
+          @for (registro of datos.items; track registro.id) {
+            <tr>
+              <td class="fecha">{{ fechaHora(registro.fecha) }}</td>
+              <td>
+                @if (registro.usuario; as usuario) {
+                  {{ usuario.nombre }}
+                  <span class="secundario">{{ usuario.usuario }}</span>
+                } @else {
+                  <span class="secundario">Sin sesión</span>
+                }
+              </td>
+              <td><b>{{ registro.accion }}</b></td>
+              @if (trabajadorId() === '') {
+                <td>
+                  @if (registro.trabajador; as trabajador) {
+                    <a class="enlace-nombre" [routerLink]="['/workers', trabajador.id]">{{ trabajador.nombre }}</a>
+                    <span class="secundario">{{ trabajador.numeroDoc }}</span>
+                  } @else {
+                    <span class="secundario">No corresponde</span>
+                  }
+                </td>
+              }
+              <td class="detalle">
+                <span>{{ registro.entidad }}{{ registro.entidadId === null ? '' : ' ' + registro.entidadId }}</span>
+                @if (registro.ip; as ip) {
+                  <span class="secundario">IP {{ ip }}</span>
+                }
+                @if (registro.detalle !== null || registro.navegador !== null) {
+                  <details>
+                    <summary>Ver datos</summary>
+                    @if (registro.navegador; as navegador) {
+                      <p class="secundario">{{ navegador }}</p>
+                    }
+                    @if (registro.detalle; as detalle) {
+                      <pre>{{ detalle }}</pre>
+                    }
+                  </details>
+                }
+              </td>
+            </tr>
+          } @empty {
+            <tr><td [attr.colspan]="trabajadorId() === '' ? 5 : 4" class="celda-vacia">Aún no se registraron eventos con estos filtros.</td></tr>
+          }
+        } @else {
+          <tr><td [attr.colspan]="trabajadorId() === '' ? 5 : 4" class="celda-vacia">Cargando el historial</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <footer class="paginador">
+    <span>Página {{ pagina() }} de {{ ultimaPagina() }}</span>
+    <div>
+      <button type="button" class="boton chico" [disabled]="pagina() === 1" (click)="pagina.set(pagina() - 1)">Anterior</button>
+      <button type="button" class="boton chico" [disabled]="pagina() >= ultimaPagina()" (click)="pagina.set(pagina() + 1)">Siguiente</button>
+    </div>
+  </footer>
+</section>
