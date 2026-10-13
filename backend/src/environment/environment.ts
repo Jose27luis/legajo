@@ -13,6 +13,9 @@ const esquemaEntorno = z.object({
   OPTIMIZAR_PPP: z.coerce.number().int().min(72).max(600).default(150),
   OPTIMIZAR_GRISES: z.enum(['true', 'false']).default('false').transform((valor) => valor === 'true'),
   WORKER_CONCURRENCIA: z.coerce.number().int().min(1).max(16).default(2),
+  RESTIC_REPOSITORY: z.string().startsWith('/').default('/data/respaldos'),
+  RESTIC_PASSWORD: z.string().min(20).optional(),
+  RESPALDO_CRON: z.string().min(9).default('0 1 * * *'),
 });
 
 export type Entorno = z.infer<typeof esquemaEntorno>;
