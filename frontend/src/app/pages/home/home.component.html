@@ -20,6 +20,13 @@
     </div>
   }
 
+  @if (avisoRespaldo(); as mensaje) {
+    <div class="aviso error" role="alert">
+      {{ mensaje }}
+      <a class="boton chico" routerLink="/backups">Ver copias de seguridad</a>
+    </div>
+  }
+
   <div class="indicadores">
     @for (indicador of indicadores(); track indicador.titulo) {
       <button type="button" class="indicador" (click)="filtrar(indicador)" [attr.aria-label]="indicador.titulo + ': ver listado'">
