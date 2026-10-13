@@ -41,12 +41,14 @@ const CUENTA: readonly EnlaceMenu[] = [
   enlace('/profile', 'Mi perfil', 'perfil', null),
   enlace('/users', 'Gestión de usuarios', 'usuarios', 'usuarios.gestionar'),
   enlace('/catalogs', 'Catálogos', 'catalogos', 'catalogos.gestionar'),
+  enlace('/audit', 'Auditoría del sistema', 'auditoria', 'auditoria.ver'),
 ];
 
 const TITULOS: readonly [RegExp, string][] = [
   [/^\/$/, 'Panel general'],
   [/^\/workers\/[^/]+\/record$/, 'Ficha del trabajador'],
   [/^\/workers\/[^/]+\/missing$/, 'Documentos faltantes'],
+  [/^\/workers\/[^/]+\/history$/, 'Historial del legajo'],
   [/^\/workers\/[^/]+\/sections\/\d+$/, 'Sección del legajo'],
   [/^\/workers\/[^/]+$/, 'Legajo del trabajador'],
   [/^\/workers$/, 'Lista de trabajadores'],
@@ -57,6 +59,7 @@ const TITULOS: readonly [RegExp, string][] = [
   [/^\/profile$/, 'Mi perfil'],
   [/^\/users$/, 'Usuarios'],
   [/^\/catalogs$/, 'Catálogos'],
+  [/^\/audit$/, 'Auditoría del sistema'],
 ];
 
 const CLAVE_CONTRAIDO = 'legajos.menu-contraido';
@@ -138,6 +141,7 @@ export class LayoutComponent {
       { ruta: base, etiqueta: 'Vista general de las 13 secciones', icono: 'inicio', numero: null, exacto: true, permiso: null },
       { ruta: `${base}/record`, etiqueta: 'Ficha del trabajador', icono: 'perfil', numero: null, exacto: false, permiso: null },
       { ruta: `${base}/missing`, etiqueta: 'Documentos faltantes', icono: 'reportes', numero: null, exacto: false, permiso: 'reportes.ver' },
+      { ruta: `${base}/history`, etiqueta: 'Historial del legajo', icono: 'historial', numero: null, exacto: false, permiso: 'auditoria.ver' },
     ];
     const secciones = this.secciones.hasValue() ? this.secciones.value() : [];
     for (const seccion of secciones) {
