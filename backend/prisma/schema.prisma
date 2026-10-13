@@ -76,6 +76,17 @@ enum EstadoItemLote {
   ERROR
 }
 
+enum OrigenBackup {
+  PROGRAMADO
+  MANUAL
+}
+
+enum EstadoBackup {
+  EN_CURSO
+  CORRECTO
+  ERROR
+}
+
 model Regimen {
   id         Int         @id @default(autoincrement())
   codigo     String      @unique @db.VarChar(20)
@@ -273,6 +284,7 @@ model Usuario {
   documentosModificados Documento[]        @relation("DocumentoModificador")
   archivosSubidos       DocumentoArchivo[]
   lotes                 LoteCarga[]
+  respaldos             BackupEjecucion[]
 
   @@map("usuario")
 }
@@ -398,4 +410,22 @@ model Auditoria {
   @@index([trabajadorId, fecha(sort: Desc)], map: "ix_auditoria_legajo")
   @@index([accion, fecha(sort: Desc)], map: "ix_auditoria_accion")
   @@map("auditoria")
+}
+
+model BackupEjecucion {
+  id               String       @id @default(uuid()) @db.Uuid
+  origen           OrigenBackup
+  usuarioId        String?      @map("usuario_id") @db.Uuid
+  inicio           DateTime     @default(now()) @db.Timestamptz(3)
+  fin              DateTime?    @db.Timestamptz(3)
+  estado           EstadoBackup @default(EN_CURSO)
+  snapshotBd       String?      @map("snapshot_bd") @db.VarChar(64)
+  snapshotArchivos String?      @map("snapshot_archivos") @db.VarChar(64)
+  bytesAgregados   BigInt?      @map("bytes_agregados")
+  verificado       Boolean?
+  error            String?
+  usuario          Usuario?     @relation(fields: [usuarioId], references: [id], onDelete: Restrict)
+
+  @@index([inicio(sort: Desc)], map: "ix_backup_inicio")
+  @@map("backup_ejecucion")
 }
