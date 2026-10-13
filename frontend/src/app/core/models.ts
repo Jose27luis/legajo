@@ -634,3 +634,49 @@ export interface ReporteAvance {
   items: FilaAvance[];
   totales: FilaAvance;
 }
+
+export interface UsuarioAuditoria {
+  id: string;
+  usuario: string;
+  nombre: string;
+}
+
+export interface TrabajadorAuditoria {
+  id: string;
+  numeroDoc: string;
+  nombre: string;
+}
+
+export interface EntradaAuditoria {
+  id: string;
+  fecha: string;
+  usuario: UsuarioAuditoria | null;
+  accion: string;
+  entidad: string;
+  entidadId: string | null;
+  trabajador: TrabajadorAuditoria | null;
+  ip: string | null;
+  navegador: string | null;
+  detalle: string | null;
+}
+
+export interface PaginaAuditoria {
+  items: EntradaAuditoria[];
+  total: number;
+  pagina: number;
+  porPagina: number;
+}
+
+export interface OpcionesAuditoria {
+  acciones: string[];
+  usuarios: UsuarioAuditoria[];
+}
+
+export interface FiltrosAuditoria {
+  usuarioId: string;
+  accion: string;
+  numeroDoc: string;
+  trabajadorId: string;
+  desde: string;
+  hasta: string;
+}
