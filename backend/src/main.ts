@@ -11,6 +11,7 @@ import { ENTORNO, type Entorno } from './environment/environment';
 import { UploadServerService } from './documents/upload-server.service';
 
 const RUTA_SUBIDAS = '/api/uploads';
+const LIMITE_JSON = '4mb';
 
 async function iniciar(): Promise<void> {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, { logger: ['error', 'warn', 'log'] });
@@ -28,6 +29,7 @@ async function iniciar(): Promise<void> {
     subidas.servidor.handle(solicitud, respuesta).catch((error: unknown) => siguiente(error));
   });
   app.use(cookieParser());
+  app.useBodyParser('json', { limit: LIMITE_JSON });
   app.setGlobalPrefix('api');
   app.useGlobalPipes(
     new ValidationPipe({
