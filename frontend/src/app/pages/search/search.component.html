@@ -1,28 +1,28 @@
 <header class="cabecera-seccion">
   <div>
     <p class="antetitulo">Consulta</p>
-    <h2>Búsqueda avanzada</h2>
-    <p>
-      Un DNI completo lleva al trabajador, un número con guiones busca entre los documentos y cualquier otro texto busca por nombre,
-      cargo, área o tipo de documento.
-    </p>
+    <h2>Búsqueda avanzada de documentos</h2>
+    <p>Localiza documentos de cualquier trabajador sin abrir previamente su expediente.</p>
   </div>
 </header>
 
 <section class="tarjeta" aria-labelledby="titulo-filtros">
   <div class="cabecera-tarjeta">
     <h3 id="titulo-filtros">Qué quieres encontrar</h3>
-    @if (conFiltros() || filtros().texto !== '') {
-      <button type="button" class="boton chico" (click)="limpiar()">Quitar filtros</button>
-    }
   </div>
 
   <div class="campo buscar">
-    <label for="busqueda-texto">Buscar por DNI, nombre, cargo o área</label>
+    <label for="busqueda-texto">Buscar por DNI, nombres, cargo, área, tipo o número de documento</label>
     <input id="busqueda-texto" type="search" autocomplete="off" [value]="borrador()" (input)="escribir($event)" />
   </div>
 
+  <p class="subtitulo">Documento</p>
   <div class="filtros">
+    <div class="campo">
+      <label for="filtro-trabajador">Trabajador</label>
+      <app-worker-picker idCampo="filtro-trabajador" [elegido]="trabajador()" (elegidoChange)="elegirTrabajador($event)" />
+    </div>
+
     <div class="campo">
       <label for="filtro-seccion">Sección</label>
       <select id="filtro-seccion" (change)="cambiarSeccion($event)">
@@ -48,6 +48,17 @@
     </div>
 
     <div class="campo">
+      <label for="filtro-estado-documento">Estado del documento</label>
+      <select id="filtro-estado-documento" (change)="cambiarEstadoDocumento($event)">
+        <option value="" [selected]="filtros().estadoDocumento === null">Registrados</option>
+        @for (estado of estadosDocumento; track estado) {
+          <option [value]="estado" [selected]="filtros().estadoDocumento === estado">{{ textoEstadoDocumento[estado] }}</option>
+        }
+        <option value="TODOS" [selected]="filtros().estadoDocumento === 'TODOS'">Todos, incluso anulados</option>
+      </select>
+    </div>
+
+    <div class="campo">
       <label for="filtro-desde">Emitido desde</label>
       <input id="filtro-desde" type="date" [value]="filtros().desde" (change)="cambiarDesde($event)" />
     </div>
@@ -56,7 +67,10 @@
       <label for="filtro-hasta">Emitido hasta</label>
       <input id="filtro-hasta" type="date" [value]="filtros().hasta" (change)="cambiarHasta($event)" />
     </div>
+  </div>
 
+  <p class="subtitulo">Trabajador</p>
+  <div class="filtros personal">
     <div class="campo">
       <label for="filtro-area">Área</label>
       <select id="filtro-area" (change)="cambiarArea($event)">
@@ -98,22 +112,13 @@
         <option value="CESADO" [selected]="filtros().estado === 'CESADO'">Cesados</option>
       </select>
     </div>
+  </div>
 
-    <div class="campo">
-      <label for="filtro-estado-documento">Estado del documento</label>
-      <select id="filtro-estado-documento" (change)="cambiarEstadoDocumento($event)">
-        <option value="" [selected]="filtros().estadoDocumento === null">Registrados</option>
-        @for (estado of estadosDocumento; track estado) {
-          <option [value]="estado" [selected]="filtros().estadoDocumento === estado">{{ textoEstadoDocumento[estado] }}</option>
-        }
-        <option value="TODOS" [selected]="filtros().estadoDocumento === 'TODOS'">Todos, incluso anulados</option>
-      </select>
-    </div>
-
-    <div class="campo">
-      <label for="filtro-trabajador">Trabajador</label>
-      <app-worker-picker idCampo="filtro-trabajador" [elegido]="trabajador()" (elegidoChange)="elegirTrabajador($event)" />
-    </div>
+  <div class="acciones">
+    <button type="button" class="boton" (click)="limpiar()" [disabled]="!conFiltros() && filtros().texto === ''">Limpiar</button>
+    @if (sesion.tiene('documentos.ver')) {
+      <a class="boton" [href]="enlaceExportacion()" download>Exportar resultado a Excel</a>
+    }
   </div>
 </section>
 
