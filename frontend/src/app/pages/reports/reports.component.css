@@ -3,6 +3,16 @@
   gap: 16px;
 }
 
+.atajos {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.atajos a {
+  text-decoration: none;
+}
+
 .pestanas {
   display: flex;
   gap: 4px;
