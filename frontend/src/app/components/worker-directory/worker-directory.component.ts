@@ -49,6 +49,7 @@ export class WorkerDirectoryComponent implements OnInit {
   readonly titulo = input('Trabajadores registrados');
   readonly estadoInicial = input<EstadoTrabajador | ''>('');
   readonly movimientoInicial = input<Movimiento | ''>('');
+  readonly conExportar = input(true);
   readonly cambio = output();
 
   private readonly situacion = viewChild.required(SituationDialogComponent);
@@ -85,7 +86,7 @@ export class WorkerDirectoryComponent implements OnInit {
     loader: ({ params }) => this.servicio.listar(params),
   });
 
-  protected readonly enlaceExportacion = computed(() => this.servicio.enlaceExportacion(this.filtros()));
+  readonly enlaceExportacion = computed(() => this.servicio.enlaceExportacion(this.filtros()));
   protected readonly errorListado = computed(() => {
     const error = this.listado.error();
     return error === undefined ? null : mensajeDeError(error);
