@@ -1,0 +1,93 @@
+<header class="cabecera-seccion">
+  <div>
+    <p class="antetitulo">Gestión documental</p>
+    <h2>Alertas de vencimiento</h2>
+    <p>Fechas de vencimiento registradas en los documentos; no reemplazan un procedimiento administrativo.</p>
+  </div>
+</header>
+
+@if (error(); as mensaje) {
+  <p class="aviso error" role="alert">{{ mensaje }}</p>
+}
+
+<dl class="cifras-reporte">
+  <div>
+    <dt>Documentos con fecha de vencimiento</dt>
+    <dd>{{ reporte.value()?.conFecha ?? '—' }}</dd>
+  </div>
+  <div class="vencidos">
+    <dt>Vencidos</dt>
+    <dd>{{ reporte.value()?.vencidos ?? '—' }}</dd>
+  </div>
+  <div>
+    <dt>Por vencer (próximos {{ dias() }} días)</dt>
+    <dd>{{ reporte.value()?.porVencer ?? '—' }}</dd>
+  </div>
+  <div>
+    <dt>Sin fecha registrada</dt>
+    <dd>{{ reporte.value()?.sinFecha ?? '—' }}</dd>
+  </div>
+</dl>
+
+<section class="tarjeta">
+  <div class="barra-reporte">
+    <h3>Calendario documental</h3>
+    <div class="herramientas">
+      <label class="solo-lector" for="alertas-dias">Plazo</label>
+      <select id="alertas-dias" (change)="cambiarDias($event)">
+        @for (plazo of plazos; track plazo) {
+          <option [value]="plazo" [selected]="dias() === plazo">{{ plazo }} días</option>
+        }
+      </select>
+      @if (sesion.tiene('reportes.exportar')) {
+        <a class="boton chico" [href]="enlace()" download>Exportar Excel</a>
+      }
+    </div>
+  </div>
+  <div class="tabla-contenedor" [class.cargando]="reporte.isLoading()">
+    <table class="tabla">
+      <thead>
+        <tr>
+          <th scope="col">Trabajador</th>
+          <th scope="col">Documento</th>
+          <th scope="col">Sección</th>
+          <th scope="col">Vence</th>
+          <th scope="col">Situación</th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (reporte.value(); as datos) {
+          @for (fila of datos.items; track fila.documentoId) {
+            <tr>
+              <td>
+                <a class="enlace-nombre" [routerLink]="['/workers', fila.trabajadorId, 'sections', fila.seccion]">{{ fila.trabajador }}</a>
+                <span class="secundario">{{ fila.numeroDoc }}</span>
+              </td>
+              <td>
+                {{ fila.tipo }}
+                <span class="secundario">N.º {{ fila.numero ?? '—' }}</span>
+              </td>
+              <td>{{ numeroSeccion(fila.seccion) }}</td>
+              <td class="celda-numero">{{ fechaCorta(fila.fechaVencimiento) }}</td>
+              <td>
+                @if (fila.dias < 0) {
+                  <span class="pastilla roja">Vencido</span>
+                } @else {
+                  <span class="pastilla" [class.ambar]="fila.dias <= 30" [class.azul]="fila.dias > 30">{{ fila.dias }} días</span>
+                }
+              </td>
+            </tr>
+          } @empty {
+            <tr><td colspan="5" class="celda-vacia">No hay vencimientos en el período elegido.</td></tr>
+          }
+        } @else {
+          <tr><td colspan="5" class="celda-vacia">Calculando las alertas</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  <p class="nota">
+    Solo se consideran las fechas de vencimiento registradas explícitamente. No se calculan vencimientos a partir de la fecha de
+    emisión.
+  </p>
+</section>
