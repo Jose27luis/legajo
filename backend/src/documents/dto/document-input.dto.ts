@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsIn, IsInt, IsISO8601, IsObject, IsOptional, IsPositive, IsString, Length, Matches } from 'class-validator';
+import { IsIn, IsInt, IsISO8601, IsObject, IsOptional, IsPositive, IsString, IsUUID, Length, Matches } from 'class-validator';
 import { NIVELES_ACCESO, type NivelAccesoValor } from './document.dto';
 
 const vacioANulo = ({ value }: { value: unknown }) => {
@@ -73,6 +73,12 @@ export class CreateDocumentDto extends DocumentFieldsDto {
   @ApiProperty({ description: 'Identificador de la subida tus completada' })
   @Matches(SUBIDA, { message: 'La subida no es válida' })
   subidaId: string;
+
+  @ApiPropertyOptional({ format: 'uuid', description: 'Vínculo del historial que sustenta el documento' })
+  @Transform(vacioANulo)
+  @IsOptional()
+  @IsUUID('4', { message: 'El vínculo no es válido' })
+  vinculoId: string | null = null;
 }
 
 export class UpdateDocumentDto extends DocumentFieldsDto {
