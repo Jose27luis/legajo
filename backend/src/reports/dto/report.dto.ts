@@ -230,6 +230,12 @@ export class ExpiringReportDto {
 
   @ApiProperty()
   porVencer: number;
+
+  @ApiProperty({ description: 'Documentos registrados con fecha de vencimiento' })
+  conFecha: number;
+
+  @ApiProperty({ description: 'Documentos registrados sin fecha de vencimiento' })
+  sinFecha: number;
 }
 
 export class DigitizationRowDto {
