@@ -11,7 +11,7 @@
     </p>
   }
   <div class="campo">
-    <label [for]="prefijo + '-tipo'">Tipo de personal</label>
+    <label [for]="prefijo + '-tipo'">Tipo de personal <span class="obligatorio" aria-hidden="true">*</span></label>
     <select [id]="prefijo + '-tipo'" formControlName="tipoPersonal" [attr.aria-invalid]="invalido('tipoPersonal')">
       <option [ngValue]="null" disabled>Selecciona</option>
       <option ngValue="ADMINISTRATIVO">Administrativo</option>
@@ -19,7 +19,7 @@
     </select>
   </div>
   <div class="campo">
-    <label [for]="prefijo + '-regimen'">Régimen o modalidad</label>
+    <label [for]="prefijo + '-regimen'">Régimen o modalidad <span class="obligatorio" aria-hidden="true">*</span></label>
     <select [id]="prefijo + '-regimen'" formControlName="regimenId" [attr.aria-invalid]="invalido('regimenId')">
       <option [ngValue]="null" disabled>Selecciona</option>
       @for (regimen of opciones()?.regimenes ?? []; track regimen.id) {
@@ -28,7 +28,7 @@
     </select>
   </div>
   <div class="campo">
-    <label [for]="prefijo + '-cargo'">Cargo o puesto</label>
+    <label [for]="prefijo + '-cargo'">Cargo o puesto <span class="obligatorio" aria-hidden="true">*</span></label>
     <select [id]="prefijo + '-cargo'" formControlName="cargoId" [attr.aria-invalid]="invalido('cargoId')">
       <option [ngValue]="null" disabled>Selecciona</option>
       @for (cargo of opciones()?.cargos ?? []; track cargo.id) {
@@ -37,7 +37,7 @@
     </select>
   </div>
   <div class="campo">
-    <label [for]="prefijo + '-area'">Área o dependencia</label>
+    <label [for]="prefijo + '-area'">Área o dependencia <span class="obligatorio" aria-hidden="true">*</span></label>
     <select [id]="prefijo + '-area'" formControlName="areaId" [attr.aria-invalid]="invalido('areaId')">
       <option [ngValue]="null" disabled>Selecciona</option>
       @for (area of opciones()?.areas ?? []; track area.id) {
@@ -54,7 +54,8 @@
       [attr.aria-describedby]="prefijo + '-ayuda'"
     />
     <span [id]="prefijo + '-ayuda'" class="ayuda">
-      Por ejemplo, Contrato CAS N.° 025-2026. La referencia no reemplaza al PDF, que se sube en el legajo.
+      Por ejemplo, Contrato CAS N.º 025-2026 o Resolución N.º 120-2026. La referencia no sustituye al PDF: adjunta el archivo
+      real en la Sección 02.
     </span>
   </div>
 </div>
