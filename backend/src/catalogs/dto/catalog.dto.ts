@@ -2,7 +2,9 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export const TIPOS_PERSONAL = ['ADMINISTRATIVO', 'ASISTENCIAL'] as const;
 export const APLICA_A = ['ACTIVO', 'CESADO', 'TODOS'] as const;
-export const TIPOS_CAMPO = ['texto', 'fecha', 'numero', 'seleccion', 'parrafo'] as const;
+export const TIPOS_CAMPO = ['texto', 'fecha', 'numero', 'seleccion', 'parrafo', 'regimen', 'area', 'cargo'] as const;
+export const ACCIONES_DOCUMENTO = ['NINGUNA', 'VINCULO', 'MOVIMIENTO', 'CESE'] as const;
+export type AccionDocumentoValor = (typeof ACCIONES_DOCUMENTO)[number];
 
 export type TipoPersonalValor = (typeof TIPOS_PERSONAL)[number];
 export type AplicaAValor = (typeof APLICA_A)[number];
@@ -51,6 +53,12 @@ export class DocumentTypeDto {
 
   @ApiProperty()
   orden: number;
+
+  @ApiProperty({ enum: ACCIONES_DOCUMENTO, description: 'Efecto del documento sobre la ficha del trabajador' })
+  accion: AccionDocumentoValor;
+
+  @ApiProperty({ type: [SectionFieldDto], description: 'Campos propios del tipo documental' })
+  campos: SectionFieldDto[];
 }
 
 export class SectionDto {
