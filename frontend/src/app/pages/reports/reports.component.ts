@@ -15,7 +15,8 @@ interface Pestana {
 })
 export class ReportsComponent {
   protected readonly pestanas: readonly Pestana[] = [
-    { ruta: 'staff', etiqueta: 'Listado de personal' },
+    { ruta: 'general', etiqueta: 'Generar reportes' },
+    { ruta: 'staff', etiqueta: 'Personal y completitud' },
     { ruta: 'missing-summary', etiqueta: 'Faltantes consolidado' },
     { ruta: 'missing', etiqueta: 'Faltantes por trabajador' },
     { ruta: 'expiring', etiqueta: 'Por vencer y vencidos' },
