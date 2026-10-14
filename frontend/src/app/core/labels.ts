@@ -24,6 +24,9 @@ export const TEXTO_MOVIMIENTO: Record<Movimiento, string> = {
   DESTAQUE: 'Destaque',
   ENCARGATURA: 'Encargatura',
   REASIGNACION: 'Reasignación',
+  DESIGNACION: 'Designación',
+  CAMBIO_FUNCIONES: 'Cambio de funciones',
+  OTRO: 'Otro',
 };
 
 export const TEXTO_MOTIVO_CESE: Record<MotivoCese, string> = {
@@ -48,7 +51,19 @@ export const TEXTO_TIPO_PERSONAL: Record<TipoPersonal, string> = {
   ASISTENCIAL: 'Asistencial',
 };
 
-export const MOVIMIENTOS: readonly Movimiento[] = ['SIN_MOVIMIENTO', 'ROTACION', 'DESTAQUE', 'ENCARGATURA', 'REASIGNACION'];
+export const MOVIMIENTOS: readonly Movimiento[] = [
+  'SIN_MOVIMIENTO',
+  'ROTACION',
+  'DESTAQUE',
+  'ENCARGATURA',
+  'REASIGNACION',
+  'DESIGNACION',
+  'CAMBIO_FUNCIONES',
+  'OTRO',
+];
+export const MOVIMIENTOS_REALES = MOVIMIENTOS.filter(
+  (movimiento): movimiento is Exclude<Movimiento, 'SIN_MOVIMIENTO'> => movimiento !== 'SIN_MOVIMIENTO',
+);
 export const MOTIVOS_CESE: readonly MotivoCese[] = ['RENUNCIA', 'JUBILACION', 'FALLECIMIENTO', 'FIN_CONTRATO', 'DESTITUCION', 'OTRA_CAUSA'];
 export const MOTIVOS_CAMBIO: readonly MotivoCambio[] = ['RENOVACION', 'CAMBIO_REGIMEN', 'CAMBIO_CARGO_O_AREA'];
 
@@ -108,6 +123,9 @@ export const CLASE_MOVIMIENTO: Record<Movimiento, string> = {
   DESTAQUE: 'turquesa',
   ENCARGATURA: 'ambar',
   REASIGNACION: 'azul',
+  DESIGNACION: 'azul',
+  CAMBIO_FUNCIONES: 'turquesa',
+  OTRO: 'gris',
 };
 
 const TONOS_SECCION: readonly string[] = [
