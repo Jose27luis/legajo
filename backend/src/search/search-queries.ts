@@ -22,14 +22,22 @@ export function unir(condiciones: Prisma.Sql[]): Prisma.Sql {
   return condiciones.length === 0 ? Prisma.sql`TRUE` : Prisma.join(condiciones, ' AND ');
 }
 
+export function seccionesVisiblesSql(sesion: SesionActiva): Prisma.Sql {
+  if (sesion.seccionesRestringidas.length === 0) {
+    return Prisma.sql`TRUE`;
+  }
+  return Prisma.sql`td.seccion_id NOT IN (SELECT s.id FROM seccion s WHERE s.numero IN (${Prisma.join(sesion.seccionesRestringidas)}))`;
+}
+
 export function visibilidadSql(sesion: SesionActiva): Prisma.Sql {
+  const secciones = seccionesVisiblesSql(sesion);
   if (!sesion.permisos.includes('documentos.restringidos')) {
-    return Prisma.sql`(td.restringido = FALSE AND d.nivel_acceso = 'NORMAL')`;
+    return Prisma.sql`(${secciones} AND td.restringido = FALSE AND d.nivel_acceso = 'NORMAL')`;
   }
   if (!sesion.permisos.includes('documentos.muy_restringidos')) {
-    return Prisma.sql`d.nivel_acceso <> 'MUY_RESTRINGIDO'`;
+    return Prisma.sql`(${secciones} AND d.nivel_acceso <> 'MUY_RESTRINGIDO')`;
   }
-  return Prisma.sql`TRUE`;
+  return secciones;
 }
 
 export function filtrosTrabajador(consulta: SearchQueryDto): Prisma.Sql[] {
@@ -46,12 +54,18 @@ export function filtrosTrabajador(consulta: SearchQueryDto): Prisma.Sql[] {
   if (consulta.tipoPersonal !== undefined) {
     condiciones.push(Prisma.sql`vi.tipo_personal = ${consulta.tipoPersonal}::"TipoPersonal"`);
   }
+  if (consulta.trabajadorId !== undefined && consulta.trabajadorId !== null) {
+    condiciones.push(Prisma.sql`t.id = ${consulta.trabajadorId}::uuid`);
+  }
   return condiciones;
 }
 
 export function filtrosDocumento(consulta: SearchQueryDto, sesion: SesionActiva): Prisma.Sql[] {
   const condiciones: Prisma.Sql[] = [visibilidadSql(sesion)];
-  condiciones.push(Prisma.sql`d.estado = ${consulta.estadoDocumento ?? 'DISPONIBLE'}::"EstadoDocumento"`);
+  const estado = consulta.estadoDocumento ?? 'DISPONIBLE';
+  if (estado !== 'TODOS') {
+    condiciones.push(Prisma.sql`d.estado = ${estado}::"EstadoDocumento"`);
+  }
   if (consulta.seccion !== undefined) {
     condiciones.push(Prisma.sql`s.numero = ${consulta.seccion}`);
   }
