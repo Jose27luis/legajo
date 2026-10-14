@@ -4,13 +4,21 @@
       <h1>Personal</h1>
       <p>Busca por documento o nombre, filtra por estado, movimiento o área, y abre el legajo de cada trabajador.</p>
     </div>
-    @if (sesion.tiene('personal.editar')) {
-      <button type="button" class="boton principal" (click)="abrirNuevo()">Registrar nuevo ingreso</button>
-    }
+    <div class="acciones">
+      @if (sesion.tiene('reportes.exportar')) {
+        @if (enlaceExportacion(); as enlace) {
+          <a class="boton" [href]="enlace" download>Exportar Excel</a>
+        }
+      }
+      @if (sesion.tiene('personal.editar')) {
+        <button type="button" class="boton principal" (click)="abrirNuevo()">Registrar nuevo ingreso</button>
+      }
+    </div>
   </header>
 
   <app-worker-directory
     titulo="Trabajadores registrados"
+    [conExportar]="false"
     [estadoInicial]="estadoInicial()"
     [movimientoInicial]="movimientoInicial()"
   />
