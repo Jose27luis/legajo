@@ -1,36 +1,51 @@
 @if (contexto.detalle.value(); as trabajador) {
-  <header class="cabecera-seccion">
+  <header class="cabecera-seccion" [style.--tono]="tono">
     <div>
-      <p class="antetitulo">Datos estructurados</p>
-      <h2>Ficha del trabajador</h2>
+      <p class="antetitulo">Sección 01 de 13 · Datos estructurados</p>
+      <h2>Información personal y familiar</h2>
       <p>
-        Identificación, vínculo vigente, historial de vínculos y datos familiares. Aquí no se suben PDF: sus sustentos van en la
-        sección 01. El estado activo o cesado es independiente del estado de los PDF.
+        Datos personales, contacto autorizado, régimen, puesto, unidad orgánica, condición laboral, períodos de servicio y eventos
+        de cese o reingreso.
       </p>
     </div>
-    @if (sesion.tiene('personal.editar')) {
-      <div class="acciones-cabecera">
-        <button type="button" class="boton chico" (click)="abrirFicha(trabajador)">Editar ficha</button>
+    <div class="acciones-cabecera">
+      <a routerLink=".." class="boton chico">Ver 13 secciones</a>
+      @if (sesion.tiene('personal.editar')) {
+        <button type="button" class="boton chico" (click)="abrirSituacion(trabajador)">Estado y movimiento</button>
         @if (trabajador.estado === 'ACTIVO') {
-          <button type="button" class="boton chico" (click)="abrirSituacion(trabajador)">Estado y movimiento</button>
           <button type="button" class="boton chico" (click)="abrirCambio(trabajador)">Cambio de vínculo</button>
         } @else if (puedeReingresar(trabajador)) {
-          <button type="button" class="boton chico principal" (click)="abrirReingreso(trabajador)">Registrar reingreso</button>
+          <button type="button" class="boton chico" (click)="abrirReingreso(trabajador)">Registrar reingreso</button>
         }
-      </div>
-    }
+        <button type="button" class="boton chico principal" (click)="abrirFicha(trabajador)">Editar ficha</button>
+      }
+    </div>
   </header>
+
+  <p class="aviso info">
+    Esta sección contiene la ficha de datos del trabajador y permite adjuntar una copia ampliada de su DNI en PDF. El estado
+    <strong>ACTIVO / CESADO</strong> es independiente de los estados de los PDF de las otras secciones.
+  </p>
+
+  @if (nuevo() === '1') {
+    <div class="aviso exito resultado" role="status">
+      <strong>Trabajador incorporado al directorio.</strong><br />
+      Estado inicial: ACTIVO. Ya tiene su ficha y sus 13 secciones creadas, con 0 documentos PDF iniciales.
+      <a class="boton chico principal" [routerLink]="['..', 'sections', 2]">Ir a la Sección 02 y subir contrato o resolución</a>
+    </div>
+  }
 
   <div class="rejilla">
     <section class="tarjeta" aria-labelledby="titulo-ficha">
-      <h3 id="titulo-ficha">Ficha principal</h3>
+      <div class="cabecera-tarjeta">
+        <h3 id="titulo-ficha">Ficha principal del trabajador</h3>
+        <span class="pastilla verde">{{ trabajador.tipoDocIdentidad }} único</span>
+      </div>
       <dl class="datos">
-        <div><dt>Documento</dt><dd>{{ trabajador.tipoDocIdentidad }} {{ trabajador.numeroDoc }}</dd></div>
+        <div><dt>{{ trabajador.tipoDocIdentidad }}</dt><dd>{{ trabajador.numeroDoc }}</dd></div>
         <div><dt>Nombres</dt><dd>{{ trabajador.nombres }}</dd></div>
-        <div>
-          <dt>Apellidos</dt>
-          <dd>{{ trabajador.apellidoPaterno }} {{ trabajador.apellidoMaterno ?? '' }}</dd>
-        </div>
+        <div><dt>Apellido paterno</dt><dd>{{ trabajador.apellidoPaterno }}</dd></div>
+        <div><dt>Apellido materno</dt><dd>{{ trabajador.apellidoMaterno ?? '—' }}</dd></div>
         @if (trabajador.vinculo; as vinculo) {
           <div><dt>Tipo de personal</dt><dd>{{ textoTipoPersonal[vinculo.tipoPersonal] }}</dd></div>
           <div><dt>Régimen laboral</dt><dd>{{ vinculo.regimen.nombre }}</dd></div>
@@ -38,25 +53,24 @@
           <div><dt>Área o dependencia</dt><dd>{{ vinculo.area.nombre }}</dd></div>
         }
         <div><dt>Fecha de ingreso actual</dt><dd>{{ fechaCorta(trabajador.fechaIngreso) }}</dd></div>
-        <div><dt>Referencia de ingreso</dt><dd>{{ trabajador.vinculo?.referencia ?? 'No registrada' }}</dd></div>
         <div><dt>Registrado en el sistema</dt><dd>{{ fechaHora(trabajador.creadoEn) }}</dd></div>
-        <div><dt>Estado laboral</dt><dd>{{ textoEstado[trabajador.estado] }}</dd></div>
+        <div><dt>Referencia de ingreso</dt><dd>{{ trabajador.vinculo?.referencia ?? 'No registrada' }}</dd></div>
+        <div><dt>Estado laboral</dt><dd>{{ trabajador.estado }}</dd></div>
+        <div><dt>Último movimiento</dt><dd>{{ textoMovimiento[trabajador.movimientoActual].toUpperCase() }}</dd></div>
+        <div><dt>Fecha de movimiento</dt><dd>{{ fechaCorta(trabajador.movimientoFecha) }}</dd></div>
+        <div><dt>Origen del último movimiento</dt><dd>{{ ultimoMovimiento(trabajador)?.areaOrigen?.nombre ?? 'No registrado' }}</dd></div>
+        <div><dt>Destino del último movimiento</dt><dd>{{ ultimoMovimiento(trabajador)?.areaDestino?.nombre ?? 'No registrado' }}</dd></div>
         <div>
-          <dt>Último movimiento</dt>
-          <dd>
-            {{ textoMovimiento[trabajador.movimientoActual] }}
-            @if (trabajador.movimientoFecha; as fecha) {
-              desde {{ fechaCorta(fecha) }}
-            }
-          </dd>
+          <dt>Motivo de cese</dt>
+          <dd>{{ motivoCese(trabajador) }}</dd>
         </div>
-        @if (trabajador.estado === 'CESADO' && trabajador.vinculo; as vinculo) {
-          <div><dt>Motivo de cese</dt><dd>{{ vinculo.motivoFin ? textoMotivoFin[vinculo.motivoFin] : '' }}</dd></div>
-          <div><dt>Fecha de cese</dt><dd>{{ fechaCorta(vinculo.fechaFin) }}</dd></div>
-        }
+        <div>
+          <dt>Fecha de cese</dt>
+          <dd>{{ trabajador.estado === 'CESADO' ? fechaCorta(trabajador.vinculo?.fechaFin ?? null) : 'No corresponde' }}</dd>
+        </div>
       </dl>
 
-      <h4>Datos personales y contacto</h4>
+      <h4>Contacto y datos personales (solo datos autorizados)</h4>
       <dl class="datos">
         <div><dt>Fecha de nacimiento</dt><dd>{{ fechaCorta(trabajador.fechaNacimiento) }}</dd></div>
         <div><dt>Sexo</dt><dd>{{ trabajador.sexo === 'F' ? 'Femenino' : trabajador.sexo === 'M' ? 'Masculino' : 'No registrado' }}</dd></div>
@@ -76,33 +90,43 @@
     </section>
 
     <section class="tarjeta" aria-labelledby="titulo-vinculos">
-      <h3 id="titulo-vinculos">Historial de vínculos</h3>
+      <h3 id="titulo-vinculos">Historial de vínculos laborales</h3>
       <ol class="linea">
         @for (vinculo of trabajador.vinculos; track vinculo.id) {
-          <li [class.vigente]="vinculo.fechaFin === null">
-            <strong>
-              {{ fechaCorta(vinculo.fechaInicio) }} al
-              {{ vinculo.fechaFin === null ? 'presente' : fechaCorta(vinculo.fechaFin) }}
-            </strong>
-            <span>{{ vinculo.cargo.nombre }} en {{ vinculo.area.nombre }}</span>
-            <span>{{ vinculo.regimen.nombre }}, {{ textoTipoPersonal[vinculo.tipoPersonal].toLowerCase() }}</span>
-            @if (vinculo.motivoFin; as motivo) {
-              <span class="motivo">Terminó por {{ textoMotivoFin[motivo].toLowerCase() }}</span>
-            }
-            @if (vinculo.referencia; as referencia) {
-              <span class="referencia">{{ referencia }}</span>
-            }
+          <li [class.vigente]="vinculo.fechaFin === null" [class.cese]="esCese(vinculo)">
+            <button type="button" class="periodo" (click)="abrirPeriodo(vinculo)">
+              <strong>
+                {{ fechaCorta(vinculo.fechaInicio) }} al
+                {{ vinculo.fechaFin === null ? 'presente' : fechaCorta(vinculo.fechaFin) }}
+              </strong>
+              <span>{{ vinculo.regimen.nombre }} · {{ vinculo.fechaFin === null ? 'ACTIVO' : esCese(vinculo) ? 'CESADO' : 'CONCLUIDO' }}</span>
+              <span>{{ vinculo.cargo.nombre }} en {{ vinculo.area.nombre }}</span>
+              @if (vinculo.motivoFin; as motivo) {
+                <span class="motivo">Terminó por {{ textoMotivoFin[motivo].toLowerCase() }}</span>
+              }
+              @if (vinculo.referencia; as referencia) {
+                <span class="referencia">{{ referencia }}</span>
+              }
+              <span class="pista">{{ pistaPeriodo(vinculo) }}</span>
+            </button>
           </li>
         }
       </ol>
-      <p class="nota">Si reingresa, se conserva este mismo legajo y se agrega un nuevo período.</p>
+      <p class="aviso info">
+        Al reingresar, el trabajador conserva su <strong>mismo legajo</strong>. Se agrega un nuevo período laboral; no se crean
+        legajos duplicados.
+      </p>
       <h4>Eventos de salida</h4>
       <p class="nota">
-        Renuncia, jubilación, fallecimiento, término de contrato u otra causa. Cada salida queda con su fecha y su sustento en la
-        sección 11, y el estado laboral solo cambia desde "Estado y movimiento".
+        Renuncia, jubilación, fallecimiento, término de contrato u otro motivo. Se registra la fecha y el sustento administrativo de
+        cada evento en la Sección 11.
       </p>
     </section>
   </div>
+
+  @if (sesion.tiene('documentos.ver')) {
+    <app-identity-documents />
+  }
 
   <section class="tarjeta" aria-labelledby="titulo-familia">
     <div class="cabecera-tarjeta">
@@ -147,6 +171,11 @@
       </div>
     }
   </section>
+
+  <p class="nota">
+    Los datos familiares y personales sensibles deben limitarse a lo estrictamente necesario y consultarse según los permisos de
+    cada cuenta.
+  </p>
 }
 
 <app-dialog
@@ -202,6 +231,14 @@
     <button type="button" class="boton peligro lleno" (click)="confirmarQuitar()" [disabled]="quitando()">Quitar</button>
   </ng-container>
 </app-dialog>
+<app-period-dialog
+  [vinculo]="periodo()"
+  [trabajador]="contexto.detalle.value() ?? null"
+  [documentos]="documentosLegajo()"
+  [secciones]="seccionesLegajo()"
+  (cerrar)="periodo.set(null)"
+  (registrado)="alRegistrarSustento($event)"
+/>
 <app-situation-dialog
   [trabajador]="paraSituacion()"
   (cerrar)="paraSituacion.set(null)"
