@@ -3,7 +3,14 @@ import type { Prisma } from '../generated/prisma/client';
 import { aTexto, aTextoOpcional } from '../common/dates';
 import type { SesionActiva } from '../common/session';
 import { filtroVisibilidad } from '../documents/document.mapper';
-import type { LinkDto, RelativeDto, WorkerDetailDto, WorkerDirectoryItemDto, WorkerListItemDto } from './dto/worker.dto';
+import type {
+  LinkDto,
+  MovementDto,
+  RelativeDto,
+  WorkerDetailDto,
+  WorkerDirectoryItemDto,
+  WorkerListItemDto,
+} from './dto/worker.dto';
 
 export const incluirVinculo = { regimen: true, cargo: true, area: true } as const;
 
@@ -21,6 +28,10 @@ export function incluirDirectorio(sesion: SesionActiva) {
 export const incluirDetalle = {
   vinculos: { include: incluirVinculo, orderBy: [{ fechaInicio: 'desc' }, { creadoEn: 'desc' }] },
   familiares: { orderBy: { creadoEn: 'asc' } },
+  movimientos: {
+    include: { areaOrigen: true, areaDestino: true, creadoPor: { select: { nombreCompleto: true } } },
+    orderBy: [{ fecha: 'desc' }, { creadoEn: 'desc' }],
+  },
 } as const satisfies Prisma.TrabajadorInclude;
 
 type VinculoCompleto = Prisma.VinculoGetPayload<{ include: typeof incluirVinculo }>;
@@ -94,6 +105,21 @@ export function aDetalleDto(trabajador: TrabajadorDetalle): WorkerDetailDto {
     creadoEn: trabajador.creadoEn.toISOString(),
     vinculos: trabajador.vinculos.map(aVinculoDto),
     familiares: trabajador.familiares.map(aFamiliarDto),
+    movimientos: trabajador.movimientos.map(aMovimientoDto),
+  };
+}
+
+export function aMovimientoDto(movimiento: TrabajadorDetalle['movimientos'][number]): MovementDto {
+  return {
+    id: movimiento.id,
+    tipo: movimiento.tipo,
+    fecha: aTexto(movimiento.fecha),
+    areaOrigen: { id: movimiento.areaOrigen.id, nombre: movimiento.areaOrigen.nombre },
+    areaDestino: { id: movimiento.areaDestino.id, nombre: movimiento.areaDestino.nombre },
+    documentoId: movimiento.documentoId,
+    observacion: movimiento.observacion,
+    registradoPor: movimiento.creadoPor.nombreCompleto,
+    registradoEn: movimiento.creadoEn.toISOString(),
   };
 }
 
