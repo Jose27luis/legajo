@@ -20,6 +20,8 @@ import {
   WorkerMissingDto,
 } from './dto/report.dto';
 import { ReportsService } from './reports.service';
+import { GeneralReportService } from './general-report.service';
+import { GeneralReportDto, GeneralReportFiltersDto, GeneralReportQueryDto, StatisticsDto } from './dto/general-report.dto';
 
 const ID = new ParseUUIDPipe({ version: '4' });
 const EXCEL = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
@@ -28,7 +30,47 @@ const EXCEL = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
 @Requiere('reportes.ver')
 @Controller('reports')
 export class ReportsController {
-  constructor(private readonly reportes: ReportsService) {}
+  constructor(
+    private readonly reportes: ReportsService,
+    private readonly generales: GeneralReportService,
+  ) {}
+
+  @Get('general')
+  @ApiOperation({ summary: 'Reporte configurable: padrón, situación, régimen, inventario, vigentes por sección o estadísticas' })
+  @ApiResponse({ status: 200, type: GeneralReportDto })
+  async general(@Query() consulta: GeneralReportQueryDto, @SesionActual() sesion: SesionActiva): Promise<GeneralReportDto> {
+    return this.generales.reporte(consulta, sesion);
+  }
+
+  @Get('general.xlsx')
+  @Requiere('reportes.ver', 'reportes.exportar')
+  @ApiProduces(EXCEL)
+  @ApiOperation({ summary: 'Exporta el reporte configurable completo' })
+  @ApiResponse({ status: 200, description: 'Archivo de Excel' })
+  async exportarGeneral(
+    @Query() consulta: GeneralReportFiltersDto,
+    @SesionActual() sesion: SesionActiva,
+    @Req() solicitud: Request,
+    @Res() respuesta: Response,
+  ): Promise<void> {
+    await this.generales.exportar(consulta, sesion, datosCliente(solicitud), respuesta);
+  }
+
+  @Get('statistics')
+  @ApiOperation({ summary: 'Indicadores del personal y de los documentos' })
+  @ApiResponse({ status: 200, type: StatisticsDto })
+  async estadisticas(@SesionActual() sesion: SesionActiva): Promise<StatisticsDto> {
+    return this.generales.estadisticas(sesion);
+  }
+
+  @Get('statistics.xlsx')
+  @Requiere('reportes.ver', 'reportes.exportar')
+  @ApiProduces(EXCEL)
+  @ApiOperation({ summary: 'Exporta los indicadores' })
+  @ApiResponse({ status: 200, description: 'Archivo de Excel' })
+  async exportarEstadisticas(@SesionActual() sesion: SesionActiva, @Req() solicitud: Request, @Res() respuesta: Response): Promise<void> {
+    await this.generales.exportarEstadisticas(sesion, datosCliente(solicitud), respuesta);
+  }
 
   @Get('staff')
   @ApiOperation({ summary: 'Listado de personal con su completitud' })
