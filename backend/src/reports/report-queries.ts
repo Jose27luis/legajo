@@ -1,5 +1,6 @@
 import { Prisma } from '../generated/prisma/client';
 import type { SesionActiva } from '../common/session';
+import { seccionesVisiblesSql } from '../search/search-queries';
 import type { EstadoValor, TipoPersonalValor } from '../workers/dto/worker.dto';
 
 export interface AmbitoPersonal {
@@ -52,7 +53,8 @@ export function filtrosPersonal(consulta: AmbitoPersonal): Prisma.Sql[] {
 }
 
 export function tiposVisibles(sesion: SesionActiva): Prisma.Sql {
-  return sesion.permisos.includes('documentos.restringidos') ? Prisma.sql`TRUE` : Prisma.sql`td.restringido = FALSE`;
+  const secciones = seccionesVisiblesSql(sesion);
+  return sesion.permisos.includes('documentos.restringidos') ? secciones : Prisma.sql`(${secciones} AND td.restringido = FALSE)`;
 }
 
 export function visibilidadDocumento(sesion: SesionActiva, alias: 'd' | 'dd'): Prisma.Sql {
