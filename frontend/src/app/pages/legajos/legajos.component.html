@@ -1,0 +1,69 @@
+<header class="cabecera-seccion">
+  <div>
+    <p class="antetitulo">Expedientes digitales</p>
+    <h2>Seleccionar trabajador</h2>
+    <p>Busca un trabajador para consultar sus 13 secciones y archivos PDF.</p>
+  </div>
+</header>
+
+<section class="tarjeta elegir">
+  <div class="presentacion">
+    <span class="simbolo" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="26" height="26">
+        <path d="M3.5 7.5a2 2 0 0 1 2-2h4l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2Z" />
+      </svg>
+    </span>
+    <div>
+      <h3>Ningún trabajador seleccionado</h3>
+      <p>Para abrir un legajo, elige primero a la persona correspondiente.</p>
+    </div>
+  </div>
+
+  <div class="campo">
+    <label for="elegir-trabajador">Buscar por DNI, apellidos o nombres</label>
+    <input id="elegir-trabajador" type="search" autocomplete="off" [value]="texto()" (input)="alEscribir($event)" />
+  </div>
+
+  @if (error(); as mensaje) {
+    <p class="aviso error" role="alert">{{ mensaje }}</p>
+  }
+
+  <div aria-live="polite">
+    @if (texto().trim().length < 2) {
+      <p class="nota">Escribe un DNI o nombre para mostrar coincidencias.</p>
+    } @else if (resultados.value(); as lista) {
+      @if (lista.length === 0) {
+        <p class="nota">No se encontraron trabajadores. Verifica el DNI o el nombre.</p>
+      } @else {
+        <div class="tabla-contenedor">
+          <table class="tabla">
+            <thead>
+              <tr>
+                <th scope="col">Trabajador</th>
+                <th scope="col">DNI</th>
+                <th scope="col">Situación</th>
+                <th scope="col"><span class="solo-lector">Acción</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (trabajador of lista; track trabajador.id) {
+                <tr>
+                  <td><strong>{{ nombreCompleto(trabajador) }}</strong></td>
+                  <td>{{ trabajador.numeroDoc }}</td>
+                  <td>
+                    <span class="pastilla" [class.verde]="trabajador.estado === 'ACTIVO'" [class.gris]="trabajador.estado === 'CESADO'">
+                      {{ trabajador.estado }}
+                    </span>
+                  </td>
+                  <td><a class="boton chico principal" [routerLink]="['/workers', trabajador.id]">Abrir legajo</a></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    } @else {
+      <p class="nota">Buscando</p>
+    }
+  </div>
+</section>
