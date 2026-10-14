@@ -1,0 +1,105 @@
+<section class="tarjeta" aria-labelledby="titulo-identidad">
+  <div class="cabecera-tarjeta">
+    <h3 id="titulo-identidad">Documentación de identidad · Sección 01</h3>
+    <span class="pastilla azul">{{ registrados() === 1 ? '1 documento' : registrados() + ' documentos' }}</span>
+  </div>
+  <p class="aviso sensible">
+    La copia del DNI contiene datos personales. Solo debe ser consultada y descargada por usuarios autorizados.
+  </p>
+
+  <div class="tabla-contenedor">
+    <table class="tabla">
+      <thead>
+        <tr>
+          <th scope="col">Tipo / archivo</th>
+          <th scope="col">Estado</th>
+          <th scope="col">Cargado el</th>
+          <th scope="col"><span class="solo-lector">Acciones</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (documento of documentos(); track documento.id) {
+          <tr>
+            <td>
+              <strong>{{ documento.tipo.nombre }}</strong>
+              <span class="secundario">{{ nombreArchivo(documento) }}</span>
+            </td>
+            <td><span class="pastilla" [class]="claseEstado[documento.estado]">{{ textoEstado[documento.estado] }}</span></td>
+            <td class="fecha">{{ fechaHora(documento.creadoEn) }}</td>
+            <td>
+              <div class="fila-acciones">
+                <button type="button" class="boton chico" (click)="seleccionadoId.set(documento.id)">Ver detalle</button>
+                @if (documento.estado === 'DISPONIBLE') {
+                  <a class="boton chico" [href]="enlace(documento, false)" target="_blank" rel="noopener">Ver PDF</a>
+                  @if (sesion.tiene('documentos.descargar')) {
+                    <a class="boton chico" [href]="enlace(documento, true)" download>Descargar</a>
+                  }
+                }
+              </div>
+            </td>
+          </tr>
+        } @empty {
+          <tr><td colspan="4" class="celda-vacia">No se ha registrado un DNI ampliado para este trabajador.</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  @if (sesion.tiene('documentos.subir') && seccion(); as actual) {
+    <form class="campos subida" [formGroup]="formulario" (ngSubmit)="registrar()" novalidate>
+      <div class="campo">
+        <label for="identidad-tipo">Tipo documental</label>
+        <select id="identidad-tipo" formControlName="tipoDocumentoId">
+          @for (tipo of actual.tipos; track tipo.id) {
+            <option [ngValue]="tipo.id">{{ tipo.nombre }}</option>
+          }
+        </select>
+      </div>
+      <div class="campo">
+        <label for="identidad-emision">Fecha de emisión (opcional)</label>
+        <input id="identidad-emision" type="date" formControlName="fechaEmision" [max]="hoy" />
+      </div>
+      <div class="campo completo">
+        <app-pdf-picker
+          idCampo="identidad-archivo"
+          [(archivo)]="archivo"
+          [progreso]="progreso()"
+          [deshabilitado]="ocupado()"
+          [invalido]="archivoFaltante() && archivo() === null"
+        />
+        <span class="ayuda">DNI ampliado: anverso y reverso en un solo PDF.</span>
+      </div>
+      <div class="campo completo">
+        <label for="identidad-observaciones">Observaciones (opcional)</label>
+        <textarea id="identidad-observaciones" formControlName="observaciones" maxlength="500" rows="2"></textarea>
+      </div>
+      @if (confirmarOtra()) {
+        <div class="aviso sensible completo" role="alert" animate.enter="aparece">
+          <p>Ya existe una copia de DNI registrada. ¿Deseas agregar otra copia sin eliminar la anterior?</p>
+          <div class="fila-acciones">
+            <button type="button" class="boton chico" (click)="confirmarOtra.set(false)">No</button>
+            <button type="button" class="boton chico principal" (click)="registrar(true)">Sí, agregar otra</button>
+          </div>
+        </div>
+      }
+      @if (error(); as mensaje) {
+        <p class="aviso error completo" role="alert" animate.enter="aparece">{{ mensaje }}</p>
+      }
+      <div class="completo acciones">
+        <button type="submit" class="boton principal" [disabled]="ocupado()">
+          {{ progreso() !== null ? 'Subiendo ' + progreso() + ' %' : ocupado() ? 'Registrando' : 'Registrar documento de identidad' }}
+        </button>
+      </div>
+    </form>
+  } @else if (!sesion.tiene('documentos.subir')) {
+    <p class="nota">Tu usuario solo tiene permiso de consulta.</p>
+  }
+</section>
+
+<app-document-dialog
+  [documento]="seleccionado()"
+  [seccion]="seccion()"
+  [trabajador]="contexto.detalle.value() ?? null"
+  (cerrar)="seleccionadoId.set(null)"
+  (actualizado)="contexto.actualizarDocumento($event)"
+/>
