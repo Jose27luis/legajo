@@ -2,30 +2,40 @@
   <div class="campo completo">
     <label [for]="id('tipo')">Tipo de documento <span class="obligatorio" aria-hidden="true">*</span></label>
     <select [id]="id('tipo')" formControlName="tipoDocumentoId" [attr.aria-invalid]="tipoInvalido()">
-      <option [ngValue]="null" disabled>Selecciona el tipo</option>
+      <option [ngValue]="null" disabled>Seleccionar tipo</option>
       @for (tipo of seccion().tipos; track tipo.id) {
-        <option [ngValue]="tipo.id">{{ tipo.codigo }} {{ tipo.nombre }}</option>
+        <option [ngValue]="tipo.id">{{ tipo.nombre }}</option>
       }
     </select>
-  </div>
-
-  <div class="campo">
-    <label [for]="id('numero')">
-      Número de documento
-      @if (tipoElegido()?.requiereNumero === true) {
-        <span class="obligatorio" aria-hidden="true">*</span>
-      } @else {
-        <span class="opcional">opcional</span>
-      }
-    </label>
-    <input [id]="id('numero')" formControlName="numero" maxlength="60" autocomplete="off" [attr.aria-invalid]="numeroInvalido()" />
-    @if (tipoElegido()?.requiereNumero === true) {
-      <span class="ayuda">Este tipo siempre lleva número de resolución, memorando o contrato.</span>
+    @if (guia(); as texto) {
+      <span class="ayuda guia">{{ texto }}</span>
     }
   </div>
 
+  @if (!esCurriculum()) {
+    <div class="campo">
+      <label [for]="id('numero')">
+        {{ seccion().numero === 5 ? 'Número de documento (resolución, memorando u otro)' : 'Número de documento' }}
+        @if (tipoElegido()?.requiereNumero === true) {
+          <span class="obligatorio" aria-hidden="true">*</span>
+        }
+      </label>
+      <input
+        [id]="id('numero')"
+        formControlName="numero"
+        maxlength="60"
+        autocomplete="off"
+        inputmode="text"
+        [attr.aria-invalid]="numeroInvalido()"
+      />
+      @if (tipoElegido()?.requiereNumero === true) {
+        <span class="ayuda">Este tipo siempre lleva número de resolución, memorando o contrato.</span>
+      }
+    </div>
+  }
+
   <div class="campo">
-    <label [for]="id('emision')">Fecha de emisión <span class="opcional">del documento</span></label>
+    <label [for]="id('emision')">{{ esCurriculum() ? 'Fecha del CV, si consta' : 'Fecha de emisión del documento' }}</label>
     <input [id]="id('emision')" type="date" formControlName="fechaEmision" [max]="hoy" />
   </div>
 
@@ -38,7 +48,7 @@
     </label>
     <input [id]="id('vencimiento')" type="date" formControlName="fechaVencimiento" />
     @if (tipoElegido()?.tieneVencimiento === true) {
-      <span class="ayuda">Este tipo vence: con la fecha puesta aparece en el reporte de documentos por vencer.</span>
+      <span class="ayuda">Con la fecha puesta aparece en las alertas de vencimiento.</span>
     }
   </div>
 
@@ -49,52 +59,64 @@
 
   <ng-container formGroupName="datos">
     @for (campo of seccion().campos; track campo.clave) {
+      <ng-container [ngTemplateOutlet]="dato" [ngTemplateOutletContext]="{ $implicit: campo }" />
+    }
+    @if (camposDelTipo().length > 0) {
+      <p class="aviso info completo adicionales">
+        <strong>Datos adicionales del tipo documental:</strong> completa solo lo que figure en el PDF. Los datos no sustituyen
+        al documento adjunto.
+      </p>
+      @for (campo of camposDelTipo(); track campo.clave) {
+        <ng-container [ngTemplateOutlet]="dato" [ngTemplateOutletContext]="{ $implicit: campo }" />
+      }
+    }
+
+    <ng-template #dato let-campo>
       <div class="campo" [class.completo]="campo.tipo === 'parrafo'">
         <label [for]="id('dato-' + campo.clave)">
           {{ campo.etiqueta }}
-          @if (campo.obligatorio) {
+          @if (obligatorio(campo)) {
             <span class="obligatorio" aria-hidden="true">*</span>
-          } @else {
-            <span class="opcional">opcional</span>
           }
         </label>
-        @switch (campo.tipo) {
-          @case ('seleccion') {
-            <select [id]="id('dato-' + campo.clave)" [formControlName]="campo.clave" [attr.aria-invalid]="campoInvalido(campo)">
-              <option value="">Sin indicar</option>
-              @for (opcion of campo.opciones ?? []; track opcion) {
-                <option [value]="opcion">{{ opcion }}</option>
-              }
-            </select>
-          }
-          @case ('parrafo') {
-            <textarea
-              [id]="id('dato-' + campo.clave)"
-              [formControlName]="campo.clave"
-              maxlength="1000"
-              rows="3"
-              [attr.aria-invalid]="campoInvalido(campo)"
-            ></textarea>
-          }
-          @default {
-            <input
-              [id]="id('dato-' + campo.clave)"
-              [type]="tipoEntrada(campo)"
-              [formControlName]="campo.clave"
-              [attr.maxlength]="campo.tipo === 'texto' ? 200 : null"
-              [attr.min]="campo.tipo === 'numero' ? 0 : null"
-              [attr.max]="campo.tipo === 'numero' ? 366 : null"
-              autocomplete="off"
-              [attr.aria-invalid]="campoInvalido(campo)"
-            />
-          }
+        @if (esSeleccion(campo)) {
+          <select [id]="id('dato-' + campo.clave)" [formControlName]="campo.clave" [attr.aria-invalid]="campoInvalido(campo)">
+            <option value="">Seleccionar...</option>
+            @for (opcion of opciones(campo); track opcion.valor) {
+              <option [value]="opcion.valor">{{ opcion.texto }}</option>
+            }
+          </select>
+        } @else if (campo.tipo === 'parrafo') {
+          <textarea
+            [id]="id('dato-' + campo.clave)"
+            [formControlName]="campo.clave"
+            maxlength="1000"
+            rows="3"
+            [attr.aria-invalid]="campoInvalido(campo)"
+          ></textarea>
+        } @else {
+          <input
+            [id]="id('dato-' + campo.clave)"
+            [type]="tipoEntrada(campo)"
+            [formControlName]="campo.clave"
+            [attr.maxlength]="campo.tipo === 'texto' ? 200 : null"
+            [attr.min]="campo.tipo === 'numero' ? 0 : null"
+            [attr.max]="campo.tipo === 'numero' ? 366 : null"
+            autocomplete="off"
+            [attr.aria-invalid]="campoInvalido(campo)"
+          />
+        }
+        @if (campo.clave === 'tipoIncorporacion') {
+          <span class="ayuda">
+            Reingreso: se confirma desde el detalle del PDF para cambiar CESADO a ACTIVO. Renovación: no crea otro ingreso.
+          </span>
         }
       </div>
-    }
+    </ng-template>
   </ng-container>
 
   <div class="campo completo">
-    <label [for]="id('observaciones')">Descripción y observaciones <span class="opcional">opcional</span></label>
+    <label [for]="id('observaciones')">Descripción y observaciones</label>
     <textarea [id]="id('observaciones')" formControlName="observaciones" maxlength="500" rows="2"></textarea>
   </div>
 
@@ -119,12 +141,11 @@
 
   @if (nuevo()) {
     <div class="campo completo automatico">
-      <span class="etiqueta">Estado del documento</span>
+      <span class="etiqueta">Estado del documento (automático)</span>
       <span class="valor">
         <span class="pastilla verde">Registrado</span>
         <span class="ayuda">
-          La cuenta y la fecha de carga se registran solas, y la última modificación queda en "Sin modificaciones" hasta que
-          alguien edite o reemplace el PDF.
+          Al subirlo, la cuenta y la fecha de carga se registran solas; la última modificación queda en «Sin modificaciones».
         </span>
       </span>
     </div>
