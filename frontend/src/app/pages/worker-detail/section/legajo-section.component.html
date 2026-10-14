@@ -1,4 +1,14 @@
-@if (seccion(); as actual) {
+@if (seccion()?.restringida === true) {
+  <header class="cabecera-seccion">
+    <div>
+      <p class="antetitulo">Gestión documental</p>
+      <h2>Acceso restringido</h2>
+      <p>No tienes permisos para consultar los documentos de esta sección.</p>
+    </div>
+    <a routerLink=".." class="boton chico">Ver las 13 secciones</a>
+  </header>
+  <p class="aviso sensible">Solicita autorización al administrador del sistema.</p>
+} @else if (seccion(); as actual) {
   <header class="cabecera-seccion" [style.--tono]="tono(actual.numero)">
     <div>
       <p class="antetitulo">Sección {{ numeroSeccion(actual.numero) }} de 13</p>
@@ -13,7 +23,12 @@
     </div>
   </header>
 
-  <p class="aviso" [class.sensible]="aviso().sensible" [class.info]="!aviso().sensible">{{ aviso().texto }}</p>
+  <p class="aviso" [class.sensible]="aviso().sensible" [class.info]="!aviso().sensible">
+    @if (aviso().titulo; as titulo) {
+      <strong>{{ titulo }}</strong>
+    }
+    {{ aviso().texto }}
+  </p>
 
   <div class="rejilla" [class.sin-panel]="!sesion.tiene('documentos.subir')">
     <section class="tarjeta lista" aria-labelledby="titulo-documentos">
@@ -94,11 +109,14 @@
 
     @if (sesion.tiene('documentos.subir')) {
       <aside class="tarjeta panel" aria-labelledby="titulo-subir">
-        <h3 id="titulo-subir">Subir PDF</h3>
+        <h3 id="titulo-subir">Subir PDF · Sección {{ numeroSeccion(actual.numero) }}</h3>
         @if (contexto.detalle.value(); as trabajador) {
-          <p class="destino">
-            Se guardará en el legajo de <b>{{ nombreCompleto(trabajador) }}</b>, sección {{ numeroSeccion(actual.numero) }}.
-          </p>
+          <div class="campo asignado">
+            <span class="etiqueta">Trabajador y sección asignados</span>
+            <span class="valor">
+              {{ nombreCompleto(trabajador).toUpperCase() }} · DNI {{ trabajador.numeroDoc }} · Sección {{ numeroSeccion(actual.numero) }}
+            </span>
+          </div>
         }
         @if (actual.campos.length > 0) {
           <p class="propios">
@@ -114,7 +132,14 @@
             [deshabilitado]="ocupado()"
             [invalido]="archivoFaltante() && archivo() === null"
           />
-          <app-document-fields [grupo]="formulario" [seccion]="actual" prefijo="nuevo" [compacto]="true" [nuevo]="true" />
+          <app-document-fields
+            [grupo]="formulario"
+            [seccion]="actual"
+            prefijo="nuevo"
+            [compacto]="true"
+            [nuevo]="true"
+            [incorporacionSugerida]="incorporacionSugerida()"
+          />
           @if (error(); as mensaje) {
             <p class="aviso error" role="alert" animate.enter="aparece">{{ mensaje }}</p>
           }
@@ -141,8 +166,10 @@
   <app-document-dialog
     [documento]="seleccionado()"
     [seccion]="actual"
+    [trabajador]="contexto.detalle.value() ?? null"
     (cerrar)="seleccionadoId.set(null)"
     (actualizado)="contexto.actualizarDocumento($event)"
+    (fichaActualizada)="contexto.detalle.reload()"
   />
 } @else if (contexto.errorLegajo(); as mensaje) {
   <div class="aviso error" role="alert">
