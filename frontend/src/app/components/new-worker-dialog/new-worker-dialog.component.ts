@@ -31,6 +31,7 @@ export class NewWorkerDialogComponent {
   protected readonly puedeReingresar = puedeReingresar;
   protected readonly hoy = hoy();
   protected readonly existente = signal<TrabajadorResumen | null>(null);
+  protected readonly disponible = signal(false);
   protected readonly guardando = signal(false);
   protected readonly error = signal<string | null>(null);
 
@@ -57,6 +58,7 @@ export class NewWorkerDialogComponent {
     });
     reiniciarCamposVinculo(this.vinculo, null);
     this.existente.set(null);
+    this.disponible.set(false);
     this.error.set(null);
   }
 
@@ -71,6 +73,7 @@ export class NewWorkerDialogComponent {
     const completo = tipo === 'DNI' ? /^[0-9]{8}$/.test(numero) : /^[A-Z0-9]{9,12}$/.test(numero);
     this.consultaVigente += 1;
     const consulta = this.consultaVigente;
+    this.disponible.set(false);
     if (!completo) {
       this.existente.set(null);
       return;
@@ -79,6 +82,7 @@ export class NewWorkerDialogComponent {
       const resultado = await this.servicio.buscarDocumento(tipo, numero);
       if (consulta === this.consultaVigente) {
         this.existente.set(resultado.trabajador);
+        this.disponible.set(resultado.trabajador === null);
       }
     } catch (error: unknown) {
       this.error.set(mensajeDeError(error));
@@ -93,19 +97,25 @@ export class NewWorkerDialogComponent {
 
   protected async guardar(): Promise<void> {
     const datosVinculo = leerCamposVinculo(this.vinculo);
+    const valoresDocumento = this.formulario.getRawValue();
+    if (valoresDocumento.tipoDocIdentidad === 'DNI' && !/^[0-9]{8}$/.test(valoresDocumento.numeroDoc.trim())) {
+      this.formulario.controls.numeroDoc.markAsTouched();
+      this.error.set('El DNI debe contener exactamente 8 dígitos.');
+      return;
+    }
     if (this.formulario.invalid || datosVinculo === null) {
       this.formulario.markAllAsTouched();
       this.vinculo.markAllAsTouched();
-      this.error.set('Completa los campos obligatorios.');
+      this.error.set('Completa todos los campos obligatorios.');
       return;
     }
     if (this.existente() !== null) {
-      this.error.set('Este documento ya tiene legajo. Abre su legajo o registra su reingreso.');
+      this.error.set('Este DNI ya tiene un legajo. Utiliza la ficha existente.');
       return;
     }
     const valores = this.formulario.getRawValue();
     if (valores.fechaIngreso > hoy()) {
-      this.error.set('La fecha de ingreso no puede ser futura.');
+      this.error.set('Para un trabajador que ya ingresó, la fecha de ingreso no puede ser futura.');
       return;
     }
     this.guardando.set(true);
