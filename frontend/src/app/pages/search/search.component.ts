@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, linkedSignal, resource, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { WorkerPickerComponent } from '../../components/worker-picker/worker-picker.component';
 import { mensajeDeError } from '../../core/errors';
 import {
   CLASE_ESTADO_DOCUMENTO,
@@ -11,7 +12,7 @@ import {
   nombreCompleto,
   numeroSeccion,
 } from '../../core/labels';
-import type { EstadoDocumento, EstadoTrabajador, FiltrosBusqueda, TipoDocumento, TipoPersonal } from '../../core/models';
+import type { EstadoTrabajador, FiltrosBusqueda, TipoDocumento, TipoPersonal, TrabajadorLote } from '../../core/models';
 import { SessionService } from '../../core/session.service';
 import { ToastService } from '../../core/toast.service';
 import { DocumentsService } from '../../services/documents.service';
@@ -23,7 +24,7 @@ const MINIMO = 2;
 
 @Component({
   selector: 'app-search',
-  imports: [RouterLink],
+  imports: [RouterLink, WorkerPickerComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './search.component.html',
   styleUrl: './search.component.css',
@@ -55,6 +56,7 @@ export class SearchComponent {
     computation: (texto) => ({ ...FILTROS_VACIOS, texto }),
   });
   protected readonly pagina = linkedSignal<FiltrosBusqueda, number>({ source: this.filtros, computation: () => 1 });
+  protected readonly trabajador = signal<TrabajadorLote | null>(null);
   protected readonly marcados = signal<string[]>([]);
   protected readonly descargando = signal(false);
 
@@ -143,7 +145,13 @@ export class SearchComponent {
 
   protected cambiarEstadoDocumento(evento: Event): void {
     const valor = this.leer(evento);
-    this.filtros.update((actual) => ({ ...actual, estadoDocumento: valor === '' ? null : (valor as EstadoDocumento) }));
+    const estado = valor === 'TODOS' ? 'TODOS' : (ESTADOS_DOCUMENTO.find((item) => item === valor) ?? null);
+    this.filtros.update((actual) => ({ ...actual, estadoDocumento: estado }));
+  }
+
+  protected elegirTrabajador(trabajador: TrabajadorLote | null): void {
+    this.trabajador.set(trabajador);
+    this.filtros.update((actual) => ({ ...actual, trabajadorId: trabajador?.id ?? null }));
   }
 
   protected cambiarDesde(evento: Event): void {
@@ -157,6 +165,7 @@ export class SearchComponent {
   protected limpiar(): void {
     this.borrador.set('');
     this.filtros.set({ ...FILTROS_VACIOS });
+    this.trabajador.set(null);
     this.marcados.set([]);
   }
 
