@@ -7,6 +7,7 @@ import type { SesionActiva } from '../common/session';
 import { CreateDocumentDto } from './dto/document-input.dto';
 import { DocumentDto, LegajoDto } from './dto/document.dto';
 import { DocumentsService } from './documents.service';
+import { DossierService } from './dossier.service';
 
 const ID = new ParseUUIDPipe({ version: '4' });
 
@@ -24,7 +25,43 @@ function leerSecciones(valor: string | undefined): number[] | null {
 @ApiTags('Legajo')
 @Controller('workers/:id')
 export class LegajoController {
-  constructor(private readonly documentos: DocumentsService) {}
+  constructor(
+    private readonly documentos: DocumentsService,
+    private readonly expedientes: DossierService,
+  ) {}
+
+  @Requiere('documentos.descargar')
+  @Get('dossier.pdf')
+  @ApiProduces('application/pdf')
+  @ApiQuery({ name: 'sections', required: false, description: 'Números de sección separados por coma' })
+  @ApiQuery({ name: 'cover', required: false, enum: ['1', '0'], description: 'Incluir portada e índice' })
+  @ApiOperation({ summary: 'Une en un solo PDF los documentos registrados de las secciones elegidas' })
+  @ApiResponse({ status: 200, description: 'Expediente en PDF' })
+  async expediente(
+    @Param('id', ID) id: string,
+    @Query('sections') secciones: string | undefined,
+    @Query('cover') portada: string | undefined,
+    @SesionActual() sesion: SesionActiva,
+    @Req() solicitud: Request,
+    @Res() respuesta: Response,
+  ): Promise<void> {
+    await this.expedientes.pdf(id, leerSecciones(secciones), portada !== '0', sesion, datosCliente(solicitud), respuesta);
+  }
+
+  @Requiere('documentos.ver')
+  @Get('dossier-index.xlsx')
+  @ApiProduces('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+  @ApiQuery({ name: 'sections', required: false, description: 'Números de sección separados por coma' })
+  @ApiOperation({ summary: 'Índice del legajo en Excel con los documentos de las secciones elegidas' })
+  @ApiResponse({ status: 200, description: 'Archivo de Excel' })
+  async indice(
+    @Param('id', ID) id: string,
+    @Query('sections') secciones: string | undefined,
+    @SesionActual() sesion: SesionActiva,
+    @Res() respuesta: Response,
+  ): Promise<void> {
+    await this.expedientes.indice(id, leerSecciones(secciones), sesion, respuesta);
+  }
 
   @Requiere('personal.ver', 'documentos.ver')
   @Get('legajo')
