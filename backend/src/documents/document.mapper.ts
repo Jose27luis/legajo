@@ -10,6 +10,8 @@ export const incluirDocumento = {
   tipoDocumento: { include: { seccion: { select: { numero: true, carpeta: true } } } },
   creadoPor: { select: { nombreCompleto: true } },
   modificadoPor: { select: { nombreCompleto: true } },
+  confirmadoPor: { select: { nombreCompleto: true } },
+  movimiento: { select: { id: true } },
   archivos: { orderBy: { version: 'desc' }, include: { subidoPor: { select: { nombreCompleto: true } } } },
 } as const satisfies Prisma.DocumentoInclude;
 
@@ -29,13 +31,20 @@ export function puedeEditar(documento: DocumentoCompleto, sesion: SesionActiva):
 }
 
 export function filtroVisibilidad(sesion: SesionActiva): Prisma.DocumentoWhereInput {
+  const condiciones: Prisma.DocumentoWhereInput[] = [];
+  if (sesion.seccionesRestringidas.length > 0) {
+    condiciones.push({ tipoDocumento: { seccion: { numero: { notIn: sesion.seccionesRestringidas } } } });
+  }
   if (!sesion.permisos.includes('documentos.restringidos')) {
-    return { tipoDocumento: { restringido: false }, nivelAcceso: 'NORMAL' };
+    condiciones.push({ tipoDocumento: { restringido: false }, nivelAcceso: 'NORMAL' });
+  } else if (!sesion.permisos.includes('documentos.muy_restringidos')) {
+    condiciones.push({ nivelAcceso: { not: 'MUY_RESTRINGIDO' } });
   }
-  if (!sesion.permisos.includes('documentos.muy_restringidos')) {
-    return { nivelAcceso: { not: 'MUY_RESTRINGIDO' } };
-  }
-  return {};
+  return condiciones.length === 0 ? {} : { AND: condiciones };
+}
+
+export function seccionPermitida(sesion: SesionActiva, numero: number): boolean {
+  return !sesion.seccionesRestringidas.includes(numero);
 }
 
 export function aDocumentoDto(documento: DocumentoCompleto, sesion: SesionActiva): DocumentDto {
@@ -72,6 +81,10 @@ export function aDocumentoDto(documento: DocumentoCompleto, sesion: SesionActiva
       creadoEn: archivo.creadoEn.toISOString(),
       actual: archivo.id === documento.archivoActualId,
     })),
+    vinculoId: documento.vinculoId,
+    confirmadoPor: documento.confirmadoPor?.nombreCompleto ?? null,
+    confirmadoEn: documento.confirmadoEn === null ? null : documento.confirmadoEn.toISOString(),
+    movimientoId: documento.movimiento?.id ?? null,
   };
 }
 
