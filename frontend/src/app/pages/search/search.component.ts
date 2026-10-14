@@ -36,7 +36,7 @@ export class SearchComponent {
   private readonly avisos = inject(ToastService);
   protected readonly sesion = inject(SessionService);
 
-  readonly texto = input('');
+  readonly texto = input('', { transform: (valor: string | undefined) => valor ?? '' });
 
   protected readonly maximoSeleccion = MAXIMO_SELECCION;
   protected readonly estadosDocumento = ESTADOS_DOCUMENTO;
@@ -81,6 +81,8 @@ export class SearchComponent {
       .flatMap((item) => item.tipos)
       .filter((tipo) => tipo.activo);
   });
+
+  protected readonly enlaceExportacion = computed(() => this.servicio.enlaceExportacion(this.filtros()));
 
   protected readonly conFiltros = computed(() => {
     const filtros = this.filtros();
