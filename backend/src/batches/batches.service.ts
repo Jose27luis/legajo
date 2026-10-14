@@ -55,6 +55,7 @@ interface TipoBreve {
   activo: boolean;
   restringido: boolean;
   requiereNumero: boolean;
+  accion: 'NINGUNA' | 'VINCULO' | 'MOVIMIENTO' | 'CESE';
   seccion: { numero: number; campos: Prisma.JsonValue };
 }
 
@@ -209,6 +210,7 @@ export class BatchesService {
           sesion,
           cliente,
           loteItemId: itemId,
+          vinculoId: null,
         });
         documentoId = documento.id;
       }
@@ -254,6 +256,7 @@ export class BatchesService {
         sesion,
         cliente,
         loteItemId: itemId,
+        vinculoId: null,
       });
       await transaccion.loteItem.update({
         where: { id: itemId },
@@ -327,6 +330,7 @@ export class BatchesService {
             sesion,
             cliente,
             loteItemId: itemId,
+            vinculoId: null,
           });
           ids.push(documento.id);
         }
@@ -407,6 +411,7 @@ export class BatchesService {
           activo: true,
           restringido: true,
           requiereNumero: true,
+          accion: true,
           seccion: { select: { numero: true, campos: true } },
         },
       }),
@@ -431,6 +436,10 @@ export class BatchesService {
         motivo = 'La fecha del nombre es futura';
       } else if (leerCampos(tipo.seccion.campos).some((campo) => campo.obligatorio)) {
         motivo = 'La sección pide datos que no vienen en el nombre';
+      } else if (tipo.accion === 'VINCULO') {
+        motivo = 'Los contratos y resoluciones necesitan el tipo de incorporación, el régimen y el inicio del vínculo';
+      } else if (sesion.seccionesRestringidas.includes(tipo.seccion.numero)) {
+        motivo = 'Tu cuenta no tiene acceso a esta sección';
       }
       return { interpretado, trabajador, tipo, motivo };
     });
