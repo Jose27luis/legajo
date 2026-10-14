@@ -1,0 +1,58 @@
+:host {
+  display: grid;
+  gap: 16px;
+}
+
+.cifras-reporte {
+  margin: 0;
+}
+
+.completo-fila {
+  grid-column: 1 / -1;
+}
+
+.acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.acciones a,
+.botones a {
+  text-decoration: none;
+}
+
+.tabla-contenedor.cargando {
+  opacity: 0.6;
+}
+
+.tabla {
+  min-width: 860px;
+}
+
+.nota {
+  margin-top: 10px;
+  color: var(--tinta-suave);
+  font-size: 12.5px;
+}
+
+.expediente {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 12px;
+  margin: 12px 0;
+}
+
+.botones {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+  .expediente {
+    grid-template-columns: 1fr;
+  }
+}
