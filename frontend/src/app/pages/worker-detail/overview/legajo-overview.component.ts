@@ -2,8 +2,6 @@ import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/c
 import { RouterLink } from '@angular/router';
 import { numeroSeccion, tonoSeccion } from '../../../core/labels';
 import type { SeccionLegajo } from '../../../core/models';
-import { SessionService } from '../../../core/session.service';
-import { DocumentsService } from '../../../services/documents.service';
 import { WorkerContext } from '../worker-context';
 
 @Component({
@@ -14,9 +12,7 @@ import { WorkerContext } from '../worker-context';
   styleUrl: './legajo-overview.component.css',
 })
 export class LegajoOverviewComponent {
-  private readonly documentos = inject(DocumentsService);
   protected readonly contexto = inject(WorkerContext);
-  protected readonly sesion = inject(SessionService);
   protected readonly numeroSeccion = numeroSeccion;
   protected readonly tono = tonoSeccion;
 
@@ -26,31 +22,23 @@ export class LegajoOverviewComponent {
     }
     const lista = this.contexto.legajo.value().documentos;
     return {
-      vigentes: lista.filter((documento) => documento.estado !== 'ANULADO').length,
-      disponibles: lista.filter((documento) => documento.estado === 'DISPONIBLE').length,
+      registrados: lista.filter((documento) => documento.estado === 'DISPONIBLE').length,
       procesando: lista.filter((documento) => documento.estado === 'PROCESANDO').length,
       conError: lista.filter((documento) => documento.estado === 'ERROR').length,
-      folios: lista
-        .filter((documento) => documento.estado === 'DISPONIBLE')
-        .reduce((suma, documento) => suma + (documento.versiones.find((version) => version.actual)?.paginas ?? 0), 0),
     };
   });
-
-  protected readonly enlaceZip = computed(() => this.documentos.enlaceZip(this.contexto.id(), []));
 
   protected ruta(seccion: SeccionLegajo): string {
     return seccion.numero === 1 ? 'record' : `sections/${seccion.numero}`;
   }
 
-  protected tipos(seccion: SeccionLegajo): string {
-    return seccion.tipos
-      .map((tipo) => tipo.nombre)
-      .slice(0, 3)
-      .join(' · ');
-  }
-
-  protected campos(seccion: SeccionLegajo): string {
-    const etiquetas = seccion.campos.map((campo) => campo.etiqueta).slice(0, 3);
-    return etiquetas.length === 0 ? 'Datos comunes del documento' : etiquetas.join(' · ');
+  protected cuenta(seccion: SeccionLegajo): string {
+    if (seccion.restringida) {
+      return 'Restringida';
+    }
+    if (seccion.numero === 1) {
+      return 'Ficha';
+    }
+    return `${seccion.total} PDF`;
   }
 }
