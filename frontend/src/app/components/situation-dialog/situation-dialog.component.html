@@ -1,41 +1,59 @@
-<app-dialog [abierto]="trabajador() !== null" titulo="Estado laboral y movimiento" (cerrar)="cerrarDialogo()">
+<app-dialog [abierto]="trabajador() !== null" titulo="Actualizar situación laboral y movimientos" (cerrar)="cerrarDialogo()">
   @if (trabajador(); as actual) {
-    <p class="nota-conceptos">
-      <strong>{{ nombreCompleto(actual) }}</strong><br />
-      Estado laboral y movimiento son cosas distintas: una rotación o un destaque no cambian a un trabajador de activo a
-      cesado.
+    <p class="aviso info presentacion">
+      <strong>{{ nombreCompleto(actual) }} · {{ actual.numeroDoc }}</strong><br />
+      Estado laboral y último movimiento son conceptos distintos: una rotación no cambia ACTIVO a CESADO.
     </p>
 
-    <div class="opciones" role="radiogroup" aria-label="Qué deseas registrar">
-      <label class="opcion" [class.elegida]="accion() === 'movimiento'">
-        <input type="radio" name="accion-situacion" [checked]="accion() === 'movimiento'" (change)="accion.set('movimiento')" />
-        <span><strong>Movimiento</strong><span>Rotación, destaque, encargatura o reasignación. Sigue activo.</span></span>
-      </label>
-      <label class="opcion" [class.elegida]="accion() === 'cese'">
-        <input type="radio" name="accion-situacion" [checked]="accion() === 'cese'" (change)="accion.set('cese')" />
-        <span><strong>Cese</strong><span>Deja de laborar. Su legajo se conserva.</span></span>
-      </label>
-    </div>
-
     <form id="formulario-situacion" class="campos" [formGroup]="formulario" (ngSubmit)="guardar()" novalidate>
-      @if (accion() === 'movimiento') {
+      <div class="campo">
+        <label for="situacion-estado">Estado laboral <span class="obligatorio" aria-hidden="true">*</span></label>
+        <select id="situacion-estado" formControlName="estado">
+          <option ngValue="ACTIVO">ACTIVO</option>
+          <option ngValue="CESADO">CESADO</option>
+        </select>
+      </div>
+
+      @if (estadoElegido() === 'ACTIVO') {
         <div class="campo">
-          <label for="situacion-movimiento">Movimiento actual</label>
+          <label for="situacion-movimiento">Último movimiento</label>
           <select id="situacion-movimiento" formControlName="movimiento">
             @for (movimiento of movimientos; track movimiento) {
               <option [ngValue]="movimiento">{{ textoMovimiento[movimiento] }}</option>
             }
           </select>
         </div>
-        @if (formulario.controls.movimiento.value !== 'SIN_MOVIMIENTO') {
+        @if (movimientoElegido() !== 'SIN_MOVIMIENTO') {
           <div class="campo">
-            <label for="situacion-fecha-movimiento">Fecha del movimiento</label>
+            <label for="situacion-fecha-movimiento">
+              Fecha del último movimiento <span class="obligatorio" aria-hidden="true">*</span>
+            </label>
             <input id="situacion-fecha-movimiento" type="date" formControlName="movimientoFecha" [max]="hoy" />
+          </div>
+          <div class="campo">
+            <label for="situacion-origen">Área o puesto de origen <span class="obligatorio" aria-hidden="true">*</span></label>
+            <select id="situacion-origen" formControlName="areaOrigenId">
+              <option [ngValue]="null" disabled>Selecciona de dónde procede</option>
+              @for (area of areas(); track area.id) {
+                <option [ngValue]="area.id">{{ area.nombre }}</option>
+              }
+            </select>
+          </div>
+          <div class="campo completo">
+            <label for="situacion-destino">
+              Área o dependencia de destino <span class="obligatorio" aria-hidden="true">*</span>
+            </label>
+            <select id="situacion-destino" formControlName="areaDestinoId">
+              <option [ngValue]="null" disabled>Selecciona el área de destino</option>
+              @for (area of areas(); track area.id) {
+                <option [ngValue]="area.id">{{ area.nombre }}</option>
+              }
+            </select>
           </div>
         }
       } @else {
         <div class="campo">
-          <label for="situacion-motivo">Motivo del cese</label>
+          <label for="situacion-motivo">Motivo del cese <span class="obligatorio" aria-hidden="true">*</span></label>
           <select id="situacion-motivo" formControlName="motivoCese">
             <option [ngValue]="null" disabled>Selecciona</option>
             @for (motivo of motivosCese; track motivo) {
@@ -44,15 +62,26 @@
           </select>
         </div>
         <div class="campo">
-          <label for="situacion-fecha-cese">Fecha efectiva del cese</label>
+          <label for="situacion-fecha-cese">Fecha de cese <span class="obligatorio" aria-hidden="true">*</span></label>
           <input id="situacion-fecha-cese" type="date" formControlName="fechaCese" [max]="hoy" />
         </div>
       }
+
       <div class="campo completo">
-        <label for="situacion-observacion">Documento de sustento u observación (opcional)</label>
-        <input id="situacion-observacion" formControlName="observacion" maxlength="500" autocomplete="off" />
-        <span class="ayuda">El PDF de la resolución o memorando se sube en la sección 05 u 11 del legajo.</span>
+        <label for="situacion-observacion">Observación o documento sustentatorio (referencia)</label>
+        <textarea id="situacion-observacion" formControlName="observacion" maxlength="500" rows="3"></textarea>
+        <span class="ayuda">El PDF de la resolución o memorando se adjunta en la sección 05 o 11 del legajo.</span>
       </div>
+
+      @if (ceseConDocumento()) {
+        <div class="aviso sensible completo" role="alert" animate.enter="aparece">
+          <p>
+            <strong>El cese se confirma con su documento.</strong> Registra el PDF en la Sección 11 – Desvinculación y pulsa
+            «Confirmar cese laboral» desde Ver detalle. La ficha de la Sección 01 se actualizará al confirmar.
+          </p>
+          <button type="button" class="boton chico" (click)="irASeccion11()">Ir a la Sección 11</button>
+        </div>
+      }
       @if (error(); as mensaje) {
         <p class="aviso error completo" role="alert" animate.enter="aparece">{{ mensaje }}</p>
       }
@@ -60,16 +89,8 @@
   }
   <ng-container pie>
     <button type="button" class="boton" (click)="cerrarDialogo()" [disabled]="guardando()">Cancelar</button>
-    <button
-      type="submit"
-      form="formulario-situacion"
-      class="boton"
-      [class.principal]="accion() === 'movimiento'"
-      [class.peligro]="accion() === 'cese'"
-      [class.lleno]="accion() === 'cese'"
-      [disabled]="guardando()"
-    >
-      {{ guardando() ? 'Guardando' : accion() === 'cese' ? 'Registrar cese' : 'Guardar movimiento' }}
+    <button type="submit" form="formulario-situacion" class="boton principal" [disabled]="guardando()">
+      {{ guardando() ? 'Guardando' : 'Actualizar' }}
     </button>
   </ng-container>
 </app-dialog>
