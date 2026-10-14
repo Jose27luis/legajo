@@ -28,6 +28,20 @@ export class SearchController {
     return this.busqueda.avanzada(consulta, sesion);
   }
 
+  @Get('documents.xlsx')
+  @Requiere('personal.ver', 'documentos.ver')
+  @ApiProduces('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+  @ApiOperation({ summary: 'Exporta a Excel los documentos que coinciden con la búsqueda' })
+  @ApiResponse({ status: 200, description: 'Libro de Excel' })
+  async exportarDocumentos(
+    @Query() consulta: SearchQueryDto,
+    @SesionActual() sesion: SesionActiva,
+    @Req() solicitud: Request,
+    @Res() respuesta: Response,
+  ): Promise<void> {
+    await this.busqueda.exportarDocumentos(consulta, sesion, datosCliente(solicitud), respuesta);
+  }
+
   @Post('zip')
   @HttpCode(HttpStatus.OK)
   @ApiProduces('application/zip')
