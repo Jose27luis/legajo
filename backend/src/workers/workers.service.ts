@@ -11,19 +11,13 @@ import { enviarLibro, type CeldaValor, type ColumnaHoja } from '../common/xlsx-s
 import type { CreateWorkerDto, LookupQueryDto, UpdateWorkerDto, WorkerQueryDto } from './dto/worker-input.dto';
 import type { WorkerDetailDto, WorkerLookupDto, WorkerPageDto, WorkerSummaryDto } from './dto/worker.dto';
 import { exigirCatalogosActivos } from './catalog-guard';
+import { TEXTO_MOVIMIENTO } from './labels';
 import { aDetalleDto, aDirectorioDto, aListadoDto, incluirDetalle, incluirDirectorio, incluirListado, validarDocumento } from './worker.mapper';
 
 const MENSAJE_DUPLICADO = 'Ya existe un trabajador registrado con ese documento';
 const LIMITE_EXPORTACION = 10000;
 
 const TEXTO_ESTADO = { ACTIVO: 'Activo', CESADO: 'Cesado' } as const;
-const TEXTO_MOVIMIENTO = {
-  SIN_MOVIMIENTO: 'Sin movimiento',
-  ROTACION: 'Rotación',
-  DESTAQUE: 'Destaque',
-  ENCARGATURA: 'Encargatura',
-  REASIGNACION: 'Reasignación',
-} as const;
 const TEXTO_MOTIVO = {
   RENUNCIA: 'Renuncia',
   JUBILACION: 'Jubilación',
@@ -274,10 +268,13 @@ export class WorkersService {
     if (termino !== null) {
       const palabras = normalizarBusqueda(termino).split(/\s+/).filter((palabra) => palabra.length > 0);
       const documento = termino.trim().toUpperCase();
+      const texto = termino.trim();
       condiciones.push({
         OR: [
           { numeroDoc: { startsWith: documento } },
           { AND: palabras.map((palabra) => ({ nombreBusqueda: { contains: palabra } })) },
+          { vinculos: { some: { actual: true, cargo: { nombre: { contains: texto, mode: 'insensitive' } } } } },
+          { vinculos: { some: { actual: true, area: { nombre: { contains: texto, mode: 'insensitive' } } } } },
         ],
       });
     }
