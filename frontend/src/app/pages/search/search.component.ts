@@ -18,8 +18,10 @@ import { ToastService } from '../../core/toast.service';
 import { DocumentsService } from '../../services/documents.service';
 import { FilterOptionsService } from '../../services/filter-options.service';
 import { FILTROS_VACIOS, MAXIMO_SELECCION, SearchService } from '../../services/search.service';
+import { WorkersService } from '../../services/workers.service';
 
 const ESPERA_MS = 300;
+const DNI = /^\d{8}$/;
 const MINIMO = 2;
 
 @Component({
@@ -34,6 +36,7 @@ export class SearchComponent {
   private readonly documentos = inject(DocumentsService);
   private readonly opcionesFiltro = inject(FilterOptionsService);
   private readonly avisos = inject(ToastService);
+  private readonly trabajadores = inject(WorkersService);
   protected readonly sesion = inject(SessionService);
 
   readonly texto = input('', { transform: (valor: string | undefined) => valor ?? '' });
@@ -57,6 +60,7 @@ export class SearchComponent {
   });
   protected readonly pagina = linkedSignal<FiltrosBusqueda, number>({ source: this.filtros, computation: () => 1 });
   protected readonly trabajador = signal<TrabajadorLote | null>(null);
+  private desdeTexto = false;
   protected readonly marcados = signal<string[]>([]);
   protected readonly descargando = signal(false);
 
@@ -100,13 +104,34 @@ export class SearchComponent {
     effect((alLimpiar) => {
       const escrito = this.borrador().trim();
       const aplicable = escrito.length >= MINIMO ? escrito : '';
-      const temporizador = setTimeout(() => {
-        if (aplicable !== this.filtros().texto) {
-          this.filtros.update((actual) => ({ ...actual, texto: aplicable }));
-        }
-      }, ESPERA_MS);
+      const temporizador = setTimeout(() => void this.aplicarTexto(aplicable), ESPERA_MS);
       alLimpiar(() => clearTimeout(temporizador));
     });
+  }
+
+  private async aplicarTexto(aplicable: string): Promise<void> {
+    const elegido = this.trabajador();
+    if (elegido !== null && this.desdeTexto && aplicable !== elegido.numeroDoc) {
+      this.desdeTexto = false;
+      this.trabajador.set(null);
+      this.filtros.update((actual) => ({ ...actual, trabajadorId: null }));
+    }
+    if (DNI.test(aplicable) && this.trabajador()?.numeroDoc !== aplicable) {
+      const encontrado = await this.trabajadores.buscarDocumento('DNI', aplicable).catch(() => null);
+      if (encontrado?.trabajador && this.borrador().trim() === aplicable) {
+        const trabajador = encontrado.trabajador;
+        this.desdeTexto = true;
+        this.trabajador.set({ id: trabajador.id, numeroDoc: trabajador.numeroDoc, nombre: nombreCompleto(trabajador) });
+        this.filtros.update((actual) => ({ ...actual, texto: '', trabajadorId: trabajador.id }));
+        return;
+      }
+    }
+    if (this.desdeTexto && this.trabajador()?.numeroDoc === aplicable) {
+      return;
+    }
+    if (aplicable !== this.filtros().texto) {
+      this.filtros.update((actual) => ({ ...actual, texto: aplicable }));
+    }
   }
 
   protected escribir(evento: Event): void {
@@ -152,6 +177,10 @@ export class SearchComponent {
   }
 
   protected elegirTrabajador(trabajador: TrabajadorLote | null): void {
+    if (trabajador === null && this.desdeTexto) {
+      this.borrador.set('');
+    }
+    this.desdeTexto = false;
     this.trabajador.set(trabajador);
     this.filtros.update((actual) => ({ ...actual, trabajadorId: trabajador?.id ?? null }));
   }
@@ -168,6 +197,7 @@ export class SearchComponent {
     this.borrador.set('');
     this.filtros.set({ ...FILTROS_VACIOS });
     this.trabajador.set(null);
+    this.desdeTexto = false;
     this.marcados.set([]);
   }
 
