@@ -1,83 +1,117 @@
-<app-dialog [abierto]="abierto()" titulo="Registrar nuevo ingreso" (cerrar)="cerrarDialogo()">
-  <p class="intro">
-    El trabajador queda <strong>activo</strong>, sin movimiento y con su legajo de 13 secciones listo. Los PDF se suben
-    después, desde su legajo.
-  </p>
+<app-dialog [abierto]="abierto()" titulo="Registrar trabajador que recién ingresa" (cerrar)="cerrarDialogo()">
+  <div class="presentacion">
+    <div>
+      <strong>Nuevo ingreso laboral</strong>
+      <p>
+        Completa la ficha de la persona que acaba de ingresar. No hace falta adjuntar el PDF ahora: el contrato o la resolución se
+        suben después en la Sección 02.
+      </p>
+    </div>
+    <ul class="resultado-inicial" aria-label="Así quedará el trabajador">
+      <li><span class="pastilla verde">ACTIVO</span><span>Estado inicial</span></li>
+      <li><span class="pastilla gris">Sin movimiento</span><span>Último movimiento</span></li>
+      <li><span class="pastilla azul">13 secciones</span><span>Legajo con 0 PDF</span></li>
+    </ul>
+  </div>
 
   <form id="formulario-ingreso" [formGroup]="formulario" (ngSubmit)="guardar()" novalidate>
-    <div class="campos">
-      <div class="campo">
-        <label for="ingreso-tipo-doc">Documento de identidad</label>
-        <select id="ingreso-tipo-doc" formControlName="tipoDocIdentidad" (change)="revisarDocumento()">
-          <option value="DNI">DNI</option>
-          <option value="CE">Carné de extranjería</option>
-        </select>
-      </div>
-      <div class="campo">
-        <label for="ingreso-numero">Número</label>
-        <input
-          id="ingreso-numero"
-          formControlName="numeroDoc"
-          inputmode="numeric"
-          maxlength="12"
-          autocomplete="off"
-          aria-describedby="ingreso-numero-ayuda"
-          [attr.aria-invalid]="invalido('numeroDoc')"
-          (input)="revisarDocumento()"
-        />
-        <span id="ingreso-numero-ayuda" class="ayuda">No se registran dos legajos con el mismo documento.</span>
-      </div>
-
-      @if (existente(); as trabajador) {
-        <div class="existente completo" role="status" animate.enter="aparece">
-          <p>
-            Este documento ya corresponde a <strong>{{ nombreCompleto(trabajador) }}</strong>
-            ({{ textoEstado[trabajador.estado].toLowerCase() }}). No se crea otro legajo.
-          </p>
-          <div class="atajos">
-            <a class="boton chico" [routerLink]="['/workers', trabajador.id]" (click)="cerrar.emit()">Abrir legajo</a>
-            @if (puedeReingresar(trabajador)) {
-              <button type="button" class="boton chico principal" (click)="reingresar.emit(trabajador)">
-                Registrar reingreso
-              </button>
-            }
-          </div>
+    <fieldset class="grupo">
+      <legend><span class="indicador">1</span> Identidad</legend>
+      <div class="campos">
+        <div class="campo">
+          <label for="ingreso-tipo-doc">Documento de identidad <span class="obligatorio" aria-hidden="true">*</span></label>
+          <select id="ingreso-tipo-doc" formControlName="tipoDocIdentidad" (change)="revisarDocumento()">
+            <option value="DNI">DNI</option>
+            <option value="CE">Carné de extranjería</option>
+          </select>
         </div>
-      }
+        <div class="campo">
+          <label for="ingreso-numero">
+            {{ formulario.controls.tipoDocIdentidad.value === 'DNI' ? 'DNI' : 'Número de carné' }}
+            <span class="obligatorio" aria-hidden="true">*</span>
+          </label>
+          <input
+            id="ingreso-numero"
+            formControlName="numeroDoc"
+            [attr.inputmode]="formulario.controls.tipoDocIdentidad.value === 'DNI' ? 'numeric' : 'text'"
+            [attr.maxlength]="formulario.controls.tipoDocIdentidad.value === 'DNI' ? 8 : 12"
+            autocomplete="off"
+            aria-describedby="ingreso-numero-ayuda"
+            [attr.aria-invalid]="invalido('numeroDoc')"
+            (input)="revisarDocumento()"
+          />
+          @if (disponible()) {
+            <span id="ingreso-numero-ayuda" class="ayuda libre" animate.enter="aparece">Disponible: se creará un legajo nuevo.</span>
+          } @else {
+            <span id="ingreso-numero-ayuda" class="ayuda">No se permite registrar dos legajos con el mismo documento.</span>
+          }
+        </div>
 
-      <div class="campo completo">
-        <label for="ingreso-nombres">Nombres</label>
-        <input id="ingreso-nombres" formControlName="nombres" autocomplete="off" [attr.aria-invalid]="invalido('nombres')" />
-      </div>
-      <div class="campo">
-        <label for="ingreso-paterno">Apellido paterno</label>
-        <input
-          id="ingreso-paterno"
-          formControlName="apellidoPaterno"
-          autocomplete="off"
-          [attr.aria-invalid]="invalido('apellidoPaterno')"
-        />
-      </div>
-      <div class="campo">
-        <label for="ingreso-materno">Apellido materno</label>
-        <input id="ingreso-materno" formControlName="apellidoMaterno" autocomplete="off" />
-      </div>
-      <div class="campo">
-        <label for="ingreso-fecha">Fecha de ingreso</label>
-        <input
-          id="ingreso-fecha"
-          type="date"
-          formControlName="fechaIngreso"
-          [max]="hoy"
-          aria-describedby="ingreso-fecha-ayuda"
-          [attr.aria-invalid]="invalido('fechaIngreso')"
-        />
-        <span id="ingreso-fecha-ayuda" class="ayuda">Día en que empezó a laborar, no el de digitalización.</span>
-      </div>
-    </div>
+        @if (existente(); as trabajador) {
+          <div class="existente completo" role="status" aria-live="polite" animate.enter="aparece">
+            <p>
+              Este documento ya corresponde a <strong>{{ nombreCompleto(trabajador) }}</strong> ({{ trabajador.estado }}). No
+              debe generarse otro legajo.
+            </p>
+            <div class="atajos">
+              <a class="boton chico" [routerLink]="['/workers', trabajador.id]" (click)="cerrar.emit()">Abrir legajo</a>
+              @if (puedeReingresar(trabajador)) {
+                <button type="button" class="boton chico principal" (click)="reingresar.emit(trabajador)">Registrar reingreso</button>
+              }
+            </div>
+          </div>
+        }
 
-    <h3>Vínculo laboral</h3>
-    <app-link-fields [grupo]="vinculo" etiquetaReferencia="Documento de ingreso" />
+        <div class="campo completo">
+          <label for="ingreso-nombres">Nombres <span class="obligatorio" aria-hidden="true">*</span></label>
+          <input
+            id="ingreso-nombres"
+            formControlName="nombres"
+            maxlength="100"
+            autocomplete="off"
+            [attr.aria-invalid]="invalido('nombres')"
+          />
+        </div>
+        <div class="campo">
+          <label for="ingreso-paterno">Apellido paterno <span class="obligatorio" aria-hidden="true">*</span></label>
+          <input
+            id="ingreso-paterno"
+            formControlName="apellidoPaterno"
+            maxlength="80"
+            autocomplete="off"
+            [attr.aria-invalid]="invalido('apellidoPaterno')"
+          />
+        </div>
+        <div class="campo">
+          <label for="ingreso-materno">Apellido materno</label>
+          <input id="ingreso-materno" formControlName="apellidoMaterno" maxlength="80" autocomplete="off" />
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset class="grupo">
+      <legend><span class="indicador">2</span> Puesto y vínculo</legend>
+      <app-link-fields [grupo]="vinculo" etiquetaReferencia="Referencia del documento de ingreso" />
+      <div class="campos fechas">
+        <div class="campo">
+          <label for="ingreso-fecha">Fecha de ingreso <span class="obligatorio" aria-hidden="true">*</span></label>
+          <input
+            id="ingreso-fecha"
+            type="date"
+            formControlName="fechaIngreso"
+            [max]="hoy"
+            aria-describedby="ingreso-fecha-ayuda"
+            [attr.aria-invalid]="invalido('fechaIngreso')"
+          />
+          <span id="ingreso-fecha-ayuda" class="ayuda">Día en que inició sus labores, no el día de digitalización.</span>
+        </div>
+        <div class="campo">
+          <label for="ingreso-estado">Estado laboral inicial</label>
+          <input id="ingreso-estado" value="ACTIVO" readonly aria-describedby="ingreso-estado-ayuda" />
+          <span id="ingreso-estado-ayuda" class="ayuda">Automático para un trabajador que ya comenzó a laborar.</span>
+        </div>
+      </div>
+    </fieldset>
 
     @if (error(); as mensaje) {
       <p class="aviso error" role="alert" animate.enter="aparece">{{ mensaje }}</p>
@@ -86,12 +120,7 @@
 
   <ng-container pie>
     <button type="button" class="boton" (click)="cerrarDialogo()" [disabled]="guardando()">Cancelar</button>
-    <button
-      type="submit"
-      form="formulario-ingreso"
-      class="boton principal"
-      [disabled]="guardando() || existente() !== null"
-    >
+    <button type="submit" form="formulario-ingreso" class="boton principal" [disabled]="guardando() || existente() !== null">
       {{ guardando() ? 'Registrando' : 'Registrar ingreso' }}
     </button>
   </ng-container>
