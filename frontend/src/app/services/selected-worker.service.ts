@@ -1,5 +1,5 @@
 import { Injectable, signal } from '@angular/core';
-import { iniciales, nombreCompleto } from '../core/labels';
+import { TEXTO_MOTIVO_FIN, iniciales, nombreCompleto } from '../core/labels';
 import type { EstadoTrabajador, Movimiento, TrabajadorDetalle } from '../core/models';
 
 const CLAVE = 'legajos.trabajador';
@@ -15,6 +15,8 @@ export interface TrabajadorElegido {
   regimen: string | null;
   cargo: string | null;
   area: string | null;
+  motivoCese: string | null;
+  fechaCese: string | null;
 }
 
 function leer(): TrabajadorElegido | null {
@@ -56,6 +58,9 @@ export class SelectedWorkerService {
       regimen: trabajador.vinculo?.regimen.nombre ?? null,
       cargo: trabajador.vinculo?.cargo.nombre ?? null,
       area: trabajador.vinculo?.area.nombre ?? null,
+      motivoCese:
+        trabajador.estado === 'CESADO' && trabajador.vinculo?.motivoFin != null ? TEXTO_MOTIVO_FIN[trabajador.vinculo.motivoFin] : null,
+      fechaCese: trabajador.estado === 'CESADO' ? (trabajador.vinculo?.fechaFin ?? null) : null,
     };
     this.elegido.set(elegido);
     guardar(elegido);
