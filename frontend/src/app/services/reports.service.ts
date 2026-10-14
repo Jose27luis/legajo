@@ -6,7 +6,10 @@ import type {
   FiltrosAvance,
   FiltrosConsolidado,
   FiltrosDigitalizacion,
+  FiltrosReporteGeneral,
   FiltrosReportePersonal,
+  Indicadores,
+  ReporteGeneral,
   FiltrosVencimientos,
   ReporteAvance,
   ReporteConsolidado,
@@ -84,5 +87,21 @@ export class ReportsService {
 
   enlaceAvance(filtros: FiltrosAvance): string {
     return `${BASE}/progress.xlsx${texto({ ...filtros })}`;
+  }
+
+  general(filtros: FiltrosReporteGeneral, todos = false): Promise<ReporteGeneral> {
+    return firstValueFrom(this.http.get<ReporteGeneral>(`${BASE}/general`, { params: consulta({ ...filtros, todos }) }));
+  }
+
+  enlaceGeneral(filtros: FiltrosReporteGeneral): string {
+    return `${BASE}/general.xlsx${texto({ ...filtros })}`;
+  }
+
+  indicadores(): Promise<Indicadores> {
+    return firstValueFrom(this.http.get<Indicadores>(`${BASE}/statistics`));
+  }
+
+  enlaceIndicadores(): string {
+    return `${BASE}/statistics.xlsx`;
   }
 }
