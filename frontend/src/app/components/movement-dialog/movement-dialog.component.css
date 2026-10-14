@@ -1,0 +1,47 @@
+.aviso {
+  margin-bottom: 14px;
+  line-height: 1.6;
+}
+
+.datos {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.datos div {
+  padding: 10px 12px;
+  border: 1px solid #e4edf3;
+  border-radius: 8px;
+  background: #f6f9fb;
+}
+
+dt {
+  color: var(--tinta-suave);
+  font-size: 11.5px;
+}
+
+dd {
+  margin: 2px 0 0;
+  font-size: 13.5px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.nota {
+  margin-top: 12px;
+  color: var(--tinta-suave);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+a.boton {
+  text-decoration: none;
+}
+
+@media (max-width: 560px) {
+  .datos {
+    grid-template-columns: 1fr;
+  }
+}
