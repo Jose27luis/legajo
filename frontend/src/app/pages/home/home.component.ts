@@ -136,8 +136,8 @@ export class HomeComponent {
 
   protected alCrear(trabajador: TrabajadorDetalle): void {
     this.nuevoAbierto.set(false);
-    this.avisos.exito(`Ingreso registrado: ${nombreCompleto(trabajador)}`);
-    void this.router.navigate(['/workers', trabajador.id]);
+    this.avisos.exito('Nuevo trabajador ACTIVO registrado. Su legajo tiene 13 secciones y 0 PDF iniciales.');
+    void this.router.navigate(['/workers', trabajador.id, 'record'], { queryParams: { nuevo: 1 } });
   }
 
   protected irAReingreso(trabajador: TrabajadorResumen): void {
