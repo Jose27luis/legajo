@@ -27,6 +27,9 @@ export class WorkersComponent {
   private readonly nuevoIngreso = viewChild.required(NewWorkerDialogComponent);
   private readonly reingreso = viewChild.required(ReentryDialogComponent);
   private readonly directorio = viewChild.required(WorkerDirectoryComponent);
+  private readonly directorioVisible = viewChild(WorkerDirectoryComponent);
+
+  protected readonly enlaceExportacion = computed(() => this.directorioVisible()?.enlaceExportacion() ?? null);
 
   protected readonly estadoInicial = computed<EstadoTrabajador | ''>(() => {
     const valor = this.estado();
