@@ -35,6 +35,16 @@ enum Movimiento {
   DESTAQUE
   ENCARGATURA
   REASIGNACION
+  DESIGNACION
+  CAMBIO_FUNCIONES
+  OTRO
+}
+
+enum AccionDocumento {
+  NINGUNA
+  VINCULO
+  MOVIMIENTO
+  CESE
 }
 
 enum MotivoFin {
@@ -100,13 +110,15 @@ model Regimen {
 }
 
 model Area {
-  id       Int       @id @default(autoincrement())
-  nombre   String    @db.VarChar(140)
-  padreId  Int?      @map("padre_id")
-  activo   Boolean   @default(true)
-  padre    Area?     @relation("AreaDependencia", fields: [padreId], references: [id], onDelete: Restrict)
-  hijas    Area[]    @relation("AreaDependencia")
+  id       Int                 @id @default(autoincrement())
+  nombre   String              @db.VarChar(140)
+  padreId  Int?                @map("padre_id")
+  activo   Boolean             @default(true)
+  padre    Area?               @relation("AreaDependencia", fields: [padreId], references: [id], onDelete: Restrict)
+  hijas    Area[]              @relation("AreaDependencia")
   vinculos Vinculo[]
+  salidas  MovimientoLaboral[] @relation("MovimientoOrigen")
+  llegadas MovimientoLaboral[] @relation("MovimientoDestino")
 
   @@map("area")
 }
@@ -121,33 +133,34 @@ model Cargo {
 }
 
 model Trabajador {
-  id               String           @id @default(uuid()) @db.Uuid
-  tipoDocIdentidad TipoDocIdentidad @default(DNI) @map("tipo_doc_identidad")
-  numeroDoc        String           @map("numero_doc") @db.VarChar(12)
-  apellidoPaterno  String           @map("apellido_paterno") @db.VarChar(80)
-  apellidoMaterno  String?          @map("apellido_materno") @db.VarChar(80)
-  nombres          String           @db.VarChar(100)
-  nombreBusqueda   String?          @map("nombre_busqueda")
-  fechaNacimiento  DateTime?        @map("fecha_nacimiento") @db.Date
-  sexo             String?          @db.Char(1)
-  estadoCivil      String?          @map("estado_civil") @db.VarChar(20)
-  direccion        String?          @db.VarChar(200)
-  departamento     String?          @db.VarChar(60)
-  provincia        String?          @db.VarChar(60)
-  distrito         String?          @db.VarChar(60)
-  telefono         String?          @db.VarChar(20)
-  correo           String?          @db.VarChar(120)
-  fechaIngreso     DateTime         @map("fecha_ingreso") @db.Date
-  estado           EstadoTrabajador @default(ACTIVO)
-  movimientoActual Movimiento       @default(SIN_MOVIMIENTO) @map("movimiento_actual")
-  movimientoFecha  DateTime?        @map("movimiento_fecha") @db.Date
-  creadoEn         DateTime         @default(now()) @map("creado_en") @db.Timestamptz(3)
-  actualizadoEn    DateTime         @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  id               String              @id @default(uuid()) @db.Uuid
+  tipoDocIdentidad TipoDocIdentidad    @default(DNI) @map("tipo_doc_identidad")
+  numeroDoc        String              @map("numero_doc") @db.VarChar(12)
+  apellidoPaterno  String              @map("apellido_paterno") @db.VarChar(80)
+  apellidoMaterno  String?             @map("apellido_materno") @db.VarChar(80)
+  nombres          String              @db.VarChar(100)
+  nombreBusqueda   String?             @map("nombre_busqueda")
+  fechaNacimiento  DateTime?           @map("fecha_nacimiento") @db.Date
+  sexo             String?             @db.Char(1)
+  estadoCivil      String?             @map("estado_civil") @db.VarChar(20)
+  direccion        String?             @db.VarChar(200)
+  departamento     String?             @db.VarChar(60)
+  provincia        String?             @db.VarChar(60)
+  distrito         String?             @db.VarChar(60)
+  telefono         String?             @db.VarChar(20)
+  correo           String?             @db.VarChar(120)
+  fechaIngreso     DateTime            @map("fecha_ingreso") @db.Date
+  estado           EstadoTrabajador    @default(ACTIVO)
+  movimientoActual Movimiento          @default(SIN_MOVIMIENTO) @map("movimiento_actual")
+  movimientoFecha  DateTime?           @map("movimiento_fecha") @db.Date
+  creadoEn         DateTime            @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoEn    DateTime            @updatedAt @map("actualizado_en") @db.Timestamptz(3)
   vinculos         Vinculo[]
   familiares       Familiar[]
   documentos       Documento[]
   auditorias       Auditoria[]
   itemsLote        LoteItem[]
+  movimientos      MovimientoLaboral[]
 
   @@unique([tipoDocIdentidad, numeroDoc], map: "ux_trabajador_doc")
   @@index([estado, movimientoActual], map: "ix_trabajador_estado")
@@ -171,10 +184,32 @@ model Vinculo {
   regimen      Regimen      @relation(fields: [regimenId], references: [id], onDelete: Restrict)
   cargo        Cargo        @relation(fields: [cargoId], references: [id], onDelete: Restrict)
   area         Area         @relation(fields: [areaId], references: [id], onDelete: Restrict)
+  documentos   Documento[]
 
   @@index([trabajadorId, fechaInicio(sort: Desc)], map: "ix_vinculo_trabajador")
   @@index([areaId, actual], map: "ix_vinculo_area")
   @@map("vinculo")
+}
+
+model MovimientoLaboral {
+  id            String     @id @default(uuid()) @db.Uuid
+  trabajadorId  String     @map("trabajador_id") @db.Uuid
+  tipo          Movimiento
+  fecha         DateTime   @db.Date
+  areaOrigenId  Int        @map("area_origen_id")
+  areaDestinoId Int        @map("area_destino_id")
+  documentoId   String?    @unique @map("documento_id") @db.Uuid
+  observacion   String?    @db.VarChar(500)
+  creadoPorId   String     @map("creado_por") @db.Uuid
+  creadoEn      DateTime   @default(now()) @map("creado_en") @db.Timestamptz(3)
+  trabajador    Trabajador @relation(fields: [trabajadorId], references: [id], onDelete: Restrict)
+  areaOrigen    Area       @relation("MovimientoOrigen", fields: [areaOrigenId], references: [id], onDelete: Restrict)
+  areaDestino   Area       @relation("MovimientoDestino", fields: [areaDestinoId], references: [id], onDelete: Restrict)
+  documento     Documento? @relation(fields: [documentoId], references: [id], onDelete: Restrict)
+  creadoPor     Usuario    @relation(fields: [creadoPorId], references: [id], onDelete: Restrict)
+
+  @@index([trabajadorId, fecha(sort: Desc)], map: "ix_movimiento_trabajador")
+  @@map("movimiento_laboral")
 }
 
 model Familiar {
@@ -192,28 +227,41 @@ model Familiar {
 }
 
 model Seccion {
-  id          Int             @id @default(autoincrement())
-  numero      Int             @unique
-  nombre      String          @db.VarChar(120)
-  carpeta     String          @db.VarChar(80)
-  descripcion String
-  campos      Json            @default("[]")
-  tipos       TipoDocumento[]
+  id            Int                     @id @default(autoincrement())
+  numero        Int                     @unique
+  nombre        String                  @db.VarChar(120)
+  carpeta       String                  @db.VarChar(80)
+  descripcion   String
+  campos        Json                    @default("[]")
+  tipos         TipoDocumento[]
+  restricciones RolSeccionRestringida[]
 
   @@map("seccion")
 }
 
+model RolSeccionRestringida {
+  rolId     String  @map("rol_id") @db.Uuid
+  seccionId Int     @map("seccion_id")
+  rol       Rol     @relation(fields: [rolId], references: [id], onDelete: Restrict)
+  seccion   Seccion @relation(fields: [seccionId], references: [id], onDelete: Restrict)
+
+  @@id([rolId, seccionId])
+  @@map("rol_seccion_restringida")
+}
+
 model TipoDocumento {
-  id               Int         @id @default(autoincrement())
-  seccionId        Int         @map("seccion_id")
-  codigo           String      @unique @db.Char(4)
-  nombre           String      @db.VarChar(200)
-  restringido      Boolean     @default(false)
-  requiereNumero   Boolean     @default(false) @map("requiere_numero")
-  tieneVencimiento Boolean     @default(false) @map("tiene_vencimiento")
-  activo           Boolean     @default(true)
-  orden            Int         @default(0)
-  seccion          Seccion     @relation(fields: [seccionId], references: [id], onDelete: Restrict)
+  id               Int             @id @default(autoincrement())
+  seccionId        Int             @map("seccion_id")
+  codigo           String          @unique @db.Char(4)
+  nombre           String          @db.VarChar(200)
+  restringido      Boolean         @default(false)
+  requiereNumero   Boolean         @default(false) @map("requiere_numero")
+  tieneVencimiento Boolean         @default(false) @map("tiene_vencimiento")
+  activo           Boolean         @default(true)
+  orden            Int             @default(0)
+  accion           AccionDocumento @default(NINGUNA)
+  campos           Json            @default("[]")
+  seccion          Seccion         @relation(fields: [seccionId], references: [id], onDelete: Restrict)
   requisitos       Requisito[]
   documentos       Documento[]
   itemsLote        LoteItem[]
@@ -235,12 +283,13 @@ model Requisito {
 }
 
 model Rol {
-  id          String       @id @default(uuid()) @db.Uuid
-  nombre      String       @unique @db.VarChar(60)
-  descripcion String
-  esSistema   Boolean      @default(false) @map("es_sistema")
-  usuarios    Usuario[]
-  permisos    RolPermiso[]
+  id            String                  @id @default(uuid()) @db.Uuid
+  nombre        String                  @unique @db.VarChar(60)
+  descripcion   String
+  esSistema     Boolean                 @default(false) @map("es_sistema")
+  usuarios      Usuario[]
+  permisos      RolPermiso[]
+  restricciones RolSeccionRestringida[]
 
   @@map("rol")
 }
@@ -265,26 +314,28 @@ model RolPermiso {
 }
 
 model Usuario {
-  id                    String             @id @default(uuid()) @db.Uuid
-  usuario               String             @unique @db.VarChar(30)
-  nombreCompleto        String             @map("nombre_completo") @db.VarChar(120)
-  correo                String             @unique @db.VarChar(120)
-  claveHash             String             @map("clave_hash")
-  rolId                 String             @map("rol_id") @db.Uuid
-  activo                Boolean            @default(true)
-  intentosFallidos      Int                @default(0) @map("intentos_fallidos")
-  bloqueadoHasta        DateTime?          @map("bloqueado_hasta") @db.Timestamptz(3)
-  debeCambiarClave      Boolean            @default(true) @map("debe_cambiar_clave")
-  ultimoAcceso          DateTime?          @map("ultimo_acceso") @db.Timestamptz(3)
-  creadoEn              DateTime           @default(now()) @map("creado_en") @db.Timestamptz(3)
-  actualizadoEn         DateTime           @updatedAt @map("actualizado_en") @db.Timestamptz(3)
-  rol                   Rol                @relation(fields: [rolId], references: [id], onDelete: Restrict)
+  id                    String              @id @default(uuid()) @db.Uuid
+  usuario               String              @unique @db.VarChar(30)
+  nombreCompleto        String              @map("nombre_completo") @db.VarChar(120)
+  correo                String              @unique @db.VarChar(120)
+  claveHash             String              @map("clave_hash")
+  rolId                 String              @map("rol_id") @db.Uuid
+  activo                Boolean             @default(true)
+  intentosFallidos      Int                 @default(0) @map("intentos_fallidos")
+  bloqueadoHasta        DateTime?           @map("bloqueado_hasta") @db.Timestamptz(3)
+  debeCambiarClave      Boolean             @default(true) @map("debe_cambiar_clave")
+  ultimoAcceso          DateTime?           @map("ultimo_acceso") @db.Timestamptz(3)
+  creadoEn              DateTime            @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoEn         DateTime            @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  rol                   Rol                 @relation(fields: [rolId], references: [id], onDelete: Restrict)
   auditorias            Auditoria[]
-  documentosCreados     Documento[]        @relation("DocumentoCreador")
-  documentosModificados Documento[]        @relation("DocumentoModificador")
+  documentosCreados     Documento[]         @relation("DocumentoCreador")
+  documentosModificados Documento[]         @relation("DocumentoModificador")
   archivosSubidos       DocumentoArchivo[]
   lotes                 LoteCarga[]
   respaldos             BackupEjecucion[]
+  movimientos           MovimientoLaboral[]
+  confirmaciones        Documento[]         @relation("DocumentoConfirmador")
 
   @@map("usuario")
 }
@@ -320,8 +371,15 @@ model Documento {
   modificadoPor      Usuario?           @relation("DocumentoModificador", fields: [modificadoPorId], references: [id], onDelete: Restrict)
   archivoActual      DocumentoArchivo?  @relation("ArchivoActual", fields: [archivoActualId], references: [id], onDelete: Restrict)
   archivos           DocumentoArchivo[] @relation("ArchivosDelDocumento")
+  vinculoId          String?            @map("vinculo_id") @db.Uuid
+  confirmadoPorId    String?            @map("confirmado_por") @db.Uuid
+  confirmadoEn       DateTime?          @map("confirmado_en") @db.Timestamptz(3)
+  vinculo            Vinculo?           @relation(fields: [vinculoId], references: [id], onDelete: Restrict)
+  confirmadoPor      Usuario?           @relation("DocumentoConfirmador", fields: [confirmadoPorId], references: [id], onDelete: Restrict)
+  movimiento         MovimientoLaboral?
 
   @@index([trabajadorId, tipoDocumentoId, fechaEmision], map: "ix_documento_legajo")
+  @@index([vinculoId], map: "ix_documento_vinculo")
   @@index([estado], map: "ix_documento_estado")
   @@index([loteItemId], map: "ix_documento_lote_item")
   @@index([fechaVencimiento], map: "ix_documento_vencimiento")
