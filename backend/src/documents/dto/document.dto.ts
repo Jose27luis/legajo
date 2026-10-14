@@ -102,6 +102,46 @@ export class DocumentDto {
 
   @ApiProperty({ type: [FileVersionDto] })
   versiones: FileVersionDto[];
+
+  @ApiProperty({ type: String, format: 'uuid', nullable: true, description: 'Vínculo laboral que sustenta' })
+  vinculoId: string | null;
+
+  @ApiProperty({ type: String, nullable: true, description: 'Quién confirmó el reingreso, movimiento o cese' })
+  confirmadoPor: string | null;
+
+  @ApiProperty({ type: String, format: 'date-time', nullable: true })
+  confirmadoEn: string | null;
+
+  @ApiProperty({ type: String, format: 'uuid', nullable: true, description: 'Movimiento laboral que confirmó' })
+  movimientoId: string | null;
+}
+
+export class HistoryChangeDto {
+  @ApiProperty()
+  campo: string;
+
+  @ApiProperty({ type: String, nullable: true })
+  antes: string | null;
+
+  @ApiProperty({ type: String, nullable: true })
+  despues: string | null;
+}
+
+export class DocumentHistoryEntryDto {
+  @ApiProperty({ format: 'date-time' })
+  fecha: string;
+
+  @ApiProperty({ description: 'Qué se hizo con el documento' })
+  evento: string;
+
+  @ApiProperty({ type: String, nullable: true })
+  usuario: string | null;
+
+  @ApiProperty({ type: String, nullable: true })
+  motivo: string | null;
+
+  @ApiProperty({ type: [HistoryChangeDto] })
+  cambios: HistoryChangeDto[];
 }
 
 export class LegajoSectionDto {
@@ -125,6 +165,9 @@ export class LegajoSectionDto {
 
   @ApiProperty()
   total: number;
+
+  @ApiProperty({ description: 'El rol de la cuenta no puede consultar esta sección' })
+  restringida: boolean;
 }
 
 export class LegajoDto {
