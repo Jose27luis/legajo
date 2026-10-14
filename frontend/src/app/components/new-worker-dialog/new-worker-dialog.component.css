@@ -1,12 +1,44 @@
-.intro {
+.presentacion {
+  display: grid;
+  gap: 12px;
   margin-bottom: 18px;
-  padding: 12px 14px;
+  padding: 14px 16px;
   border: 1px solid #c3dfee;
-  border-radius: 9px;
-  background: #eaf5fc;
+  border-left: 4px solid var(--primario);
+  border-radius: 11px;
+  background: linear-gradient(120deg, #eef6fd, #f8fbff 70%);
   color: #25577a;
   font-size: 13.5px;
-  line-height: 1.6;
+  line-height: 1.55;
+}
+
+.presentacion strong {
+  color: var(--marino);
+  font-size: 15px;
+}
+
+.resultado-inicial {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.resultado-inicial li {
+  display: grid;
+  gap: 4px;
+  justify-items: start;
+  padding: 9px 10px;
+  border: 1px solid #d8e7f3;
+  border-radius: 9px;
+  background: #fff;
+}
+
+.resultado-inicial li > span:last-child {
+  color: var(--tinta-suave);
+  font-size: 12px;
 }
 
 form {
@@ -14,10 +46,49 @@ form {
   gap: 16px;
 }
 
-h3 {
-  margin-top: 6px;
-  font-size: 14.5px;
-  color: var(--tinta-media);
+.grupo {
+  margin: 0;
+  padding: 14px 16px 16px;
+  border: 1px solid var(--linea);
+  border-radius: 12px;
+  background: var(--hoja);
+}
+
+legend {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 6px;
+  color: var(--marino);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.indicador {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--primario);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.fechas {
+  margin-top: 14px;
+}
+
+.libre {
+  color: var(--exito);
+  font-weight: 650;
+}
+
+input[readonly] {
+  background: #f1f7f3;
+  color: var(--exito);
+  font-weight: 700;
 }
 
 .existente {
@@ -25,6 +96,7 @@ h3 {
   gap: 10px;
   padding: 12px 14px;
   border: 1px solid #efd4b7;
+  border-left: 4px solid var(--ambar);
   border-radius: 9px;
   background: #fff4e8;
   color: #7c5122;
@@ -39,5 +111,10 @@ h3 {
 
 .atajos a {
   text-decoration: none;
-  color: var(--tinta);
+}
+
+@media (max-width: 560px) {
+  .resultado-inicial {
+    grid-template-columns: 1fr;
+  }
 }
