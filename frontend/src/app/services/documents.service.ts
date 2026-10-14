@@ -2,7 +2,14 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { DetailedError, Upload } from 'tus-js-client';
-import type { DatosDocumento, Documento, Legajo } from '../core/models';
+import type {
+  ConfirmacionCese,
+  ConfirmacionMovimiento,
+  DatosDocumento,
+  Documento,
+  EntradaHistorial,
+  Legajo,
+} from '../core/models';
 
 export const TAMANO_MAXIMO_MB = 200;
 const PARTE_BYTES = 8 * 1024 * 1024;
@@ -37,8 +44,36 @@ export class DocumentsService {
     return firstValueFrom(this.http.get<Legajo>(`/api/workers/${trabajadorId}/legajo`));
   }
 
-  registrar(trabajadorId: string, subidaId: string, datos: DatosDocumento): Promise<Documento> {
-    return firstValueFrom(this.http.post<Documento>(`/api/workers/${trabajadorId}/documents`, { ...datos, subidaId }));
+  registrar(trabajadorId: string, subidaId: string, datos: DatosDocumento, vinculoId: string | null = null): Promise<Documento> {
+    return firstValueFrom(this.http.post<Documento>(`/api/workers/${trabajadorId}/documents`, { ...datos, subidaId, vinculoId }));
+  }
+
+  historial(id: string): Promise<EntradaHistorial[]> {
+    return firstValueFrom(this.http.get<EntradaHistorial[]>(`/api/documents/${id}/history`));
+  }
+
+  vincular(id: string): Promise<Documento> {
+    return firstValueFrom(this.http.post<Documento>(`/api/documents/${id}/link`, {}));
+  }
+
+  confirmarReingreso(id: string): Promise<Documento> {
+    return firstValueFrom(this.http.post<Documento>(`/api/documents/${id}/confirm-reentry`, {}));
+  }
+
+  confirmarMovimiento(id: string, datos: ConfirmacionMovimiento): Promise<Documento> {
+    return firstValueFrom(this.http.post<Documento>(`/api/documents/${id}/confirm-movement`, datos));
+  }
+
+  confirmarCese(id: string, datos: ConfirmacionCese): Promise<Documento> {
+    return firstValueFrom(this.http.post<Documento>(`/api/documents/${id}/confirm-cese`, datos));
+  }
+
+  enlaceExpediente(trabajadorId: string, secciones: number[], portada: boolean): string {
+    return `/api/workers/${trabajadorId}/dossier.pdf?sections=${secciones.join(',')}&cover=${portada ? '1' : '0'}`;
+  }
+
+  enlaceIndice(trabajadorId: string, secciones: number[]): string {
+    return `/api/workers/${trabajadorId}/dossier-index.xlsx?sections=${secciones.join(',')}`;
   }
 
   editar(id: string, datos: DatosDocumento, motivo: string): Promise<Documento> {
