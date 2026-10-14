@@ -1,0 +1,48 @@
+<app-dialog [abierto]="trabajadorId() !== null" titulo="Detalle del movimiento laboral" (cerrar)="cerrar.emit()">
+  @if (error(); as mensaje) {
+    <p class="aviso error" role="alert">{{ mensaje }}</p>
+  }
+  @if (detalle.value(); as trabajador) {
+    <p class="aviso info">
+      <strong>{{ nombreCompleto(trabajador) }} · {{ trabajador.tipoDocIdentidad }} {{ trabajador.numeroDoc }}</strong><br />
+      Movimiento laboral: <strong>{{ textoMovimiento[trabajador.movimientoActual].toUpperCase() }}</strong><br />
+      Estado laboral: {{ trabajador.estado }}
+    </p>
+    @if (trabajador.movimientoActual === 'SIN_MOVIMIENTO') {
+      <p class="nota">Este trabajador no tiene un movimiento laboral registrado.</p>
+    } @else {
+      <dl class="datos">
+        <div><dt>Puesto o cargo</dt><dd>{{ trabajador.vinculo?.cargo?.nombre ?? 'No registrado' }}</dd></div>
+        <div><dt>Área o dependencia de origen</dt><dd>{{ movimiento()?.areaOrigen?.nombre ?? 'No registrado' }}</dd></div>
+        <div><dt>Área o dependencia de destino</dt><dd>{{ movimiento()?.areaDestino?.nombre ?? trabajador.vinculo?.area?.nombre ?? 'No registrado' }}</dd></div>
+        <div><dt>Fecha efectiva</dt><dd>{{ fechaCorta(movimiento()?.fecha ?? trabajador.movimientoFecha) }}</dd></div>
+        <div>
+          <dt>Documento sustentatorio</dt>
+          <dd>{{ documento() ? documento()?.tipo?.nombre + ' · ' + (documento()?.numero ?? 'Sin número') : 'No vinculado' }}</dd>
+        </div>
+        <div><dt>Sección documental</dt><dd>05 – Movimientos del personal</dd></div>
+      </dl>
+      @if (movimiento()?.observacion; as observacion) {
+        <p class="nota">Referencia: {{ observacion }}</p>
+      }
+      @if (documento() === null) {
+        <p class="nota">
+          No hay un documento de movimiento vinculado. Registra el PDF en la Sección 05 y confírmalo para acreditar el desplazamiento.
+        </p>
+      }
+    }
+  } @else if (detalle.isLoading()) {
+    <p class="celda-vacia">Cargando movimiento</p>
+  }
+  <ng-container pie>
+    <button type="button" class="boton" (click)="cerrar.emit()">Cerrar</button>
+    @if (documento(); as doc) {
+      @if (doc.estado === 'DISPONIBLE') {
+        <a class="boton principal" [href]="enlace(doc.id)" target="_blank" rel="noopener">Ver PDF</a>
+      }
+    }
+    @if (sesion.tiene('documentos.ver')) {
+      <button type="button" class="boton" (click)="irASeccion()">Ir a la Sección 05</button>
+    }
+  </ng-container>
+</app-dialog>
