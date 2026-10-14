@@ -1,0 +1,79 @@
+<header class="cabecera-seccion">
+  <div>
+    <p class="antetitulo">Administración</p>
+    <h2>Permisos por sección</h2>
+    <p>Define qué secciones del legajo puede consultar cada rol. Una sección restringida no aparece en búsquedas, reportes ni expedientes.</p>
+  </div>
+</header>
+
+@if (error(); as mensaje) {
+  <div class="aviso error" role="alert">
+    {{ mensaje }}
+    <button type="button" class="boton chico" (click)="permisos.reload()">Reintentar</button>
+  </div>
+}
+
+@if (permisos.value(); as datos) {
+  <section class="tarjeta">
+    <div class="tabla-contenedor">
+      <table class="tabla matriz">
+        <thead>
+          <tr>
+            <th scope="col">Sección</th>
+            @for (rol of roles(); track rol.id) {
+              <th scope="col" class="rol">{{ rol.nombre }}</th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (seccion of datos.secciones; track seccion.numero) {
+            <tr>
+              <th scope="row">
+                <b>{{ numeroSeccion(seccion.numero) }}</b> {{ seccion.nombre }}
+              </th>
+              @for (rol of roles(); track rol.id) {
+                <td class="rol">
+                  <input
+                    type="checkbox"
+                    [checked]="permitida(rol, seccion.numero)"
+                    [disabled]="rol.bloqueado || guardando() === rol.id"
+                    [attr.aria-label]="rol.nombre + ' puede ver la sección ' + seccion.numero"
+                    (change)="alternar(rol.id, seccion.numero)"
+                  />
+                </td>
+              }
+            </tr>
+          }
+        </tbody>
+        <tfoot>
+          <tr>
+            <th scope="row">Guardar cambios</th>
+            @for (rol of roles(); track rol.id) {
+              <td class="rol">
+                @if (rol.bloqueado) {
+                  <span class="secundario">Acceso total</span>
+                } @else {
+                  <button
+                    type="button"
+                    class="boton chico"
+                    [class.principal]="cambios().has(rol.id)"
+                    [disabled]="!cambios().has(rol.id) || guardando() !== null"
+                    (click)="guardar(rol)"
+                  >
+                    {{ guardando() === rol.id ? 'Guardando' : 'Guardar' }}
+                  </button>
+                }
+              </td>
+            }
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    <p class="nota">
+      Marcado: el rol puede consultar la sección. El administrador conserva el acceso a todas las secciones. Los cambios se aplican en
+      pocos minutos a las sesiones abiertas.
+    </p>
+  </section>
+} @else if (error() === null) {
+  <p class="celda-vacia">Cargando permisos</p>
+}
