@@ -1,0 +1,46 @@
+:host {
+  display: grid;
+  gap: 16px;
+}
+
+.matriz {
+  min-width: 720px;
+}
+
+.matriz th[scope='row'] {
+  font-weight: 500;
+  text-align: left;
+}
+
+.matriz th[scope='row'] b {
+  display: inline-block;
+  min-width: 26px;
+  color: var(--primario);
+}
+
+.rol {
+  text-align: center;
+  white-space: nowrap;
+}
+
+.rol input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--primario);
+  cursor: pointer;
+}
+
+.rol input:disabled {
+  cursor: not-allowed;
+}
+
+tfoot th,
+tfoot td {
+  border-top: 1px solid var(--linea);
+}
+
+.nota {
+  margin-top: 12px;
+  color: var(--tinta-suave);
+  font-size: 12.5px;
+}
