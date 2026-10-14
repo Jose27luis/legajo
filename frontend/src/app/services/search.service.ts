@@ -18,6 +18,7 @@ export const FILTROS_VACIOS: FiltrosBusqueda = {
   tipoPersonal: null,
   estado: null,
   estadoDocumento: null,
+  trabajadorId: null,
 };
 
 @Injectable({ providedIn: 'root' })
