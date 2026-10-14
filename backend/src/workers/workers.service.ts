@@ -92,6 +92,7 @@ export class WorkersService {
       take: LIMITE_EXPORTACION,
     });
     const columnas: ColumnaHoja[] = [
+      { titulo: 'N.º', ancho: 6, tipo: 'numero' },
       { titulo: 'Documento', ancho: 14 },
       { titulo: 'Apellido paterno', ancho: 20 },
       { titulo: 'Apellido materno', ancho: 20 },
@@ -99,17 +100,18 @@ export class WorkersService {
       { titulo: 'Cargo', ancho: 28 },
       { titulo: 'Área', ancho: 30 },
       { titulo: 'Régimen', ancho: 26 },
-      { titulo: 'Tipo de personal', ancho: 18 },
-      { titulo: 'Estado laboral', ancho: 14 },
+      { titulo: 'Tipo de personal', ancho: 17 },
+      { titulo: 'Estado laboral', ancho: 14, tipo: 'estado' },
       { titulo: 'Motivo de cese', ancho: 20 },
-      { titulo: 'Fecha de cese', ancho: 15, tipo: 'fecha' },
-      { titulo: 'Último movimiento', ancho: 18 },
-      { titulo: 'Fecha de ingreso', ancho: 16, tipo: 'fecha' },
+      { titulo: 'Fecha de cese', ancho: 14, tipo: 'fecha' },
+      { titulo: 'Último movimiento', ancho: 18, tipo: 'estado' },
+      { titulo: 'Fecha de ingreso', ancho: 14, tipo: 'fecha' },
     ];
-    const filas = trabajadores.map((trabajador): CeldaValor[] => {
+    const filas = trabajadores.map((trabajador, indice): CeldaValor[] => {
       const vinculo = trabajador.vinculos[0];
       const cesado = trabajador.estado === 'CESADO';
       return [
+        indice + 1,
         `${trabajador.tipoDocIdentidad} ${trabajador.numeroDoc}`,
         trabajador.apellidoPaterno,
         trabajador.apellidoMaterno,
@@ -125,7 +127,31 @@ export class WorkersService {
         aTexto(trabajador.fechaIngreso),
       ];
     });
-    await enviarLibro(respuesta, { nombreArchivo: `trabajadores_${hoyEnLima()}`, hoja: 'Personal', columnas, filas });
+    await enviarLibro(respuesta, {
+      nombreArchivo: `trabajadores_${hoyEnLima()}`,
+      hoja: 'Personal',
+      titulo: 'Padrón de trabajadores',
+      descripcion: await this.describirFiltros(consulta),
+      columnas,
+      filas,
+    });
+  }
+
+  private async describirFiltros(consulta: WorkerQueryDto): Promise<string> {
+    const [area, regimen] = await Promise.all([
+      consulta.areaId === undefined ? null : this.prisma.area.findUnique({ where: { id: consulta.areaId }, select: { nombre: true } }),
+      consulta.regimenId === undefined
+        ? null
+        : this.prisma.regimen.findUnique({ where: { id: consulta.regimenId }, select: { nombre: true } }),
+    ]);
+    const partes = [
+      consulta.busqueda ? `Búsqueda: ${consulta.busqueda}` : null,
+      consulta.estado ? `Estado: ${TEXTO_ESTADO[consulta.estado]}` : null,
+      consulta.movimiento ? `Movimiento: ${TEXTO_MOVIMIENTO[consulta.movimiento]}` : null,
+      area ? `Área: ${area.nombre}` : null,
+      regimen ? `Régimen: ${regimen.nombre}` : null,
+    ].filter((parte): parte is string => parte !== null);
+    return partes.length === 0 ? 'Todos los trabajadores' : partes.join(' · ');
   }
 
   async buscarDocumento(consulta: LookupQueryDto): Promise<WorkerLookupDto> {
