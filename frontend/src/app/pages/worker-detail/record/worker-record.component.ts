@@ -1,14 +1,18 @@
-import { ChangeDetectionStrategy, Component, inject, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, signal, viewChild } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { DialogComponent } from '../../../components/dialog/dialog.component';
 import { LinkFieldsComponent } from '../../../components/link-fields/link-fields.component';
 import { crearCamposVinculo, leerCamposVinculo, reiniciarCamposVinculo } from '../../../components/link-fields/link-form';
+import { PeriodDialogComponent } from '../../../components/period-dialog/period-dialog.component';
 import { ReentryDialogComponent } from '../../../components/reentry-dialog/reentry-dialog.component';
 import { SituationDialogComponent } from '../../../components/situation-dialog/situation-dialog.component';
+import { IdentityDocumentsComponent } from './identity-documents/identity-documents.component';
 import { mensajeDeError } from '../../../core/errors';
 import { fechaHora } from '../../../core/format';
 import {
   MOTIVOS_CAMBIO,
+  MOTIVOS_CESE,
   TEXTO_ESTADO,
   TEXTO_MOTIVO_CAMBIO,
   TEXTO_MOTIVO_FIN,
@@ -17,8 +21,17 @@ import {
   fechaCorta,
   hoy,
   puedeReingresar,
+  tonoSeccion,
 } from '../../../core/labels';
-import type { Familiar, MotivoCambio, TipoDocIdentidad, TrabajadorDetalle } from '../../../core/models';
+import type {
+  Documento,
+  Familiar,
+  MotivoCambio,
+  MovimientoLaboral,
+  TipoDocIdentidad,
+  TrabajadorDetalle,
+  Vinculo,
+} from '../../../core/models';
 import { SessionService } from '../../../core/session.service';
 import { ToastService } from '../../../core/toast.service';
 import { WorkersService } from '../../../services/workers.service';
@@ -28,7 +41,16 @@ const opcional = (valor: string): string | null => (valor.trim() === '' ? null :
 
 @Component({
   selector: 'app-worker-record',
-  imports: [ReactiveFormsModule, DialogComponent, LinkFieldsComponent, SituationDialogComponent, ReentryDialogComponent],
+  imports: [
+    ReactiveFormsModule,
+    RouterLink,
+    DialogComponent,
+    LinkFieldsComponent,
+    SituationDialogComponent,
+    ReentryDialogComponent,
+    PeriodDialogComponent,
+    IdentityDocumentsComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './worker-record.component.html',
   styleUrl: './worker-record.component.css',
@@ -53,8 +75,46 @@ export class WorkerRecordComponent {
   protected readonly fechaHora = fechaHora;
   protected readonly hoy = hoy();
 
+  readonly nuevo = input<string>();
+
+  protected readonly tono = tonoSeccion(1);
   protected readonly paraSituacion = signal<TrabajadorDetalle | null>(null);
   protected readonly paraReingreso = signal<TrabajadorDetalle | null>(null);
+  protected readonly periodo = signal<Vinculo | null>(null);
+  protected readonly documentosLegajo = computed(() => (this.contexto.legajo.hasValue() ? this.contexto.legajo.value().documentos : []));
+  protected readonly seccionesLegajo = computed(() => (this.contexto.legajo.hasValue() ? this.contexto.legajo.value().secciones : []));
+
+  protected ultimoMovimiento(trabajador: TrabajadorDetalle): MovimientoLaboral | null {
+    if (trabajador.movimientoActual === 'SIN_MOVIMIENTO') {
+      return null;
+    }
+    return trabajador.movimientos.find((movimiento) => movimiento.tipo === trabajador.movimientoActual) ?? null;
+  }
+
+  protected motivoCese(trabajador: TrabajadorDetalle): string {
+    const motivo = trabajador.vinculo?.motivoFin ?? null;
+    return trabajador.estado === 'CESADO' && motivo !== null ? TEXTO_MOTIVO_FIN[motivo] : 'No corresponde';
+  }
+
+  protected esCese(vinculo: Vinculo): boolean {
+    return vinculo.motivoFin !== null && MOTIVOS_CESE.some((motivo) => motivo === vinculo.motivoFin);
+  }
+
+  protected pistaPeriodo(vinculo: Vinculo): string {
+    if (this.esCese(vinculo)) {
+      return 'Ver sustento del cese · Sección 11';
+    }
+    const vinculados = this.documentosLegajo().some((documento) => documento.vinculoId === vinculo.id && documento.seccion === 2);
+    return vinculados ? 'Ver o actualizar documento sustentatorio · Sección 02' : 'Pulsa aquí para adjuntar documento · Sección 02';
+  }
+
+  protected abrirPeriodo(vinculo: Vinculo): void {
+    this.periodo.set(vinculo);
+  }
+
+  protected alRegistrarSustento(documento: Documento): void {
+    this.contexto.actualizarDocumento(documento);
+  }
 
   protected readonly fichaAbierta = signal(false);
   protected readonly guardandoFicha = signal(false);
