@@ -1,14 +1,14 @@
 <div class="app" [class.contraido]="contraido()" [class.menu-abierto]="menuMovil()">
   <aside class="lateral" id="menu-lateral">
-    <a class="marca-lateral" routerLink="/" [attr.aria-label]="contraido() ? 'Legajos de Personal, inicio' : null">
+    <a class="marca-lateral" routerLink="/" [attr.aria-label]="contraido() ? 'Legajos Digitales, inicio' : null">
       <app-brand [tamano]="40" [conFondo]="true" />
       <span class="texto-marca">
-        <strong>Legajos de Personal</strong>
+        <strong>Legajos Digitales</strong>
         <span>DIRESA Madre de Dios</span>
       </span>
     </a>
 
-    <nav class="navegacion" aria-label="Menú principal">
+    <nav class="navegacion" aria-label="Navegación principal">
       @if (sesion.tiene('personal.editar')) {
         <a class="enlace nuevo" routerLink="/workers" [queryParams]="{ nuevo: 1 }" [attr.title]="contraido() ? 'Registrar nuevo ingreso' : null">
           <span class="numero" aria-hidden="true">+</span>
@@ -30,26 +30,19 @@
           </button>
           <div class="plegable" [id]="'grupo-menu-' + indice" [inert]="grupoCerrado(grupo.titulo)">
             <ul>
-              @if (grupo.nota; as nota) {
-                <li class="nota-grupo">{{ nota }}</li>
-              }
-              @for (enlace of grupo.enlaces; track enlace.ruta) {
+              @for (item of grupo.enlaces; track item.ruta) {
                 <li>
                   <a
                     class="enlace"
-                    [class.inactivo]="enlace.inactivo"
-                    [routerLink]="enlace.ruta"
-                    [routerLinkActive]="enlace.inactivo ? [] : 'activo'"
-                    [routerLinkActiveOptions]="{ exact: enlace.exacto }"
+                    [class.activo]="activoPorRuta(item)"
+                    [routerLink]="item.ruta"
+                    routerLinkActive="activo"
+                    [routerLinkActiveOptions]="{ exact: item.exacto }"
                     ariaCurrentWhenActive="page"
-                    [attr.title]="contraido() ? enlace.etiqueta : null"
+                    [attr.title]="contraido() ? item.etiqueta : null"
                   >
-                    @if (enlace.numero; as numero) {
-                      <span class="numero" aria-hidden="true">{{ numero }}</span>
-                    } @else if (enlace.icono; as icono) {
-                      <app-icon [nombre]="icono" [tamano]="19" />
-                    }
-                    <span class="etiqueta">{{ enlace.etiqueta }}</span>
+                    <app-icon [nombre]="item.icono" [tamano]="19" />
+                    <span class="etiqueta">{{ item.etiqueta }}</span>
                   </a>
                 </li>
               }
@@ -58,6 +51,8 @@
         </div>
       }
     </nav>
+
+    <p class="pie-lateral">Oficina de Personal · Área de Legajos</p>
 
     <button
       type="button"
@@ -88,67 +83,39 @@
       </button>
 
       <div class="ubicacion">
-        <span class="titulo">{{ titulo() }}</span>
-        <span class="fecha">{{ fechaHoy }}</span>
+        <span class="titulo">Sistema Web de Legajos Digitales</span>
+        <span class="fecha">Oficina de Personal / Área de Legajos · {{ fechaHoy }}</span>
       </div>
 
       @if (sesion.tiene('personal.ver')) {
         <app-global-search />
       }
 
-      <div class="usuario" #zonaUsuario>
-        <button
-          type="button"
-          class="chip"
-          aria-haspopup="menu"
-          aria-controls="menu-usuario"
-          [attr.aria-expanded]="menuUsuario()"
-          (click)="alternarMenuUsuario()"
-        >
-          <span class="avatar" aria-hidden="true">{{ iniciales() }}</span>
-          @if (sesion.usuario(); as usuario) {
-            <span class="datos">
-              <strong>{{ usuario.nombreCompleto }}</strong>
-              <span>{{ usuario.rol }}</span>
-            </span>
-          }
-          <app-icon nombre="abajo" [tamano]="18" class="flecha" [class.girada]="menuUsuario()" />
-        </button>
-
-        @if (menuUsuario()) {
-          <div class="desplegable" id="menu-usuario" role="menu" animate.enter="entra" animate.leave="sale">
-            @if (sesion.usuario(); as usuario) {
-              <div class="cuenta">
-                <strong>{{ usuario.nombreCompleto }}</strong>
-                <span>{{ usuario.correo }}</span>
-              </div>
-            }
-            <a role="menuitem" class="opcion" routerLink="/profile">
-              <app-icon nombre="perfil" [tamano]="18" />
-              Mi perfil
-            </a>
-            <button role="menuitem" type="button" class="opcion salir" (click)="cerrarSesion()" [disabled]="saliendo()">
-              <app-icon nombre="salir" [tamano]="18" />
-              {{ saliendo() ? 'Cerrando sesión' : 'Cerrar sesión' }}
-            </button>
-          </div>
+      <a class="chip" routerLink="/profile" aria-label="Ver mi perfil">
+        <span class="avatar" aria-hidden="true">{{ iniciales() }}</span>
+        @if (sesion.usuario(); as usuario) {
+          <span class="datos">
+            <strong>{{ usuario.usuario }}</strong>
+            <span>{{ usuario.rol }}</span>
+          </span>
         }
-      </div>
+      </a>
+      <button type="button" class="boton chico salir" (click)="cerrarSesion()" [disabled]="saliendo()">
+        <app-icon nombre="salir" [tamano]="17" />
+        <span>{{ saliendo() ? 'Saliendo' : 'Salir' }}</span>
+      </button>
     </header>
 
     <main class="contenido">
-      @if (elegido(); as trabajador) {
-        <section class="trabajador" [class.cesado]="trabajador.estado === 'CESADO'" aria-label="Legajo seleccionado">
+      @if (enLegajo() && elegido(); as trabajador) {
+        <section class="trabajador" [class.cesado]="trabajador.estado === 'CESADO'" aria-label="Trabajador seleccionado">
           <span class="avatar" aria-hidden="true">{{ trabajador.iniciales }}</span>
           <div class="identidad">
-            <a [routerLink]="['/workers', trabajador.id]">{{ trabajador.nombre }}</a>
+            <a [routerLink]="['/workers', trabajador.id]">{{ trabajador.nombre.toUpperCase() }}</a>
             <p class="meta">
-              <span>{{ trabajador.tipoDocIdentidad }} {{ trabajador.numeroDoc }}</span>
+              <span>{{ trabajador.tipoDocIdentidad }}: {{ trabajador.numeroDoc }}</span>
               @if (trabajador.regimen; as regimen) {
-                <span>{{ regimen }}</span>
-              }
-              @if (trabajador.cargo; as cargo) {
-                <span>{{ cargo }}</span>
+                <span>Régimen {{ regimen }}</span>
               }
               @if (trabajador.area; as area) {
                 <span>{{ area }}</span>
@@ -156,16 +123,31 @@
             </p>
           </div>
           <div class="marcas">
-            <span class="pastilla" [class.verde]="trabajador.estado === 'ACTIVO'" [class.gris]="trabajador.estado === 'CESADO'">
-              {{ textoEstado[trabajador.estado] }}
+            <span class="estado-trabajador">
+              <span class="pastilla" [class.verde]="trabajador.estado === 'ACTIVO'" [class.gris]="trabajador.estado === 'CESADO'">
+                {{ trabajador.estado }}
+              </span>
+              @if (trabajador.estado === 'CESADO') {
+                <span class="motivo-cese" [attr.title]="trabajador.fechaCese ? 'Fecha: ' + fechaCorta(trabajador.fechaCese) : null">
+                  Motivo: {{ trabajador.motivoCese ?? 'Pendiente de registrar' }}
+                </span>
+              }
             </span>
-            @if (trabajador.movimiento !== 'SIN_MOVIMIENTO') {
-              <span class="pastilla" [class]="claseMovimiento[trabajador.movimiento]">{{ textoMovimiento[trabajador.movimiento] }}</span>
-            }
+            <button
+              type="button"
+              class="pastilla movimiento"
+              [class]="claseMovimiento[trabajador.movimiento]"
+              title="Ver detalle del movimiento laboral"
+              (click)="paraMovimiento.set(trabajador.id)"
+            >
+              {{ textoMovimiento[trabajador.movimiento].toUpperCase() }}
+            </button>
           </div>
           <div class="acciones">
-            <a class="boton chico" routerLink="/workers">Cambiar trabajador</a>
-            <button type="button" class="boton chico" (click)="soltarTrabajador()">Quitar</button>
+            @if (sesion.tiene('documentos.ver')) {
+              <button type="button" class="boton chico principal" (click)="paraExpediente.set(trabajador)">Expediente completo</button>
+            }
+            <button type="button" class="boton chico" (click)="cambiarTrabajador()">Cambiar trabajador</button>
           </div>
         </section>
       }
@@ -173,4 +155,6 @@
     </main>
   </div>
 </div>
+<app-dossier-dialog [trabajador]="paraExpediente()" (cerrar)="paraExpediente.set(null)" />
+<app-movement-dialog [trabajadorId]="paraMovimiento()" (cerrar)="paraMovimiento.set(null)" />
 <app-toast />
