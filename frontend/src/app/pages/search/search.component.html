@@ -106,7 +106,13 @@
         @for (estado of estadosDocumento; track estado) {
           <option [value]="estado" [selected]="filtros().estadoDocumento === estado">{{ textoEstadoDocumento[estado] }}</option>
         }
+        <option value="TODOS" [selected]="filtros().estadoDocumento === 'TODOS'">Todos, incluso anulados</option>
       </select>
+    </div>
+
+    <div class="campo">
+      <label for="filtro-trabajador">Trabajador</label>
+      <app-worker-picker idCampo="filtro-trabajador" [elegido]="trabajador()" (elegidoChange)="elegirTrabajador($event)" />
     </div>
   </div>
 </section>
