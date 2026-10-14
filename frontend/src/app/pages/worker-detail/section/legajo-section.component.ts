@@ -15,6 +15,7 @@ import { RouterLink } from '@angular/router';
 import { DocumentDialogComponent } from '../../../components/document-dialog/document-dialog.component';
 import { DocumentFieldsComponent } from '../../../components/document-fields/document-fields.component';
 import {
+  INCORPORACION,
   crearFormularioDocumento,
   leerFormularioDocumento,
   prepararFormularioDocumento,
@@ -37,30 +38,47 @@ import { ToastService } from '../../../core/toast.service';
 import { DocumentsService, mensajeDeSubida, type SubidaEnCurso } from '../../../services/documents.service';
 import { WorkerContext } from '../worker-context';
 
-const AVISOS: Record<number, { texto: string; sensible: boolean }> = {
-  10: {
+const AVISOS: Record<number, { titulo: string | null; texto: string; sensible: boolean }> = {
+  2: {
+    titulo: 'Vinculación con la Sección 01:',
     texto:
-      'Acceso sensible: los documentos de salud ocupacional requieren permisos especiales. No anotes diagnósticos ni datos clínicos en los campos.',
+      'al registrar un contrato o resolución con régimen y fecha de inicio, se vincula automáticamente con la ficha y el historial de la Sección 01. Puedes comprobarlo desde Ver detalle; nunca cambia por sí mismo ACTIVO/CESADO. Los CV y declaraciones no actualizan la ficha.',
+    sensible: false,
+  },
+  5: {
+    titulo: 'Sección 05 → Sección 01:',
+    texto:
+      'registra la resolución o memorando y luego pulsa Ver detalle → Confirmar movimiento laboral. Al confirmar se actualizan el área de destino y el último movimiento. Una rotación no cambia ACTIVO/CESADO. Los PDF sin confirmar solo quedan archivados.',
+    sensible: false,
+  },
+  10: {
+    titulo: 'Acceso sensible:',
+    texto:
+      'los documentos de salud ocupacional requieren permisos especiales. No deben exponerse diagnósticos médicos ni datos clínicos en esta ficha.',
     sensible: true,
   },
   11: {
+    titulo: 'Desvinculación:',
     texto:
-      'Registrar un PDF de cese no cambia por sí solo el estado laboral. El cese se registra en Estado y movimiento, con su sustento.',
+      'registrar un PDF de cese no cambia por sí solo el estado laboral. Abre Ver detalle del PDF sustentatorio y pulsa Confirmar cese laboral para validar motivo y fecha efectiva. La ficha de la Sección 01 se actualizará al confirmar.',
     sensible: false,
   },
   12: {
-    texto: 'Usa esta sección solo cuando el documento no corresponda a ninguna de las otras doce. La justificación es obligatoria.',
+    titulo: null,
+    texto: 'Usa «Otros documentos» únicamente cuando el archivo no corresponda a ninguna de las otras 12 secciones. Registra una justificación.',
     sensible: false,
   },
   13: {
-    texto: 'Las vacaciones, licencias y permisos se guardan aquí y no se mezclan con la sección 09.',
+    titulo: null,
+    texto: 'Las vacaciones y licencias tienen su propia sección 13. No se mezclan con la sección 09.',
     sensible: false,
   },
 };
 
 const AVISO_GENERAL = {
+  titulo: null,
   texto:
-    'Los documentos de distintos años conviven en la sección. Reemplazar solo corrige el mismo PDF y la fecha de carga se registra sola.',
+    'Los documentos de distintos años conservan su estado. Solo se reemplaza al corregir el mismo PDF. La fecha de carga se registra automáticamente.',
   sensible: false,
 };
 
@@ -134,6 +152,18 @@ export class LegajoSectionComponent implements OnDestroy {
   });
 
   protected readonly hayDisponibles = computed(() => this.todos().some((documento) => documento.estado === 'DISPONIBLE'));
+
+  protected readonly incorporacionSugerida = computed(() => {
+    const trabajador = this.contexto.detalle.value();
+    if (trabajador?.estado === 'CESADO') {
+      return INCORPORACION.reingreso;
+    }
+    const legajo = this.contexto.legajo.hasValue() ? this.contexto.legajo.value() : null;
+    const vinculados = (legajo?.documentos ?? []).some(
+      (documento) => documento.tipo.accion === 'VINCULO' && documento.vinculoId !== null && documento.estado !== 'ANULADO',
+    );
+    return vinculados ? INCORPORACION.renovacion : INCORPORACION.primerIngreso;
+  });
 
   protected etiquetasPropias(seccion: SeccionLegajo): string {
     return seccion.campos.map((campo) => campo.etiqueta).join(' · ');
@@ -258,7 +288,18 @@ export class LegajoSectionComponent implements OnDestroy {
       this.contexto.actualizarDocumento(documento);
       prepararFormularioDocumento(this.formulario, seccion, null);
       this.selector()?.limpiar();
-      this.avisos.exito('PDF registrado. Se está optimizando.');
+      if (documento.vinculoId !== null) {
+        this.contexto.detalle.reload();
+        this.avisos.exito('PDF registrado y vinculado automáticamente con la Sección 01.');
+      } else if (documento.tipo.accion === 'CESE' || (documento.tipo.accion === 'VINCULO' && documento.datos['tipoIncorporacion'] === INCORPORACION.reingreso)) {
+        this.seleccionadoId.set(documento.id);
+        this.avisos.exito('PDF registrado. Cuando termine de procesarse, confírmalo desde este detalle.');
+      } else if (documento.tipo.accion === 'MOVIMIENTO') {
+        this.seleccionadoId.set(documento.id);
+        this.avisos.exito('PDF registrado. Confirma el movimiento desde este detalle cuando termine de procesarse.');
+      } else {
+        this.avisos.exito('PDF registrado. Se está optimizando.');
+      }
     } catch (error: unknown) {
       this.error.set(mensajeDeError(error));
     } finally {
