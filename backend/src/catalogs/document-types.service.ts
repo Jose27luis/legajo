@@ -22,6 +22,8 @@ export function aTipoDto(tipo: TipoDocumento): DocumentTypeDto {
     tieneVencimiento: tipo.tieneVencimiento,
     activo: tipo.activo,
     orden: tipo.orden,
+    accion: tipo.accion,
+    campos: leerCampos(tipo.campos),
   };
 }
 
