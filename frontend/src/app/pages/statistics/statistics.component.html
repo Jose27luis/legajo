@@ -1,0 +1,71 @@
+<header class="cabecera-seccion">
+  <div>
+    <p class="antetitulo">Reportes</p>
+    <h2>Estadísticas del personal</h2>
+    <p>Indicadores calculados con los trabajadores y documentos registrados.</p>
+  </div>
+  @if (sesion.tiene('reportes.exportar')) {
+    <a class="boton" [href]="enlace" download>Exportar Excel</a>
+  }
+</header>
+
+@if (error(); as mensaje) {
+  <div class="aviso error" role="alert">
+    {{ mensaje }}
+    <button type="button" class="boton chico" (click)="indicadores.reload()">Reintentar</button>
+  </div>
+}
+
+<dl class="cifras-reporte">
+  <div>
+    <dt>Trabajadores registrados</dt>
+    <dd>{{ indicadores.value()?.trabajadores ?? '—' }}</dd>
+  </div>
+  <div>
+    <dt>Activos</dt>
+    <dd>{{ indicadores.value()?.activos ?? '—' }}</dd>
+  </div>
+  <div>
+    <dt>Cesados</dt>
+    <dd>{{ indicadores.value()?.cesados ?? '—' }}</dd>
+  </div>
+  <div>
+    <dt>Documentos vigentes</dt>
+    <dd>{{ indicadores.value()?.documentos ?? '—' }}</dd>
+  </div>
+  <div>
+    <dt>PDF disponibles</dt>
+    <dd>{{ indicadores.value()?.pdf ?? '—' }}</dd>
+  </div>
+</dl>
+
+<div class="graficos">
+  <section class="tarjeta">
+    <h3>Documentos por sección</h3>
+    <ul class="barras">
+      @for (barra of porSeccion(); track barra.nombre) {
+        <li>
+          <span class="nombre">{{ barra.nombre }}</span>
+          <span class="pista"><span class="relleno" [style.width.%]="barra.ancho"></span></span>
+          <b>{{ barra.cantidad }}</b>
+        </li>
+      } @empty {
+        <li class="celda-vacia">{{ indicadores.isLoading() ? 'Calculando' : 'Sin documentos registrados' }}</li>
+      }
+    </ul>
+  </section>
+  <section class="tarjeta">
+    <h3>Personal por régimen laboral</h3>
+    <ul class="barras">
+      @for (barra of porRegimen(); track barra.nombre) {
+        <li>
+          <span class="nombre">{{ barra.nombre }}</span>
+          <span class="pista"><span class="relleno regimen" [style.width.%]="barra.ancho"></span></span>
+          <b>{{ barra.cantidad }}</b>
+        </li>
+      } @empty {
+        <li class="celda-vacia">{{ indicadores.isLoading() ? 'Calculando' : 'Sin trabajadores registrados' }}</li>
+      }
+    </ul>
+  </section>
+</div>
