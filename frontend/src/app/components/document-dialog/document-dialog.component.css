@@ -163,6 +163,65 @@ h3 {
   margin-right: auto;
 }
 
+.pastillas {
+  flex-wrap: wrap;
+}
+
+.historial {
+  margin: 0;
+  padding: 0 0 0 16px;
+  list-style: none;
+  border-left: 2px solid #d2e1ee;
+  display: grid;
+  gap: 12px;
+}
+
+.historial > li {
+  display: grid;
+  gap: 2px;
+  font-size: 13px;
+}
+
+.cambios {
+  margin: 6px 0 0;
+  padding: 8px 10px;
+  list-style: none;
+  border-radius: 8px;
+  background: #f6f9fb;
+  display: grid;
+  gap: 3px;
+  font-size: 12.5px;
+}
+
+.cambios .antes {
+  color: var(--alerta);
+  overflow-wrap: anywhere;
+}
+
+.cambios .despues {
+  color: var(--exito);
+  overflow-wrap: anywhere;
+}
+
+.nota {
+  margin-top: 14px;
+  color: var(--tinta-suave);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.visor {
+  width: 100%;
+  height: min(72vh, 820px);
+  border: 1px solid var(--linea);
+  border-radius: 10px;
+  background: #f6f9fb;
+}
+
+.campos .campo + .campo {
+  margin: 0;
+}
+
 @media (max-width: 640px) {
   .datos {
     grid-template-columns: 1fr 1fr;
