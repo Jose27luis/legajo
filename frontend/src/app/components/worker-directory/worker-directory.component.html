@@ -3,7 +3,7 @@
     <h2>{{ titulo() }}</h2>
     <div class="herramientas">
       <span class="conteo" aria-live="polite">{{ rango() }}</span>
-      @if (sesion.tiene('reportes.exportar')) {
+      @if (conExportar() && sesion.tiene('reportes.exportar')) {
         <a class="boton chico" [href]="enlaceExportacion()" download>Exportar Excel</a>
       }
     </div>
