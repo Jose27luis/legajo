@@ -34,6 +34,36 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/workers/workers.component').then((m) => m.WorkersComponent),
       },
       {
+        path: 'legajos',
+        title: 'Legajos digitales - Legajos de Personal',
+        canMatch: [permisoGuard('personal.ver')],
+        loadComponent: () => import('./pages/legajos/legajos.component').then((m) => m.LegajosComponent),
+      },
+      {
+        path: 'import',
+        title: 'Importar trabajadores - Legajos de Personal',
+        canMatch: [permisoGuard('personal.editar')],
+        loadComponent: () => import('./pages/import/import.component').then((m) => m.ImportComponent),
+      },
+      {
+        path: 'alerts',
+        title: 'Alertas de vencimiento - Legajos de Personal',
+        canMatch: [permisoGuard('reportes.ver')],
+        loadComponent: () => import('./pages/alerts/alerts.component').then((m) => m.AlertsComponent),
+      },
+      {
+        path: 'statistics',
+        title: 'Estadísticas del personal - Legajos de Personal',
+        canMatch: [permisoGuard('reportes.ver')],
+        loadComponent: () => import('./pages/statistics/statistics.component').then((m) => m.StatisticsComponent),
+      },
+      {
+        path: 'permissions',
+        title: 'Permisos por sección - Legajos de Personal',
+        canMatch: [permisoGuard('usuarios.gestionar')],
+        loadComponent: () => import('./pages/permissions/permissions.component').then((m) => m.PermissionsComponent),
+      },
+      {
         path: 'workers/:id',
         title: 'Legajo del trabajador - Legajos de Personal',
         canMatch: [permisoGuard('personal.ver')],
@@ -104,7 +134,11 @@ export const routes: Routes = [
           {
             path: '',
             pathMatch: 'full',
-            redirectTo: 'staff',
+            redirectTo: 'general',
+          },
+          {
+            path: 'general',
+            loadComponent: () => import('./pages/reports/general/general-report.component').then((m) => m.GeneralReportComponent),
           },
           {
             path: 'staff',
@@ -134,7 +168,7 @@ export const routes: Routes = [
           },
           {
             path: '**',
-            redirectTo: 'staff',
+            redirectTo: 'general',
           },
         ],
       },
