@@ -9,17 +9,18 @@ import {
 } from '@nestjs/common';
 import { ZipArchive } from 'archiver';
 import type { Response } from 'express';
+import { z } from 'zod';
 import type { Prisma } from '../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import { ENTORNO, type Entorno } from '../environment/environment';
 import type { DatosCliente } from '../common/client';
 import type { SesionActiva } from '../common/session';
-import { aFecha, hoyEnLima } from '../common/dates';
+import { aFecha, aTextoOpcional, hoyEnLima } from '../common/dates';
 import { aTipoDto } from '../catalogs/document-types.service';
-import { leerCampos, validarDatos } from '../catalogs/section-fields';
+import { leerCampos, referenciasACatalogo, validarDatos, type CatalogoReferido } from '../catalogs/section-fields';
 import type { CreateDocumentDto, DocumentFieldsDto, ReplaceDocumentDto, UpdateDocumentDto, VoidDocumentDto } from './dto/document-input.dto';
-import type { DocumentDto, LegajoDto, LegajoSectionDto } from './dto/document.dto';
+import type { DocumentDto, DocumentHistoryEntryDto, LegajoDto, LegajoSectionDto } from './dto/document.dto';
 import {
   aDocumentoDto,
   carpetaTrabajador,
@@ -27,10 +28,42 @@ import {
   incluirDocumento,
   nombreDescarga,
   puedeEditar,
+  seccionPermitida,
   type DocumentoCompleto,
 } from './document.mapper';
 import { DocumentQueueService } from './document-queue.service';
 import { UploadServerService } from './upload-server.service';
+import { LaborService } from '../labor/labor.service';
+
+const EVENTOS_DOCUMENTO: Readonly<Record<string, string>> = {
+  DOCUMENTO_SUBIR: 'Registrado',
+  DOCUMENTO_EDITAR: 'Datos modificados',
+  DOCUMENTO_RECLASIFICAR: 'Reclasificado',
+  DOCUMENTO_REEMPLAZAR: 'PDF reemplazado por una versión corregida',
+  DOCUMENTO_ANULAR: 'Anulado',
+  DOCUMENTO_REINTENTAR: 'Procesamiento reintentado',
+  DOCUMENTO_VINCULAR: 'Vinculado al historial de la Sección 01',
+  DOCUMENTO_CONFIRMAR: 'Confirmado en la Sección 01',
+};
+
+const CAMPOS_HISTORIAL: Readonly<Record<string, string>> = {
+  tipo: 'Tipo de documento',
+  numero: 'Número de documento',
+  fechaEmision: 'Fecha de emisión',
+  fechaVencimiento: 'Fecha de vencimiento',
+  emisor: 'Emisor',
+  observaciones: 'Descripción',
+  ubicacionFisica: 'Ubicación física',
+  nivelAcceso: 'Nivel de acceso',
+  datos: 'Datos propios',
+};
+
+const valoresHistorial = z.record(z.string(), z.union([z.string(), z.null()]));
+const esquemaDetalle = z.object({
+  motivo: z.string().optional(),
+  antes: valoresHistorial.optional(),
+  despues: valoresHistorial.optional(),
+});
 
 export interface ArchivoParaEntregar {
   ruta: string;
@@ -50,6 +83,7 @@ export interface NuevoDocumento {
   sesion: SesionActiva;
   cliente: DatosCliente;
   loteItemId: string | null;
+  vinculoId: string | null;
 }
 
 export interface DatosValidados {
@@ -71,6 +105,7 @@ export class DocumentsService {
     private readonly auditoria: AuditService,
     private readonly cola: DocumentQueueService,
     private readonly subidas: UploadServerService,
+    private readonly laboral: LaborService,
     @Inject(ENTORNO) private readonly entorno: Entorno,
   ) {}
 
@@ -85,15 +120,19 @@ export class DocumentsService {
         },
       },
     });
-    return secciones.map((seccion) => ({
-      id: seccion.id,
-      numero: seccion.numero,
-      nombre: seccion.nombre,
-      descripcion: seccion.descripcion,
-      campos: leerCampos(seccion.campos),
-      tipos: seccion.tipos.map(aTipoDto),
-      total: 0,
-    }));
+    return secciones.map((seccion) => {
+      const restringida = !seccionPermitida(sesion, seccion.numero);
+      return {
+        id: seccion.id,
+        numero: seccion.numero,
+        nombre: seccion.nombre,
+        descripcion: seccion.descripcion,
+        campos: leerCampos(seccion.campos),
+        tipos: restringida ? [] : seccion.tipos.map(aTipoDto),
+        total: 0,
+        restringida,
+      };
+    });
   }
 
   async legajo(trabajadorId: string, sesion: SesionActiva): Promise<LegajoDto> {
@@ -130,6 +169,7 @@ export class DocumentsService {
         sesion,
         cliente,
         loteItemId: null,
+        vinculoId: datos.vinculoId,
       }),
     );
     await this.encolar(creado.id, datos.subidaId, nombreOriginal, sesion.usuarioId);
@@ -164,7 +204,8 @@ export class DocumentsService {
       },
       transaccion,
     );
-    return documento;
+    await this.laboral.alRegistrar(transaccion, documento, nuevo.vinculoId, nuevo.sesion, nuevo.cliente);
+    return transaccion.documento.findUniqueOrThrow({ where: { id: documento.id }, include: incluirDocumento });
   }
 
   async encolar(documentoId: string, subidaId: string, nombreOriginal: string, usuarioId: string): Promise<void> {
@@ -450,6 +491,9 @@ export class DocumentsService {
     if (seccionId !== null && tipo.seccionId !== seccionId) {
       throw new BadRequestException('Solo se puede reclasificar dentro de la misma sección');
     }
+    if (!seccionPermitida(sesion, tipo.seccion.numero)) {
+      throw new ForbiddenException('No tienes permiso para registrar documentos en esta sección');
+    }
     const verRestringidos = sesion.permisos.includes('documentos.restringidos');
     if (tipo.restringido && !verRestringidos) {
       throw new ForbiddenException('No tienes permiso para registrar documentos restringidos');
@@ -473,6 +517,9 @@ export class DocumentsService {
     if (datos.fechaVencimiento !== null && datos.fechaEmision !== null && datos.fechaVencimiento < datos.fechaEmision) {
       throw new BadRequestException('El vencimiento no puede ser anterior a la emisión');
     }
+    const campos = [...leerCampos(tipo.seccion.campos), ...leerCampos(tipo.campos)];
+    const propios = validarDatos(campos, datos.datos);
+    await this.exigirReferencias(referenciasACatalogo(campos, propios));
     return {
       tipoDocumentoId: tipo.id,
       numero: datos.numero,
@@ -482,8 +529,50 @@ export class DocumentsService {
       observaciones: datos.observaciones,
       ubicacionFisica: datos.ubicacionFisica,
       nivelAcceso: nivel,
-      datos: validarDatos(leerCampos(tipo.seccion.campos), datos.datos),
+      datos: propios,
     };
+  }
+
+  async historial(id: string, sesion: SesionActiva): Promise<DocumentHistoryEntryDto[]> {
+    await this.cargarVisible(id, sesion);
+    const registros = await this.prisma.auditoria.findMany({
+      where: { entidad: 'documento', entidadId: id, accion: { in: Object.keys(EVENTOS_DOCUMENTO) } },
+      include: { usuario: { select: { nombreCompleto: true } } },
+      orderBy: [{ fecha: 'asc' }, { id: 'asc' }],
+    });
+    return registros.map((registro) => {
+      const detalle = esquemaDetalle.safeParse(registro.detalle);
+      const datos = detalle.success ? detalle.data : {};
+      const antes = datos.antes ?? {};
+      const despues = datos.despues ?? {};
+      const cambios = Object.entries(CAMPOS_HISTORIAL)
+        .filter(([clave]) => (antes[clave] ?? null) !== (despues[clave] ?? null))
+        .map(([clave, campo]) => ({ campo, antes: antes[clave] ?? null, despues: despues[clave] ?? null }));
+      return {
+        fecha: registro.fecha.toISOString(),
+        evento: EVENTOS_DOCUMENTO[registro.accion] ?? registro.accion,
+        usuario: registro.usuario?.nombreCompleto ?? null,
+        motivo: datos.motivo ?? null,
+        cambios,
+      };
+    });
+  }
+
+  private async exigirReferencias(referencias: Record<CatalogoReferido, number[]>): Promise<void> {
+    const [regimenes, areas, cargos] = await Promise.all([
+      this.prisma.regimen.count({ where: { id: { in: referencias.regimen }, activo: true } }),
+      this.prisma.area.count({ where: { id: { in: referencias.area }, activo: true } }),
+      this.prisma.cargo.count({ where: { id: { in: referencias.cargo }, activo: true } }),
+    ]);
+    if (regimenes !== new Set(referencias.regimen).size) {
+      throw new BadRequestException('El régimen elegido no existe o está inactivo');
+    }
+    if (areas !== new Set(referencias.area).size) {
+      throw new BadRequestException('El área elegida no existe o está inactiva');
+    }
+    if (cargos !== new Set(referencias.cargo).size) {
+      throw new BadRequestException('El cargo elegido no existe o está inactivo');
+    }
   }
 
   private async exigirSubida(subidaId: string, sesion: SesionActiva): Promise<string> {
@@ -533,8 +622,13 @@ export class DocumentsService {
     return {
       tipo: documento.tipoDocumento.codigo,
       numero: documento.numero,
-      fechaEmision: documento.fechaEmision === null ? null : documento.fechaEmision.toISOString().slice(0, 10),
+      fechaEmision: aTextoOpcional(documento.fechaEmision),
+      fechaVencimiento: aTextoOpcional(documento.fechaVencimiento),
+      emisor: documento.emisor,
+      observaciones: documento.observaciones,
+      ubicacionFisica: documento.ubicacionFisica,
       nivelAcceso: documento.nivelAcceso,
+      datos: JSON.stringify(documento.datos),
     };
   }
 }
