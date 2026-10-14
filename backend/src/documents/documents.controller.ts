@@ -5,7 +5,7 @@ import { datosCliente } from '../common/client';
 import { Requiere, SesionActual } from '../common/decorators';
 import type { SesionActiva } from '../common/session';
 import { ReplaceDocumentDto, UpdateDocumentDto, VoidDocumentDto } from './dto/document-input.dto';
-import { DocumentDto } from './dto/document.dto';
+import { DocumentDto, DocumentHistoryEntryDto } from './dto/document.dto';
 import { DocumentsService } from './documents.service';
 
 const ID = new ParseUUIDPipe({ version: '4' });
@@ -67,6 +67,14 @@ export class DocumentsController {
     @Req() solicitud: Request,
   ): Promise<DocumentDto> {
     return this.documentos.reintentar(id, sesion, datosCliente(solicitud));
+  }
+
+  @Requiere('documentos.ver')
+  @Get('history')
+  @ApiOperation({ summary: 'Cambios del documento: registro, correcciones, reemplazos, anulación y confirmaciones' })
+  @ApiResponse({ status: 200, type: [DocumentHistoryEntryDto] })
+  async historial(@Param('id', ID) id: string, @SesionActual() sesion: SesionActiva): Promise<DocumentHistoryEntryDto[]> {
+    return this.documentos.historial(id, sesion);
   }
 
   @Requiere('documentos.ver')
