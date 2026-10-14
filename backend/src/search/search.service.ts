@@ -3,7 +3,9 @@ import type { Response } from 'express';
 import { Prisma } from '../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import type { DatosCliente } from '../common/client';
-import { aTextoDeFila, normalizarBusqueda } from '../common/dates';
+import { AuditService } from '../audit/audit.service';
+import { aTextoDeFila, hoyEnLima, normalizarBusqueda } from '../common/dates';
+import { enviarLibro, type CeldaValor, type ColumnaHoja } from '../common/xlsx-stream';
 import { nombreTrabajador } from '../common/names';
 import type { SesionActiva } from '../common/session';
 import { DocumentsService } from '../documents/documents.service';
@@ -29,6 +31,13 @@ const POR_PAGINA = 25;
 const RAPIDA_TRABAJADORES = 6;
 const RAPIDA_DOCUMENTOS = 4;
 const SIN_COINCIDENCIAS: CatalogosCoincidentes = { areas: [], cargos: [], tipos: [] };
+const LIMITE_EXPORTACION = 10000;
+const TEXTO_ESTADO_DOCUMENTO: Readonly<Record<string, string>> = {
+  DISPONIBLE: 'Registrado',
+  PROCESANDO: 'Procesando',
+  ERROR: 'Con error',
+  ANULADO: 'Anulado',
+};
 
 interface FilaId {
   id: string;
@@ -36,6 +45,25 @@ interface FilaId {
 
 interface FilaTotal {
   total: number;
+}
+
+interface FilaExportacion {
+  tipo_doc_identidad: string;
+  numero_doc: string;
+  nombres: string;
+  apellido_paterno: string;
+  apellido_materno: string | null;
+  area: string | null;
+  seccion: number;
+  seccion_nombre: string;
+  codigo: string;
+  tipo: string;
+  numero: string | null;
+  fecha_emision: Date | string | null;
+  fecha_vencimiento: Date | string | null;
+  estado: string;
+  creado_en: Date | string;
+  registrado_por: string;
 }
 
 interface FilaTrabajadorRapido {
@@ -66,6 +94,7 @@ export class SearchService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly documentos: DocumentsService,
+    private readonly auditoria: AuditService,
   ) {}
 
   async rapida(entrada: string, sesion: SesionActiva): Promise<QuickResultDto> {
@@ -132,6 +161,75 @@ export class SearchService {
         : Promise.resolve({ items: [], total: 0 }),
     ]);
     return { clase: texto?.clase ?? null, pagina, porPagina: POR_PAGINA, trabajadores, documentos };
+  }
+
+  async exportarDocumentos(consulta: SearchQueryDto, sesion: SesionActiva, cliente: DatosCliente, respuesta: Response): Promise<void> {
+    if (!sesion.permisos.includes('documentos.ver')) {
+      throw new ForbiddenException('No tienes permiso para consultar documentos');
+    }
+    const texto = interpretarTexto(consulta.texto);
+    const catalogos = await this.coincidencias(texto);
+    const condiciones = [...filtrosDocumento(consulta, sesion), ...filtrosTrabajador(consulta)];
+    if (texto !== null) {
+      condiciones.push(textoDocumento(texto, catalogos));
+    }
+    const filas = await this.prisma.$queryRaw<FilaExportacion[]>(Prisma.sql`
+      SELECT t.tipo_doc_identidad, t.numero_doc, t.nombres, t.apellido_paterno, t.apellido_materno,
+             a.nombre AS area, s.numero AS seccion, s.nombre AS seccion_nombre, td.codigo, td.nombre AS tipo,
+             d.numero, d.fecha_emision, d.fecha_vencimiento, d.estado, (d.creado_en AT TIME ZONE 'America/Lima')::date AS creado_en, u.nombre_completo AS registrado_por
+      FROM documento d
+      JOIN tipo_documento td ON td.id = d.tipo_documento_id
+      JOIN seccion s ON s.id = td.seccion_id
+      JOIN trabajador t ON t.id = d.trabajador_id
+      JOIN usuario u ON u.id = d.creado_por
+      ${VINCULO_ACTUAL}
+      LEFT JOIN area a ON a.id = vi.area_id
+      WHERE ${unir(condiciones)}
+      ORDER BY ${ordenDocumento(texto)}
+      LIMIT ${LIMITE_EXPORTACION}`);
+    await this.auditoria.registrar({
+      accion: 'REPORTE_EXPORTAR',
+      entidad: 'reporte',
+      entidadId: 'busqueda-documentos',
+      usuarioId: sesion.usuarioId,
+      cliente,
+      detalle: { reporte: 'busqueda-documentos', registros: filas.length, texto: consulta.texto ?? null },
+    });
+    const columnas: ColumnaHoja[] = [
+      { titulo: 'N.º', ancho: 6, tipo: 'numero' },
+      { titulo: 'Documento de identidad', ancho: 16 },
+      { titulo: 'Trabajador', ancho: 34 },
+      { titulo: 'Área', ancho: 28 },
+      { titulo: 'Sección', ancho: 32 },
+      { titulo: 'Tipo documental', ancho: 40 },
+      { titulo: 'Número', ancho: 20 },
+      { titulo: 'Fecha de emisión', ancho: 14, tipo: 'fecha' },
+      { titulo: 'Fecha de vencimiento', ancho: 14, tipo: 'fecha' },
+      { titulo: 'Estado', ancho: 13, tipo: 'estado' },
+      { titulo: 'Registrado el', ancho: 14, tipo: 'fecha' },
+      { titulo: 'Registrado por', ancho: 26 },
+    ];
+    await enviarLibro(respuesta, {
+      nombreArchivo: `documentos_${hoyEnLima()}`,
+      hoja: 'Documentos',
+      titulo: 'Resultado de la búsqueda de documentos',
+      descripcion: consulta.texto ? `Búsqueda: ${consulta.texto}` : 'Documentos según los filtros aplicados',
+      columnas,
+      filas: filas.map((fila, indice): CeldaValor[] => [
+        indice + 1,
+        `${fila.tipo_doc_identidad} ${fila.numero_doc}`,
+        nombreTrabajador({ nombres: fila.nombres, apellidoPaterno: fila.apellido_paterno, apellidoMaterno: fila.apellido_materno }),
+        fila.area,
+        `${String(fila.seccion).padStart(2, '0')} ${fila.seccion_nombre}`,
+        `${fila.codigo} ${fila.tipo}`,
+        fila.numero,
+        aTextoDeFila(fila.fecha_emision),
+        aTextoDeFila(fila.fecha_vencimiento),
+        TEXTO_ESTADO_DOCUMENTO[fila.estado] ?? fila.estado,
+        aTextoDeFila(fila.creado_en),
+        fila.registrado_por,
+      ]),
+    });
   }
 
   async zip(ids: string[], sesion: SesionActiva, cliente: DatosCliente, respuesta: Response): Promise<void> {
