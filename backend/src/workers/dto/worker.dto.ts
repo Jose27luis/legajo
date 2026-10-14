@@ -2,7 +2,16 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export const TIPOS_DOC = ['DNI', 'CE'] as const;
 export const ESTADOS = ['ACTIVO', 'CESADO'] as const;
-export const MOVIMIENTOS = ['SIN_MOVIMIENTO', 'ROTACION', 'DESTAQUE', 'ENCARGATURA', 'REASIGNACION'] as const;
+export const MOVIMIENTOS = [
+  'SIN_MOVIMIENTO',
+  'ROTACION',
+  'DESTAQUE',
+  'ENCARGATURA',
+  'REASIGNACION',
+  'DESIGNACION',
+  'CAMBIO_FUNCIONES',
+  'OTRO',
+] as const;
 export const MOTIVOS_CESE = ['RENUNCIA', 'JUBILACION', 'FALLECIMIENTO', 'FIN_CONTRATO', 'DESTITUCION', 'OTRA_CAUSA'] as const;
 export const MOTIVOS_CAMBIO = ['RENOVACION', 'CAMBIO_REGIMEN', 'CAMBIO_CARGO_O_AREA'] as const;
 export const MOTIVOS_FIN = [...MOTIVOS_CESE, ...MOTIVOS_CAMBIO] as const;
@@ -183,6 +192,38 @@ export class WorkerDetailDto extends WorkerListItemDto {
 
   @ApiProperty({ type: [RelativeDto] })
   familiares: RelativeDto[];
+
+  @ApiProperty({ type: () => [MovementDto], description: 'Movimientos laborales, del más reciente al más antiguo' })
+  movimientos: MovementDto[];
+}
+
+export class MovementDto {
+  @ApiProperty({ format: 'uuid' })
+  id: string;
+
+  @ApiProperty({ enum: MOVIMIENTOS })
+  tipo: MovimientoValor;
+
+  @ApiProperty({ format: 'date' })
+  fecha: string;
+
+  @ApiProperty({ type: CatalogRefDto })
+  areaOrigen: CatalogRefDto;
+
+  @ApiProperty({ type: CatalogRefDto })
+  areaDestino: CatalogRefDto;
+
+  @ApiProperty({ type: String, format: 'uuid', nullable: true, description: 'Documento de la sección 05 que lo sustenta' })
+  documentoId: string | null;
+
+  @ApiProperty({ type: String, nullable: true })
+  observacion: string | null;
+
+  @ApiProperty()
+  registradoPor: string;
+
+  @ApiProperty({ format: 'date-time' })
+  registradoEn: string;
 }
 
 export class WorkerLookupDto {
