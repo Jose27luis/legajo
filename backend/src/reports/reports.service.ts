@@ -8,6 +8,7 @@ import { aTextoDeFila, hoyEnLima } from '../common/dates';
 import { nombreTrabajador } from '../common/names';
 import type { SesionActiva } from '../common/session';
 import { enviarLibro, type CeldaValor, type ColumnaHoja } from '../common/xlsx-stream';
+import { filtroVisibilidad } from '../documents/document.mapper';
 import type { EstadoValor, TipoPersonalValor } from '../workers/dto/worker.dto';
 import type {
   DigitizationQueryDto,
@@ -230,13 +231,27 @@ export class ReportsService {
 
   async porVencer(consulta: ExpiringQueryDto, sesion: SesionActiva): Promise<ExpiringReportDto> {
     const dias = consulta.dias ?? DIAS_POR_OMISION;
-    const filas = await this.filasVencimiento(consulta, sesion, dias, LIMITE_FILAS, 0);
+    const ambito: Prisma.DocumentoWhereInput = {
+      AND: [
+        filtroVisibilidad(sesion),
+        { estado: 'DISPONIBLE' },
+        consulta.tipoDocumentoId === undefined ? {} : { tipoDocumentoId: consulta.tipoDocumentoId },
+        consulta.areaId === undefined ? {} : { trabajador: { vinculos: { some: { actual: true, areaId: consulta.areaId } } } },
+      ],
+    };
+    const [filas, conFecha, sinFecha] = await Promise.all([
+      this.filasVencimiento(consulta, sesion, dias, LIMITE_FILAS, 0),
+      this.prisma.documento.count({ where: { AND: [ambito, { fechaVencimiento: { not: null } }] } }),
+      this.prisma.documento.count({ where: { AND: [ambito, { fechaVencimiento: null }] } }),
+    ]);
     const items = filas.map(aVencimientoDto);
     return {
       items,
       dias,
       vencidos: items.filter((item) => item.dias < 0).length,
       porVencer: items.filter((item) => item.dias >= 0).length,
+      conFecha,
+      sinFecha,
     };
   }
 
