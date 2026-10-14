@@ -31,7 +31,11 @@ const VACIOS: FiltrosReporteGeneral = {
   ingresoHasta: '',
 };
 
-const escapar = (valor: string | number | null): string =>
+const ESPERA_MS = 350;
+const DNI = /^\d{8}$/;
+const FECHA = /^\d{4}-\d{2}-\d{2}$/;
+
+const escapar =(valor: string | number | null): string =>
   String(valor ?? '').replace(/[&<>"']/g, (caracter) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[caracter] ?? caracter);
 
 @Component({
@@ -66,6 +70,8 @@ export class GeneralReportComponent {
   protected readonly elegido = signal<TrabajadorLote | null>(null);
   protected readonly paraExpediente = signal<TrabajadorExpediente | null>(null);
   protected readonly cargandoExpediente = signal(false);
+  private elegidoDesdeBusqueda = false;
+  private temporizador: ReturnType<typeof setTimeout> | undefined;
 
   protected cambiar(campo: keyof FiltrosReporteGeneral, evento: Event): void {
     const valor = valorDe(evento);
@@ -83,8 +89,43 @@ export class GeneralReportComponent {
     });
   }
 
+  protected mostrar(celda: string | number | null): string | number {
+    if (celda === null || celda === '') {
+      return '—';
+    }
+    return typeof celda === 'string' && FECHA.test(celda) ? `${celda.slice(8, 10)}/${celda.slice(5, 7)}/${celda.slice(0, 4)}` : celda;
+  }
+
+  protected escribirBusqueda(evento: Event): void {
+    const valor = valorDe(evento).trim();
+    clearTimeout(this.temporizador);
+    this.temporizador = setTimeout(() => void this.aplicarBusqueda(valor), ESPERA_MS);
+  }
+
+  private async aplicarBusqueda(valor: string): Promise<void> {
+    this.filtros.update((actual) => (actual.busqueda === valor ? actual : { ...actual, busqueda: valor }));
+    if (this.elegidoDesdeBusqueda && this.elegido()?.numeroDoc !== valor) {
+      this.elegidoDesdeBusqueda = false;
+      this.elegido.set(null);
+    }
+    if (!DNI.test(valor) || this.elegido()?.numeroDoc === valor) {
+      return;
+    }
+    const encontrado = await this.trabajadores.buscarDocumento('DNI', valor).catch(() => null);
+    if (encontrado?.trabajador && this.filtros().busqueda === valor) {
+      const trabajador = encontrado.trabajador;
+      this.elegidoDesdeBusqueda = true;
+      this.elegido.set({ id: trabajador.id, numeroDoc: trabajador.numeroDoc, nombre: nombreCompleto(trabajador) });
+    }
+  }
+
   protected limpiar(): void {
+    clearTimeout(this.temporizador);
     this.filtros.set({ ...VACIOS });
+    if (this.elegidoDesdeBusqueda) {
+      this.elegidoDesdeBusqueda = false;
+      this.elegido.set(null);
+    }
   }
 
   protected async abrirExpediente(): Promise<void> {
