@@ -1,0 +1,146 @@
+<dl class="cifras-reporte">
+  <div>
+    <dt>Trabajadores en consulta</dt>
+    <dd>{{ reporte.value()?.resumen?.trabajadores ?? '—' }}</dd>
+  </div>
+  <div>
+    <dt>Documentos del personal filtrado</dt>
+    <dd>{{ reporte.value()?.resumen?.documentos ?? '—' }}</dd>
+  </div>
+  <div>
+    <dt>PDF registrados y disponibles</dt>
+    <dd>{{ reporte.value()?.resumen?.pdf ?? '—' }}</dd>
+  </div>
+</dl>
+
+<section class="tarjeta">
+  <div class="barra-reporte">
+    <h3>Configuración del reporte</h3>
+    <span class="pastilla azul">PDF / Excel</span>
+  </div>
+  <div class="filtros-reporte">
+    <div class="campo completo-fila">
+      <label for="reporte-tipo">Tipo de reporte</label>
+      <select id="reporte-tipo" (change)="cambiar('tipo', $event)">
+        @for (tipo of tipos; track tipo.valor) {
+          <option [value]="tipo.valor" [selected]="filtros().tipo === tipo.valor">{{ tipo.texto }}</option>
+        }
+      </select>
+    </div>
+    <div class="campo">
+      <label for="reporte-estado">Situación laboral</label>
+      <select id="reporte-estado" (change)="cambiar('estado', $event)">
+        <option value="" [selected]="filtros().estado === ''">Todos</option>
+        <option value="ACTIVO" [selected]="filtros().estado === 'ACTIVO'">ACTIVO</option>
+        <option value="CESADO" [selected]="filtros().estado === 'CESADO'">CESADO</option>
+      </select>
+    </div>
+    <div class="campo">
+      <label for="reporte-area">Área o dependencia</label>
+      <select id="reporte-area" (change)="cambiar('areaId', $event)">
+        <option value="" [selected]="filtros().areaId === null">Todas</option>
+        @for (area of opciones.value()?.areas ?? []; track area.id) {
+          <option [value]="area.id" [selected]="filtros().areaId === area.id">{{ area.nombre }}</option>
+        }
+      </select>
+    </div>
+    <div class="campo">
+      <label for="reporte-regimen">Régimen laboral</label>
+      <select id="reporte-regimen" (change)="cambiar('regimenId', $event)">
+        <option value="" [selected]="filtros().regimenId === null">Todos</option>
+        @for (regimen of opciones.value()?.regimenes ?? []; track regimen.id) {
+          <option [value]="regimen.id" [selected]="filtros().regimenId === regimen.id">{{ regimen.nombre }}</option>
+        }
+      </select>
+    </div>
+    <div class="campo">
+      <label for="reporte-busqueda">DNI, nombre o cargo</label>
+      <input id="reporte-busqueda" type="search" [value]="filtros().busqueda" maxlength="120" autocomplete="off" (change)="cambiar('busqueda', $event)" />
+    </div>
+    <div class="campo">
+      <label for="reporte-desde">Fecha de ingreso desde</label>
+      <input id="reporte-desde" type="date" [value]="filtros().ingresoDesde" (change)="cambiar('ingresoDesde', $event)" />
+    </div>
+    <div class="campo">
+      <label for="reporte-hasta">Fecha de ingreso hasta</label>
+      <input id="reporte-hasta" type="date" [value]="filtros().ingresoHasta" (change)="cambiar('ingresoHasta', $event)" />
+    </div>
+  </div>
+  <div class="acciones">
+    <button type="button" class="boton" (click)="limpiar()">Limpiar filtros</button>
+    @if (sesion.tiene('reportes.exportar')) {
+      <a class="boton" [href]="enlace()" download>Exportar Excel</a>
+      <button type="button" class="boton principal" (click)="imprimir()" [disabled]="imprimiendo()">
+        {{ imprimiendo() ? 'Preparando' : 'Imprimir / Guardar PDF' }}
+      </button>
+    }
+  </div>
+</section>
+
+<section class="tarjeta">
+  <div class="barra-reporte">
+    <h3>Vista previa · {{ reporte.value()?.total ?? 0 }} registros</h3>
+    <span class="herramientas">{{ nombreTipo() }}</span>
+  </div>
+  @if (error(); as mensaje) {
+    <p class="aviso error" role="alert">{{ mensaje }}</p>
+  }
+  <div class="tabla-contenedor" [class.cargando]="reporte.isLoading()">
+    <table class="tabla">
+      <thead>
+        <tr>
+          @for (columna of reporte.value()?.columnas ?? []; track $index) {
+            <th scope="col">{{ columna }}</th>
+          }
+        </tr>
+      </thead>
+      <tbody>
+        @if (reporte.value(); as datos) {
+          @for (fila of datos.filas; track $index) {
+            <tr>
+              @for (celda of fila; track $index) {
+                <td>{{ celda ?? '—' }}</td>
+              }
+            </tr>
+          } @empty {
+            <tr><td [attr.colspan]="datos.columnas.length" class="celda-vacia">Sin resultados para los filtros indicados.</td></tr>
+          }
+        } @else {
+          <tr><td class="celda-vacia">Calculando el reporte</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  @if ((reporte.value()?.total ?? 0) > (reporte.value()?.filas?.length ?? 0)) {
+    <p class="nota">Se muestran los primeros {{ reporte.value()?.filas?.length }} registros. La exportación incluye todos.</p>
+  }
+</section>
+
+@if (sesion.tiene('documentos.ver')) {
+  <section class="tarjeta">
+    <div class="barra-reporte">
+      <h3>Descarga de expedientes por trabajador</h3>
+    </div>
+    <p class="nota">
+      Elige un trabajador y genera un expediente PDF único con los archivos registrados y vigentes de sus secciones, o descárgalos
+      en ZIP.
+    </p>
+    <div class="expediente">
+      <div class="campo">
+        <label for="expediente-trabajador">Seleccionar trabajador</label>
+        <app-worker-picker idCampo="expediente-trabajador" [(elegido)]="elegido" />
+      </div>
+      <div class="botones">
+        <button type="button" class="boton principal" (click)="abrirExpediente()" [disabled]="elegido() === null || cargandoExpediente()">
+          Expediente completo
+        </button>
+        @if (elegido(); as trabajador) {
+          <a class="boton" [routerLink]="['/workers', trabajador.id]">Ver legajo</a>
+        }
+      </div>
+    </div>
+    <p class="aviso info">No se incluyen en el PDF unificado los documentos anulados; de cada documento se toma su versión vigente.</p>
+  </section>
+}
+
+<app-dossier-dialog [trabajador]="paraExpediente()" (cerrar)="paraExpediente.set(null)" />
