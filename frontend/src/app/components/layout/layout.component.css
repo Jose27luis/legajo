@@ -1,9 +1,11 @@
 :host {
-  --ancho-lateral: 264px;
+  --ancho-lateral: 250px;
   --ancho-contraido: 76px;
   --alto-superior: 64px;
   --curva: cubic-bezier(0.22, 1, 0.36, 1);
   display: block;
+  font: 14px/1.48 'Segoe UI', Arial, sans-serif;
+  font-variation-settings: normal;
 }
 
 .app {
@@ -470,9 +472,9 @@ ul {
 .contenido {
   flex: 1;
   width: 100%;
-  max-width: 1440px;
+  max-width: 1720px;
   margin: 0 auto;
-  padding: 28px clamp(16px, 3vw, 40px) 56px;
+  padding: 22px 24px 54px;
 }
 
 .trabajador {
