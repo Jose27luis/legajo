@@ -1,0 +1,42 @@
+:host {
+  display: grid;
+  gap: 16px;
+}
+
+.cifras-reporte {
+  margin: 0;
+}
+
+.cifras-reporte .vencidos {
+  --tono: var(--alerta);
+}
+
+.cifras-reporte .vencidos dd {
+  color: var(--alerta);
+}
+
+.tabla-contenedor.cargando {
+  opacity: 0.6;
+}
+
+.tabla {
+  min-width: 680px;
+}
+
+.herramientas select {
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--linea);
+  border-radius: 7px;
+  background: #fff;
+}
+
+.herramientas a {
+  text-decoration: none;
+}
+
+.nota {
+  margin-top: 10px;
+  color: var(--tinta-suave);
+  font-size: 12.5px;
+}
