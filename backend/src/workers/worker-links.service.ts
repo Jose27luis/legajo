@@ -7,6 +7,7 @@ import { aFecha, aTexto, diaAnterior, hoyEnLima } from '../common/dates';
 import type { LinkChangeDto, ReentryDto, SituationDto } from './dto/worker-input.dto';
 import type { WorkerDetailDto } from './dto/worker.dto';
 import { exigirCatalogosActivos } from './catalog-guard';
+import { LaborService } from '../labor/labor.service';
 import { aDetalleDto, incluirDetalle, type TrabajadorDetalle } from './worker.mapper';
 
 @Injectable()
@@ -14,6 +15,7 @@ export class WorkerLinksService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly auditoria: AuditService,
+    private readonly laboral: LaborService,
   ) {}
 
   async actualizarSituacion(
@@ -33,54 +35,38 @@ export class WorkerLinksService {
       if (trabajador.estado === 'CESADO') {
         throw new BadRequestException('El trabajador ya está cesado');
       }
-      if (datos.motivoCese === null || datos.fechaCese === null) {
-        throw new BadRequestException('Para registrar el cese indica el motivo y la fecha');
+      throw new BadRequestException(
+        'Para confirmar un cese, registra el PDF en la Sección 11 y pulsa «Confirmar cese laboral» desde Ver detalle',
+      );
+    }
+
+    if (datos.movimiento !== 'SIN_MOVIMIENTO') {
+      const tipo = datos.movimiento;
+      if (datos.movimientoFecha === null || datos.areaOrigenId === null || datos.areaDestinoId === null) {
+        throw new BadRequestException('Indica la fecha, el área de origen y el área de destino del movimiento');
       }
-      const vinculo = this.vinculoActual(trabajador);
-      if (datos.fechaCese < aTexto(vinculo.fechaInicio) || datos.fechaCese > hoy) {
-        throw new BadRequestException('La fecha de cese debe estar entre el inicio del vínculo y hoy');
-      }
-      const motivoCese = datos.motivoCese;
-      const fechaCese = datos.fechaCese;
+      const movimiento = {
+        tipo,
+        fecha: datos.movimientoFecha,
+        areaOrigenId: datos.areaOrigenId,
+        areaDestinoId: datos.areaDestinoId,
+        observacion: datos.observacion,
+        documentoId: null,
+      };
       await this.prisma.$transaction(async (transaccion) => {
-        await transaccion.vinculo.update({
-          where: { id: vinculo.id },
-          data: { fechaFin: aFecha(fechaCese), motivoFin: motivoCese },
-        });
-        await transaccion.trabajador.update({
-          where: { id },
-          data: { estado: 'CESADO', movimientoActual: 'SIN_MOVIMIENTO', movimientoFecha: null },
-        });
-        await this.auditoria.registrar(
-          {
-            accion: 'VINCULO_FINALIZAR',
-            entidad: 'vinculo',
-            entidadId: vinculo.id,
-            trabajadorId: id,
-            usuarioId: actor.usuarioId,
-            cliente,
-            detalle: { motivo: motivoCese, fechaCese, observacion: datos.observacion },
-          },
-          transaccion,
-        );
+        const actual = await this.laboral.trabajador(transaccion, id);
+        await this.laboral.aplicarMovimiento(transaccion, actual, movimiento, actor, cliente);
       });
       return this.obtener(id);
     }
 
-    const conMovimiento = datos.movimiento !== 'SIN_MOVIMIENTO';
-    if (conMovimiento && datos.movimientoFecha === null) {
-      throw new BadRequestException('Indica la fecha del movimiento');
-    }
     if (datos.movimientoFecha !== null && datos.movimientoFecha > hoy) {
-      throw new BadRequestException('La fecha del movimiento no puede ser futura');
+      throw new BadRequestException('La fecha no puede ser futura');
     }
     await this.prisma.$transaction(async (transaccion) => {
       await transaccion.trabajador.update({
         where: { id },
-        data: {
-          movimientoActual: datos.movimiento,
-          movimientoFecha: conMovimiento && datos.movimientoFecha !== null ? aFecha(datos.movimientoFecha) : null,
-        },
+        data: { movimientoActual: 'SIN_MOVIMIENTO', movimientoFecha: null },
       });
       await this.auditoria.registrar(
         {
