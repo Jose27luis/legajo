@@ -7,6 +7,7 @@ export interface SesionActiva {
   permisos: string[];
   debeCambiarClave: boolean;
   creadaEn: string;
+  seccionesRestringidas: number[];
 }
 
 export interface SolicitudConSesion extends Request {
