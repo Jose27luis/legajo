@@ -43,7 +43,8 @@ export interface NuevoUsuario extends DatosUsuario {
   usuario: string;
 }
 
-export type TipoCampo = 'texto' | 'fecha' | 'numero' | 'seleccion' | 'parrafo';
+export type TipoCampo = 'texto' | 'fecha' | 'numero' | 'seleccion' | 'parrafo' | 'regimen' | 'area' | 'cargo';
+export type AccionDocumento = 'NINGUNA' | 'VINCULO' | 'MOVIMIENTO' | 'CESE';
 
 export interface CampoSeccion {
   clave: string;
@@ -63,6 +64,8 @@ export interface TipoDocumento {
   tieneVencimiento: boolean;
   activo: boolean;
   orden: number;
+  accion: AccionDocumento;
+  campos: CampoSeccion[];
 }
 
 export interface Seccion {
@@ -124,7 +127,15 @@ export interface NuevoRequisito {
 
 export type TipoDocIdentidad = 'DNI' | 'CE';
 export type EstadoTrabajador = 'ACTIVO' | 'CESADO';
-export type Movimiento = 'SIN_MOVIMIENTO' | 'ROTACION' | 'DESTAQUE' | 'ENCARGATURA' | 'REASIGNACION';
+export type Movimiento =
+  | 'SIN_MOVIMIENTO'
+  | 'ROTACION'
+  | 'DESTAQUE'
+  | 'ENCARGATURA'
+  | 'REASIGNACION'
+  | 'DESIGNACION'
+  | 'CAMBIO_FUNCIONES'
+  | 'OTRO';
 export type MotivoCese = 'RENUNCIA' | 'JUBILACION' | 'FALLECIMIENTO' | 'FIN_CONTRATO' | 'DESTITUCION' | 'OTRA_CAUSA';
 export type MotivoCambio = 'RENOVACION' | 'CAMBIO_REGIMEN' | 'CAMBIO_CARGO_O_AREA';
 export type MotivoFin = MotivoCese | MotivoCambio;
@@ -182,6 +193,19 @@ export interface TrabajadorDetalle extends TrabajadorResumen {
   creadoEn: string;
   vinculos: Vinculo[];
   familiares: Familiar[];
+  movimientos: MovimientoLaboral[];
+}
+
+export interface MovimientoLaboral {
+  id: string;
+  tipo: Movimiento;
+  fecha: string;
+  areaOrigen: ReferenciaCatalogo;
+  areaDestino: ReferenciaCatalogo;
+  documentoId: string | null;
+  observacion: string | null;
+  registradoPor: string;
+  registradoEn: string;
 }
 
 export interface TrabajadorDirectorio extends TrabajadorResumen {
@@ -251,9 +275,39 @@ export interface Situacion {
   estado: EstadoTrabajador;
   movimiento: Movimiento;
   movimientoFecha: string | null;
+  areaOrigenId: number | null;
+  areaDestinoId: number | null;
   motivoCese: MotivoCese | null;
   fechaCese: string | null;
   observacion: string | null;
+}
+
+export interface ConfirmacionMovimiento {
+  tipo: Exclude<Movimiento, 'SIN_MOVIMIENTO'>;
+  fecha: string;
+  areaOrigenId: number;
+  areaDestinoId: number;
+  observacion: string | null;
+}
+
+export interface ConfirmacionCese {
+  motivo: MotivoCese;
+  fecha: string;
+  observacion: string | null;
+}
+
+export interface CambioHistorial {
+  campo: string;
+  antes: string | null;
+  despues: string | null;
+}
+
+export interface EntradaHistorial {
+  fecha: string;
+  evento: string;
+  usuario: string | null;
+  motivo: string | null;
+  cambios: CambioHistorial[];
 }
 
 export interface DatosFamiliar {
@@ -302,6 +356,10 @@ export interface Documento {
   reintentable: boolean;
   editable: boolean;
   versiones: VersionArchivo[];
+  vinculoId: string | null;
+  confirmadoPor: string | null;
+  confirmadoEn: string | null;
+  movimientoId: string | null;
 }
 
 export interface SeccionLegajo {
@@ -312,6 +370,7 @@ export interface SeccionLegajo {
   campos: CampoSeccion[];
   tipos: TipoDocumento[];
   total: number;
+  restringida: boolean;
 }
 
 export interface Legajo {
@@ -465,7 +524,8 @@ export interface FiltrosBusqueda {
   regimenId: number | null;
   tipoPersonal: TipoPersonal | null;
   estado: EstadoTrabajador | null;
-  estadoDocumento: EstadoDocumento | null;
+  estadoDocumento: EstadoDocumento | 'TODOS' | null;
+  trabajadorId: string | null;
 }
 
 export type SituacionRequisito = 'COMPLETO' | 'FALTANTE' | 'VENCIDO';
@@ -586,6 +646,8 @@ export interface ReporteVencimientos {
   dias: number;
   vencidos: number;
   porVencer: number;
+  conFecha: number;
+  sinFecha: number;
 }
 
 export interface FiltrosVencimientos {
@@ -717,4 +779,79 @@ export interface PanelRespaldos extends EstadoRespaldos {
   total: number;
   pagina: number;
   porPagina: number;
+}
+
+export type TipoReporteGeneral = 'general' | 'situacion' | 'regimen' | 'documentos' | 'secciones' | 'estadisticas';
+
+export interface FiltrosReporteGeneral {
+  tipo: TipoReporteGeneral;
+  estado: EstadoTrabajador | '';
+  areaId: number | null;
+  regimenId: number | null;
+  busqueda: string;
+  ingresoDesde: string;
+  ingresoHasta: string;
+}
+
+export interface ReporteGeneral {
+  tipo: TipoReporteGeneral;
+  columnas: string[];
+  filas: (string | number | null)[][];
+  total: number;
+  resumen: { trabajadores: number; documentos: number; pdf: number };
+}
+
+export interface CifraIndicador {
+  nombre: string;
+  cantidad: number;
+}
+
+export interface Indicadores {
+  trabajadores: number;
+  activos: number;
+  cesados: number;
+  documentos: number;
+  pdf: number;
+  porSeccion: CifraIndicador[];
+  porRegimen: CifraIndicador[];
+}
+
+export interface FilaImportacion {
+  fila: number;
+  numeroDoc: string;
+  nombres: string;
+  apellidoPaterno: string;
+  apellidoMaterno: string | null;
+  tipoPersonal: TipoPersonal;
+  regimen: string;
+  area: string;
+  cargo: string;
+  estado: EstadoTrabajador;
+  fechaIngreso: string;
+  motivoCese: MotivoCese | null;
+  fechaCese: string | null;
+  avisos: string[];
+}
+
+export interface VistaImportacion {
+  validos: FilaImportacion[];
+  observaciones: string[];
+  total: number;
+}
+
+export interface ResultadoImportacion {
+  importados: number;
+  catalogosCreados: number;
+}
+
+export interface PermisoRolSeccion {
+  id: string;
+  nombre: string;
+  bloqueado: boolean;
+  restringidas: number[];
+}
+
+export interface PermisosSeccion {
+  secciones: { numero: number; nombre: string }[];
+  roles: PermisoRolSeccion[];
 }
