@@ -1,19 +1,4 @@
-<app-dialog [abierto]="abierto()" titulo="Registrar trabajador que recién ingresa" (cerrar)="cerrarDialogo()">
-  <div class="presentacion">
-    <div>
-      <strong>Nuevo ingreso laboral</strong>
-      <p>
-        Completa la ficha de la persona que acaba de ingresar. No hace falta adjuntar el PDF ahora: el contrato o la resolución se
-        suben después en la Sección 02.
-      </p>
-    </div>
-    <ul class="resultado-inicial" aria-label="Así quedará el trabajador">
-      <li><span class="pastilla verde">ACTIVO</span><span>Estado inicial</span></li>
-      <li><span class="pastilla gris">Sin movimiento</span><span>Último movimiento</span></li>
-      <li><span class="pastilla azul">13 secciones</span><span>Legajo con 0 PDF</span></li>
-    </ul>
-  </div>
-
+<app-dialog [abierto]="abierto()" [ancho]="true" titulo="Registrar trabajador que recién ingresa" (cerrar)="cerrarDialogo()">
   <form id="formulario-ingreso" [formGroup]="formulario" (ngSubmit)="guardar()" novalidate>
     <fieldset class="grupo">
       <legend><span class="indicador">1</span> Identidad</legend>
@@ -114,7 +99,7 @@
     </fieldset>
 
     @if (error(); as mensaje) {
-      <p class="aviso error" role="alert" animate.enter="aparece">{{ mensaje }}</p>
+      <p class="aviso error completo" role="alert" animate.enter="aparece">{{ mensaje }}</p>
     }
   </form>
 
