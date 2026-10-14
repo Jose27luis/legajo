@@ -5,6 +5,7 @@ import { ESTADOS_DOCUMENTO, type EstadoDocumentoValor } from '../../documents/dt
 import { ESTADOS, TIPOS_PERSONAL, type EstadoValor, type TipoPersonalValor } from '../../workers/dto/worker.dto';
 
 export const MAXIMO_SELECCION = 100;
+export const ESTADOS_BUSQUEDA = [...ESTADOS_DOCUMENTO, 'TODOS'] as const;
 export const SECCIONES = 13;
 
 const vacioANulo = ({ value }: { value: unknown }) => {
@@ -83,10 +84,16 @@ export class SearchQueryDto {
   @IsIn(ESTADOS)
   estado?: EstadoValor;
 
-  @ApiPropertyOptional({ enum: ESTADOS_DOCUMENTO })
+  @ApiPropertyOptional({ enum: ESTADOS_BUSQUEDA, description: 'TODOS incluye los anulados y los que tienen error' })
   @IsOptional()
-  @IsIn(ESTADOS_DOCUMENTO)
-  estadoDocumento?: EstadoDocumentoValor;
+  @IsIn(ESTADOS_BUSQUEDA)
+  estadoDocumento?: EstadoDocumentoValor | 'TODOS';
+
+  @ApiPropertyOptional({ format: 'uuid' })
+  @Transform(vacioANulo)
+  @IsOptional()
+  @IsUUID('4', { message: 'Trabajador no válido' })
+  trabajadorId?: string | null = null;
 
   @ApiPropertyOptional({ default: 1 })
   @IsOptional()
