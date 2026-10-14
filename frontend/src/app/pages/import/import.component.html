@@ -1,0 +1,120 @@
+<header class="cabecera-seccion">
+  <div>
+    <p class="antetitulo">Carga de datos</p>
+    <h2>Importar trabajadores desde Excel / CSV</h2>
+    <p>Registra varios trabajadores a la vez con su vínculo laboral. Los documentos PDF se agregan después en cada legajo.</p>
+  </div>
+  <button type="button" class="boton" (click)="descargarPlantilla()">Descargar plantilla</button>
+</header>
+
+<section class="tarjeta pasos">
+  <ol>
+    <li><b>1</b> Descarga la plantilla y completa una fila por trabajador.</li>
+    <li><b>2</b> Selecciona el archivo y pulsa «Validar archivo».</li>
+    <li><b>3</b> Revisa las observaciones y confirma la importación.</li>
+  </ol>
+  <p class="nota">
+    Columnas obligatorias: dni, apellido_paterno, nombres, regimen y fecha_ingreso. Las áreas y cargos que no existan se agregan
+    al catálogo. Para un trabajador cesado indica estado CESADO, fecha_cese y motivo_cese. Los DNI ya registrados se omiten.
+  </p>
+  <div class="carga">
+    <div class="campo">
+      <label for="importar-archivo">Archivo .csv o .xlsx (máximo 5 MB) <span class="obligatorio">*</span></label>
+      <input id="importar-archivo" type="file" accept=".csv,.xlsx" (change)="elegir($event)" />
+    </div>
+    <button type="button" class="boton principal" (click)="validar()" [disabled]="archivo() === null || validando()">
+      {{ validando() ? 'Validando' : 'Validar archivo' }}
+    </button>
+  </div>
+  @if (error(); as mensaje) {
+    <p class="aviso error" role="alert">{{ mensaje }}</p>
+  }
+</section>
+
+@if (resultado(); as datos) {
+  <p class="aviso exito" role="status">
+    Se registraron <strong>{{ datos.importados }}</strong> trabajadores.
+    @if (datos.catalogosCreados > 0) {
+      Se agregaron {{ datos.catalogosCreados }} áreas o cargos nuevos al catálogo.
+    }
+    <a routerLink="/workers">Ver trabajadores</a>
+  </p>
+}
+
+@if (vista(); as datos) {
+  <section class="tarjeta">
+    <div class="barra-reporte">
+      <h3>Vista previa · {{ datos.validos.length }} de {{ datos.total }} filas listas</h3>
+      <span class="herramientas">
+        @if (conAvisos() > 0) {
+          <span class="pastilla ambar">{{ conAvisos() }} con avisos</span>
+        }
+        @if (datos.observaciones.length > 0) {
+          <span class="pastilla roja">{{ datos.observaciones.length }} observadas</span>
+        }
+      </span>
+    </div>
+
+    @if (datos.observaciones.length > 0) {
+      <div class="aviso sensible">
+        <strong>Filas que no se importarán</strong>
+        <ul>
+          @for (observacion of datos.observaciones; track $index) {
+            <li>{{ observacion }}</li>
+          }
+        </ul>
+      </div>
+    }
+
+    <div class="tabla-contenedor">
+      <table class="tabla">
+        <thead>
+          <tr>
+            <th scope="col">Fila</th>
+            <th scope="col">Trabajador</th>
+            <th scope="col">DNI</th>
+            <th scope="col">Régimen</th>
+            <th scope="col">Área y cargo</th>
+            <th scope="col">Ingreso</th>
+            <th scope="col">Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (fila of datos.validos; track fila.fila) {
+            <tr>
+              <td class="celda-numero">{{ fila.fila }}</td>
+              <td>
+                <strong>{{ fila.apellidoPaterno }} {{ fila.apellidoMaterno ?? '' }}, {{ fila.nombres }}</strong>
+                @for (aviso of fila.avisos; track $index) {
+                  <span class="secundario aviso-fila">{{ aviso }}</span>
+                }
+              </td>
+              <td>{{ fila.numeroDoc }}</td>
+              <td>{{ fila.regimen }}</td>
+              <td>
+                {{ fila.area }}
+                <span class="secundario">{{ fila.cargo }}</span>
+              </td>
+              <td class="celda-numero">{{ fechaCorta(fila.fechaIngreso) }}</td>
+              <td>
+                <span class="pastilla" [class.verde]="fila.estado === 'ACTIVO'" [class.gris]="fila.estado === 'CESADO'">{{ fila.estado }}</span>
+                @if (fila.motivoCese; as motivo) {
+                  <span class="secundario">{{ textoMotivo[motivo] }} · {{ fechaCorta(fila.fechaCese) }}</span>
+                }
+              </td>
+            </tr>
+          } @empty {
+            <tr><td colspan="7" class="celda-vacia">Ninguna fila del archivo se puede importar.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <div class="acciones">
+      <button type="button" class="boton" (click)="cancelar()" [disabled]="importando()">Cancelar</button>
+      <button type="button" class="boton principal" (click)="importar()" [disabled]="datos.validos.length === 0 || importando()">
+        {{ importando() ? 'Importando' : 'Confirmar importación de ' + datos.validos.length + ' trabajadores' }}
+      </button>
+    </div>
+  </section>
+}
