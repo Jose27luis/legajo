@@ -1,0 +1,56 @@
+:host {
+  display: grid;
+  gap: 16px;
+}
+
+.elegir {
+  display: grid;
+  gap: 16px;
+}
+
+.presentacion {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.simbolo {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: var(--primario-claro);
+  color: var(--primario);
+}
+
+.simbolo svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linejoin: round;
+}
+
+h3 {
+  color: var(--marino);
+  font-size: 16px;
+}
+
+.presentacion p,
+.nota {
+  color: var(--tinta-suave);
+  font-size: 13.5px;
+}
+
+.campo input {
+  height: 50px;
+  font-size: 15px;
+}
+
+.tabla {
+  min-width: 520px;
+}
+
+.tabla a {
+  text-decoration: none;
+}
