@@ -1,0 +1,87 @@
+:host {
+  display: grid;
+  gap: 16px;
+}
+
+.pasos {
+  display: grid;
+  gap: 14px;
+}
+
+.pasos ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.pasos li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 12px;
+  border: 1px solid var(--linea);
+  border-radius: 10px;
+  background: #fafcfe;
+  font-size: 13px;
+}
+
+.pasos li b {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--primario-claro);
+  color: var(--primario);
+}
+
+.nota {
+  color: var(--tinta-suave);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.carga {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 12px;
+}
+
+.aviso ul {
+  margin: 6px 0 0;
+  padding-left: 18px;
+  max-height: 180px;
+  overflow: auto;
+}
+
+.aviso a {
+  margin-left: 6px;
+}
+
+.aviso-fila {
+  color: #96600c;
+}
+
+.tabla {
+  min-width: 860px;
+}
+
+.acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+
+@media (max-width: 720px) {
+  .pasos ol,
+  .carga {
+    grid-template-columns: 1fr;
+  }
+}
