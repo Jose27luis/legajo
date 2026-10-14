@@ -1,0 +1,51 @@
+:host {
+  display: block;
+}
+
+.cabecera-tarjeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.cabecera-tarjeta h3 {
+  margin: 0;
+  font-size: 15px;
+}
+
+.aviso {
+  margin-bottom: 12px;
+}
+
+.tabla {
+  min-width: 560px;
+}
+
+.fecha {
+  white-space: nowrap;
+}
+
+.fila-acciones a {
+  text-decoration: none;
+}
+
+.subida {
+  margin-top: 16px;
+}
+
+.aviso.sensible p {
+  margin-bottom: 8px;
+}
+
+.acciones {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.nota {
+  margin-top: 12px;
+  color: var(--tinta-suave);
+  font-size: 13px;
+}
