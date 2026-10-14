@@ -23,6 +23,16 @@
   font-weight: 700;
 }
 
+.guia {
+  color: var(--primario-oscuro);
+  font-weight: 550;
+}
+
+.adicionales {
+  margin: 2px 0 0;
+  font-size: 12.5px;
+}
+
 .automatico {
   padding: 11px 13px;
   border: 1px dashed var(--linea);
