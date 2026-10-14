@@ -1,0 +1,63 @@
+<app-dialog [abierto]="trabajador() !== null" titulo="Generar expediente digital completo" (cerrar)="cerrar.emit()">
+  @if (trabajador(); as actual) {
+    <p class="aviso info">
+      <strong>{{ actual.nombre }}</strong> · {{ actual.tipoDocIdentidad }} {{ actual.numeroDoc }}<br />
+      Régimen {{ actual.regimen ?? 'sin vínculo' }} · {{ actual.estado }}<br />
+      <strong>{{ totales().registros }}</strong> registros vigentes, <strong>{{ totales().pdf }}</strong> archivos PDF disponibles.
+    </p>
+
+    @if (error(); as mensaje) {
+      <p class="aviso error" role="alert">{{ mensaje }}</p>
+    }
+
+    <h3>Selecciona las secciones a incluir</h3>
+    @if (legajo.isLoading() && filas().length === 0) {
+      <p class="celda-vacia">Cargando secciones</p>
+    }
+    <ul class="secciones">
+      @for (fila of filas(); track fila.numero) {
+        <li [class.restringida]="fila.restringida">
+          <label>
+            <input
+              type="checkbox"
+              [checked]="elegidas().includes(fila.numero)"
+              [disabled]="fila.restringida"
+              (change)="alternar(fila.numero)"
+            />
+            <span class="nombre"><b>Sección {{ numeroSeccion(fila.numero) }}</b> · {{ fila.nombre }}</span>
+            <span class="cuenta">
+              @if (fila.restringida) {
+                Sección restringida
+              } @else {
+                {{ fila.registros }} registros / {{ fila.pdf }} PDF
+              }
+            </span>
+          </label>
+        </li>
+      }
+    </ul>
+
+    <label class="portada">
+      <input type="checkbox" [checked]="portada()" (change)="portada.set(!portada())" />
+      Generar portada e índice del expediente
+    </label>
+    <p class="nota">
+      Solo se unen los PDF registrados y procesados de las secciones elegidas ({{ totales().elegidos }} archivos). No se incluyen
+      los documentos anulados; de cada documento se toma su versión vigente.
+    </p>
+  }
+  <ng-container pie>
+    <button type="button" class="boton" (click)="cerrar.emit()">Cerrar</button>
+    @if (enlaceIndice(); as enlace) {
+      <a class="boton" [href]="enlace" download>Índice en Excel</a>
+    }
+    @if (sesion.tiene('documentos.descargar')) {
+      @if (enlaceZip(); as enlace) {
+        <a class="boton" [href]="enlace" download>Descargar ZIP</a>
+      }
+      @if (enlacePdf(); as enlace) {
+        <a class="boton principal" [class.deshabilitado]="totales().elegidos === 0" [href]="enlace" download>Generar PDF completo</a>
+      }
+    }
+  </ng-container>
+</app-dialog>
