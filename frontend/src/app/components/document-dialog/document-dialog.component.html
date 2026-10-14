@@ -1,10 +1,10 @@
-<app-dialog [abierto]="documento() !== null" [titulo]="titulo()" (cerrar)="alCerrar()">
+<app-dialog [abierto]="documento() !== null" [titulo]="titulo()" [ancho]="modo() === 'visor'" (cerrar)="alCerrar()">
   @if (documento(); as doc) {
     @switch (modo()) {
       @case ('detalle') {
         <div class="resumen">
           <div class="identidad">
-            <span class="codigo">{{ doc.tipo.codigo }}</span>
+            <span class="codigo">{{ numeroSeccion(doc.seccion) }}</span>
             <div>
               <strong>{{ doc.tipo.nombre }}</strong>
               <span>{{ doc.numero ?? 'Sin número' }}</span>
@@ -14,6 +14,9 @@
             <span class="pastilla" [class]="claseEstado[doc.estado]">{{ textoEstado[doc.estado] }}</span>
             @if (doc.nivelAcceso !== 'NORMAL') {
               <span class="pastilla ambar">{{ textoNivel[doc.nivelAcceso] }}</span>
+            }
+            @if (confirmado(); as etiqueta) {
+              <span class="pastilla verde">{{ etiqueta }}</span>
             }
           </div>
         </div>
@@ -27,32 +30,33 @@
         @if (doc.motivoAnulacion; as motivo) {
           <p class="aviso sensible">Anulado: {{ motivo }}</p>
         }
+        @if (accionPendiente() !== null && doc.estado !== 'DISPONIBLE') {
+          <p class="aviso info">Cuando el PDF termine de procesarse podrás confirmarlo desde aquí.</p>
+        }
 
         <dl class="datos">
-          <div><dt>Sección</dt><dd>{{ numeroSeccion(doc.seccion) }} {{ seccion()?.nombre }}</dd></div>
-          <div><dt>Fecha de emisión</dt><dd>{{ doc.fechaEmision ? fechaCorta(doc.fechaEmision) : 'Sin registrar' }}</dd></div>
+          <div><dt>Sección</dt><dd>{{ numeroSeccion(doc.seccion) }} · {{ seccion()?.nombre }}</dd></div>
+          <div><dt>Tipo de documento</dt><dd>{{ doc.tipo.nombre }}</dd></div>
+          <div><dt>N.º documento</dt><dd>{{ doc.numero ?? 'No registrado' }}</dd></div>
+          <div><dt>Fecha de emisión</dt><dd>{{ doc.fechaEmision ? fechaCorta(doc.fechaEmision) : 'No registrada' }}</dd></div>
           @if (doc.tipo.tieneVencimiento || doc.fechaVencimiento !== null) {
-            <div><dt>Vencimiento</dt><dd>{{ doc.fechaVencimiento ? fechaCorta(doc.fechaVencimiento) : 'Sin registrar' }}</dd></div>
+            <div><dt>Vencimiento</dt><dd>{{ doc.fechaVencimiento ? fechaCorta(doc.fechaVencimiento) : 'No registrada' }}</dd></div>
           }
-          <div><dt>Emitido por</dt><dd>{{ doc.emisor ?? 'Sin registrar' }}</dd></div>
-          <div><dt>Cargado el</dt><dd>{{ fechaHora(doc.creadoEn) }}<span class="quien">{{ doc.creadoPor }}</span></dd></div>
-          <div>
-            <dt>Última modificación</dt>
-            @if (doc.modificadoEn; as modificado) {
-              <dd>{{ fechaHora(modificado) }}<span class="quien">{{ doc.modificadoPor }}</span></dd>
-            } @else {
-              <dd>Sin modificaciones</dd>
-            }
-          </div>
-          @if (doc.motivoModificacion; as motivo) {
-            <div class="ancho"><dt>Motivo de la modificación</dt><dd>{{ motivo }}</dd></div>
-          }
+          <div><dt>Estado</dt><dd>{{ textoEstado[doc.estado] }}</dd></div>
+          <div><dt>Fecha y hora de carga</dt><dd>{{ fechaHora(doc.creadoEn) }}</dd></div>
+          <div><dt>Registrado por</dt><dd>{{ doc.creadoPor }}</dd></div>
+          <div><dt>Última modificación</dt><dd>{{ doc.modificadoEn ? fechaHora(doc.modificadoEn) : 'Sin modificaciones' }}</dd></div>
+          <div><dt>Modificado por</dt><dd>{{ doc.modificadoPor ?? '—' }}</dd></div>
+          <div class="ancho"><dt>Motivo de modificación</dt><dd>{{ doc.motivoModificacion ?? '—' }}</dd></div>
+          <div class="ancho"><dt>Nombre original del PDF</dt><dd>{{ versionActual()?.nombreOriginal ?? '—' }}</dd></div>
+          <div class="ancho"><dt>Descripción</dt><dd>{{ doc.observaciones ?? '—' }}</dd></div>
+          <div><dt>Emitido por</dt><dd>{{ doc.emisor ?? '—' }}</dd></div>
+          <div><dt>Ubicación del físico</dt><dd>{{ doc.ubicacionFisica ?? '—' }}</dd></div>
           @for (propio of propios(); track propio.etiqueta) {
             <div><dt>{{ propio.etiqueta }}</dt><dd>{{ propio.valor }}</dd></div>
           }
-          <div><dt>Ubicación del físico</dt><dd>{{ doc.ubicacionFisica ?? 'Sin registrar' }}</dd></div>
-          @if (doc.observaciones; as observaciones) {
-            <div class="ancho"><dt>Descripción y observaciones</dt><dd>{{ observaciones }}</dd></div>
+          @if (doc.confirmadoEn; as confirmadoEn) {
+            <div class="ancho"><dt>Confirmado en la Sección 01</dt><dd>{{ fechaHora(confirmadoEn) }} · {{ doc.confirmadoPor }}</dd></div>
           }
         </dl>
 
@@ -75,20 +79,65 @@
                 </span>
                 @if (version.actual) {
                   <span class="pastilla azul">Vigente</span>
+                } @else {
+                  <span class="pastilla gris">Reemplazado</span>
                 }
               </li>
             }
           </ol>
+        }
+
+        @if (cambios().length > 0) {
+          <h3>Historial de cambios (conservado)</h3>
+          <ol class="historial">
+            @for (entrada of cambios(); track entrada.fecha + entrada.evento) {
+              <li>
+                <strong>{{ entrada.evento }} · {{ fechaHora(entrada.fecha) }}</strong>
+                <span class="quien">{{ entrada.usuario ?? 'Sistema' }} · Motivo: {{ entrada.motivo ?? 'No informado' }}</span>
+                @if (entrada.cambios.length > 0) {
+                  <ul class="cambios">
+                    @for (cambio of entrada.cambios; track cambio.campo) {
+                      <li>
+                        <b>{{ cambio.campo }}:</b>
+                        <span class="antes">{{ cambio.antes ?? '—' }}</span>
+                        <span aria-hidden="true">→</span>
+                        <span class="despues">{{ cambio.despues ?? '—' }}</span>
+                      </li>
+                    }
+                  </ul>
+                }
+              </li>
+            }
+          </ol>
+        }
+
+        <p class="nota">
+          Fecha de emisión ≠ fecha de carga. Un documento de otro año no reemplaza automáticamente al anterior. Ningún estado
+          elimina el PDF del historial.
+        </p>
+      }
+
+      @case ('visor') {
+        @if (visor(); as url) {
+          <p class="aviso info">{{ doc.tipo.nombre }} · {{ trabajador()?.numeroDoc }}</p>
+          <iframe class="visor" title="Documento PDF" [src]="url"></iframe>
         }
       }
 
       @case ('editar') {
         @if (seccion(); as actual) {
           <form id="formulario-edicion" class="formulario" (submit)="$event.preventDefault(); guardarEdicion()" novalidate>
-            <app-document-fields [grupo]="formulario" [seccion]="actual" prefijo="edicion" />
+            <app-document-fields [grupo]="formulario" [seccion]="actual" prefijo="edicion" [conVinculo]="true" />
             <div class="campo">
-              <label for="edicion-motivo">Motivo de la corrección</label>
-              <textarea id="edicion-motivo" [formControl]="motivo" maxlength="500" rows="2" [attr.aria-invalid]="motivoInvalido()"></textarea>
+              <label for="edicion-motivo">Motivo de la modificación <span class="obligatorio" aria-hidden="true">*</span></label>
+              <textarea
+                id="edicion-motivo"
+                [formControl]="motivo"
+                maxlength="500"
+                rows="2"
+                [attr.aria-invalid]="motivoInvalido()"
+              ></textarea>
+              <span class="ayuda">Explica qué dato se corrigió.</span>
             </div>
           </form>
         }
@@ -97,27 +146,120 @@
       @case ('reemplazar') {
         <form id="formulario-reemplazo" class="formulario" (submit)="$event.preventDefault(); reemplazar()" novalidate>
           <p class="aviso info">
-            Úsalo solo para la versión corregida del mismo documento, por ejemplo un escaneo incompleto. Un documento de otro año se
-            registra aparte. La versión anterior se conserva.
+            Solo si es la versión corregida del mismo documento (por ejemplo, un escaneo incompleto). No es para sustituir
+            contratos de distintos años.
           </p>
-          <app-pdf-picker idCampo="reemplazo-archivo" [(archivo)]="archivo" [progreso]="progreso()" [deshabilitado]="ocupado()" />
           <div class="campo">
-            <label for="reemplazo-motivo">Motivo del reemplazo</label>
+            <label for="reemplazo-motivo">
+              Motivo <span class="obligatorio" aria-hidden="true">*</span> (mínimo {{ minimoMotivo }} caracteres)
+            </label>
             <textarea id="reemplazo-motivo" [formControl]="motivo" maxlength="500" rows="2" [attr.aria-invalid]="motivoInvalido()"></textarea>
           </div>
+          <app-pdf-picker idCampo="reemplazo-archivo" [(archivo)]="archivo" [progreso]="progreso()" [deshabilitado]="ocupado()" />
         </form>
       }
 
       @case ('anular') {
         <form id="formulario-anulacion" class="formulario" (submit)="$event.preventDefault(); anular()" novalidate>
           <p class="aviso sensible">
-            El documento no se borra: queda en la sección marcado como anulado, con su motivo y quién lo anuló.
+            Para anular debes justificar el cambio. El PDF original no se borra, el estado anterior se conserva en el historial y
+            la acción no implica cese laboral.
           </p>
           <div class="campo">
-            <label for="anulacion-motivo">Motivo de la anulación</label>
+            <label for="anulacion-motivo">
+              Motivo <span class="obligatorio" aria-hidden="true">*</span> (mínimo {{ minimoMotivo }} caracteres)
+            </label>
             <textarea id="anulacion-motivo" [formControl]="motivo" maxlength="500" rows="3" [attr.aria-invalid]="motivoInvalido()"></textarea>
           </div>
         </form>
+      }
+
+      @case ('movimiento') {
+        <p class="aviso info">
+          <strong>Trabajador:</strong> {{ trabajador() ? nombreCompleto(trabajador()!) : '' }}<br />
+          <strong>Documento:</strong> {{ doc.tipo.nombre }} · N.º {{ doc.numero ?? '—' }}<br />
+          <strong>PDF:</strong> {{ versionActual()?.nombreOriginal }}<br />
+          Este registro actualizará la ficha de la Sección 01 y la cabecera. <strong>No modificará el estado ACTIVO/CESADO.</strong>
+        </p>
+        <form id="formulario-movimiento" class="campos" [formGroup]="confirmacionMovimiento" (ngSubmit)="confirmarMovimiento()" novalidate>
+          <div class="campo">
+            <label for="confirmar-tipo">Tipo de movimiento <span class="obligatorio" aria-hidden="true">*</span></label>
+            <select id="confirmar-tipo" formControlName="tipo">
+              <option [ngValue]="null" disabled>Seleccionar...</option>
+              @for (movimiento of movimientos; track movimiento) {
+                <option [ngValue]="movimiento">{{ textoMovimiento[movimiento] }}</option>
+              }
+            </select>
+          </div>
+          <div class="campo">
+            <label for="confirmar-fecha">Fecha efectiva del movimiento <span class="obligatorio" aria-hidden="true">*</span></label>
+            <input id="confirmar-fecha" type="date" formControlName="fecha" [max]="hoy" />
+          </div>
+          <div class="campo">
+            <label for="confirmar-origen">Área o dependencia de origen <span class="obligatorio" aria-hidden="true">*</span></label>
+            <select id="confirmar-origen" formControlName="areaOrigenId">
+              <option [ngValue]="null" disabled>Seleccionar...</option>
+              @for (area of areas(); track area.id) {
+                <option [ngValue]="area.id">{{ area.nombre }}</option>
+              }
+            </select>
+          </div>
+          <div class="campo">
+            <label for="confirmar-destino">Área o dependencia de destino <span class="obligatorio" aria-hidden="true">*</span></label>
+            <select id="confirmar-destino" formControlName="areaDestinoId">
+              <option [ngValue]="null" disabled>Seleccionar...</option>
+              @for (area of areas(); track area.id) {
+                <option [ngValue]="area.id">{{ area.nombre }}</option>
+              }
+            </select>
+          </div>
+          <div class="campo completo">
+            <label for="confirmar-observacion">Referencia administrativa (opcional)</label>
+            <textarea id="confirmar-observacion" formControlName="observacion" maxlength="500" rows="2"></textarea>
+          </div>
+        </form>
+      }
+
+      @case ('cese') {
+        <p class="aviso info">
+          <strong>Documento de sustento registrado:</strong> {{ doc.tipo.nombre }} · N.º {{ doc.numero ?? '—' }}<br />
+          {{ versionActual()?.nombreOriginal }}<br />
+          El cambio se reflejará en la Sección 01 y conservará el PDF y el historial.
+        </p>
+        <form id="formulario-cese" class="campos" [formGroup]="confirmacionCese" (ngSubmit)="confirmarCese()" novalidate>
+          <div class="campo">
+            <label for="cese-motivo">Motivo del cese <span class="obligatorio" aria-hidden="true">*</span></label>
+            <select id="cese-motivo" formControlName="motivo">
+              <option [ngValue]="null" disabled>Seleccionar...</option>
+              @for (motivo of motivos; track motivo) {
+                <option [ngValue]="motivo">{{ textoMotivo[motivo] }}</option>
+              }
+            </select>
+          </div>
+          <div class="campo">
+            <label for="cese-fecha">Fecha efectiva del cese <span class="obligatorio" aria-hidden="true">*</span></label>
+            <input id="cese-fecha" type="date" formControlName="fecha" [max]="hoy" />
+          </div>
+          <div class="campo completo">
+            <label for="cese-observacion">Observación de confirmación (opcional)</label>
+            <textarea id="cese-observacion" formControlName="observacion" maxlength="500" rows="2"></textarea>
+          </div>
+        </form>
+        <p class="aviso sensible">Al confirmar, el trabajador pasa a CESADO. Esta acción queda en el historial y en la auditoría.</p>
+      }
+
+      @case ('reingreso') {
+        @if (datosReingreso(); as datos) {
+          <p class="aviso info">
+            <strong>Trabajador:</strong> {{ trabajador() ? nombreCompleto(trabajador()!) : '' }}<br />
+            <strong>Documento:</strong> {{ doc.tipo.nombre }} N.º {{ doc.numero ?? '—' }}<br />
+            <strong>PDF:</strong> {{ versionActual()?.nombreOriginal }}<br />
+            <strong>Nuevo inicio:</strong> {{ datos.inicio ? fechaCorta(datos.inicio) : '—' }}<br />
+            <strong>Régimen:</strong> {{ datos.regimen ?? '—' }}<br /><br />
+            Se conservará el cese anterior y se abrirá un nuevo período laboral con estado ACTIVO.
+          </p>
+          <p class="nota">Confirma solo cuando el reingreso esté formalizado y vigente.</p>
+        }
       }
     }
 
@@ -133,7 +275,7 @@
           <div class="secundarias">
             @if (doc.editable) {
               <button type="button" class="boton chico" (click)="cambiarModo('editar')">Editar datos</button>
-              <button type="button" class="boton chico" (click)="cambiarModo('reemplazar')">Reemplazar PDF</button>
+              <button type="button" class="boton chico" (click)="cambiarModo('reemplazar')">Reemplazar este PDF</button>
             }
             @if (sesion.tiene('documentos.anular') && doc.estado !== 'ANULADO' && doc.estado !== 'PROCESANDO') {
               <button type="button" class="boton chico peligro" (click)="cambiarModo('anular')">Anular</button>
@@ -143,30 +285,74 @@
             <button type="button" class="boton" (click)="reintentar()" [disabled]="ocupado()">Reintentar</button>
           }
           @if (versionActual() !== null) {
-            @if (sesion.tiene('documentos.descargar')) {
-              <a class="boton" [href]="enlace(true)" download>Descargar</a>
+            <button type="button" class="boton" (click)="cambiarModo('visor')">Ver PDF</button>
+          }
+          @switch (accionPendiente()) {
+            @case ('vincular') {
+              <button type="button" class="boton principal" (click)="vincular()" [disabled]="ocupado()">
+                Vincular a historial · Sección 01
+              </button>
             }
-            <a class="boton principal" [href]="enlace(false)" target="_blank" rel="noopener">Ver PDF</a>
-          } @else {
-            <button type="button" class="boton" (click)="alCerrar()">Cerrar</button>
+            @case ('reingreso') {
+              <button type="button" class="boton principal" (click)="cambiarModo('reingreso')" [disabled]="doc.estado !== 'DISPONIBLE'">
+                Confirmar reingreso laboral
+              </button>
+            }
+            @case ('movimiento') {
+              <button type="button" class="boton principal" (click)="cambiarModo('movimiento')" [disabled]="doc.estado !== 'DISPONIBLE'">
+                Confirmar movimiento laboral
+              </button>
+            }
+            @case ('cese') {
+              <button type="button" class="boton principal" (click)="cambiarModo('cese')" [disabled]="doc.estado !== 'DISPONIBLE'">
+                Confirmar cese laboral
+              </button>
+            }
+            @default {
+              <button type="button" class="boton" (click)="alCerrar()">Cerrar</button>
+            }
+          }
+        }
+        @case ('visor') {
+          <button type="button" class="boton" (click)="volver()">Volver al detalle</button>
+          @if (sesion.tiene('documentos.descargar')) {
+            <a class="boton principal" [href]="enlace(true)" download>Descargar PDF</a>
           }
         }
         @case ('editar') {
-          <button type="button" class="boton" (click)="volver()" [disabled]="ocupado()">Volver</button>
+          <button type="button" class="boton" (click)="volver()" [disabled]="ocupado()">Cancelar</button>
           <button type="submit" form="formulario-edicion" class="boton principal" [disabled]="ocupado()">
-            {{ ocupado() ? 'Guardando' : 'Guardar corrección' }}
+            {{ ocupado() ? 'Guardando' : 'Guardar cambios' }}
           </button>
         }
         @case ('reemplazar') {
-          <button type="button" class="boton" (click)="volver()" [disabled]="ocupado()">Volver</button>
+          <button type="button" class="boton" (click)="volver()" [disabled]="ocupado()">Cancelar</button>
           <button type="submit" form="formulario-reemplazo" class="boton principal" [disabled]="ocupado()">
-            {{ progreso() !== null ? 'Subiendo' : ocupado() ? 'Guardando' : 'Subir versión corregida' }}
+            {{ progreso() !== null ? 'Subiendo' : ocupado() ? 'Guardando' : 'Confirmar reemplazo' }}
           </button>
         }
         @case ('anular') {
-          <button type="button" class="boton" (click)="volver()" [disabled]="ocupado()">Volver</button>
+          <button type="button" class="boton" (click)="volver()" [disabled]="ocupado()">Cancelar</button>
           <button type="submit" form="formulario-anulacion" class="boton peligro lleno" [disabled]="ocupado()">
-            {{ ocupado() ? 'Anulando' : 'Anular documento' }}
+            {{ ocupado() ? 'Anulando' : 'Confirmar anulación' }}
+          </button>
+        }
+        @case ('movimiento') {
+          <button type="button" class="boton" (click)="volver()" [disabled]="ocupado()">Cancelar</button>
+          <button type="submit" form="formulario-movimiento" class="boton principal" [disabled]="ocupado()">
+            {{ ocupado() ? 'Confirmando' : 'Confirmar movimiento' }}
+          </button>
+        }
+        @case ('cese') {
+          <button type="button" class="boton" (click)="volver()" [disabled]="ocupado()">Cancelar</button>
+          <button type="submit" form="formulario-cese" class="boton peligro lleno" [disabled]="ocupado()">
+            {{ ocupado() ? 'Confirmando' : 'Confirmar cese' }}
+          </button>
+        }
+        @case ('reingreso') {
+          <button type="button" class="boton" (click)="volver()" [disabled]="ocupado()">Cancelar</button>
+          <button type="button" class="boton principal" (click)="confirmarReingreso()" [disabled]="ocupado()">
+            {{ ocupado() ? 'Confirmando' : 'Confirmar reingreso y activar' }}
           </button>
         }
       }
