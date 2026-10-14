@@ -50,9 +50,31 @@ export function validarDatos(campos: SectionFieldDto[], entrada: Record<string, 
   return resultado;
 }
 
+export type CatalogoReferido = 'regimen' | 'area' | 'cargo';
+
+export function referenciasACatalogo(campos: SectionFieldDto[], datos: Record<string, ValorCampo>): Record<CatalogoReferido, number[]> {
+  const referencias: Record<CatalogoReferido, number[]> = { regimen: [], area: [], cargo: [] };
+  for (const campo of campos) {
+    const valor = datos[campo.clave];
+    if ((campo.tipo === 'regimen' || campo.tipo === 'area' || campo.tipo === 'cargo') && typeof valor === 'number') {
+      referencias[campo.tipo].push(valor);
+    }
+  }
+  return referencias;
+}
+
 function convertir(campo: SectionFieldDto, valor: unknown): ValorCampo {
   const error = (detalle: string) => new BadRequestException(`"${campo.etiqueta}": ${detalle}`);
   switch (campo.tipo) {
+    case 'regimen':
+    case 'area':
+    case 'cargo': {
+      const identificador = typeof valor === 'number' ? valor : Number(valor);
+      if (!Number.isInteger(identificador) || identificador <= 0) {
+        throw error('elige una opción de la lista');
+      }
+      return identificador;
+    }
     case 'numero': {
       const numero = typeof valor === 'number' ? valor : Number(valor);
       if (!Number.isInteger(numero) || numero < 0 || numero > 9999) {
