@@ -204,6 +204,22 @@ export class SituationDto {
   @IsISO8601({ strict: true }, fechaMensaje)
   movimientoFecha: string | null = null;
 
+  @ApiPropertyOptional({ description: 'Área o puesto de origen del movimiento' })
+  @Transform(vacioANulo)
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt({ message: 'Elige el área de origen' })
+  @IsPositive({ message: 'Elige el área de origen' })
+  areaOrigenId: number | null = null;
+
+  @ApiPropertyOptional({ description: 'Área o dependencia de destino del movimiento' })
+  @Transform(vacioANulo)
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt({ message: 'Elige el área de destino' })
+  @IsPositive({ message: 'Elige el área de destino' })
+  areaDestinoId: number | null = null;
+
   @ApiPropertyOptional({ enum: MOTIVOS_CESE })
   @Transform(vacioANulo)
   @IsOptional()
