@@ -21,6 +21,16 @@ export const FILTROS_VACIOS: FiltrosBusqueda = {
   trabajadorId: null,
 };
 
+function parametros(filtros: FiltrosBusqueda): HttpParams {
+  let params = new HttpParams();
+  for (const [clave, valor] of Object.entries(filtros)) {
+    if (valor !== null && valor !== '') {
+      params = params.set(clave, String(valor));
+    }
+  }
+  return params;
+}
+
 @Injectable({ providedIn: 'root' })
 export class SearchService {
   private readonly http = inject(HttpClient);
@@ -30,13 +40,13 @@ export class SearchService {
   }
 
   avanzada(filtros: FiltrosBusqueda, pagina: number): Promise<ResultadoBusqueda> {
-    let params = new HttpParams().set('pagina', pagina);
-    for (const [clave, valor] of Object.entries(filtros)) {
-      if (valor !== null && valor !== '') {
-        params = params.set(clave, String(valor));
-      }
-    }
+    const params = parametros(filtros).set('pagina', pagina);
     return firstValueFrom(this.http.get<ResultadoBusqueda>(BASE, { params }));
+  }
+
+  enlaceExportacion(filtros: FiltrosBusqueda): string {
+    const consulta = parametros(filtros).toString();
+    return consulta === '' ? `${BASE}/documents.xlsx` : `${BASE}/documents.xlsx?${consulta}`;
   }
 
   async descargarSeleccion(ids: string[], nombre: string): Promise<void> {
