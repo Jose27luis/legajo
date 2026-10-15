@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, linkedSignal, resource, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { BatchItemDialogComponent } from '../../components/batch-item-dialog/batch-item-dialog.component';
+import { SearchSelectComponent, type OpcionBuscable, type ValorOpcion } from '../../components/search-select/search-select.component';
 import { SkeletonComponent } from '../../components/skeleton/skeleton.component';
 import { mensajeDeError } from '../../core/errors';
 import { fechaHora } from '../../core/format';
@@ -21,7 +22,7 @@ const INTERVALO_MS = 3000;
 
 @Component({
   selector: 'app-batch-detail',
-  imports: [RouterLink, BatchItemDialogComponent, SkeletonComponent],
+  imports: [RouterLink, BatchItemDialogComponent, SkeletonComponent, SearchSelectComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './batch-detail.component.html',
   styleUrl: './batch-detail.component.css',
@@ -36,7 +37,6 @@ export class BatchDetailComponent {
   protected readonly textoEstadoItem = TEXTO_ESTADO_ITEM;
   protected readonly claseEstadoItem = CLASE_ESTADO_ITEM;
   protected readonly textoEstadoDocumento = TEXTO_ESTADO_DOCUMENTO;
-  protected readonly estados = ESTADOS_ITEM;
   protected readonly numeroSeccion = numeroSeccion;
   protected readonly tamanoLegible = tamanoLegible;
   protected readonly fechaHora = fechaHora;
@@ -85,6 +85,14 @@ export class BatchDetailComponent {
     return mapa;
   });
 
+  protected readonly opcionesFiltro = computed<OpcionBuscable[]>(() => [
+    { valor: null, etiqueta: `Todos (${this.lote.hasValue() ? this.lote.value().total : 0})` },
+    ...ESTADOS_ITEM.filter((estado) => this.total(estado) > 0).map((estado) => ({
+      valor: estado,
+      etiqueta: `${TEXTO_ESTADO_ITEM[estado]} (${this.total(estado)})`,
+    })),
+  ]);
+
   constructor() {
     effect((alLimpiar) => {
       if (!this.lote.hasValue()) {
@@ -105,11 +113,8 @@ export class BatchDetailComponent {
     return this.cuenta().get(estado) ?? 0;
   }
 
-  protected filtrar(evento: Event): void {
-    if (evento.target instanceof HTMLSelectElement) {
-      const valor = evento.target.value;
-      this.filtro.set(this.estados.find((estado) => estado === valor) ?? '');
-    }
+  protected filtrar(valor: ValorOpcion): void {
+    this.filtro.set(ESTADOS_ITEM.find((estado) => estado === valor) ?? '');
   }
 
   protected abrir(item: ItemLote): void {
