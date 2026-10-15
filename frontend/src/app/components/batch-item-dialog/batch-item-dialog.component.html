@@ -52,8 +52,8 @@
           @case ('dividir') {
             <form id="formulario-dividir" class="formulario" (submit)="$event.preventDefault(); dividir()" novalidate>
               <p class="aviso info">
-                Para el escaneo que trae todo el legajo en un solo PDF. Indica desde y hasta qué página va cada documento; los rangos
-                no se pueden cruzar.
+                Para el escaneo que trae todo el legajo en un solo PDF. Indica desde y hasta qué página va cada documento; los rangos no se
+                pueden cruzar.
               </p>
               @for (rango of rangos(); track rango.clave) {
                 <fieldset class="rango" animate.enter="aparece">
@@ -90,7 +90,12 @@
                     </select>
                   </div>
                   @if (seccionDeRango(rango); as elegida) {
-                    <app-document-fields [grupo]="rango.formulario" [seccion]="elegida" [prefijo]="'rango-' + rango.clave" [compacto]="true" />
+                    <app-document-fields
+                      [grupo]="rango.formulario"
+                      [seccion]="elegida"
+                      [prefijo]="'rango-' + rango.clave"
+                      [compacto]="true"
+                    />
                   }
                 </fieldset>
               }
@@ -105,7 +110,13 @@
               </p>
               <div class="campo">
                 <label for="descartar-motivo">Motivo</label>
-                <textarea id="descartar-motivo" [formControl]="motivo" maxlength="300" rows="3" [attr.aria-invalid]="motivoInvalido()"></textarea>
+                <textarea
+                  id="descartar-motivo"
+                  [formControl]="motivo"
+                  maxlength="300"
+                  rows="3"
+                  [attr.aria-invalid]="motivoInvalido()"
+                ></textarea>
               </div>
             </form>
           }
