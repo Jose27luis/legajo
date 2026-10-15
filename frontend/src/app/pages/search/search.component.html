@@ -25,37 +25,32 @@
 
     <div class="campo">
       <label for="filtro-seccion">Sección</label>
-      <select id="filtro-seccion" (change)="cambiarSeccion($event)">
-        <option value="" [selected]="filtros().seccion === null">Todas las secciones</option>
-        @if (opciones.value(); as datos) {
-          @for (seccion of datos.secciones; track seccion.id) {
-            <option [value]="seccion.numero" [selected]="filtros().seccion === seccion.numero">
-              {{ numeroSeccion(seccion.numero) }} {{ seccion.nombre }}
-            </option>
-          }
-        }
-      </select>
+      <app-search-select
+        idCampo="filtro-seccion"
+        [opciones]="opcionesSeccion()"
+        [seleccion]="filtros().seccion"
+        (cambio)="cambiarSeccion($event)"
+      />
     </div>
 
     <div class="campo">
       <label for="filtro-tipo">Tipo de documento</label>
-      <select id="filtro-tipo" (change)="cambiarTipo($event)">
-        <option value="" [selected]="filtros().tipoDocumentoId === null">Todos los tipos</option>
-        @for (tipo of tipos(); track tipo.id) {
-          <option [value]="tipo.id" [selected]="filtros().tipoDocumentoId === tipo.id">{{ tipo.codigo }} {{ tipo.nombre }}</option>
-        }
-      </select>
+      <app-search-select
+        idCampo="filtro-tipo"
+        [opciones]="opcionesTipo()"
+        [seleccion]="filtros().tipoDocumentoId"
+        (cambio)="cambiarTipo($event)"
+      />
     </div>
 
     <div class="campo">
       <label for="filtro-estado-documento">Estado del documento</label>
-      <select id="filtro-estado-documento" (change)="cambiarEstadoDocumento($event)">
-        <option value="" [selected]="filtros().estadoDocumento === null">Registrados</option>
-        @for (estado of estadosDocumento; track estado) {
-          <option [value]="estado" [selected]="filtros().estadoDocumento === estado">{{ textoEstadoDocumento[estado] }}</option>
-        }
-        <option value="TODOS" [selected]="filtros().estadoDocumento === 'TODOS'">Todos, incluso anulados</option>
-      </select>
+      <app-search-select
+        idCampo="filtro-estado-documento"
+        [opciones]="opcionesEstadoDocumento"
+        [seleccion]="filtros().estadoDocumento"
+        (cambio)="cambiarEstadoDocumento($event)"
+      />
     </div>
 
     <div class="campo">
@@ -73,44 +68,37 @@
   <div class="filtros personal">
     <div class="campo">
       <label for="filtro-area">Área</label>
-      <select id="filtro-area" (change)="cambiarArea($event)">
-        <option value="" [selected]="filtros().areaId === null">Todas las áreas</option>
-        @if (opciones.value(); as datos) {
-          @for (area of datos.areas; track area.id) {
-            <option [value]="area.id" [selected]="filtros().areaId === area.id">{{ area.nombre }}</option>
-          }
-        }
-      </select>
+      <app-search-select idCampo="filtro-area" [opciones]="opcionesArea()" [seleccion]="filtros().areaId" (cambio)="cambiarArea($event)" />
     </div>
 
     <div class="campo">
       <label for="filtro-regimen">Régimen</label>
-      <select id="filtro-regimen" (change)="cambiarRegimen($event)">
-        <option value="" [selected]="filtros().regimenId === null">Todos los regímenes</option>
-        @if (opciones.value(); as datos) {
-          @for (regimen of datos.regimenes; track regimen.id) {
-            <option [value]="regimen.id" [selected]="filtros().regimenId === regimen.id">{{ regimen.nombre }}</option>
-          }
-        }
-      </select>
+      <app-search-select
+        idCampo="filtro-regimen"
+        [opciones]="opcionesRegimen()"
+        [seleccion]="filtros().regimenId"
+        (cambio)="cambiarRegimen($event)"
+      />
     </div>
 
     <div class="campo">
       <label for="filtro-tipo-personal">Tipo de personal</label>
-      <select id="filtro-tipo-personal" (change)="cambiarTipoPersonal($event)">
-        <option value="" [selected]="filtros().tipoPersonal === null">Ambos</option>
-        <option value="ADMINISTRATIVO" [selected]="filtros().tipoPersonal === 'ADMINISTRATIVO'">Administrativo</option>
-        <option value="ASISTENCIAL" [selected]="filtros().tipoPersonal === 'ASISTENCIAL'">Asistencial</option>
-      </select>
+      <app-search-select
+        idCampo="filtro-tipo-personal"
+        [opciones]="opcionesTipoPersonal"
+        [seleccion]="filtros().tipoPersonal"
+        (cambio)="cambiarTipoPersonal($event)"
+      />
     </div>
 
     <div class="campo">
       <label for="filtro-estado">Estado laboral</label>
-      <select id="filtro-estado" (change)="cambiarEstado($event)">
-        <option value="" [selected]="filtros().estado === null">Todos</option>
-        <option value="ACTIVO" [selected]="filtros().estado === 'ACTIVO'">Activos</option>
-        <option value="CESADO" [selected]="filtros().estado === 'CESADO'">Cesados</option>
-      </select>
+      <app-search-select
+        idCampo="filtro-estado"
+        [opciones]="opcionesEstado"
+        [seleccion]="filtros().estado"
+        (cambio)="cambiarEstado($event)"
+      />
     </div>
   </div>
 
