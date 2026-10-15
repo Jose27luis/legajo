@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, OnDestroy, computed, effect, inject
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DocumentDialogComponent } from '../../../../components/document-dialog/document-dialog.component';
 import { PdfPickerComponent } from '../../../../components/pdf-picker/pdf-picker.component';
+import { SearchSelectComponent, type OpcionBuscable } from '../../../../components/search-select/search-select.component';
 import { mensajeDeError } from '../../../../core/errors';
 import { fechaHora } from '../../../../core/format';
 import { CLASE_ESTADO_DOCUMENTO, TEXTO_ESTADO_DOCUMENTO, hoy } from '../../../../core/labels';
@@ -15,7 +16,7 @@ const CODIGO_DNI = '0101';
 
 @Component({
   selector: 'app-identity-documents',
-  imports: [ReactiveFormsModule, PdfPickerComponent, DocumentDialogComponent],
+  imports: [ReactiveFormsModule, PdfPickerComponent, DocumentDialogComponent, SearchSelectComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './identity-documents.component.html',
   styleUrl: './identity-documents.component.css',
@@ -33,6 +34,9 @@ export class IdentityDocumentsComponent implements OnDestroy {
 
   protected readonly seccion = computed(() =>
     this.contexto.legajo.hasValue() ? (this.contexto.legajo.value().secciones.find((item) => item.numero === 1) ?? null) : null,
+  );
+  protected readonly tiposDocumento = computed<OpcionBuscable[]>(() =>
+    (this.seccion()?.tipos ?? []).map((tipo) => ({ valor: tipo.id, etiqueta: tipo.nombre })),
   );
   protected readonly documentos = computed(() =>
     this.contexto.legajo.hasValue() ? this.contexto.legajo.value().documentos.filter((documento) => documento.seccion === 1) : [],
