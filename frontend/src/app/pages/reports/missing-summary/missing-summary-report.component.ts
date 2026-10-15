@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, linkedSignal, resource, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { SkeletonComponent } from '../../../components/skeleton/skeleton.component';
 import { mensajeDeError } from '../../../core/errors';
 import { marcadoDe, numeroDe, valorDe } from '../../../core/inputs';
 import { CLASE_SITUACION, TEXTO_SITUACION, numeroSeccion } from '../../../core/labels';
@@ -18,7 +19,7 @@ const VACIOS: FiltrosConsolidado = {
 
 @Component({
   selector: 'app-missing-summary-report',
-  imports: [RouterLink],
+  imports: [RouterLink, SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './missing-summary-report.component.html',
   styleUrl: './missing-summary-report.component.css',
