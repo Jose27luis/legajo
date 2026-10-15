@@ -1,16 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import type {
-  Area,
-  Cargo,
-  DatosTipoDocumento,
-  NuevoRequisito,
-  Regimen,
-  Requisito,
-  Seccion,
-  TipoDocumento,
-} from '../core/models';
+import type { Area, Cargo, DatosTipoDocumento, NuevoRequisito, Regimen, Requisito, Seccion, TipoDocumento } from '../core/models';
 
 const BASE = '/api/catalogs';
 
