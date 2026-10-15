@@ -101,7 +101,7 @@
           }
         } @else {
           <tr>
-            <td [attr.colspan]="columnas()" class="celda-vacia">Calculando el reporte</td>
+            <td [attr.colspan]="columnas()" class="celda-esqueleto"><app-skeleton [columnas]="6" texto="Calculando el reporte" /></td>
           </tr>
         }
       </tbody>
