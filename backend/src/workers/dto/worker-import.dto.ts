@@ -4,6 +4,10 @@ import { ArrayMaxSize, ArrayMinSize, IsArray, IsIn, IsInt, IsISO8601, IsOptional
 import { ESTADOS, MOTIVOS_CESE, TIPOS_PERSONAL, type EstadoValor, type MotivoCeseValor, type TipoPersonalValor } from './worker.dto';
 
 export const MAXIMO_IMPORTACION = 3000;
+export const TIPOS_DOC_IMPORTACION = ['DNI', 'CE'] as const;
+export const SEXOS = ['M', 'F'] as const;
+export type TipoDocImportacion = (typeof TIPOS_DOC_IMPORTACION)[number];
+export type SexoImportacion = (typeof SEXOS)[number];
 
 export class ImportRowDto {
   @ApiProperty({ description: 'Fila del archivo de origen' })
@@ -11,9 +15,23 @@ export class ImportRowDto {
   @Min(2)
   fila: number;
 
-  @ApiProperty()
-  @Matches(/^[0-9]{8}$/, { message: 'El DNI debe tener 8 dígitos' })
+  @ApiProperty({ enum: TIPOS_DOC_IMPORTACION })
+  @IsIn(TIPOS_DOC_IMPORTACION)
+  tipoDocIdentidad: TipoDocImportacion;
+
+  @ApiProperty({ description: 'DNI de 8 dígitos o carné de extranjería de 9 a 12 caracteres' })
+  @Matches(/^([0-9]{8}|[A-Z0-9]{9,12})$/, { message: 'El documento debe ser un DNI de 8 dígitos o un carné de 9 a 12 caracteres' })
   numeroDoc: string;
+
+  @ApiProperty({ type: String, enum: SEXOS, nullable: true })
+  @IsOptional()
+  @IsIn(SEXOS)
+  sexo: SexoImportacion | null;
+
+  @ApiProperty({ type: String, format: 'date', nullable: true })
+  @IsOptional()
+  @IsISO8601({ strict: true })
+  fechaNacimiento: string | null;
 
   @ApiProperty()
   @IsString()
