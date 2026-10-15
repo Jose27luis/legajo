@@ -74,10 +74,14 @@
               <td class="celda-numero">{{ tamanoLegible(fila.tamano) }}</td>
             </tr>
           } @empty {
-            <tr><td colspan="5" class="celda-vacia">No se cargaron documentos en este periodo.</td></tr>
+            <tr>
+              <td colspan="5" class="celda-vacia">No se cargaron documentos en este periodo.</td>
+            </tr>
           }
         } @else {
-          <tr><td colspan="5" class="celda-vacia">Calculando el reporte</td></tr>
+          <tr>
+            <td colspan="5" class="celda-vacia">Calculando el reporte</td>
+          </tr>
         }
       </tbody>
     </table>
