@@ -26,7 +26,10 @@ export class RegimesComponent implements OnInit {
   protected readonly errorFormulario = signal<string | null>(null);
   protected readonly formulario = new FormGroup({
     codigo: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.pattern(/^[A-Za-z0-9_]{2,20}$/)] }),
-    nombre: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.minLength(2), Validators.maxLength(80)] }),
+    nombre: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.required, Validators.minLength(2), Validators.maxLength(80)],
+    }),
     esLaboral: new FormControl(true, { nonNullable: true }),
   });
 
