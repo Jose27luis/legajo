@@ -64,8 +64,7 @@ h3 {
   pointer-events: none;
 }
 
-.buscador input,
-.filtro {
+.buscador input {
   height: 40px;
   border: 1px solid var(--linea);
   border-radius: var(--radio-control);
@@ -86,12 +85,7 @@ h3 {
   pointer-events: none;
 }
 
-.filtro {
-  padding: 0 10px;
-}
-
-.buscador input:focus-visible,
-.filtro:focus-visible {
+.buscador input:focus-visible {
   border-color: var(--primario);
   box-shadow: 0 0 0 4px rgb(28 101 160 / 0.13);
 }
