@@ -6,6 +6,7 @@ import { LinkFieldsComponent } from '../../../components/link-fields/link-fields
 import { crearCamposVinculo, leerCamposVinculo, reiniciarCamposVinculo } from '../../../components/link-fields/link-form';
 import { PeriodDialogComponent } from '../../../components/period-dialog/period-dialog.component';
 import { ReentryDialogComponent } from '../../../components/reentry-dialog/reentry-dialog.component';
+import { SearchSelectComponent, type OpcionBuscable } from '../../../components/search-select/search-select.component';
 import { SituationDialogComponent } from '../../../components/situation-dialog/situation-dialog.component';
 import { IdentityDocumentsComponent } from './identity-documents/identity-documents.component';
 import { mensajeDeError } from '../../../core/errors';
@@ -39,6 +40,31 @@ import { WorkerContext } from '../worker-context';
 
 const opcional = (valor: string): string | null => (valor.trim() === '' ? null : valor.trim());
 
+const OPCIONES_PARENTESCO: readonly OpcionBuscable[] = ['Cónyuge', 'Conviviente', 'Hijo(a)', 'Padre', 'Madre', 'Hermano(a)', 'Otro'].map(
+  (parentesco) => ({ valor: parentesco, etiqueta: parentesco }),
+);
+
+const OPCIONES_TIPO_DOCUMENTO: readonly OpcionBuscable[] = [
+  { valor: 'DNI', etiqueta: 'DNI' },
+  { valor: 'CE', etiqueta: 'Carné de extranjería' },
+];
+
+const OPCIONES_SEXO: readonly OpcionBuscable[] = [
+  { valor: '', etiqueta: 'No registrado' },
+  { valor: 'F', etiqueta: 'Femenino' },
+  { valor: 'M', etiqueta: 'Masculino' },
+];
+
+const OPCIONES_ESTADO_CIVIL: readonly OpcionBuscable[] = [
+  { valor: '', etiqueta: 'No registrado' },
+  ...['Soltero(a)', 'Casado(a)', 'Conviviente', 'Divorciado(a)', 'Viudo(a)'].map((estado) => ({ valor: estado, etiqueta: estado })),
+];
+
+const OPCIONES_MOTIVO_CAMBIO: readonly OpcionBuscable[] = MOTIVOS_CAMBIO.map((motivo) => ({
+  valor: motivo,
+  etiqueta: TEXTO_MOTIVO_CAMBIO[motivo],
+}));
+
 @Component({
   selector: 'app-worker-record',
   imports: [
@@ -50,6 +76,7 @@ const opcional = (valor: string): string | null => (valor.trim() === '' ? null :
     ReentryDialogComponent,
     PeriodDialogComponent,
     IdentityDocumentsComponent,
+    SearchSelectComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './worker-record.component.html',
@@ -67,9 +94,12 @@ export class WorkerRecordComponent {
   protected readonly textoEstado = TEXTO_ESTADO;
   protected readonly textoMovimiento = TEXTO_MOVIMIENTO;
   protected readonly textoMotivoFin = TEXTO_MOTIVO_FIN;
-  protected readonly textoMotivoCambio = TEXTO_MOTIVO_CAMBIO;
   protected readonly textoTipoPersonal = TEXTO_TIPO_PERSONAL;
-  protected readonly motivosCambio = MOTIVOS_CAMBIO;
+  protected readonly opcionesParentesco = OPCIONES_PARENTESCO;
+  protected readonly opcionesTipoDocumento = OPCIONES_TIPO_DOCUMENTO;
+  protected readonly opcionesSexo = OPCIONES_SEXO;
+  protected readonly opcionesEstadoCivil = OPCIONES_ESTADO_CIVIL;
+  protected readonly opcionesMotivoCambio = OPCIONES_MOTIVO_CAMBIO;
   protected readonly puedeReingresar = puedeReingresar;
   protected readonly fechaCorta = fechaCorta;
   protected readonly fechaHora = fechaHora;
