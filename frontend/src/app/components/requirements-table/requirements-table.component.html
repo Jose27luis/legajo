@@ -40,7 +40,9 @@
           <td class="celda-numero">{{ item.codigo }}</td>
           <td>{{ item.tipo }}</td>
           <td class="celda-numero">{{ numeroSeccion(item.seccion) }}</td>
-          <td><span class="pastilla" [class]="claseSituacion[item.situacion]">{{ textoSituacion[item.situacion] }}</span></td>
+          <td>
+            <span class="pastilla" [class]="claseSituacion[item.situacion]">{{ textoSituacion[item.situacion] }}</span>
+          </td>
           <td>{{ item.fechaEmision === null ? '' : fechaCorta(item.fechaEmision) }}</td>
           <td>{{ item.fechaVencimiento === null ? '' : fechaCorta(item.fechaVencimiento) }}</td>
           <td>
@@ -50,7 +52,9 @@
           </td>
         </tr>
       } @empty {
-        <tr><td colspan="7" class="celda-vacia">No hay requisitos configurados para este trabajador.</td></tr>
+        <tr>
+          <td colspan="7" class="celda-vacia">No hay requisitos configurados para este trabajador.</td>
+        </tr>
       }
     </tbody>
   </table>
