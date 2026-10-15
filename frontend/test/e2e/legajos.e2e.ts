@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '@playwright/test';
 
 function variable(nombre: string): string {
   const valor = process.env[nombre];
@@ -27,6 +27,13 @@ test.beforeAll(async ({ browser }) => {
 test.afterAll(async () => {
   await pagina.close();
 });
+
+async function elegirEnBuscador(campo: Locator, texto: string, opcion: string): Promise<void> {
+  await campo.click();
+  await campo.fill(texto);
+  await pagina.getByRole('option', { name: opcion }).click();
+  await expect(campo).toHaveValue(opcion);
+}
 
 async function iniciarSesion(identificador: string, clave: string): Promise<void> {
   await pagina.goto('/login');
@@ -75,8 +82,8 @@ test('registra un nuevo ingreso y abre su ficha', async () => {
   await dialogo.locator('#ingreso-materno').fill('Mamani');
   await dialogo.getByLabel('Tipo de personal').selectOption({ label: 'Administrativo' });
   await dialogo.getByLabel('Régimen o modalidad').selectOption({ index: 1 });
-  await dialogo.getByLabel('Cargo o puesto').selectOption({ label: CARGO });
-  await dialogo.getByLabel('Área o dependencia').selectOption({ label: AREA });
+  await elegirEnBuscador(dialogo.getByRole('combobox', { name: 'Cargo o puesto' }), MARCA, CARGO);
+  await elegirEnBuscador(dialogo.getByRole('combobox', { name: 'Área o dependencia' }), MARCA, AREA);
   await dialogo.locator('#ingreso-fecha').fill('2026-01-05');
   await dialogo.getByRole('button', { name: 'Registrar ingreso' }).click();
 
