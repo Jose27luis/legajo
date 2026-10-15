@@ -1,4 +1,4 @@
-import { marcadoDe, numeroDe, valorDe } from './inputs';
+import { marcadoDe, numeroDe, valorDe } from '../../src/app/core/inputs';
 
 function eventoDe(elemento: EventTarget): Event {
   const evento = new Event('change');
