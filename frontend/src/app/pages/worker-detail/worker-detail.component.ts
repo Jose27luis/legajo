@@ -1,11 +1,12 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { SkeletonComponent } from '../../components/skeleton/skeleton.component';
 import { mensajeDeError } from '../../core/errors';
 import { WorkerContext } from './worker-context';
 
 @Component({
   selector: 'app-worker-detail',
-  imports: [RouterOutlet],
+  imports: [RouterOutlet, SkeletonComponent],
   providers: [WorkerContext],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './worker-detail.component.html',
