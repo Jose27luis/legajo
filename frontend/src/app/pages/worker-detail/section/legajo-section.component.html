@@ -167,7 +167,7 @@
             } @else {
               <button type="button" class="boton" (click)="limpiar()" [disabled]="ocupado()">Limpiar</button>
             }
-            <button type="submit" class="boton principal" [disabled]="ocupado()">
+            <button type="submit" class="boton principal" [disabled]="ocupado()" [attr.aria-busy]="ocupado()">
               {{ progreso() !== null ? 'Subiendo ' + progreso() + ' %' : ocupado() ? 'Registrando' : 'Registrar PDF' }}
             </button>
           </div>
@@ -197,5 +197,5 @@
 } @else if (contexto.legajo.hasValue()) {
   <p class="celda-vacia">La sección no existe.</p>
 } @else {
-  <p class="celda-vacia">Cargando sección</p>
+  <app-skeleton class="tarjeta" [columnas]="5" texto="Cargando sección" />
 }
