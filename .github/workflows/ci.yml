@@ -14,36 +14,64 @@ concurrency:
 permissions:
   contents: read
 
+env:
+  DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+
 jobs:
-  backend:
-    name: Backend · lint, tipos y compilación
+  lint:
+    name: Lint · ${{ matrix.paquete }}
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        paquete: [backend, frontend]
     defaults:
       run:
-        working-directory: backend
-    env:
-      DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+        working-directory: ${{ matrix.paquete }}
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
         with:
-          package_json_file: backend/package.json
+          package_json_file: ${{ matrix.paquete }}/package.json
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
-          cache-dependency-path: backend/pnpm-lock.yaml
+          cache-dependency-path: ${{ matrix.paquete }}/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
-      - run: pnpm prisma:generate
+      - if: matrix.paquete == 'backend'
+        run: pnpm prisma:generate
       - run: pnpm lint
-      - run: pnpm typecheck
-      - run: pnpm build
-      - name: Auditoría de dependencias
-        run: pnpm audit --prod --audit-level high --ignore GHSA-ggr8-5vv4-36mx --ignore-registry-errors
 
-  frontend:
-    name: Frontend · lint, pruebas, cobertura y compilación
+  tipos:
+    name: Tipos · ${{ matrix.paquete }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        paquete: [backend, frontend]
+    defaults:
+      run:
+        working-directory: ${{ matrix.paquete }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: ${{ matrix.paquete }}/package.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: ${{ matrix.paquete }}/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - if: matrix.paquete == 'backend'
+        run: pnpm prisma:generate
+      - run: pnpm typecheck
+
+  pruebas:
+    name: Pruebas y cobertura · frontend
     runs-on: ubuntu-latest
     timeout-minutes: 15
     defaults:
@@ -60,8 +88,6 @@ jobs:
           cache: pnpm
           cache-dependency-path: frontend/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
-      - run: pnpm lint
-      - run: pnpm typecheck
       - name: Pruebas con cobertura
         run: pnpm test:coverage
       - name: Resumen de cobertura
@@ -78,15 +104,60 @@ jobs:
           path: frontend/coverage/frontend
           if-no-files-found: ignore
           retention-days: 14
+
+  auditoria:
+    name: Auditoría de dependencias · ${{ matrix.paquete }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        paquete: [backend, frontend]
+    defaults:
+      run:
+        working-directory: ${{ matrix.paquete }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: ${{ matrix.paquete }}/package.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: pnpm audit --prod --audit-level high --ignore-registry-errors
+
+  compilacion:
+    name: Compilación · ${{ matrix.paquete }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: [lint, tipos, pruebas]
+    strategy:
+      fail-fast: false
+      matrix:
+        paquete: [backend, frontend]
+    defaults:
+      run:
+        working-directory: ${{ matrix.paquete }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: ${{ matrix.paquete }}/package.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: ${{ matrix.paquete }}/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - if: matrix.paquete == 'backend'
+        run: pnpm prisma:generate
       - run: pnpm build
-      - name: Auditoría de dependencias
-        run: pnpm audit --prod --audit-level high --ignore-registry-errors
 
   imagenes:
     name: Imágenes Docker
     runs-on: ubuntu-latest
     timeout-minutes: 25
-    needs: [backend, frontend]
+    needs: [compilacion, auditoria]
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3
