@@ -78,16 +78,19 @@
               </td>
             </tr>
           } @empty {
-            <tr><td colspan="5" class="celda-vacia">No hay vencimientos en el período elegido.</td></tr>
+            <tr>
+              <td colspan="5" class="celda-vacia">No hay vencimientos en el período elegido.</td>
+            </tr>
           }
         } @else {
-          <tr><td colspan="5" class="celda-vacia">Calculando las alertas</td></tr>
+          <tr>
+            <td colspan="5" class="celda-vacia">Calculando las alertas</td>
+          </tr>
         }
       </tbody>
     </table>
   </div>
   <p class="nota">
-    Solo se consideran las fechas de vencimiento registradas explícitamente. No se calculan vencimientos a partir de la fecha de
-    emisión.
+    Solo se consideran las fechas de vencimiento registradas explícitamente. No se calculan vencimientos a partir de la fecha de emisión.
   </p>
 </section>
