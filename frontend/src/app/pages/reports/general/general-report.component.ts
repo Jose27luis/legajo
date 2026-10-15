@@ -35,8 +35,11 @@ const ESPERA_MS = 350;
 const DNI = /^\d{8}$/;
 const FECHA = /^\d{4}-\d{2}-\d{2}$/;
 
-const escapar =(valor: string | number | null): string =>
-  String(valor ?? '').replace(/[&<>"']/g, (caracter) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[caracter] ?? caracter);
+const escapar = (valor: string | number | null): string =>
+  String(valor ?? '').replace(
+    /[&<>"']/g,
+    (caracter) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[caracter] ?? caracter,
+  );
 
 @Component({
   selector: 'app-general-report',
@@ -161,7 +164,9 @@ export class GeneralReportComponent {
     this.imprimiendo.set(true);
     try {
       const datos = await this.reportes.general(this.filtros(), true);
-      const fecha = new Intl.DateTimeFormat('es-PE', { dateStyle: 'long', timeStyle: 'short', timeZone: 'America/Lima' }).format(new Date());
+      const fecha = new Intl.DateTimeFormat('es-PE', { dateStyle: 'long', timeStyle: 'short', timeZone: 'America/Lima' }).format(
+        new Date(),
+      );
       const cabecera = datos.columnas.map((columna) => `<th>${escapar(columna)}</th>`).join('');
       const filas = datos.filas.map((fila) => `<tr>${fila.map((celda) => `<td>${escapar(celda)}</td>`).join('')}</tr>`).join('');
       ventana.document.write(
