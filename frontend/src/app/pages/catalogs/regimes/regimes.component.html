@@ -23,7 +23,7 @@
       <tbody>
         @if (cargando()) {
           <tr>
-            <td colspan="5" class="celda-vacia">Cargando regímenes</td>
+            <td colspan="5" class="celda-esqueleto"><app-skeleton [columnas]="5" texto="Cargando regímenes" /></td>
           </tr>
         } @else {
           @for (regimen of regimenes(); track regimen.id) {
@@ -96,7 +96,7 @@
   </form>
   <ng-container pie>
     <button type="button" class="boton" (click)="cerrar()" [disabled]="guardando()">Cancelar</button>
-    <button type="submit" form="formulario-regimen" class="boton principal" [disabled]="guardando()">
+    <button type="submit" form="formulario-regimen" class="boton principal" [disabled]="guardando()" [attr.aria-busy]="guardando()">
       {{ guardando() ? 'Guardando' : editando() === null ? 'Crear régimen' : 'Guardar cambios' }}
     </button>
   </ng-container>
