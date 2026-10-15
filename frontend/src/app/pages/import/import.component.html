@@ -15,12 +15,16 @@
   </ol>
   <p class="nota">
     Columnas obligatorias: dni, apellido_paterno, nombres, regimen y fecha_ingreso. Las áreas y cargos que no existan se agregan al
-    catálogo. Para un trabajador cesado indica estado CESADO, fecha_cese y motivo_cese. Los DNI ya registrados se omiten.
+    catálogo. Para un trabajador cesado indica estado CESADO, fecha_cese y motivo_cese. Los documentos ya registrados se omiten.
+  </p>
+  <p class="nota">
+    También puedes subir el padrón nominal exportado de INFORHUS (.xls) tal como sale del sistema: cada trabajador se ubica en su
+    establecimiento según el código RENIPRESS, o en su unidad orgánica si pertenece a la sede de la DIRESA.
   </p>
   <div class="carga">
     <div class="campo">
-      <label for="importar-archivo">Archivo .csv o .xlsx (máximo 5 MB) <span class="obligatorio">*</span></label>
-      <input id="importar-archivo" type="file" accept=".csv,.xlsx" (change)="elegir($event)" />
+      <label for="importar-archivo">Archivo .csv, .xlsx o padrón .xls de INFORHUS (máximo 5 MB) <span class="obligatorio">*</span></label>
+      <input id="importar-archivo" type="file" accept=".csv,.xlsx,.xls" (change)="elegir($event)" />
     </div>
     <button
       type="button"
@@ -78,7 +82,7 @@
           <tr>
             <th scope="col">Fila</th>
             <th scope="col">Trabajador</th>
-            <th scope="col">DNI</th>
+            <th scope="col">Documento</th>
             <th scope="col">Régimen</th>
             <th scope="col">Área y cargo</th>
             <th scope="col">Ingreso</th>
@@ -95,7 +99,7 @@
                   <span class="secundario aviso-fila">{{ aviso }}</span>
                 }
               </td>
-              <td>{{ fila.numeroDoc }}</td>
+              <td>{{ fila.tipoDocIdentidad }} {{ fila.numeroDoc }}</td>
               <td>{{ fila.regimen }}</td>
               <td>
                 {{ fila.area }}
