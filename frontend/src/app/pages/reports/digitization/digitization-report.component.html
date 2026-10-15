@@ -12,14 +12,12 @@
   <div class="filtros-reporte">
     <div class="campo">
       <label for="digital-usuario">Cuenta</label>
-      <select id="digital-usuario" (change)="cambiarUsuario($event)">
-        <option value="" [selected]="filtros().usuarioId === null">Todas las cuentas</option>
-        @if (reporte.value(); as datos) {
-          @for (usuario of datos.usuarios; track usuario.id) {
-            <option [value]="usuario.id" [selected]="filtros().usuarioId === usuario.id">{{ usuario.nombre }}</option>
-          }
-        }
-      </select>
+      <app-search-select
+        idCampo="digital-usuario"
+        [opciones]="opcionesUsuario()"
+        [seleccion]="filtros().usuarioId"
+        (cambio)="cambiarUsuario($event)"
+      />
     </div>
     <div class="campo">
       <label for="digital-desde">Desde</label>
