@@ -123,7 +123,9 @@ export class BatchItemDialogComponent {
   }
 
   protected elegirTrabajadorRango(rango: Rango, elegido: { id: string } | null): void {
-    this.rangos.update((lista) => lista.map((item) => (item.clave === rango.clave ? { ...item, trabajadorId: elegido?.id ?? null } : item)));
+    this.rangos.update((lista) =>
+      lista.map((item) => (item.clave === rango.clave ? { ...item, trabajadorId: elegido?.id ?? null } : item)),
+    );
   }
 
   protected agregarRango(): void {
