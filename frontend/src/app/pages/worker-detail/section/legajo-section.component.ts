@@ -21,6 +21,7 @@ import {
   prepararFormularioDocumento,
 } from '../../../components/document-fields/document-form';
 import { PdfPickerComponent } from '../../../components/pdf-picker/pdf-picker.component';
+import { SearchSelectComponent, type OpcionBuscable, type ValorOpcion } from '../../../components/search-select/search-select.component';
 import { SkeletonComponent } from '../../../components/skeleton/skeleton.component';
 import { mensajeDeError } from '../../../core/errors';
 import { fechaHora, normalizarTexto } from '../../../core/format';
@@ -84,9 +85,14 @@ const AVISO_GENERAL = {
   sensible: false,
 };
 
+const OPCIONES_ESTADO: readonly OpcionBuscable[] = [
+  { valor: null, etiqueta: 'Todos los estados' },
+  ...ESTADOS_DOCUMENTO.map((estado) => ({ valor: estado, etiqueta: TEXTO_ESTADO_DOCUMENTO[estado] })),
+];
+
 @Component({
   selector: 'app-legajo-section',
-  imports: [RouterLink, DocumentFieldsComponent, PdfPickerComponent, DocumentDialogComponent, SkeletonComponent],
+  imports: [RouterLink, DocumentFieldsComponent, PdfPickerComponent, DocumentDialogComponent, SkeletonComponent, SearchSelectComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './legajo-section.component.html',
   styleUrl: './legajo-section.component.css',
@@ -102,6 +108,7 @@ export class LegajoSectionComponent implements OnDestroy {
   private readonly selector = viewChild(PdfPickerComponent);
 
   protected readonly estados = ESTADOS_DOCUMENTO;
+  protected readonly opcionesEstado = OPCIONES_ESTADO;
   protected readonly textoEstado = TEXTO_ESTADO_DOCUMENTO;
   protected readonly claseEstado = CLASE_ESTADO_DOCUMENTO;
   protected readonly textoNivel = TEXTO_NIVEL_ACCESO;
@@ -215,11 +222,8 @@ export class LegajoSectionComponent implements OnDestroy {
     }
   }
 
-  protected alFiltrar(evento: Event): void {
-    if (evento.target instanceof HTMLSelectElement) {
-      const valor = evento.target.value;
-      this.filtroEstado.set(this.estados.find((estado) => estado === valor) ?? '');
-    }
+  protected alFiltrar(valor: ValorOpcion): void {
+    this.filtroEstado.set(this.estados.find((estado) => estado === valor) ?? '');
   }
 
   protected nombreArchivo(documento: Documento): string {
