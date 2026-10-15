@@ -88,7 +88,7 @@
         <p class="aviso error completo" role="alert" animate.enter="aparece">{{ mensaje }}</p>
       }
       <div class="completo acciones">
-        <button type="submit" class="boton principal" [disabled]="ocupado()">
+        <button type="submit" class="boton principal" [disabled]="ocupado()" [attr.aria-busy]="ocupado()">
           {{ progreso() !== null ? 'Subiendo ' + progreso() + ' %' : ocupado() ? 'Registrando' : 'Registrar documento de identidad' }}
         </button>
       </div>
