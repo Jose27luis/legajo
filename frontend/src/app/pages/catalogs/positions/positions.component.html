@@ -63,12 +63,7 @@
   <form id="formulario-cargo" class="formulario" (submit)="$event.preventDefault(); guardar()" novalidate>
     <div class="campo">
       <label for="cargo-nombre">Nombre del cargo</label>
-      <input
-        id="cargo-nombre"
-        [formControl]="nombre"
-        autocomplete="off"
-        [attr.aria-invalid]="nombre.touched && nombre.invalid"
-      />
+      <input id="cargo-nombre" [formControl]="nombre" autocomplete="off" [attr.aria-invalid]="nombre.touched && nombre.invalid" />
     </div>
     @if (errorFormulario(); as mensaje) {
       <p class="aviso error" role="alert" animate.enter="aparece">{{ mensaje }}</p>
