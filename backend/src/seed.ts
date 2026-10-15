@@ -2,6 +2,7 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import * as argon2 from 'argon2';
 import { z } from 'zod';
 import { PrismaClient, type Prisma } from './generated/prisma/client';
+import { CARGOS_INSTITUCIONALES, ESTABLECIMIENTOS, MICROREDES, SEDE_DIRESA, SIN_MICRORED, UNIDADES_DIRESA } from './organization-catalogs';
 import { REGIMENES, REQUISITOS, SECCIONES, SECCIONES_RESTRINGIDAS_POR_ROL, TIPOS_DOCUMENTO } from './seed-catalogs';
 
 const vacioAIndefinido = (valor: unknown) => (valor === '' ? undefined : valor);
@@ -148,6 +149,41 @@ async function sembrarCatalogos(transaccion: Prisma.TransactionClient): Promise<
   });
 }
 
+async function sembrarOrganizacion(transaccion: Prisma.TransactionClient): Promise<void> {
+  if ((await transaccion.area.count({ where: { nombre: SEDE_DIRESA, padreId: null } })) > 0) {
+    return;
+  }
+  const sede = await transaccion.area.create({ data: { nombre: SEDE_DIRESA } });
+  await transaccion.area.createMany({ data: UNIDADES_DIRESA.map((nombre) => ({ nombre, padreId: sede.id })) });
+
+  const grupos = new Map<string, number>();
+  for (const nombre of [...MICROREDES, SIN_MICRORED]) {
+    grupos.set(nombre, (await transaccion.area.create({ data: { nombre } })).id);
+  }
+  await transaccion.area.createMany({
+    data: ESTABLECIMIENTOS.map((establecimiento) => {
+      const padreId = grupos.get(establecimiento.microred);
+      if (padreId === undefined) {
+        throw new Error(`El establecimiento ${establecimiento.nombre} no tiene una microred válida`);
+      }
+      return { nombre: establecimiento.nombre, padreId };
+    }),
+  });
+
+  await transaccion.cargo.createMany({ data: CARGOS_INSTITUCIONALES.map((nombre) => ({ nombre })), skipDuplicates: true });
+  await transaccion.auditoria.create({
+    data: {
+      accion: 'CATALOGO_CREAR',
+      entidad: 'area',
+      detalle: {
+        origen: 'semilla',
+        areas: 1 + UNIDADES_DIRESA.length + grupos.size + ESTABLECIMIENTOS.length,
+        cargos: CARGOS_INSTITUCIONALES.length,
+      },
+    },
+  });
+}
+
 async function sembrar(): Promise<void> {
   const resultado = esquemaSemilla.safeParse(process.env);
   if (!resultado.success) {
@@ -207,6 +243,7 @@ async function sembrar(): Promise<void> {
       });
     });
     await prisma.$transaction(sembrarCatalogos);
+    await prisma.$transaction(sembrarOrganizacion);
   } finally {
     await prisma.$disconnect();
   }
