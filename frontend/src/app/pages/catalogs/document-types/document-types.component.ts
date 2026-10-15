@@ -21,9 +21,7 @@ export class DocumentTypesComponent implements OnInit {
   protected readonly cargando = signal(true);
   protected readonly errorCarga = signal<string | null>(null);
   protected readonly numeroSeleccionado = signal(1);
-  protected readonly seccion = computed(
-    () => this.secciones().find((seccion) => seccion.numero === this.numeroSeleccionado()) ?? null,
-  );
+  protected readonly seccion = computed(() => this.secciones().find((seccion) => seccion.numero === this.numeroSeleccionado()) ?? null);
 
   protected readonly dialogoAbierto = signal(false);
   protected readonly editando = signal<TipoDocumento | null>(null);
