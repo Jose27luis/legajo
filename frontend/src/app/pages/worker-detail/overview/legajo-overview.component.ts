@@ -1,12 +1,13 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { SkeletonComponent } from '../../../components/skeleton/skeleton.component';
 import { numeroSeccion, tonoSeccion } from '../../../core/labels';
 import type { SeccionLegajo } from '../../../core/models';
 import { WorkerContext } from '../worker-context';
 
 @Component({
   selector: 'app-legajo-overview',
-  imports: [RouterLink],
+  imports: [RouterLink, SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './legajo-overview.component.html',
   styleUrl: './legajo-overview.component.css',
