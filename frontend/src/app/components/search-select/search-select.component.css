@@ -120,11 +120,12 @@ input:focus-visible {
 }
 
 .panel {
-  position: absolute;
-  top: calc(100% + 6px);
-  left: 0;
-  right: 0;
-  z-index: 30;
+  --alto-panel: 300px;
+  position: fixed;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  max-height: var(--alto-panel);
   overflow: hidden;
   border: 1px solid var(--linea);
   border-radius: 12px;
@@ -134,8 +135,7 @@ input:focus-visible {
 }
 
 .panel.arriba {
-  top: auto;
-  bottom: calc(100% + 6px);
+  animation-name: abrir-panel-arriba;
 }
 
 @keyframes abrir-panel {
@@ -145,10 +145,18 @@ input:focus-visible {
   }
 }
 
+@keyframes abrir-panel-arriba {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+
 ul {
+  flex: 1 1 auto;
+  min-height: 0;
   margin: 0;
   padding: 5px;
-  max-height: 248px;
   overflow-y: auto;
   list-style: none;
   overscroll-behavior: contain;
@@ -217,6 +225,7 @@ li.vacio {
 }
 
 .pie {
+  flex: none;
   margin: 0;
   padding: 7px 12px;
   border-top: 1px solid var(--linea-suave);
@@ -245,13 +254,6 @@ li.vacio {
 
 :host(.compacto) .sugerencia {
   font-size: 13px;
-}
-
-:host(.compacto) .panel {
-  left: auto;
-  min-width: 100%;
-  width: max-content;
-  max-width: 340px;
 }
 
 @media (prefers-reduced-motion: reduce) {
