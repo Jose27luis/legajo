@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post, Req } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Patch, Post, Req } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
 import { datosCliente } from '../common/client';
@@ -75,6 +75,16 @@ export class OrganizationController {
     @Req() solicitud: Request,
   ): Promise<AreaDto> {
     return this.organizacion.editarArea(id, datos, sesion, datosCliente(solicitud));
+  }
+
+  @Requiere('catalogos.gestionar')
+  @Delete('areas/:id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Elimina un área que no esté en uso' })
+  @ApiResponse({ status: 204, description: 'Área eliminada' })
+  @ApiResponse({ status: 409, description: 'El área está en uso; se puede desactivar' })
+  async eliminarArea(@Param('id', ParseIntPipe) id: number, @SesionActual() sesion: SesionActiva, @Req() solicitud: Request): Promise<void> {
+    await this.organizacion.eliminarArea(id, sesion, datosCliente(solicitud));
   }
 
   @Get('positions')
