@@ -34,14 +34,13 @@
               </div>
               <div class="campo">
                 <label for="clasificar-seccion">Sección del legajo</label>
-                <select id="clasificar-seccion" (change)="elegirSeccion($event)">
-                  <option value="" [selected]="seccionId() === null" disabled>Selecciona la sección</option>
-                  @for (seccion of secciones(); track seccion.id) {
-                    <option [value]="seccion.id" [selected]="seccionId() === seccion.id">
-                      {{ numeroSeccion(seccion.numero) }} {{ seccion.nombre }}
-                    </option>
-                  }
-                </select>
+                <app-search-select
+                  idCampo="clasificar-seccion"
+                  sugerencia="Selecciona la sección"
+                  [opciones]="opcionesSeccion()"
+                  [seleccion]="seccionId()"
+                  (cambio)="elegirSeccion($event)"
+                />
               </div>
               @if (seccion(); as elegida) {
                 <app-document-fields [grupo]="formulario" [seccion]="elegida" prefijo="clasificar" [compacto]="true" />
@@ -80,14 +79,13 @@
                   </div>
                   <div class="campo">
                     <label [for]="'rango-seccion-' + rango.clave">Sección del legajo</label>
-                    <select [id]="'rango-seccion-' + rango.clave" (change)="elegirSeccionRango(rango, $event)">
-                      <option value="" [selected]="rango.seccionId === null" disabled>Selecciona la sección</option>
-                      @for (seccion of secciones(); track seccion.id) {
-                        <option [value]="seccion.id" [selected]="rango.seccionId === seccion.id">
-                          {{ numeroSeccion(seccion.numero) }} {{ seccion.nombre }}
-                        </option>
-                      }
-                    </select>
+                    <app-search-select
+                      [idCampo]="'rango-seccion-' + rango.clave"
+                      sugerencia="Selecciona la sección"
+                      [opciones]="opcionesSeccion()"
+                      [seleccion]="rango.seccionId"
+                      (cambio)="elegirSeccionRango(rango, $event)"
+                    />
                   </div>
                   @if (seccionDeRango(rango); as elegida) {
                     <app-document-fields
