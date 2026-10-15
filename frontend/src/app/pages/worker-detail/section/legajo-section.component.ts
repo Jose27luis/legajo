@@ -65,7 +65,8 @@ const AVISOS: Record<number, { titulo: string | null; texto: string; sensible: b
   },
   12: {
     titulo: null,
-    texto: 'Usa «Otros documentos» únicamente cuando el archivo no corresponda a ninguna de las otras 12 secciones. Registra una justificación.',
+    texto:
+      'Usa «Otros documentos» únicamente cuando el archivo no corresponda a ninguna de las otras 12 secciones. Registra una justificación.',
     sensible: false,
   },
   13: {
@@ -291,7 +292,10 @@ export class LegajoSectionComponent implements OnDestroy {
       if (documento.vinculoId !== null) {
         this.contexto.detalle.reload();
         this.avisos.exito('PDF registrado y vinculado automáticamente con la Sección 01.');
-      } else if (documento.tipo.accion === 'CESE' || (documento.tipo.accion === 'VINCULO' && documento.datos['tipoIncorporacion'] === INCORPORACION.reingreso)) {
+      } else if (
+        documento.tipo.accion === 'CESE' ||
+        (documento.tipo.accion === 'VINCULO' && documento.datos['tipoIncorporacion'] === INCORPORACION.reingreso)
+      ) {
         this.seleccionadoId.set(documento.id);
         this.avisos.exito('PDF registrado. Cuando termine de procesarse, confírmalo desde este detalle.');
       } else if (documento.tipo.accion === 'MOVIMIENTO') {
