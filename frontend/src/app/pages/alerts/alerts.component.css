@@ -23,13 +23,6 @@
   min-width: 680px;
 }
 
-.herramientas select {
-  height: 32px;
-  padding: 0 34px 0 10px;
-  border-radius: 7px;
-  background-position: right 10px center;
-}
-
 .herramientas a {
   text-decoration: none;
 }
