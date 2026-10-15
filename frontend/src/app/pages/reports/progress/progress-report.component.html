@@ -108,7 +108,9 @@
               </td>
             </tr>
           } @empty {
-            <tr><td colspan="6" class="celda-vacia">Ningún trabajador con estos filtros.</td></tr>
+            <tr>
+              <td colspan="6" class="celda-vacia">Ningún trabajador con estos filtros.</td>
+            </tr>
           }
           @if (datos.items.length > 0) {
             <tr class="totales">
@@ -126,7 +128,9 @@
             </tr>
           }
         } @else {
-          <tr><td colspan="6" class="celda-vacia">Calculando el avance</td></tr>
+          <tr>
+            <td colspan="6" class="celda-vacia">Calculando el avance</td>
+          </tr>
         }
       </tbody>
     </table>
