@@ -55,7 +55,14 @@
     </div>
     <div class="campo">
       <label for="reporte-busqueda">DNI, nombre o cargo</label>
-      <input id="reporte-busqueda" type="search" [value]="filtros().busqueda" maxlength="120" autocomplete="off" (input)="escribirBusqueda($event)" />
+      <input
+        id="reporte-busqueda"
+        type="search"
+        [value]="filtros().busqueda"
+        maxlength="120"
+        autocomplete="off"
+        (input)="escribirBusqueda($event)"
+      />
     </div>
     <div class="campo">
       <label for="reporte-desde">Fecha de ingreso desde</label>
@@ -103,10 +110,14 @@
               }
             </tr>
           } @empty {
-            <tr><td [attr.colspan]="datos.columnas.length" class="celda-vacia">Sin resultados para los filtros indicados.</td></tr>
+            <tr>
+              <td [attr.colspan]="datos.columnas.length" class="celda-vacia">Sin resultados para los filtros indicados.</td>
+            </tr>
           }
         } @else {
-          <tr><td class="celda-vacia">Calculando el reporte</td></tr>
+          <tr>
+            <td class="celda-vacia">Calculando el reporte</td>
+          </tr>
         }
       </tbody>
     </table>
@@ -122,8 +133,7 @@
       <h3>Descarga de expedientes por trabajador</h3>
     </div>
     <p class="nota">
-      Elige un trabajador y genera un expediente PDF único con los archivos registrados y vigentes de sus secciones, o descárgalos
-      en ZIP.
+      Elige un trabajador y genera un expediente PDF único con los archivos registrados y vigentes de sus secciones, o descárgalos en ZIP.
     </p>
     <div class="expediente">
       <div class="campo">
