@@ -1,5 +1,5 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import type { Regimen } from '../generated/prisma/client';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma, type Regimen } from '../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import type { DatosCliente } from '../common/client';
@@ -108,6 +108,42 @@ export class OrganizationService {
     };
   }
 
+  async eliminarArea(id: number, actor: SesionActiva, cliente: DatosCliente): Promise<void> {
+    const area = await this.prisma.area.findUnique({ where: { id }, select: { nombre: true } });
+    if (area === null) {
+      throw new NotFoundException('El área no existe');
+    }
+    const [vinculos, movimientos, hijas, conteoDocumentos] = await Promise.all([
+      this.prisma.vinculo.count({ where: { areaId: id } }),
+      this.prisma.movimientoLaboral.count({ where: { OR: [{ areaOrigenId: id }, { areaDestinoId: id }] } }),
+      this.prisma.area.count({ where: { padreId: id } }),
+      this.prisma.$queryRaw<{ total: number }[]>(Prisma.sql`
+        SELECT count(*)::int AS total
+        FROM documento d
+        JOIN tipo_documento t ON t.id = d.tipo_documento_id
+        JOIN seccion s ON s.id = t.seccion_id
+        WHERE EXISTS (
+          SELECT 1
+          FROM jsonb_array_elements(s.campos || t.campos) campo
+          WHERE campo->>'tipo' = 'area' AND d.datos -> (campo->>'clave') = to_jsonb(${id}::int)
+        )`),
+    ]);
+    const documentos = conteoDocumentos[0]?.total ?? 0;
+    const usos = [
+      vinculos > 0 ? `${vinculos} ${vinculos === 1 ? 'vínculo laboral' : 'vínculos laborales'}` : null,
+      movimientos > 0 ? `${movimientos} ${movimientos === 1 ? 'movimiento' : 'movimientos'}` : null,
+      hijas > 0 ? `${hijas} ${hijas === 1 ? 'área que depende de ella' : 'áreas que dependen de ella'}` : null,
+      documentos > 0 ? `${documentos} ${documentos === 1 ? 'documento' : 'documentos'}` : null,
+    ].filter((uso): uso is string => uso !== null);
+    if (usos.length > 0) {
+      throw new ConflictException(`No se puede eliminar «${area.nombre}» porque la usan ${usos.join(', ')}. Desactívala en su lugar.`);
+    }
+    await this.prisma.$transaction(async (transaccion) => {
+      await transaccion.area.delete({ where: { id } });
+      await this.registrar('CATALOGO_ELIMINAR', 'area', id, actor, cliente, { nombre: area.nombre }, transaccion);
+    });
+  }
+
   async listarCargos(): Promise<PositionDto[]> {
     return this.prisma.cargo.findMany({ orderBy: { nombre: 'asc' } });
   }
@@ -169,7 +205,7 @@ export class OrganizationService {
   }
 
   private registrar(
-    accion: 'CATALOGO_CREAR' | 'CATALOGO_EDITAR',
+    accion: 'CATALOGO_CREAR' | 'CATALOGO_EDITAR' | 'CATALOGO_ELIMINAR',
     entidad: 'regimen' | 'area' | 'cargo',
     id: number,
     actor: SesionActiva,
