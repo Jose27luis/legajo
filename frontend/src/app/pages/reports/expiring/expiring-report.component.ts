@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, resource, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { SkeletonComponent } from '../../../components/skeleton/skeleton.component';
 import { mensajeDeError } from '../../../core/errors';
 import { numeroDe } from '../../../core/inputs';
 import { diasRestantes, fechaCorta, numeroSeccion } from '../../../core/labels';
@@ -12,7 +13,7 @@ const DIAS = [30, 60, 90, 180, 365] as const;
 
 @Component({
   selector: 'app-expiring-report',
-  imports: [RouterLink],
+  imports: [RouterLink, SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './expiring-report.component.html',
   styleUrl: './expiring-report.component.css',
