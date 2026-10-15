@@ -31,7 +31,9 @@ h1 {
   white-space: nowrap;
   cursor: pointer;
   border-radius: 8px 8px 0 0;
-  transition: color 140ms ease, background-color 140ms ease;
+  transition:
+    color 140ms ease,
+    background-color 140ms ease;
 }
 
 .pestana:hover {
