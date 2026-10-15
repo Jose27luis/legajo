@@ -118,7 +118,10 @@ h3 {
   font: inherit;
   text-align: left;
   cursor: pointer;
-  transition: border-color 140ms ease, background-color 140ms ease, box-shadow 160ms ease;
+  transition:
+    border-color 140ms ease,
+    background-color 140ms ease,
+    box-shadow 160ms ease;
 }
 
 .documento:hover {
