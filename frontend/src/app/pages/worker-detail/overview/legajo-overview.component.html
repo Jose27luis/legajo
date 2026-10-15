@@ -16,13 +16,19 @@
 
 @if (resumen(); as datos) {
   <p class="resumen">
-    <span><b>{{ datos.registrados }}</b> {{ datos.registrados === 1 ? 'documento registrado' : 'documentos registrados' }}</span>
+    <span
+      ><b>{{ datos.registrados }}</b> {{ datos.registrados === 1 ? 'documento registrado' : 'documentos registrados' }}</span
+    >
     <span><b>12</b> secciones documentales</span>
     @if (datos.procesando > 0) {
-      <span class="procesando"><b>{{ datos.procesando }}</b> en proceso</span>
+      <span class="procesando"
+        ><b>{{ datos.procesando }}</b> en proceso</span
+      >
     }
     @if (datos.conError > 0) {
-      <span class="con-error"><b>{{ datos.conError }}</b> con error</span>
+      <span class="con-error"
+        ><b>{{ datos.conError }}</b> con error</span
+      >
     }
   </p>
 }
