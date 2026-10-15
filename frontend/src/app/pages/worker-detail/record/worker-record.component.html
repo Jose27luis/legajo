@@ -4,8 +4,8 @@
       <p class="antetitulo">Sección 01 de 13 · Datos estructurados</p>
       <h2>Información personal y familiar</h2>
       <p>
-        Datos personales, contacto autorizado, régimen, puesto, unidad orgánica, condición laboral, períodos de servicio y eventos
-        de cese o reingreso.
+        Datos personales, contacto autorizado, régimen, puesto, unidad orgánica, condición laboral, períodos de servicio y eventos de cese o
+        reingreso.
       </p>
     </div>
     <div class="acciones-cabecera">
@@ -42,24 +42,72 @@
         <span class="pastilla verde">{{ trabajador.tipoDocIdentidad }} único</span>
       </div>
       <dl class="datos">
-        <div><dt>{{ trabajador.tipoDocIdentidad }}</dt><dd>{{ trabajador.numeroDoc }}</dd></div>
-        <div><dt>Nombres</dt><dd>{{ trabajador.nombres }}</dd></div>
-        <div><dt>Apellido paterno</dt><dd>{{ trabajador.apellidoPaterno }}</dd></div>
-        <div><dt>Apellido materno</dt><dd>{{ trabajador.apellidoMaterno ?? '—' }}</dd></div>
+        <div>
+          <dt>{{ trabajador.tipoDocIdentidad }}</dt>
+          <dd>{{ trabajador.numeroDoc }}</dd>
+        </div>
+        <div>
+          <dt>Nombres</dt>
+          <dd>{{ trabajador.nombres }}</dd>
+        </div>
+        <div>
+          <dt>Apellido paterno</dt>
+          <dd>{{ trabajador.apellidoPaterno }}</dd>
+        </div>
+        <div>
+          <dt>Apellido materno</dt>
+          <dd>{{ trabajador.apellidoMaterno ?? '—' }}</dd>
+        </div>
         @if (trabajador.vinculo; as vinculo) {
-          <div><dt>Tipo de personal</dt><dd>{{ textoTipoPersonal[vinculo.tipoPersonal] }}</dd></div>
-          <div><dt>Régimen laboral</dt><dd>{{ vinculo.regimen.nombre }}</dd></div>
-          <div><dt>Cargo</dt><dd>{{ vinculo.cargo.nombre }}</dd></div>
-          <div><dt>Área o dependencia</dt><dd>{{ vinculo.area.nombre }}</dd></div>
+          <div>
+            <dt>Tipo de personal</dt>
+            <dd>{{ textoTipoPersonal[vinculo.tipoPersonal] }}</dd>
+          </div>
+          <div>
+            <dt>Régimen laboral</dt>
+            <dd>{{ vinculo.regimen.nombre }}</dd>
+          </div>
+          <div>
+            <dt>Cargo</dt>
+            <dd>{{ vinculo.cargo.nombre }}</dd>
+          </div>
+          <div>
+            <dt>Área o dependencia</dt>
+            <dd>{{ vinculo.area.nombre }}</dd>
+          </div>
         }
-        <div><dt>Fecha de ingreso actual</dt><dd>{{ fechaCorta(trabajador.fechaIngreso) }}</dd></div>
-        <div><dt>Registrado en el sistema</dt><dd>{{ fechaHora(trabajador.creadoEn) }}</dd></div>
-        <div><dt>Referencia de ingreso</dt><dd>{{ trabajador.vinculo?.referencia ?? 'No registrada' }}</dd></div>
-        <div><dt>Estado laboral</dt><dd>{{ trabajador.estado }}</dd></div>
-        <div><dt>Último movimiento</dt><dd>{{ textoMovimiento[trabajador.movimientoActual].toUpperCase() }}</dd></div>
-        <div><dt>Fecha de movimiento</dt><dd>{{ fechaCorta(trabajador.movimientoFecha) }}</dd></div>
-        <div><dt>Origen del último movimiento</dt><dd>{{ ultimoMovimiento(trabajador)?.areaOrigen?.nombre ?? 'No registrado' }}</dd></div>
-        <div><dt>Destino del último movimiento</dt><dd>{{ ultimoMovimiento(trabajador)?.areaDestino?.nombre ?? 'No registrado' }}</dd></div>
+        <div>
+          <dt>Fecha de ingreso actual</dt>
+          <dd>{{ fechaCorta(trabajador.fechaIngreso) }}</dd>
+        </div>
+        <div>
+          <dt>Registrado en el sistema</dt>
+          <dd>{{ fechaHora(trabajador.creadoEn) }}</dd>
+        </div>
+        <div>
+          <dt>Referencia de ingreso</dt>
+          <dd>{{ trabajador.vinculo?.referencia ?? 'No registrada' }}</dd>
+        </div>
+        <div>
+          <dt>Estado laboral</dt>
+          <dd>{{ trabajador.estado }}</dd>
+        </div>
+        <div>
+          <dt>Último movimiento</dt>
+          <dd>{{ textoMovimiento[trabajador.movimientoActual].toUpperCase() }}</dd>
+        </div>
+        <div>
+          <dt>Fecha de movimiento</dt>
+          <dd>{{ fechaCorta(trabajador.movimientoFecha) }}</dd>
+        </div>
+        <div>
+          <dt>Origen del último movimiento</dt>
+          <dd>{{ ultimoMovimiento(trabajador)?.areaOrigen?.nombre ?? 'No registrado' }}</dd>
+        </div>
+        <div>
+          <dt>Destino del último movimiento</dt>
+          <dd>{{ ultimoMovimiento(trabajador)?.areaDestino?.nombre ?? 'No registrado' }}</dd>
+        </div>
         <div>
           <dt>Motivo de cese</dt>
           <dd>{{ motivoCese(trabajador) }}</dd>
@@ -72,11 +120,26 @@
 
       <h4>Contacto y datos personales (solo datos autorizados)</h4>
       <dl class="datos">
-        <div><dt>Fecha de nacimiento</dt><dd>{{ fechaCorta(trabajador.fechaNacimiento) }}</dd></div>
-        <div><dt>Sexo</dt><dd>{{ trabajador.sexo === 'F' ? 'Femenino' : trabajador.sexo === 'M' ? 'Masculino' : 'No registrado' }}</dd></div>
-        <div><dt>Estado civil</dt><dd>{{ trabajador.estadoCivil ?? 'No registrado' }}</dd></div>
-        <div><dt>Teléfono</dt><dd>{{ trabajador.telefono ?? 'No registrado' }}</dd></div>
-        <div><dt>Correo</dt><dd>{{ trabajador.correo ?? 'No registrado' }}</dd></div>
+        <div>
+          <dt>Fecha de nacimiento</dt>
+          <dd>{{ fechaCorta(trabajador.fechaNacimiento) }}</dd>
+        </div>
+        <div>
+          <dt>Sexo</dt>
+          <dd>{{ trabajador.sexo === 'F' ? 'Femenino' : trabajador.sexo === 'M' ? 'Masculino' : 'No registrado' }}</dd>
+        </div>
+        <div>
+          <dt>Estado civil</dt>
+          <dd>{{ trabajador.estadoCivil ?? 'No registrado' }}</dd>
+        </div>
+        <div>
+          <dt>Teléfono</dt>
+          <dd>{{ trabajador.telefono ?? 'No registrado' }}</dd>
+        </div>
+        <div>
+          <dt>Correo</dt>
+          <dd>{{ trabajador.correo ?? 'No registrado' }}</dd>
+        </div>
         <div class="ancho">
           <dt>Domicilio</dt>
           <dd>
@@ -99,7 +162,9 @@
                 {{ fechaCorta(vinculo.fechaInicio) }} al
                 {{ vinculo.fechaFin === null ? 'presente' : fechaCorta(vinculo.fechaFin) }}
               </strong>
-              <span>{{ vinculo.regimen.nombre }} · {{ vinculo.fechaFin === null ? 'ACTIVO' : esCese(vinculo) ? 'CESADO' : 'CONCLUIDO' }}</span>
+              <span
+                >{{ vinculo.regimen.nombre }} · {{ vinculo.fechaFin === null ? 'ACTIVO' : esCese(vinculo) ? 'CESADO' : 'CONCLUIDO' }}</span
+              >
               <span>{{ vinculo.cargo.nombre }} en {{ vinculo.area.nombre }}</span>
               @if (vinculo.motivoFin; as motivo) {
                 <span class="motivo">Terminó por {{ textoMotivoFin[motivo].toLowerCase() }}</span>
@@ -113,13 +178,13 @@
         }
       </ol>
       <p class="aviso info">
-        Al reingresar, el trabajador conserva su <strong>mismo legajo</strong>. Se agrega un nuevo período laboral; no se crean
-        legajos duplicados.
+        Al reingresar, el trabajador conserva su <strong>mismo legajo</strong>. Se agrega un nuevo período laboral; no se crean legajos
+        duplicados.
       </p>
       <h4>Eventos de salida</h4>
       <p class="nota">
-        Renuncia, jubilación, fallecimiento, término de contrato u otro motivo. Se registra la fecha y el sustento administrativo de
-        cada evento en la Sección 11.
+        Renuncia, jubilación, fallecimiento, término de contrato u otro motivo. Se registra la fecha y el sustento administrativo de cada
+        evento en la Sección 11.
       </p>
     </section>
   </div>
@@ -173,8 +238,8 @@
   </section>
 
   <p class="nota">
-    Los datos familiares y personales sensibles deben limitarse a lo estrictamente necesario y consultarse según los permisos de
-    cada cuenta.
+    Los datos familiares y personales sensibles deben limitarse a lo estrictamente necesario y consultarse según los permisos de cada
+    cuenta.
   </p>
 }
 
@@ -224,7 +289,9 @@
 
 <app-dialog [abierto]="porQuitar() !== null" [angosto]="true" titulo="Quitar familiar" (cerrar)="cerrarQuitar()">
   @if (porQuitar(); as familiar) {
-    <p class="explicacion">Se quitará a <strong>{{ familiar.nombresApellidos }}</strong> de los datos familiares.</p>
+    <p class="explicacion">
+      Se quitará a <strong>{{ familiar.nombresApellidos }}</strong> de los datos familiares.
+    </p>
   }
   <ng-container pie>
     <button type="button" class="boton" (click)="cerrarQuitar()" [disabled]="quitando()">Cancelar</button>
@@ -261,7 +328,13 @@
     </div>
     <div class="campo">
       <label for="ficha-numero">Número</label>
-      <input id="ficha-numero" formControlName="numeroDoc" maxlength="12" autocomplete="off" [attr.aria-invalid]="campoInvalido('numeroDoc')" />
+      <input
+        id="ficha-numero"
+        formControlName="numeroDoc"
+        maxlength="12"
+        autocomplete="off"
+        [attr.aria-invalid]="campoInvalido('numeroDoc')"
+      />
     </div>
     <div class="campo completo">
       <label for="ficha-nombres">Nombres</label>
@@ -269,7 +342,12 @@
     </div>
     <div class="campo">
       <label for="ficha-paterno">Apellido paterno</label>
-      <input id="ficha-paterno" formControlName="apellidoPaterno" autocomplete="off" [attr.aria-invalid]="campoInvalido('apellidoPaterno')" />
+      <input
+        id="ficha-paterno"
+        formControlName="apellidoPaterno"
+        autocomplete="off"
+        [attr.aria-invalid]="campoInvalido('apellidoPaterno')"
+      />
     </div>
     <div class="campo">
       <label for="ficha-materno">Apellido materno</label>
@@ -281,7 +359,13 @@
     </div>
     <div class="campo">
       <label for="ficha-ingreso">Fecha de ingreso actual</label>
-      <input id="ficha-ingreso" type="date" formControlName="fechaIngreso" [max]="hoy" [attr.aria-invalid]="campoInvalido('fechaIngreso')" />
+      <input
+        id="ficha-ingreso"
+        type="date"
+        formControlName="fechaIngreso"
+        [max]="hoy"
+        [attr.aria-invalid]="campoInvalido('fechaIngreso')"
+      />
     </div>
     <div class="campo">
       <label for="ficha-sexo">Sexo</label>
@@ -339,9 +423,7 @@
 </app-dialog>
 
 <app-dialog [abierto]="cambioAbierto()" titulo="Cambio de vínculo" (cerrar)="cerrarCambio()">
-  <p class="explicacion">
-    El vínculo vigente se cierra el día anterior a la fecha de inicio y se abre uno nuevo con estos datos.
-  </p>
+  <p class="explicacion">El vínculo vigente se cierra el día anterior a la fecha de inicio y se abre uno nuevo con estos datos.</p>
   <form id="formulario-cambio" class="formulario" (submit)="$event.preventDefault(); guardarCambio()" novalidate>
     <div class="campos">
       <div class="campo">
