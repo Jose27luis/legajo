@@ -73,6 +73,7 @@
                   <button type="button" class="boton chico" [class.peligro]="area.activo" (click)="alternarActivo(area)">
                     {{ area.activo ? 'Desactivar' : 'Activar' }}
                   </button>
+                  <button type="button" class="boton chico peligro" (click)="pedirEliminar(area)">Eliminar</button>
                 </div>
               </td>
             </tr>
@@ -111,6 +112,36 @@
     <button type="button" class="boton" (click)="cerrar()" [disabled]="guardando()">Cancelar</button>
     <button type="submit" form="formulario-area" class="boton principal" [disabled]="guardando()" [attr.aria-busy]="guardando()">
       {{ guardando() ? 'Guardando' : editando() === null ? 'Crear área' : 'Guardar cambios' }}
+    </button>
+  </ng-container>
+</app-dialog>
+
+<app-dialog [abierto]="porEliminar() !== null" [angosto]="true" titulo="Eliminar área" (cerrar)="cerrarEliminar()">
+  @if (porEliminar(); as area) {
+    <p class="explicacion">
+      Se eliminará <strong>{{ area.nombre }}</strong>
+      @if (area.padreNombre) {
+        ({{ area.padreNombre }})
+      }
+      de forma definitiva. Solo es posible si ningún trabajador, movimiento, documento ni otra área la usa.
+    </p>
+    @if (errorEliminar(); as mensaje) {
+      <p class="aviso error" role="alert" animate.enter="aparece">{{ mensaje }}</p>
+    }
+  }
+  <ng-container pie>
+    <button type="button" class="boton" (click)="cerrarEliminar()" [disabled]="eliminando()">Cancelar</button>
+    @if (errorEliminar() && porEliminar()?.activo) {
+      <button type="button" class="boton" (click)="desactivarEnLugar()" [disabled]="eliminando()">Desactivar en su lugar</button>
+    }
+    <button
+      type="button"
+      class="boton peligro lleno"
+      (click)="eliminar()"
+      [disabled]="eliminando() || errorEliminar() !== null"
+      [attr.aria-busy]="eliminando()"
+    >
+      {{ eliminando() ? 'Eliminando' : 'Eliminar definitivamente' }}
     </button>
   </ng-container>
 </app-dialog>
