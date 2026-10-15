@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, resource, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { DossierDialogComponent, type TrabajadorExpediente } from '../../../components/dossier-dialog/dossier-dialog.component';
+import { SkeletonComponent } from '../../../components/skeleton/skeleton.component';
 import { WorkerPickerComponent } from '../../../components/worker-picker/worker-picker.component';
 import { mensajeDeError } from '../../../core/errors';
 import { valorDe } from '../../../core/inputs';
@@ -43,7 +44,7 @@ const escapar = (valor: string | number | null): string =>
 
 @Component({
   selector: 'app-general-report',
-  imports: [RouterLink, WorkerPickerComponent, DossierDialogComponent],
+  imports: [RouterLink, WorkerPickerComponent, DossierDialogComponent, SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './general-report.component.html',
   styleUrl: './general-report.component.css',
