@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, resource } from '@angular/core';
+import { SkeletonComponent } from '../../components/skeleton/skeleton.component';
 import { mensajeDeError } from '../../core/errors';
 import type { CifraIndicador } from '../../core/models';
 import { SessionService } from '../../core/session.service';
@@ -17,6 +18,7 @@ function barras(cifras: CifraIndicador[]): Barra[] {
 
 @Component({
   selector: 'app-statistics',
+  imports: [SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './statistics.component.html',
   styleUrl: './statistics.component.css',
