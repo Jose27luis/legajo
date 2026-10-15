@@ -94,15 +94,27 @@
   </div>
 }
 
-<app-dialog [abierto]="dialogoAbierto()" [angosto]="true" [titulo]="editando() === null ? 'Nueva área' : 'Editar área'" (cerrar)="cerrar()">
+<app-dialog
+  [abierto]="dialogoAbierto()"
+  [titulo]="editando() === null ? 'Nueva área o dependencia' : 'Editar área o dependencia'"
+  (cerrar)="cerrar()"
+>
   <form id="formulario-area" class="formulario" [formGroup]="formulario" (ngSubmit)="guardar()" novalidate>
+    <p class="explicacion">
+      Registra una oficina, unidad orgánica o establecimiento de salud. Si pertenece a otra, elígela en «Depende de»; si no, deja «Ninguna».
+    </p>
     <div class="campo">
-      <label for="area-nombre">Nombre</label>
-      <input id="area-nombre" formControlName="nombre" autocomplete="off" [attr.aria-invalid]="nombreInvalido()" />
+      <label for="area-nombre">Nombre <span class="obligatorio" aria-hidden="true">*</span></label>
+      <input id="area-nombre" formControlName="nombre" autocomplete="off" maxlength="140" [attr.aria-invalid]="nombreInvalido()" />
     </div>
     <div class="campo">
       <label for="area-padre">Depende de</label>
-      <app-search-select idCampo="area-padre" formControlName="padreId" [opciones]="opcionesPadre()" />
+      <app-search-select
+        idCampo="area-padre"
+        formControlName="padreId"
+        [opciones]="opcionesPadre()"
+        sugerencia="Busca la oficina, unidad o establecimiento superior"
+      />
     </div>
     @if (errorFormulario(); as mensaje) {
       <p class="aviso error" role="alert" animate.enter="aparece">{{ mensaje }}</p>
