@@ -22,7 +22,13 @@
       <label for="importar-archivo">Archivo .csv o .xlsx (máximo 5 MB) <span class="obligatorio">*</span></label>
       <input id="importar-archivo" type="file" accept=".csv,.xlsx" (change)="elegir($event)" />
     </div>
-    <button type="button" class="boton principal" (click)="validar()" [disabled]="archivo() === null || validando()">
+    <button
+      type="button"
+      class="boton principal"
+      (click)="validar()"
+      [disabled]="archivo() === null || validando()"
+      [attr.aria-busy]="validando()"
+    >
       {{ validando() ? 'Validando' : 'Validar archivo' }}
     </button>
   </div>
@@ -116,7 +122,13 @@
 
     <div class="acciones">
       <button type="button" class="boton" (click)="cancelar()" [disabled]="importando()">Cancelar</button>
-      <button type="button" class="boton principal" (click)="importar()" [disabled]="datos.validos.length === 0 || importando()">
+      <button
+        type="button"
+        class="boton principal"
+        (click)="importar()"
+        [disabled]="datos.validos.length === 0 || importando()"
+        [attr.aria-busy]="importando()"
+      >
         {{ importando() ? 'Importando' : 'Confirmar importación de ' + datos.validos.length + ' trabajadores' }}
       </button>
     </div>
