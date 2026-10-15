@@ -84,10 +84,7 @@ export class WorkersService {
     return firstValueFrom(this.http.post<TrabajadorDetalle>(`${BASE}/${id}/reentry`, datos));
   }
 
-  cambiarVinculo(
-    id: string,
-    datos: DatosNuevoVinculo & { fechaInicio: string; motivo: MotivoCambio },
-  ): Promise<TrabajadorDetalle> {
+  cambiarVinculo(id: string, datos: DatosNuevoVinculo & { fechaInicio: string; motivo: MotivoCambio }): Promise<TrabajadorDetalle> {
     return firstValueFrom(this.http.post<TrabajadorDetalle>(`${BASE}/${id}/link-changes`, datos));
   }
 
