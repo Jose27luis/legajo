@@ -811,7 +811,10 @@ export interface Indicadores {
 
 export interface FilaImportacion {
   fila: number;
+  tipoDocIdentidad: TipoDocIdentidad;
   numeroDoc: string;
+  sexo: 'M' | 'F' | null;
+  fechaNacimiento: string | null;
   nombres: string;
   apellidoPaterno: string;
   apellidoMaterno: string | null;
