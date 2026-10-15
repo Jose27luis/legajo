@@ -38,9 +38,7 @@ export class SessionService {
   }
 
   async cambiarClave(claveActual: string, claveNueva: string): Promise<UsuarioSesion> {
-    const usuario = await firstValueFrom(
-      this.http.post<UsuarioSesion>('/api/auth/change-password', { claveActual, claveNueva }),
-    );
+    const usuario = await firstValueFrom(this.http.post<UsuarioSesion>('/api/auth/change-password', { claveActual, claveNueva }));
     this.estado.set(usuario);
     return usuario;
   }
