@@ -63,8 +63,8 @@
     }
     @if (camposDelTipo().length > 0) {
       <p class="aviso info completo adicionales">
-        <strong>Datos adicionales del tipo documental:</strong> completa solo lo que figure en el PDF. Los datos no sustituyen
-        al documento adjunto.
+        <strong>Datos adicionales del tipo documental:</strong> completa solo lo que figure en el PDF. Los datos no sustituyen al documento
+        adjunto.
       </p>
       @for (campo of camposDelTipo(); track campo.clave) {
         <ng-container [ngTemplateOutlet]="dato" [ngTemplateOutletContext]="{ $implicit: campo }" />
