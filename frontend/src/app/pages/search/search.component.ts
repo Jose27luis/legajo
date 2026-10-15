@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, linkedSignal, resource, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { SkeletonComponent } from '../../components/skeleton/skeleton.component';
 import { WorkerPickerComponent } from '../../components/worker-picker/worker-picker.component';
 import { mensajeDeError } from '../../core/errors';
 import {
@@ -26,7 +27,7 @@ const MINIMO = 2;
 
 @Component({
   selector: 'app-search',
-  imports: [RouterLink, WorkerPickerComponent],
+  imports: [RouterLink, WorkerPickerComponent, SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './search.component.html',
   styleUrl: './search.component.css',
