@@ -281,7 +281,13 @@
   </form>
   <ng-container pie>
     <button type="button" class="boton" (click)="cerrarFamiliar()" [disabled]="guardandoFamiliar()">Cancelar</button>
-    <button type="submit" form="formulario-familiar" class="boton principal" [disabled]="guardandoFamiliar()">
+    <button
+      type="submit"
+      form="formulario-familiar"
+      class="boton principal"
+      [disabled]="guardandoFamiliar()"
+      [attr.aria-busy]="guardandoFamiliar()"
+    >
       {{ guardandoFamiliar() ? 'Guardando' : 'Guardar' }}
     </button>
   </ng-container>
@@ -295,7 +301,9 @@
   }
   <ng-container pie>
     <button type="button" class="boton" (click)="cerrarQuitar()" [disabled]="quitando()">Cancelar</button>
-    <button type="button" class="boton peligro lleno" (click)="confirmarQuitar()" [disabled]="quitando()">Quitar</button>
+    <button type="button" class="boton peligro lleno" (click)="confirmarQuitar()" [disabled]="quitando()" [attr.aria-busy]="quitando()">
+      Quitar
+    </button>
   </ng-container>
 </app-dialog>
 <app-period-dialog
@@ -416,7 +424,7 @@
   </form>
   <ng-container pie>
     <button type="button" class="boton" (click)="cerrarFicha()" [disabled]="guardandoFicha()">Cancelar</button>
-    <button type="submit" form="formulario-ficha" class="boton principal" [disabled]="guardandoFicha()">
+    <button type="submit" form="formulario-ficha" class="boton principal" [disabled]="guardandoFicha()" [attr.aria-busy]="guardandoFicha()">
       {{ guardandoFicha() ? 'Guardando' : 'Guardar ficha' }}
     </button>
   </ng-container>
@@ -446,7 +454,13 @@
   </form>
   <ng-container pie>
     <button type="button" class="boton" (click)="cerrarCambio()" [disabled]="guardandoCambio()">Cancelar</button>
-    <button type="submit" form="formulario-cambio" class="boton principal" [disabled]="guardandoCambio()">
+    <button
+      type="submit"
+      form="formulario-cambio"
+      class="boton principal"
+      [disabled]="guardandoCambio()"
+      [attr.aria-busy]="guardandoCambio()"
+    >
       {{ guardandoCambio() ? 'Guardando' : 'Registrar nuevo vínculo' }}
     </button>
   </ng-container>
