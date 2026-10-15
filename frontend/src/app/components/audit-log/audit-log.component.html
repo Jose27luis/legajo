@@ -19,7 +19,9 @@
         <option value="" [selected]="filtros().usuarioId === ''">Todos los usuarios</option>
         @if (opciones.value(); as datos) {
           @for (usuario of datos.usuarios; track usuario.id) {
-            <option [value]="usuario.id" [selected]="filtros().usuarioId === usuario.id">{{ usuario.nombre }} ({{ usuario.usuario }})</option>
+            <option [value]="usuario.id" [selected]="filtros().usuarioId === usuario.id">
+              {{ usuario.nombre }} ({{ usuario.usuario }})
+            </option>
           }
         }
       </select>
@@ -38,7 +40,13 @@
     @if (trabajadorId() === '') {
       <div class="campo">
         <label for="auditoria-trabajador">DNI del trabajador</label>
-        <input id="auditoria-trabajador" inputmode="numeric" maxlength="12" [value]="filtros().numeroDoc" (change)="cambiar('numeroDoc', $event)" />
+        <input
+          id="auditoria-trabajador"
+          inputmode="numeric"
+          maxlength="12"
+          [value]="filtros().numeroDoc"
+          (change)="cambiar('numeroDoc', $event)"
+        />
       </div>
     }
     <div class="campo">
@@ -84,7 +92,9 @@
                   <span class="secundario">Sin sesión</span>
                 }
               </td>
-              <td><b>{{ registro.accion }}</b></td>
+              <td>
+                <b>{{ registro.accion }}</b>
+              </td>
               @if (trabajadorId() === '') {
                 <td>
                   @if (registro.trabajador; as trabajador) {
@@ -114,10 +124,14 @@
               </td>
             </tr>
           } @empty {
-            <tr><td [attr.colspan]="trabajadorId() === '' ? 5 : 4" class="celda-vacia">Aún no se registraron eventos con estos filtros.</td></tr>
+            <tr>
+              <td [attr.colspan]="trabajadorId() === '' ? 5 : 4" class="celda-vacia">Aún no se registraron eventos con estos filtros.</td>
+            </tr>
           }
         } @else {
-          <tr><td [attr.colspan]="trabajadorId() === '' ? 5 : 4" class="celda-vacia">Cargando el historial</td></tr>
+          <tr>
+            <td [attr.colspan]="trabajadorId() === '' ? 5 : 4" class="celda-vacia">Cargando el historial</td>
+          </tr>
         }
       </tbody>
     </table>
@@ -127,7 +141,9 @@
     <span>Página {{ pagina() }} de {{ ultimaPagina() }}</span>
     <div>
       <button type="button" class="boton chico" [disabled]="pagina() === 1" (click)="pagina.set(pagina() - 1)">Anterior</button>
-      <button type="button" class="boton chico" [disabled]="pagina() >= ultimaPagina()" (click)="pagina.set(pagina() + 1)">Siguiente</button>
+      <button type="button" class="boton chico" [disabled]="pagina() >= ultimaPagina()" (click)="pagina.set(pagina() + 1)">
+        Siguiente
+      </button>
     </div>
   </footer>
 </section>
