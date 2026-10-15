@@ -1,0 +1,45 @@
+:host {
+  display: grid;
+  gap: 16px;
+}
+
+.cifras-reporte {
+  margin: 0;
+}
+
+.barra-tabla {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.buscador {
+  flex: 1 1 320px;
+}
+
+.estado {
+  flex: 0 0 200px;
+}
+
+.conteo {
+  padding-bottom: 12px;
+  color: var(--tinta-suave);
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.nombre {
+  font-weight: 600;
+}
+
+.formulario {
+  display: grid;
+  gap: 14px;
+}
+
+@media (max-width: 640px) {
+  .estado {
+    flex: 1 1 100%;
+  }
+}
