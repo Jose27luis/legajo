@@ -1,4 +1,4 @@
-import { fechaHora, normalizarTexto } from './format';
+import { fechaHora, normalizarTexto } from '../../src/app/core/format';
 
 describe('normalizarTexto', () => {
   it('quita tildes, pasa a minúsculas y recorta espacios', () => {
