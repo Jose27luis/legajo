@@ -1,7 +1,8 @@
 <app-dialog [abierto]="trabajador() !== null" titulo="Actualizar situación laboral y movimientos" (cerrar)="cerrarDialogo()">
   @if (trabajador(); as actual) {
     <p class="aviso info presentacion">
-      <strong>{{ nombreCompleto(actual) }} · {{ actual.numeroDoc }}</strong><br />
+      <strong>{{ nombreCompleto(actual) }} · {{ actual.numeroDoc }}</strong
+      ><br />
       Estado laboral y último movimiento son conceptos distintos: una rotación no cambia ACTIVO a CESADO.
     </p>
 
@@ -40,9 +41,7 @@
             </select>
           </div>
           <div class="campo completo">
-            <label for="situacion-destino">
-              Área o dependencia de destino <span class="obligatorio" aria-hidden="true">*</span>
-            </label>
+            <label for="situacion-destino"> Área o dependencia de destino <span class="obligatorio" aria-hidden="true">*</span> </label>
             <select id="situacion-destino" formControlName="areaDestinoId">
               <option [ngValue]="null" disabled>Selecciona el área de destino</option>
               @for (area of areas(); track area.id) {
@@ -76,8 +75,8 @@
       @if (ceseConDocumento()) {
         <div class="aviso sensible completo" role="alert" animate.enter="aparece">
           <p>
-            <strong>El cese se confirma con su documento.</strong> Registra el PDF en la Sección 11 – Desvinculación y pulsa
-            «Confirmar cese laboral» desde Ver detalle. La ficha de la Sección 01 se actualizará al confirmar.
+            <strong>El cese se confirma con su documento.</strong> Registra el PDF en la Sección 11 – Desvinculación y pulsa «Confirmar cese
+            laboral» desde Ver detalle. La ficha de la Sección 01 se actualizará al confirmar.
           </p>
           <button type="button" class="boton chico" (click)="irASeccion11()">Ir a la Sección 11</button>
         </div>
