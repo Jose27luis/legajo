@@ -252,16 +252,7 @@
   <form id="formulario-familiar" class="formulario" [formGroup]="familiar" (ngSubmit)="guardarFamiliar()" novalidate>
     <div class="campo">
       <label for="familiar-parentesco">Parentesco</label>
-      <select id="familiar-parentesco" formControlName="parentesco">
-        <option value="" disabled>Selecciona</option>
-        <option>Cónyuge</option>
-        <option>Conviviente</option>
-        <option>Hijo(a)</option>
-        <option>Padre</option>
-        <option>Madre</option>
-        <option>Hermano(a)</option>
-        <option>Otro</option>
-      </select>
+      <app-search-select idCampo="familiar-parentesco" formControlName="parentesco" [opciones]="opcionesParentesco" />
     </div>
     <div class="campo">
       <label for="familiar-nombre">Nombres y apellidos</label>
@@ -329,10 +320,7 @@
   <form id="formulario-ficha" class="campos" [formGroup]="ficha" (ngSubmit)="guardarFicha()" novalidate>
     <div class="campo">
       <label for="ficha-tipo-doc">Documento de identidad</label>
-      <select id="ficha-tipo-doc" formControlName="tipoDocIdentidad">
-        <option value="DNI">DNI</option>
-        <option value="CE">Carné de extranjería</option>
-      </select>
+      <app-search-select idCampo="ficha-tipo-doc" formControlName="tipoDocIdentidad" [opciones]="opcionesTipoDocumento" />
     </div>
     <div class="campo">
       <label for="ficha-numero">Número</label>
@@ -377,22 +365,11 @@
     </div>
     <div class="campo">
       <label for="ficha-sexo">Sexo</label>
-      <select id="ficha-sexo" formControlName="sexo">
-        <option value="">No registrado</option>
-        <option value="F">Femenino</option>
-        <option value="M">Masculino</option>
-      </select>
+      <app-search-select idCampo="ficha-sexo" formControlName="sexo" [opciones]="opcionesSexo" />
     </div>
     <div class="campo">
       <label for="ficha-civil">Estado civil</label>
-      <select id="ficha-civil" formControlName="estadoCivil">
-        <option value="">No registrado</option>
-        <option>Soltero(a)</option>
-        <option>Casado(a)</option>
-        <option>Conviviente</option>
-        <option>Divorciado(a)</option>
-        <option>Viudo(a)</option>
-      </select>
+      <app-search-select idCampo="ficha-civil" formControlName="estadoCivil" [opciones]="opcionesEstadoCivil" />
     </div>
     <div class="campo">
       <label for="ficha-telefono">Teléfono</label>
@@ -436,11 +413,7 @@
     <div class="campos">
       <div class="campo">
         <label for="cambio-motivo">Motivo</label>
-        <select id="cambio-motivo" [formControl]="motivoCambio">
-          @for (motivo of motivosCambio; track motivo) {
-            <option [ngValue]="motivo">{{ textoMotivoCambio[motivo] }}</option>
-          }
-        </select>
+        <app-search-select idCampo="cambio-motivo" [formControl]="motivoCambio" [opciones]="opcionesMotivoCambio" />
       </div>
       <div class="campo">
         <label for="cambio-fecha">Inicio del nuevo vínculo</label>
