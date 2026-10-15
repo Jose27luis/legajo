@@ -23,7 +23,7 @@
       <tbody>
         @if (cargando()) {
           <tr>
-            <td colspan="5" class="celda-vacia">Cargando documentos obligatorios</td>
+            <td colspan="5" class="celda-esqueleto"><app-skeleton [columnas]="5" texto="Cargando documentos obligatorios" /></td>
           </tr>
         } @else {
           @for (requisito of requisitos(); track requisito.id) {
@@ -100,7 +100,7 @@
   </form>
   <ng-container pie>
     <button type="button" class="boton" (click)="cerrar()" [disabled]="guardando()">Cancelar</button>
-    <button type="submit" form="formulario-requisito" class="boton principal" [disabled]="guardando()">
+    <button type="submit" form="formulario-requisito" class="boton principal" [disabled]="guardando()" [attr.aria-busy]="guardando()">
       {{ guardando() ? 'Agregando' : 'Agregar' }}
     </button>
   </ng-container>
