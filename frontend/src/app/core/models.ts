@@ -128,14 +128,7 @@ export interface NuevoRequisito {
 export type TipoDocIdentidad = 'DNI' | 'CE';
 export type EstadoTrabajador = 'ACTIVO' | 'CESADO';
 export type Movimiento =
-  | 'SIN_MOVIMIENTO'
-  | 'ROTACION'
-  | 'DESTAQUE'
-  | 'ENCARGATURA'
-  | 'REASIGNACION'
-  | 'DESIGNACION'
-  | 'CAMBIO_FUNCIONES'
-  | 'OTRO';
+  'SIN_MOVIMIENTO' | 'ROTACION' | 'DESTAQUE' | 'ENCARGATURA' | 'REASIGNACION' | 'DESIGNACION' | 'CAMBIO_FUNCIONES' | 'OTRO';
 export type MotivoCese = 'RENUNCIA' | 'JUBILACION' | 'FALLECIMIENTO' | 'FIN_CONTRATO' | 'DESTITUCION' | 'OTRA_CAUSA';
 export type MotivoCambio = 'RENOVACION' | 'CAMBIO_REGIMEN' | 'CAMBIO_CARGO_O_AREA';
 export type MotivoFin = MotivoCese | MotivoCambio;
