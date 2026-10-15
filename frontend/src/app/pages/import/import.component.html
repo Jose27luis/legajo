@@ -1,140 +1,318 @@
 <header class="cabecera-seccion">
   <div>
     <p class="antetitulo">Carga de datos</p>
-    <h2>Importar trabajadores desde Excel / CSV</h2>
-    <p>Registra varios trabajadores a la vez con su vínculo laboral. Los documentos PDF se agregan después en cada legajo.</p>
+    <h2>Importar trabajadores</h2>
+    <p>Sube un Excel, un CSV o el padrón nominal de INFORHUS. El sistema lo analiza y te muestra el resultado antes de guardar nada.</p>
   </div>
-  <button type="button" class="boton" (click)="descargarPlantilla()">Descargar plantilla</button>
+  <button type="button" class="boton" (click)="descargarPlantilla()">Descargar plantilla CSV</button>
 </header>
 
-<section class="tarjeta pasos">
-  <ol>
-    <li><b>1</b> Descarga la plantilla y completa una fila por trabajador.</li>
-    <li><b>2</b> Selecciona el archivo y pulsa «Validar archivo».</li>
-    <li><b>3</b> Revisa las observaciones y confirma la importación.</li>
-  </ol>
-  <p class="nota">
-    Columnas obligatorias: dni, apellido_paterno, nombres, regimen y fecha_ingreso. Las áreas y cargos que no existan se agregan al
-    catálogo. Para un trabajador cesado indica estado CESADO, fecha_cese y motivo_cese. Los documentos ya registrados se omiten.
-  </p>
-  <p class="nota">
-    También puedes subir el padrón nominal exportado de INFORHUS (.xls) tal como sale del sistema: cada trabajador se ubica en su
-    establecimiento según el código RENIPRESS, o en su unidad orgánica si pertenece a la sede de la DIRESA.
-  </p>
-  <div class="carga">
-    <div class="campo">
-      <label for="importar-archivo">Archivo .csv, .xlsx o padrón .xls de INFORHUS (máximo 5 MB) <span class="obligatorio">*</span></label>
-      <input id="importar-archivo" type="file" accept=".csv,.xlsx,.xls" (change)="elegir($event)" />
-    </div>
-    <button
-      type="button"
-      class="boton principal"
-      (click)="validar()"
-      [disabled]="archivo() === null || validando()"
-      [attr.aria-busy]="validando()"
-    >
-      {{ validando() ? 'Validando' : 'Validar archivo' }}
-    </button>
-  </div>
-  @if (error(); as mensaje) {
-    <p class="aviso error" role="alert">{{ mensaje }}</p>
-  }
-</section>
+<ol class="pasos" aria-label="Pasos de la importación">
+  <li [class.actual]="fase() === 'elegir'" [class.hecho]="fase() !== 'elegir'">
+    <span class="marca" aria-hidden="true">1</span>
+    <span><b>Archivo</b><small>Elige el archivo de personal</small></span>
+  </li>
+  <li [class.actual]="fase() === 'analizando' || fase() === 'revisar'" [class.hecho]="fase() === 'terminado'">
+    <span class="marca" aria-hidden="true">2</span>
+    <span><b>Análisis</b><small>Revisa lo que se encontró</small></span>
+  </li>
+  <li [class.actual]="fase() === 'terminado'" [class.hecho]="fase() === 'terminado'">
+    <span class="marca" aria-hidden="true">3</span>
+    <span><b>Registro</b><small>Confirma y crea los legajos</small></span>
+  </li>
+</ol>
 
-@if (resultado(); as datos) {
-  <p class="aviso exito" role="status">
-    Se registraron <strong>{{ datos.importados }}</strong> trabajadores.
-    @if (datos.catalogosCreados > 0) {
-      Se agregaron {{ datos.catalogosCreados }} áreas o cargos nuevos al catálogo.
-    }
-    <a routerLink="/workers">Ver trabajadores</a>
-  </p>
+@if (error(); as mensaje) {
+  <p class="aviso error" role="alert">{{ mensaje }}</p>
 }
 
-@if (vista(); as datos) {
-  <section class="tarjeta">
-    <div class="barra-reporte">
-      <h3>Vista previa · {{ datos.validos.length }} de {{ datos.total }} filas listas</h3>
-      <span class="herramientas">
-        @if (conAvisos() > 0) {
-          <span class="pastilla ambar">{{ conAvisos() }} con avisos</span>
-        }
-        @if (datos.observaciones.length > 0) {
-          <span class="pastilla roja">{{ datos.observaciones.length }} observadas</span>
-        }
-      </span>
-    </div>
+@switch (fase()) {
+  @case ('elegir') {
+    <section class="tarjeta">
+      <label
+        class="zona"
+        for="importar-archivo"
+        [class.encima]="arrastrando()"
+        (dragover)="alArrastrar($event, true)"
+        (dragleave)="alArrastrar($event, false)"
+        (drop)="alSoltar($event)"
+      >
+        <svg class="icono-subida" viewBox="0 0 48 48" aria-hidden="true">
+          <path d="M14 34h-2a8 8 0 0 1-1-15.9A12 12 0 0 1 34.2 15 9.5 9.5 0 0 1 36 34h-2" />
+          <path d="M24 40V22m-7 7 7-7 7 7" />
+        </svg>
+        <span class="zona-titulo">{{ arrastrando() ? 'Suelta el archivo para analizarlo' : 'Arrastra el archivo aquí' }}</span>
+        <span class="zona-texto">o <u>elige uno desde tu equipo</u>. El análisis empieza solo.</span>
+        <span class="formatos">
+          <span class="formato">CSV</span>
+          <span class="formato">XLSX</span>
+          <span class="formato">INFORHUS .xls</span>
+          <span class="limite">hasta 5 MB</span>
+        </span>
+        <input id="importar-archivo" class="solo-lector" type="file" accept=".csv,.xlsx,.xls" (change)="elegir($event)" />
+      </label>
 
-    @if (datos.observaciones.length > 0) {
-      <div class="aviso sensible">
-        <strong>Filas que no se importarán</strong>
-        <ul>
-          @for (observacion of datos.observaciones; track $index) {
-            <li>{{ observacion }}</li>
+      <div class="ayudas">
+        <details>
+          <summary>Qué columnas lleva la plantilla</summary>
+          <p>
+            Obligatorias: <code>dni</code>, <code>apellido_paterno</code>, <code>nombres</code>, <code>regimen</code> y
+            <code>fecha_ingreso</code>. Opcionales: <code>apellido_materno</code>, <code>tipo_personal</code>, <code>area</code>,
+            <code>cargo</code>, <code>estado</code>, <code>fecha_cese</code> y <code>motivo_cese</code>. Las fechas pueden ir como
+            AAAA-MM-DD o DD/MM/AAAA.
+          </p>
+        </details>
+        <details>
+          <summary>Cómo se lee el padrón de INFORHUS</summary>
+          <p>
+            Súbelo tal como sale del sistema. Cada trabajador se ubica en su establecimiento por el código RENIPRESS o, si es de la sede, en
+            su unidad orgánica. Se toman el cargo, el régimen, el sexo, la fecha de nacimiento y la fecha del primer contrato o del
+            nombramiento.
+          </p>
+        </details>
+      </div>
+    </section>
+  }
+
+  @case ('analizando') {
+    <section class="tarjeta analisis-en-curso" aria-live="polite">
+      @if (archivo(); as actual) {
+        <div class="archivo">
+          <span class="icono-archivo" aria-hidden="true">{{ formato() === 'Archivo CSV' ? 'CSV' : 'XLS' }}</span>
+          <span class="archivo-datos">
+            <strong>{{ actual.name }}</strong>
+            <small>{{ formato() }} · {{ tamanoLegible(actual.size) }}</small>
+          </span>
+          <button type="button" class="boton chico" (click)="cancelarAnalisis()">Cancelar</button>
+        </div>
+      }
+      @let porcentaje = subida();
+      @if (porcentaje !== null) {
+        <p class="estado-analisis"><span class="girador" aria-hidden="true"></span> Subiendo el archivo · {{ porcentaje }} %</p>
+        <div class="progreso" role="progressbar" [attr.aria-valuenow]="porcentaje" aria-valuemin="0" aria-valuemax="100">
+          <span [style.width.%]="porcentaje"></span>
+        </div>
+      } @else {
+        <p class="estado-analisis"><span class="girador" aria-hidden="true"></span> Analizando el contenido del archivo</p>
+        <div class="progreso indeterminado" role="progressbar" aria-label="Analizando"><span></span></div>
+        <p class="nota">
+          Se revisan documentos, fechas, régimen, área y cargo de cada fila. Con archivos grandes puede tardar unos segundos.
+        </p>
+      }
+    </section>
+  }
+
+  @case ('revisar') {
+    @if (resumen(); as datos) {
+      <section class="tarjeta">
+        <div class="archivo">
+          <span class="icono-archivo" aria-hidden="true">{{ formato() === 'Archivo CSV' ? 'CSV' : 'XLS' }}</span>
+          <span class="archivo-datos">
+            <strong>{{ archivo()?.name }}</strong>
+            <small>{{ formato() }} · {{ tamanoLegible(archivo()?.size ?? 0) }} · {{ datos.total }} filas leídas</small>
+          </span>
+          <button type="button" class="boton chico" (click)="reiniciar()">Cambiar archivo</button>
+        </div>
+
+        <div class="resumen">
+          <div
+            class="anillo"
+            [style.--avance]="datos.porcentaje"
+            role="img"
+            [attr.aria-label]="datos.porcentaje + ' % de las filas listas'"
+          >
+            <span class="anillo-cifra">{{ datos.porcentaje }}<small>%</small></span>
+            <span class="anillo-texto">listas para registrar</span>
+          </div>
+          <dl class="cifras">
+            <div class="cifra">
+              <dt>Filas leídas</dt>
+              <dd>{{ datos.total }}</dd>
+            </div>
+            <div class="cifra exito">
+              <dt><span class="punto" aria-hidden="true"></span> Listas para importar</dt>
+              <dd>{{ datos.listos }}</dd>
+            </div>
+            <div class="cifra alerta">
+              <dt><span class="punto" aria-hidden="true"></span> No se importarán</dt>
+              <dd>{{ datos.observados }}</dd>
+            </div>
+            <div class="cifra ambar">
+              <dt><span class="punto" aria-hidden="true"></span> Con avisos</dt>
+              <dd>{{ datos.conAvisos }}</dd>
+            </div>
+          </dl>
+        </div>
+
+        <ul class="hallazgos">
+          <li>
+            <b>{{ datos.areasNuevas }}</b> {{ datos.areasNuevas === 1 ? 'área nueva' : 'áreas nuevas' }} y <b>{{ datos.cargosNuevos }}</b>
+            {{ datos.cargosNuevos === 1 ? 'cargo nuevo' : 'cargos nuevos' }} se agregarán a Catálogos
+          </li>
+          @if (datos.extranjeria > 0) {
+            <li>
+              <b>{{ datos.extranjeria }}</b> con carné de extranjería
+            </li>
+          }
+          @if (datos.cesados > 0) {
+            <li>
+              <b>{{ datos.cesados }}</b> se registrarán como cesados
+            </li>
           }
         </ul>
+      </section>
+
+      @if (observaciones().length > 0) {
+        <section class="tarjeta observadas" aria-labelledby="titulo-observadas">
+          <h3 id="titulo-observadas">Filas que no se importarán</h3>
+          <p class="nota">Corrígelas en el archivo y vuelve a subirlo; los trabajadores ya registrados se omiten solos.</p>
+          @for (grupo of observaciones(); track grupo.motivo) {
+            <details class="grupo">
+              <summary>
+                <span class="pastilla roja">{{ grupo.filas.length }}</span>
+                <span>{{ grupo.motivo }}</span>
+              </summary>
+              <p class="filas-observadas">Filas {{ grupo.filas.join(', ') }}</p>
+            </details>
+          }
+        </section>
+      }
+
+      @if (distribuciones().length > 0) {
+        <section class="distribuciones" aria-label="Composición del personal a importar">
+          @for (grupo of distribuciones(); track grupo.titulo) {
+            <article class="tarjeta distribucion">
+              <h3>{{ grupo.titulo }}</h3>
+              <ul>
+                @for (barra of grupo.barras; track barra.nombre) {
+                  <li [attr.title]="barra.nombre + ': ' + barra.cantidad + ' (' + barra.porcentaje + ' %)'">
+                    <span class="etiqueta">{{ barra.nombre }}</span>
+                    <span class="pista"><span class="relleno" [style.width.%]="barra.porcentaje"></span></span>
+                    <span class="valor">{{ barra.cantidad }}</span>
+                  </li>
+                }
+              </ul>
+              @if (grupo.resto > 0) {
+                <p class="resto">y {{ grupo.resto }} en otros</p>
+              }
+            </article>
+          }
+        </section>
+      }
+
+      <section class="tarjeta">
+        <div class="barra-reporte">
+          <h3>Trabajadores que se registrarán</h3>
+          <div class="herramientas">
+            <label class="solo-lector" for="importar-busqueda">Buscar en la vista previa</label>
+            <input
+              id="importar-busqueda"
+              class="buscador"
+              type="search"
+              autocomplete="off"
+              [value]="busqueda()"
+              (input)="buscar($event)"
+              aria-describedby="importar-conteo"
+            />
+            <span id="importar-conteo" class="conteo">{{ visibles().length }} de {{ filtradas().length }}</span>
+          </div>
+        </div>
+        <div class="tabla-contenedor">
+          <table class="tabla">
+            <thead>
+              <tr>
+                <th scope="col">Fila</th>
+                <th scope="col">Trabajador</th>
+                <th scope="col">Documento</th>
+                <th scope="col">Régimen</th>
+                <th scope="col">Área y cargo</th>
+                <th scope="col">Ingreso</th>
+                <th scope="col">Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (fila of visibles(); track fila.fila) {
+                <tr>
+                  <td class="celda-numero">{{ fila.fila }}</td>
+                  <td>
+                    <strong>{{ fila.apellidoPaterno }} {{ fila.apellidoMaterno ?? '' }}, {{ fila.nombres }}</strong>
+                    @for (aviso of fila.avisos; track $index) {
+                      <span class="secundario aviso-fila">{{ aviso }}</span>
+                    }
+                  </td>
+                  <td>{{ fila.tipoDocIdentidad }} {{ fila.numeroDoc }}</td>
+                  <td>{{ fila.regimen }}</td>
+                  <td>
+                    {{ fila.area }}
+                    <span class="secundario">{{ fila.cargo }}</span>
+                  </td>
+                  <td class="celda-numero">{{ fechaCorta(fila.fechaIngreso) }}</td>
+                  <td>
+                    <span class="pastilla" [class.verde]="fila.estado === 'ACTIVO'" [class.gris]="fila.estado === 'CESADO'">{{
+                      fila.estado
+                    }}</span>
+                    @if (fila.motivoCese; as motivo) {
+                      <span class="secundario">{{ textoMotivo[motivo] }} · {{ fechaCorta(fila.fechaCese) }}</span>
+                    }
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="7" class="celda-vacia">
+                    {{ busqueda() === '' ? 'Ninguna fila del archivo se puede importar.' : 'Ningún trabajador coincide con la búsqueda.' }}
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        @if (visibles().length < filtradas().length) {
+          <div class="mas">
+            <button type="button" class="boton chico" (click)="verMas()">Mostrar 50 más</button>
+          </div>
+        }
+      </section>
+
+      <div class="confirmar">
+        <p>
+          Se crearán <strong>{{ datos.listos }}</strong> legajos con su vínculo laboral. Los documentos PDF se agregan después en cada
+          legajo.
+        </p>
+        <div class="botones">
+          <button type="button" class="boton" (click)="reiniciar()" [disabled]="importando()">Cancelar</button>
+          <button
+            type="button"
+            class="boton principal"
+            (click)="importar()"
+            [disabled]="datos.listos === 0 || importando()"
+            [attr.aria-busy]="importando()"
+          >
+            {{ importando() ? 'Registrando ' + datos.listos + ' trabajadores' : 'Confirmar importación' }}
+          </button>
+        </div>
       </div>
     }
+  }
 
-    <div class="tabla-contenedor">
-      <table class="tabla">
-        <thead>
-          <tr>
-            <th scope="col">Fila</th>
-            <th scope="col">Trabajador</th>
-            <th scope="col">Documento</th>
-            <th scope="col">Régimen</th>
-            <th scope="col">Área y cargo</th>
-            <th scope="col">Ingreso</th>
-            <th scope="col">Estado</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (fila of datos.validos; track fila.fila) {
-            <tr>
-              <td class="celda-numero">{{ fila.fila }}</td>
-              <td>
-                <strong>{{ fila.apellidoPaterno }} {{ fila.apellidoMaterno ?? '' }}, {{ fila.nombres }}</strong>
-                @for (aviso of fila.avisos; track $index) {
-                  <span class="secundario aviso-fila">{{ aviso }}</span>
-                }
-              </td>
-              <td>{{ fila.tipoDocIdentidad }} {{ fila.numeroDoc }}</td>
-              <td>{{ fila.regimen }}</td>
-              <td>
-                {{ fila.area }}
-                <span class="secundario">{{ fila.cargo }}</span>
-              </td>
-              <td class="celda-numero">{{ fechaCorta(fila.fechaIngreso) }}</td>
-              <td>
-                <span class="pastilla" [class.verde]="fila.estado === 'ACTIVO'" [class.gris]="fila.estado === 'CESADO'">{{
-                  fila.estado
-                }}</span>
-                @if (fila.motivoCese; as motivo) {
-                  <span class="secundario">{{ textoMotivo[motivo] }} · {{ fechaCorta(fila.fechaCese) }}</span>
-                }
-              </td>
-            </tr>
-          } @empty {
-            <tr>
-              <td colspan="7" class="celda-vacia">Ninguna fila del archivo se puede importar.</td>
-            </tr>
+  @case ('terminado') {
+    @if (resultado(); as datos) {
+      <section class="tarjeta terminado" role="status">
+        <svg class="icono-listo" viewBox="0 0 48 48" aria-hidden="true">
+          <circle cx="24" cy="24" r="20" />
+          <path d="m15 24.5 6 6 12-13" />
+        </svg>
+        <h3>Importación completada</h3>
+        <p>
+          Se registraron <strong>{{ datos.importados }}</strong> trabajadores con su legajo de 13 secciones.
+          @if (datos.catalogosCreados > 0) {
+            Se agregaron {{ datos.catalogosCreados }} áreas o cargos nuevos a Catálogos.
           }
-        </tbody>
-      </table>
-    </div>
-
-    <div class="acciones">
-      <button type="button" class="boton" (click)="cancelar()" [disabled]="importando()">Cancelar</button>
-      <button
-        type="button"
-        class="boton principal"
-        (click)="importar()"
-        [disabled]="datos.validos.length === 0 || importando()"
-        [attr.aria-busy]="importando()"
-      >
-        {{ importando() ? 'Importando' : 'Confirmar importación de ' + datos.validos.length + ' trabajadores' }}
-      </button>
-    </div>
-  </section>
+        </p>
+        <div class="botones">
+          <a class="boton principal" routerLink="/workers">Ver trabajadores</a>
+          <button type="button" class="boton" (click)="nuevaImportacion()">Importar otro archivo</button>
+        </div>
+      </section>
+    }
+  }
 }
