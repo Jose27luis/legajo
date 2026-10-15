@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, resource, signal } from '@angular/core';
+import { SkeletonComponent } from '../../../components/skeleton/skeleton.component';
 import { mensajeDeError } from '../../../core/errors';
 import { numeroDe, valorDe } from '../../../core/inputs';
 import type { EstadoTrabajador, FiltrosAvance, TipoPersonal } from '../../../core/models';
@@ -10,6 +11,7 @@ const VACIOS: FiltrosAvance = { areaId: null, regimenId: null, tipoPersonal: nul
 
 @Component({
   selector: 'app-progress-report',
+  imports: [SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './progress-report.component.html',
   styleUrl: './progress-report.component.css',
