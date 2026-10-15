@@ -6,12 +6,13 @@ import { valorDe } from '../../core/inputs';
 import type { FiltrosAuditoria } from '../../core/models';
 import { SessionService } from '../../core/session.service';
 import { AuditService } from '../../services/audit.service';
+import { SkeletonComponent } from '../skeleton/skeleton.component';
 
 type CampoFiltro = 'usuarioId' | 'accion' | 'numeroDoc' | 'desde' | 'hasta';
 
 @Component({
   selector: 'app-audit-log',
-  imports: [RouterLink],
+  imports: [RouterLink, SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './audit-log.component.html',
   styleUrl: './audit-log.component.css',
