@@ -181,7 +181,7 @@
           }
         } @else {
           <tr>
-            <td colspan="6" class="celda-vacia">Buscando</td>
+            <td colspan="6" class="celda-esqueleto"><app-skeleton [columnas]="5" [cantidad]="4" texto="Buscando trabajadores" /></td>
           </tr>
         }
       </tbody>
@@ -197,7 +197,13 @@
         <span class="conteo" aria-live="polite">{{ totalDocumentos() }} encontrados</span>
         @if (sesion.tiene('documentos.descargar')) {
           <button type="button" class="boton chico" (click)="marcarPagina()">Marcar los de esta página</button>
-          <button type="button" class="boton principal" [disabled]="marcados().length === 0 || descargando()" (click)="descargar()">
+          <button
+            type="button"
+            class="boton principal"
+            [disabled]="marcados().length === 0 || descargando()"
+            [attr.aria-busy]="descargando()"
+            (click)="descargar()"
+          >
             {{ descargando() ? 'Preparando el ZIP' : 'Descargar ' + marcados().length + ' en ZIP' }}
           </button>
         }
@@ -275,7 +281,9 @@
             }
           } @else {
             <tr>
-              <td [attr.colspan]="sesion.tiene('documentos.descargar') ? 7 : 6" class="celda-vacia">Buscando</td>
+              <td [attr.colspan]="sesion.tiene('documentos.descargar') ? 7 : 6" class="celda-esqueleto">
+                <app-skeleton [columnas]="6" texto="Buscando documentos" />
+              </td>
             </tr>
           }
         </tbody>
