@@ -3,14 +3,12 @@ import { Router } from '@angular/router';
 import { DocumentTypesComponent } from './document-types/document-types.component';
 import { RequirementsComponent } from './requirements/requirements.component';
 import { RegimesComponent } from './regimes/regimes.component';
-import { AreasComponent } from './areas/areas.component';
 import { PositionsComponent } from './positions/positions.component';
 
 const PESTANAS = [
   { id: 'document-types', etiqueta: 'Tipos de documento' },
   { id: 'requirements', etiqueta: 'Documentos obligatorios' },
   { id: 'regimes', etiqueta: 'Regímenes' },
-  { id: 'areas', etiqueta: 'Áreas' },
   { id: 'positions', etiqueta: 'Cargos' },
 ] as const;
 
@@ -18,7 +16,7 @@ type IdPestana = (typeof PESTANAS)[number]['id'];
 
 @Component({
   selector: 'app-catalogs',
-  imports: [DocumentTypesComponent, RequirementsComponent, RegimesComponent, AreasComponent, PositionsComponent],
+  imports: [DocumentTypesComponent, RequirementsComponent, RegimesComponent, PositionsComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './catalogs.component.html',
   styleUrl: './catalogs.component.css',
