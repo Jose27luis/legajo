@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, resource, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
+import { SkeletonComponent } from '../../components/skeleton/skeleton.component';
 import { mensajeDeError } from '../../core/errors';
 import { nombreCompleto } from '../../core/labels';
 import { SelectedWorkerService } from '../../services/selected-worker.service';
@@ -10,7 +11,7 @@ const MINIMO = 2;
 
 @Component({
   selector: 'app-legajos',
-  imports: [RouterLink],
+  imports: [RouterLink, SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './legajos.component.html',
   styleUrl: './legajos.component.css',
