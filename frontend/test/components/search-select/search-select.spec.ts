@@ -11,11 +11,28 @@ const OPCIONES: OpcionBuscable[] = [
 
 @Component({
   imports: [ReactiveFormsModule, SearchSelectComponent],
-  template: `<app-search-select idCampo="prueba" [formControl]="control" [opciones]="opciones" />`,
+  template: `<app-search-select idCampo="prueba" [formControl]="control" [opciones]="opciones" [buscador]="true" />`,
 })
 class Anfitrion {
   readonly control = new FormControl<number | null>(null);
   readonly opciones = OPCIONES;
+}
+
+const ESTADOS: OpcionBuscable[] = [
+  { valor: null, etiqueta: 'Todos' },
+  { valor: 'ACTIVO', etiqueta: 'Activos' },
+  { valor: 'BLOQUEADO', etiqueta: 'Bloqueados', deshabilitada: true },
+  { valor: 'CESADO', etiqueta: 'Cesados' },
+];
+
+@Component({
+  imports: [SearchSelectComponent],
+  template: `<app-search-select idCampo="estado" [opciones]="opciones" [seleccion]="estado" (cambio)="cambios.push($event)" />`,
+})
+class AnfitrionFiltro {
+  readonly opciones = ESTADOS;
+  readonly cambios: (string | number | null)[] = [];
+  estado: string | null = 'ACTIVO';
 }
 
 function preparar() {
@@ -110,5 +127,63 @@ describe('SearchSelectComponent', () => {
     fixture.detectChanges();
     expect(entrada.disabled).toBe(true);
     expect(elemento.querySelector('[role="listbox"]')).toBeNull();
+  });
+});
+
+describe('SearchSelectComponent como lista sin buscador', () => {
+  beforeAll(() => {
+    Element.prototype.scrollIntoView = vi.fn();
+  });
+
+  function prepararFiltro() {
+    const fixture = TestBed.createComponent(AnfitrionFiltro);
+    fixture.detectChanges();
+    const elemento = fixture.nativeElement as HTMLElement;
+    const entrada = elemento.querySelector('input');
+    if (entrada === null) {
+      throw new Error('No se encontró el campo');
+    }
+    return { fixture, elemento, entrada };
+  }
+
+  it('muestra el valor recibido y no permite escribir con pocas opciones', () => {
+    const { elemento, entrada } = prepararFiltro();
+    expect(entrada.value).toBe('Activos');
+    expect(entrada.readOnly).toBe(true);
+    expect(elemento.querySelector('.lupa')).toBeNull();
+  });
+
+  it('abre al hacer clic, salta las opciones deshabilitadas y emite el cambio', () => {
+    const { fixture, entrada } = prepararFiltro();
+    entrada.click();
+    fixture.detectChanges();
+    teclear(entrada, 'ArrowDown');
+    teclear(entrada, 'Enter');
+    fixture.detectChanges();
+    expect(fixture.componentInstance.cambios).toEqual(['CESADO']);
+    expect(entrada.value).toBe('Cesados');
+  });
+
+  it('permite elegir la opción sin valor y no emite si se repite la misma', () => {
+    const { fixture, elemento, entrada } = prepararFiltro();
+    entrada.click();
+    fixture.detectChanges();
+    elemento.querySelectorAll('[role="option"]')[1]?.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+    entrada.click();
+    fixture.detectChanges();
+    elemento.querySelectorAll('[role="option"]')[0]?.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+    fixture.detectChanges();
+    expect(fixture.componentInstance.cambios).toEqual([null]);
+    expect(entrada.value).toBe('Todos');
+  });
+
+  it('ignora el clic en una opción deshabilitada', () => {
+    const { fixture, elemento, entrada } = prepararFiltro();
+    entrada.click();
+    fixture.detectChanges();
+    elemento.querySelectorAll('[role="option"]')[2]?.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+    fixture.detectChanges();
+    expect(fixture.componentInstance.cambios).toEqual([]);
+    expect(entrada.value).toBe('Activos');
   });
 });
