@@ -12,31 +12,20 @@
   <div class="filtros-reporte">
     <div class="campo">
       <label for="vencer-dias">Anticipación</label>
-      <select id="vencer-dias" (change)="cambiarDias($event)">
-        @for (dias of opcionesDias; track dias) {
-          <option [value]="dias" [selected]="filtros().dias === dias">Próximos {{ dias }} días</option>
-        }
-      </select>
+      <app-search-select idCampo="vencer-dias" [opciones]="opcionesDias" [seleccion]="filtros().dias" (cambio)="cambiarDias($event)" />
     </div>
     <div class="campo">
       <label for="vencer-area">Área</label>
-      <select id="vencer-area" (change)="cambiarArea($event)">
-        <option value="" [selected]="filtros().areaId === null">Todas las áreas</option>
-        @if (opciones.value(); as datos) {
-          @for (area of datos.areas; track area.id) {
-            <option [value]="area.id" [selected]="filtros().areaId === area.id">{{ area.nombre }}</option>
-          }
-        }
-      </select>
+      <app-search-select idCampo="vencer-area" [opciones]="opcionesArea()" [seleccion]="filtros().areaId" (cambio)="cambiarArea($event)" />
     </div>
     <div class="campo">
       <label for="vencer-tipo">Tipo de documento</label>
-      <select id="vencer-tipo" (change)="cambiarTipo($event)">
-        <option value="" [selected]="filtros().tipoDocumentoId === null">Todos los que vencen</option>
-        @for (tipo of tipos(); track tipo.id) {
-          <option [value]="tipo.id" [selected]="filtros().tipoDocumentoId === tipo.id">{{ tipo.codigo }} {{ tipo.nombre }}</option>
-        }
-      </select>
+      <app-search-select
+        idCampo="vencer-tipo"
+        [opciones]="opcionesTipo()"
+        [seleccion]="filtros().tipoDocumentoId"
+        (cambio)="cambiarTipo($event)"
+      />
     </div>
   </div>
 
