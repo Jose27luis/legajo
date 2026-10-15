@@ -21,37 +21,29 @@
   <div class="filtros-reporte">
     <div class="campo completo-fila">
       <label for="reporte-tipo">Tipo de reporte</label>
-      <select id="reporte-tipo" (change)="cambiar('tipo', $event)">
-        @for (tipo of tipos; track tipo.valor) {
-          <option [value]="tipo.valor" [selected]="filtros().tipo === tipo.valor">{{ tipo.texto }}</option>
-        }
-      </select>
+      <app-search-select idCampo="reporte-tipo" [opciones]="opcionesTipo" [seleccion]="filtros().tipo" (cambio)="cambiarTipo($event)" />
     </div>
     <div class="campo">
       <label for="reporte-estado">Situación laboral</label>
-      <select id="reporte-estado" (change)="cambiar('estado', $event)">
-        <option value="" [selected]="filtros().estado === ''">Todos</option>
-        <option value="ACTIVO" [selected]="filtros().estado === 'ACTIVO'">ACTIVO</option>
-        <option value="CESADO" [selected]="filtros().estado === 'CESADO'">CESADO</option>
-      </select>
+      <app-search-select
+        idCampo="reporte-estado"
+        [opciones]="opcionesEstado"
+        [seleccion]="filtros().estado || null"
+        (cambio)="cambiarEstado($event)"
+      />
     </div>
     <div class="campo">
       <label for="reporte-area">Área o dependencia</label>
-      <select id="reporte-area" (change)="cambiar('areaId', $event)">
-        <option value="" [selected]="filtros().areaId === null">Todas</option>
-        @for (area of opciones.value()?.areas ?? []; track area.id) {
-          <option [value]="area.id" [selected]="filtros().areaId === area.id">{{ area.nombre }}</option>
-        }
-      </select>
+      <app-search-select idCampo="reporte-area" [opciones]="opcionesArea()" [seleccion]="filtros().areaId" (cambio)="cambiarArea($event)" />
     </div>
     <div class="campo">
       <label for="reporte-regimen">Régimen laboral</label>
-      <select id="reporte-regimen" (change)="cambiar('regimenId', $event)">
-        <option value="" [selected]="filtros().regimenId === null">Todos</option>
-        @for (regimen of opciones.value()?.regimenes ?? []; track regimen.id) {
-          <option [value]="regimen.id" [selected]="filtros().regimenId === regimen.id">{{ regimen.nombre }}</option>
-        }
-      </select>
+      <app-search-select
+        idCampo="reporte-regimen"
+        [opciones]="opcionesRegimen()"
+        [seleccion]="filtros().regimenId"
+        (cambio)="cambiarRegimen($event)"
+      />
     </div>
     <div class="campo">
       <label for="reporte-busqueda">DNI, nombre o cargo</label>
