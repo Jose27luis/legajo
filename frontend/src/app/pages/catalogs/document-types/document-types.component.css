@@ -28,7 +28,9 @@
   color: var(--tinta-media);
   text-align: left;
   cursor: pointer;
-  transition: background-color 140ms ease, color 140ms ease;
+  transition:
+    background-color 140ms ease,
+    color 140ms ease;
 }
 
 .seccion:hover {
