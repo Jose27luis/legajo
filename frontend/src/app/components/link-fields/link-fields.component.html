@@ -47,15 +47,10 @@
   </div>
   <div class="campo completo">
     <label [for]="prefijo + '-referencia'">{{ etiquetaReferencia() }} (opcional)</label>
-    <input
-      [id]="prefijo + '-referencia'"
-      formControlName="referencia"
-      autocomplete="off"
-      [attr.aria-describedby]="prefijo + '-ayuda'"
-    />
+    <input [id]="prefijo + '-referencia'" formControlName="referencia" autocomplete="off" [attr.aria-describedby]="prefijo + '-ayuda'" />
     <span [id]="prefijo + '-ayuda'" class="ayuda">
-      Por ejemplo, Contrato CAS N.º 025-2026 o Resolución N.º 120-2026. La referencia no sustituye al PDF: adjunta el archivo
-      real en la Sección 02.
+      Por ejemplo, Contrato CAS N.º 025-2026 o Resolución N.º 120-2026. La referencia no sustituye al PDF: adjunta el archivo real en la
+      Sección 02.
     </span>
   </div>
 </div>
