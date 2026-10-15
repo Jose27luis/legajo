@@ -3,17 +3,12 @@
     <p class="antetitulo">Control y trazabilidad</p>
     <h2>Copias de seguridad</h2>
     <p>
-      Cada noche a la 01:00 se copia la base de datos y los PDF. Las copias van cifradas y solo guardan lo que cambió desde la
-      anterior. Se conservan 7 diarias, 4 semanales y 12 mensuales; los domingos se revisa una muestra del repositorio.
+      Cada noche a la 01:00 se copia la base de datos y los PDF. Las copias van cifradas y solo guardan lo que cambió desde la anterior. Se
+      conservan 7 diarias, 4 semanales y 12 mensuales; los domingos se revisa una muestra del repositorio.
     </p>
   </div>
   @if (panel.value(); as datos) {
-    <button
-      type="button"
-      class="boton principal"
-      [disabled]="!datos.configurado || datos.pendiente || lanzando()"
-      (click)="lanzar()"
-    >
+    <button type="button" class="boton principal" [disabled]="!datos.configurado || datos.pendiente || lanzando()" (click)="lanzar()">
       {{ datos.pendiente ? 'Copia en curso' : 'Hacer una copia ahora' }}
     </button>
   }
@@ -101,7 +96,9 @@
               </td>
             </tr>
           } @empty {
-            <tr><td colspan="6" class="celda-vacia">Todavía no se hizo ninguna copia.</td></tr>
+            <tr>
+              <td colspan="6" class="celda-vacia">Todavía no se hizo ninguna copia.</td>
+            </tr>
           }
         </tbody>
       </table>
@@ -110,7 +107,9 @@
       <span>Página {{ pagina() }} de {{ ultimaPagina() }}</span>
       <div>
         <button type="button" class="boton chico" [disabled]="pagina() === 1" (click)="pagina.set(pagina() - 1)">Anterior</button>
-        <button type="button" class="boton chico" [disabled]="pagina() >= ultimaPagina()" (click)="pagina.set(pagina() + 1)">Siguiente</button>
+        <button type="button" class="boton chico" [disabled]="pagina() >= ultimaPagina()" (click)="pagina.set(pagina() + 1)">
+          Siguiente
+        </button>
       </div>
     </footer>
   </section>
@@ -138,7 +137,9 @@
               <tr>
                 <td class="fecha">{{ fechaHora(copia.fecha) }}</td>
                 <td>{{ copia.contenido === 'bd' ? 'Base de datos' : copia.contenido === 'archivos' ? 'Archivos PDF' : 'Otro' }}</td>
-                <td><code>{{ corto(copia.id) }}</code></td>
+                <td>
+                  <code>{{ corto(copia.id) }}</code>
+                </td>
                 <td>
                   @if (copia.ejecucionId; as id) {
                     <code>{{ id }}</code>
@@ -153,8 +154,8 @@
   }
 
   <p class="nota">
-    La restauración se hace desde la consola del servidor con el script de restauración y el id de la copia. Detiene el sistema,
-    reemplaza la base de datos y los archivos, y comprueba que cada documento tenga su PDF.
+    La restauración se hace desde la consola del servidor con el script de restauración y el id de la copia. Detiene el sistema, reemplaza
+    la base de datos y los archivos, y comprueba que cada documento tenga su PDF.
   </p>
 } @else if (error() === null) {
   <p class="celda-vacia">Cargando las copias</p>
