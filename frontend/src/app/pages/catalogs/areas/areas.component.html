@@ -22,7 +22,7 @@
       <tbody>
         @if (cargando()) {
           <tr>
-            <td colspan="4" class="celda-vacia">Cargando áreas</td>
+            <td colspan="4" class="celda-esqueleto"><app-skeleton [columnas]="4" texto="Cargando áreas" /></td>
           </tr>
         } @else {
           @for (area of areas(); track area.id) {
@@ -77,7 +77,7 @@
   </form>
   <ng-container pie>
     <button type="button" class="boton" (click)="cerrar()" [disabled]="guardando()">Cancelar</button>
-    <button type="submit" form="formulario-area" class="boton principal" [disabled]="guardando()">
+    <button type="submit" form="formulario-area" class="boton principal" [disabled]="guardando()" [attr.aria-busy]="guardando()">
       {{ guardando() ? 'Guardando' : editando() === null ? 'Crear área' : 'Guardar cambios' }}
     </button>
   </ng-container>
