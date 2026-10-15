@@ -13,6 +13,7 @@ import {
 import { Router } from '@angular/router';
 import { numeroSeccion } from '../../core/labels';
 import { SearchService } from '../../services/search.service';
+import { SpinnerComponent } from '../spinner/spinner.component';
 
 const ESPERA_MS = 250;
 const MINIMO = 2;
@@ -28,6 +29,7 @@ interface Opcion {
 
 @Component({
   selector: 'app-global-search',
+  imports: [SpinnerComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './global-search.component.html',
   styleUrl: './global-search.component.css',
