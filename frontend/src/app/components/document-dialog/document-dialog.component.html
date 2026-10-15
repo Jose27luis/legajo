@@ -35,28 +35,79 @@
         }
 
         <dl class="datos">
-          <div><dt>Sección</dt><dd>{{ numeroSeccion(doc.seccion) }} · {{ seccion()?.nombre }}</dd></div>
-          <div><dt>Tipo de documento</dt><dd>{{ doc.tipo.nombre }}</dd></div>
-          <div><dt>N.º documento</dt><dd>{{ doc.numero ?? 'No registrado' }}</dd></div>
-          <div><dt>Fecha de emisión</dt><dd>{{ doc.fechaEmision ? fechaCorta(doc.fechaEmision) : 'No registrada' }}</dd></div>
+          <div>
+            <dt>Sección</dt>
+            <dd>{{ numeroSeccion(doc.seccion) }} · {{ seccion()?.nombre }}</dd>
+          </div>
+          <div>
+            <dt>Tipo de documento</dt>
+            <dd>{{ doc.tipo.nombre }}</dd>
+          </div>
+          <div>
+            <dt>N.º documento</dt>
+            <dd>{{ doc.numero ?? 'No registrado' }}</dd>
+          </div>
+          <div>
+            <dt>Fecha de emisión</dt>
+            <dd>{{ doc.fechaEmision ? fechaCorta(doc.fechaEmision) : 'No registrada' }}</dd>
+          </div>
           @if (doc.tipo.tieneVencimiento || doc.fechaVencimiento !== null) {
-            <div><dt>Vencimiento</dt><dd>{{ doc.fechaVencimiento ? fechaCorta(doc.fechaVencimiento) : 'No registrada' }}</dd></div>
+            <div>
+              <dt>Vencimiento</dt>
+              <dd>{{ doc.fechaVencimiento ? fechaCorta(doc.fechaVencimiento) : 'No registrada' }}</dd>
+            </div>
           }
-          <div><dt>Estado</dt><dd>{{ textoEstado[doc.estado] }}</dd></div>
-          <div><dt>Fecha y hora de carga</dt><dd>{{ fechaHora(doc.creadoEn) }}</dd></div>
-          <div><dt>Registrado por</dt><dd>{{ doc.creadoPor }}</dd></div>
-          <div><dt>Última modificación</dt><dd>{{ doc.modificadoEn ? fechaHora(doc.modificadoEn) : 'Sin modificaciones' }}</dd></div>
-          <div><dt>Modificado por</dt><dd>{{ doc.modificadoPor ?? '—' }}</dd></div>
-          <div class="ancho"><dt>Motivo de modificación</dt><dd>{{ doc.motivoModificacion ?? '—' }}</dd></div>
-          <div class="ancho"><dt>Nombre original del PDF</dt><dd>{{ versionActual()?.nombreOriginal ?? '—' }}</dd></div>
-          <div class="ancho"><dt>Descripción</dt><dd>{{ doc.observaciones ?? '—' }}</dd></div>
-          <div><dt>Emitido por</dt><dd>{{ doc.emisor ?? '—' }}</dd></div>
-          <div><dt>Ubicación del físico</dt><dd>{{ doc.ubicacionFisica ?? '—' }}</dd></div>
+          <div>
+            <dt>Estado</dt>
+            <dd>{{ textoEstado[doc.estado] }}</dd>
+          </div>
+          <div>
+            <dt>Fecha y hora de carga</dt>
+            <dd>{{ fechaHora(doc.creadoEn) }}</dd>
+          </div>
+          <div>
+            <dt>Registrado por</dt>
+            <dd>{{ doc.creadoPor }}</dd>
+          </div>
+          <div>
+            <dt>Última modificación</dt>
+            <dd>{{ doc.modificadoEn ? fechaHora(doc.modificadoEn) : 'Sin modificaciones' }}</dd>
+          </div>
+          <div>
+            <dt>Modificado por</dt>
+            <dd>{{ doc.modificadoPor ?? '—' }}</dd>
+          </div>
+          <div class="ancho">
+            <dt>Motivo de modificación</dt>
+            <dd>{{ doc.motivoModificacion ?? '—' }}</dd>
+          </div>
+          <div class="ancho">
+            <dt>Nombre original del PDF</dt>
+            <dd>{{ versionActual()?.nombreOriginal ?? '—' }}</dd>
+          </div>
+          <div class="ancho">
+            <dt>Descripción</dt>
+            <dd>{{ doc.observaciones ?? '—' }}</dd>
+          </div>
+          <div>
+            <dt>Emitido por</dt>
+            <dd>{{ doc.emisor ?? '—' }}</dd>
+          </div>
+          <div>
+            <dt>Ubicación del físico</dt>
+            <dd>{{ doc.ubicacionFisica ?? '—' }}</dd>
+          </div>
           @for (propio of propios(); track propio.etiqueta) {
-            <div><dt>{{ propio.etiqueta }}</dt><dd>{{ propio.valor }}</dd></div>
+            <div>
+              <dt>{{ propio.etiqueta }}</dt>
+              <dd>{{ propio.valor }}</dd>
+            </div>
           }
           @if (doc.confirmadoEn; as confirmadoEn) {
-            <div class="ancho"><dt>Confirmado en la Sección 01</dt><dd>{{ fechaHora(confirmadoEn) }} · {{ doc.confirmadoPor }}</dd></div>
+            <div class="ancho">
+              <dt>Confirmado en la Sección 01</dt>
+              <dd>{{ fechaHora(confirmadoEn) }} · {{ doc.confirmadoPor }}</dd>
+            </div>
           }
         </dl>
 
@@ -112,8 +163,8 @@
         }
 
         <p class="nota">
-          Fecha de emisión ≠ fecha de carga. Un documento de otro año no reemplaza automáticamente al anterior. Ningún estado
-          elimina el PDF del historial.
+          Fecha de emisión ≠ fecha de carga. Un documento de otro año no reemplaza automáticamente al anterior. Ningún estado elimina el PDF
+          del historial.
         </p>
       }
 
@@ -146,14 +197,20 @@
       @case ('reemplazar') {
         <form id="formulario-reemplazo" class="formulario" (submit)="$event.preventDefault(); reemplazar()" novalidate>
           <p class="aviso info">
-            Solo si es la versión corregida del mismo documento (por ejemplo, un escaneo incompleto). No es para sustituir
-            contratos de distintos años.
+            Solo si es la versión corregida del mismo documento (por ejemplo, un escaneo incompleto). No es para sustituir contratos de
+            distintos años.
           </p>
           <div class="campo">
             <label for="reemplazo-motivo">
               Motivo <span class="obligatorio" aria-hidden="true">*</span> (mínimo {{ minimoMotivo }} caracteres)
             </label>
-            <textarea id="reemplazo-motivo" [formControl]="motivo" maxlength="500" rows="2" [attr.aria-invalid]="motivoInvalido()"></textarea>
+            <textarea
+              id="reemplazo-motivo"
+              [formControl]="motivo"
+              maxlength="500"
+              rows="2"
+              [attr.aria-invalid]="motivoInvalido()"
+            ></textarea>
           </div>
           <app-pdf-picker idCampo="reemplazo-archivo" [(archivo)]="archivo" [progreso]="progreso()" [deshabilitado]="ocupado()" />
         </form>
@@ -162,14 +219,20 @@
       @case ('anular') {
         <form id="formulario-anulacion" class="formulario" (submit)="$event.preventDefault(); anular()" novalidate>
           <p class="aviso sensible">
-            Para anular debes justificar el cambio. El PDF original no se borra, el estado anterior se conserva en el historial y
-            la acción no implica cese laboral.
+            Para anular debes justificar el cambio. El PDF original no se borra, el estado anterior se conserva en el historial y la acción
+            no implica cese laboral.
           </p>
           <div class="campo">
             <label for="anulacion-motivo">
               Motivo <span class="obligatorio" aria-hidden="true">*</span> (mínimo {{ minimoMotivo }} caracteres)
             </label>
-            <textarea id="anulacion-motivo" [formControl]="motivo" maxlength="500" rows="3" [attr.aria-invalid]="motivoInvalido()"></textarea>
+            <textarea
+              id="anulacion-motivo"
+              [formControl]="motivo"
+              maxlength="500"
+              rows="3"
+              [attr.aria-invalid]="motivoInvalido()"
+            ></textarea>
           </div>
         </form>
       }
