@@ -64,12 +64,7 @@
     </div>
     <div class="campo">
       <label for="area-padre">Depende de</label>
-      <select id="area-padre" formControlName="padreId">
-        <option [ngValue]="null">Ninguna</option>
-        @for (opcion of opcionesPadre(); track opcion.id) {
-          <option [ngValue]="opcion.id">{{ opcion.nombre }}</option>
-        }
-      </select>
+      <app-search-select idCampo="area-padre" formControlName="padreId" [opciones]="opcionesPadre()" />
     </div>
     @if (errorFormulario(); as mensaje) {
       <p class="aviso error" role="alert" animate.enter="aparece">{{ mensaje }}</p>
