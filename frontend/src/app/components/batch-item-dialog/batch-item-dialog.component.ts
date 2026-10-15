@@ -13,6 +13,7 @@ import {
   prepararFormularioDocumento,
   type FormularioDocumento,
 } from '../document-fields/document-form';
+import { SearchSelectComponent, type OpcionBuscable, type ValorOpcion } from '../search-select/search-select.component';
 import { WorkerPickerComponent } from '../worker-picker/worker-picker.component';
 
 type Pestana = 'clasificar' | 'dividir' | 'descartar';
@@ -28,7 +29,7 @@ interface Rango {
 
 @Component({
   selector: 'app-batch-item-dialog',
-  imports: [ReactiveFormsModule, DialogComponent, DocumentFieldsComponent, WorkerPickerComponent],
+  imports: [ReactiveFormsModule, DialogComponent, DocumentFieldsComponent, WorkerPickerComponent, SearchSelectComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './batch-item-dialog.component.html',
   styleUrl: './batch-item-dialog.component.css',
@@ -43,7 +44,6 @@ export class BatchItemDialogComponent {
   readonly cerrar = output();
   readonly actualizado = output<ItemLote>();
 
-  protected readonly numeroSeccion = numeroSeccion;
   protected readonly tamanoLegible = tamanoLegible;
 
   protected readonly pestana = linkedSignal<string | undefined, Pestana>({
@@ -74,6 +74,10 @@ export class BatchItemDialogComponent {
     validators: [Validators.required, Validators.minLength(5), Validators.maxLength(300)],
   });
 
+  protected readonly opcionesSeccion = computed<OpcionBuscable[]>(() =>
+    this.secciones().map((seccion) => ({ valor: seccion.id, etiqueta: `${numeroSeccion(seccion.numero)} ${seccion.nombre}` })),
+  );
+
   protected readonly seccion = computed(() => this.secciones().find((item) => item.id === this.seccionId()) ?? null);
 
   protected enlace(): string {
@@ -96,14 +100,11 @@ export class BatchItemDialogComponent {
     this.pestana.set(pestana);
   }
 
-  protected elegirSeccion(evento: Event): void {
-    if (evento.target instanceof HTMLSelectElement) {
-      const id = Number(evento.target.value);
-      const seccion = this.secciones().find((item) => item.id === id) ?? null;
-      this.seccionId.set(seccion?.id ?? null);
-      if (seccion !== null) {
-        prepararFormularioDocumento(this.formulario, seccion, null);
-      }
+  protected elegirSeccion(valor: ValorOpcion): void {
+    const seccion = this.secciones().find((item) => item.id === valor) ?? null;
+    this.seccionId.set(seccion?.id ?? null);
+    if (seccion !== null) {
+      prepararFormularioDocumento(this.formulario, seccion, null);
     }
   }
 
@@ -111,15 +112,12 @@ export class BatchItemDialogComponent {
     return this.secciones().find((item) => item.id === rango.seccionId) ?? null;
   }
 
-  protected elegirSeccionRango(rango: Rango, evento: Event): void {
-    if (evento.target instanceof HTMLSelectElement) {
-      const id = Number(evento.target.value);
-      const seccion = this.secciones().find((item) => item.id === id) ?? null;
-      if (seccion !== null) {
-        prepararFormularioDocumento(rango.formulario, seccion, null);
-      }
-      this.rangos.update((lista) => lista.map((item) => (item.clave === rango.clave ? { ...item, seccionId: seccion?.id ?? null } : item)));
+  protected elegirSeccionRango(rango: Rango, valor: ValorOpcion): void {
+    const seccion = this.secciones().find((item) => item.id === valor) ?? null;
+    if (seccion !== null) {
+      prepararFormularioDocumento(rango.formulario, seccion, null);
     }
+    this.rangos.update((lista) => lista.map((item) => (item.clave === rango.clave ? { ...item, seccionId: seccion?.id ?? null } : item)));
   }
 
   protected elegirTrabajadorRango(rango: Rango, elegido: { id: string } | null): void {
