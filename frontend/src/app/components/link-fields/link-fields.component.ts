@@ -9,6 +9,11 @@ import type { CamposVinculo } from './link-form';
 
 let siguienteId = 1;
 
+const OPCIONES_TIPO_PERSONAL: readonly OpcionBuscable[] = [
+  { valor: 'ADMINISTRATIVO', etiqueta: 'Administrativo' },
+  { valor: 'ASISTENCIAL', etiqueta: 'Asistencial' },
+];
+
 @Component({
   selector: 'app-link-fields',
   imports: [ReactiveFormsModule, RouterLink, SearchSelectComponent],
@@ -26,6 +31,10 @@ export class LinkFieldsComponent implements OnInit {
   protected readonly prefijo = `vinculo-${siguienteId++}`;
   protected readonly opciones = this.servicio.opciones;
   protected readonly error = signal<string | null>(null);
+  protected readonly opcionesTipoPersonal = OPCIONES_TIPO_PERSONAL;
+  protected readonly regimenes = computed<OpcionBuscable[]>(() =>
+    (this.opciones()?.regimenes ?? []).map((regimen) => ({ valor: regimen.id, etiqueta: regimen.nombre })),
+  );
   protected readonly cargos = computed<OpcionBuscable[]>(() =>
     (this.opciones()?.cargos ?? []).map((cargo) => ({ valor: cargo.id, etiqueta: cargo.nombre })),
   );
