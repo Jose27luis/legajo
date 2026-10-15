@@ -182,6 +182,12 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/users/users.component').then((m) => m.UsersComponent),
       },
       {
+        path: 'areas',
+        title: 'Áreas y dependencias - Legajos de Personal',
+        canMatch: [permisoGuard('catalogos.gestionar')],
+        loadComponent: () => import('./pages/areas/areas.component').then((m) => m.AreasComponent),
+      },
+      {
         path: 'catalogs',
         title: 'Catálogos - Legajos de Personal',
         canMatch: [permisoGuard('catalogos.gestionar')],
