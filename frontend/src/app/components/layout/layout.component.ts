@@ -26,7 +26,14 @@ interface GrupoMenu {
   enlaces: EnlaceMenu[];
 }
 
-function enlace(ruta: string, etiqueta: string, icono: NombreIcono, permiso: string | null, exacto = false, activoEn: RegExp | null = null): EnlaceMenu {
+function enlace(
+  ruta: string,
+  etiqueta: string,
+  icono: NombreIcono,
+  permiso: string | null,
+  exacto = false,
+  activoEn: RegExp | null = null,
+): EnlaceMenu {
   return { ruta, etiqueta, icono, exacto, permiso, activoEn };
 }
 
