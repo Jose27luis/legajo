@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, resource, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { DossierDialogComponent, type TrabajadorExpediente } from '../../../components/dossier-dialog/dossier-dialog.component';
+import { SearchSelectComponent, type OpcionBuscable, type ValorOpcion } from '../../../components/search-select/search-select.component';
 import { SkeletonComponent } from '../../../components/skeleton/skeleton.component';
 import { WorkerPickerComponent } from '../../../components/worker-picker/worker-picker.component';
 import { mensajeDeError } from '../../../core/errors';
@@ -20,6 +21,14 @@ const TIPOS: readonly { valor: TipoReporteGeneral; texto: string }[] = [
   { valor: 'documentos', texto: 'Inventario de documentos' },
   { valor: 'secciones', texto: 'Documentos vigentes por sección' },
   { valor: 'estadisticas', texto: 'Estadísticas del personal' },
+];
+
+const OPCIONES_TIPO: readonly OpcionBuscable[] = TIPOS.map((tipo) => ({ valor: tipo.valor, etiqueta: tipo.texto }));
+
+const OPCIONES_ESTADO: readonly OpcionBuscable[] = [
+  { valor: null, etiqueta: 'Todos' },
+  { valor: 'ACTIVO', etiqueta: 'ACTIVO' },
+  { valor: 'CESADO', etiqueta: 'CESADO' },
 ];
 
 const VACIOS: FiltrosReporteGeneral = {
@@ -44,7 +53,7 @@ const escapar = (valor: string | number | null): string =>
 
 @Component({
   selector: 'app-general-report',
-  imports: [RouterLink, WorkerPickerComponent, DossierDialogComponent, SkeletonComponent],
+  imports: [RouterLink, WorkerPickerComponent, DossierDialogComponent, SkeletonComponent, SearchSelectComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './general-report.component.html',
   styleUrl: './general-report.component.css',
@@ -56,9 +65,21 @@ export class GeneralReportComponent {
   private readonly avisos = inject(ToastService);
   protected readonly sesion = inject(SessionService);
 
-  protected readonly tipos = TIPOS;
+  protected readonly opcionesTipo = OPCIONES_TIPO;
+  protected readonly opcionesEstado = OPCIONES_ESTADO;
   protected readonly filtros = signal<FiltrosReporteGeneral>({ ...VACIOS });
   protected readonly opciones = resource({ loader: () => this.opcionesFiltro.cargar() });
+  protected readonly opcionesArea = computed<OpcionBuscable[]>(() => [
+    { valor: null, etiqueta: 'Todas' },
+    ...(this.opciones.hasValue() ? this.opciones.value().areas : []).map((area) => ({ valor: area.id, etiqueta: area.nombre })),
+  ]);
+  protected readonly opcionesRegimen = computed<OpcionBuscable[]>(() => [
+    { valor: null, etiqueta: 'Todos' },
+    ...(this.opciones.hasValue() ? this.opciones.value().regimenes : []).map((regimen) => ({
+      valor: regimen.id,
+      etiqueta: regimen.nombre,
+    })),
+  ]);
   protected readonly reporte = resource({
     params: () => this.filtros(),
     loader: ({ params }) => this.reportes.general(params),
@@ -77,20 +98,25 @@ export class GeneralReportComponent {
   private elegidoDesdeBusqueda = false;
   private temporizador: ReturnType<typeof setTimeout> | undefined;
 
-  protected cambiar(campo: keyof FiltrosReporteGeneral, evento: Event): void {
-    const valor = valorDe(evento);
-    this.filtros.update((actual) => {
-      if (campo === 'areaId' || campo === 'regimenId') {
-        return { ...actual, [campo]: valor === '' ? null : Number(valor) };
-      }
-      if (campo === 'tipo') {
-        return { ...actual, tipo: TIPOS.find((tipo) => tipo.valor === valor)?.valor ?? 'general' };
-      }
-      if (campo === 'estado') {
-        return { ...actual, estado: valor === 'ACTIVO' || valor === 'CESADO' ? valor : '' };
-      }
-      return { ...actual, [campo]: valor.trim() };
-    });
+  protected cambiar(campo: 'ingresoDesde' | 'ingresoHasta', evento: Event): void {
+    const valor = valorDe(evento).trim();
+    this.filtros.update((actual) => ({ ...actual, [campo]: valor }));
+  }
+
+  protected cambiarTipo(valor: ValorOpcion): void {
+    this.filtros.update((actual) => ({ ...actual, tipo: TIPOS.find((tipo) => tipo.valor === valor)?.valor ?? 'general' }));
+  }
+
+  protected cambiarEstado(valor: ValorOpcion): void {
+    this.filtros.update((actual) => ({ ...actual, estado: valor === 'ACTIVO' || valor === 'CESADO' ? valor : '' }));
+  }
+
+  protected cambiarArea(valor: ValorOpcion): void {
+    this.filtros.update((actual) => ({ ...actual, areaId: typeof valor === 'number' ? valor : null }));
+  }
+
+  protected cambiarRegimen(valor: ValorOpcion): void {
+    this.filtros.update((actual) => ({ ...actual, regimenId: typeof valor === 'number' ? valor : null }));
   }
 
   protected mostrar(celda: string | number | null): string | number {
