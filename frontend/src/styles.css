@@ -112,7 +112,9 @@ p {
   border: 1px solid var(--linea);
   border-radius: var(--radio-control);
   background: #fff;
-  transition: border-color 120ms ease, box-shadow 160ms ease;
+  transition:
+    border-color 120ms ease,
+    box-shadow 160ms ease;
 }
 
 .campo textarea {
@@ -332,7 +334,9 @@ p {
   border-radius: var(--radio-control);
   background: #fff;
   cursor: pointer;
-  transition: border-color 140ms ease, background-color 140ms ease;
+  transition:
+    border-color 140ms ease,
+    background-color 140ms ease;
 }
 
 .casilla:hover {
@@ -556,7 +560,10 @@ p {
   border-radius: 11px;
   background: #fff;
   font-size: 15px;
-  transition: border-color 160ms ease, box-shadow 200ms ease, background-color 160ms ease;
+  transition:
+    border-color 160ms ease,
+    box-shadow 200ms ease,
+    background-color 160ms ease;
 }
 
 .entrada.con-boton input {
@@ -581,7 +588,9 @@ p {
   pointer-events: none;
   transform: translateY(-50%);
   transform-origin: left center;
-  transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1), color 160ms ease;
+  transition:
+    transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    color 160ms ease;
 }
 
 .entrada.lleno label,
@@ -608,7 +617,9 @@ p {
   stroke-linejoin: round;
   pointer-events: none;
   transform: translateY(-50%);
-  transition: stroke 160ms ease, transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition:
+    stroke 160ms ease,
+    transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .entrada:focus-within .icono {
@@ -640,7 +651,9 @@ p {
   color: var(--tinta-suave);
   cursor: pointer;
   transform: translateY(-50%);
-  transition: color 150ms ease, background-color 150ms ease;
+  transition:
+    color 150ms ease,
+    background-color 150ms ease;
 }
 
 .entrada .accion:hover {
@@ -662,7 +675,11 @@ p {
   font-weight: 650;
   text-decoration: none;
   cursor: pointer;
-  transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease, box-shadow 160ms ease;
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease,
+    color 120ms ease,
+    box-shadow 160ms ease;
 }
 
 .boton:hover {
