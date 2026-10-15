@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, linkedSignal, resource, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { SkeletonComponent } from '../../../components/skeleton/skeleton.component';
 import { mensajeDeError } from '../../../core/errors';
 import { numeroDe, valorDe } from '../../../core/inputs';
 import { TEXTO_ESTADO, TEXTO_TIPO_PERSONAL, fechaCorta } from '../../../core/labels';
@@ -20,7 +21,7 @@ const VACIOS: FiltrosReportePersonal = {
 
 @Component({
   selector: 'app-staff-report',
-  imports: [RouterLink],
+  imports: [RouterLink, SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './staff-report.component.html',
   styleUrl: './staff-report.component.css',
