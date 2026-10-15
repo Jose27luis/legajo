@@ -50,14 +50,13 @@
       <h3 id="titulo-bandeja">Archivos</h3>
       <div class="filtros">
         <label class="solo-lector" for="filtro-item">Estado</label>
-        <select id="filtro-item" class="filtro" (change)="filtrar($event)">
-          <option value="" [selected]="filtro() === ''">Todos ({{ actual.total }})</option>
-          @for (estado of estados; track estado) {
-            @if (total(estado) > 0) {
-              <option [value]="estado" [selected]="filtro() === estado">{{ textoEstadoItem[estado] }} ({{ total(estado) }})</option>
-            }
-          }
-        </select>
+        <app-search-select
+          idCampo="filtro-item"
+          [compacto]="true"
+          [opciones]="opcionesFiltro()"
+          [seleccion]="filtro() || null"
+          (cambio)="filtrar($event)"
+        />
       </div>
     </div>
 
