@@ -7,8 +7,54 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#132d46" />
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <style>
+      .arranque {
+        position: fixed;
+        inset: 0;
+        display: grid;
+        place-content: center;
+        justify-items: center;
+        gap: 18px;
+        background: linear-gradient(160deg, #132d46, #0c253d);
+        color: #dbedff;
+        font:
+          14px/1.4 'Segoe UI',
+          Arial,
+          sans-serif;
+      }
+      .arranque-marca {
+        color: #fff;
+        font-size: 20px;
+        font-weight: 650;
+        letter-spacing: -0.01em;
+      }
+      .arranque-girador {
+        width: 34px;
+        height: 34px;
+        border: 3px solid rgb(255 255 255 / 0.18);
+        border-top-color: #95d0ef;
+        border-radius: 50%;
+        animation: arranque-girar 0.8s linear infinite;
+      }
+      @keyframes arranque-girar {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .arranque-girador {
+          animation: none;
+        }
+      }
+    </style>
   </head>
   <body>
-    <app-root></app-root>
+    <app-root>
+      <div class="arranque" role="status" aria-live="polite">
+        <span class="arranque-girador" aria-hidden="true"></span>
+        <span class="arranque-marca">Legajos de Personal</span>
+        <span>DIRESA Madre de Dios · Cargando el sistema</span>
+      </div>
+    </app-root>
   </body>
 </html>
