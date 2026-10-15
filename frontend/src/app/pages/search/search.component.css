@@ -64,7 +64,6 @@ h3 {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
-.filtros select,
 .filtros input {
   width: 100%;
   min-width: 0;
