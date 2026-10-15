@@ -21,6 +21,7 @@ import {
   prepararFormularioDocumento,
 } from '../../../components/document-fields/document-form';
 import { PdfPickerComponent } from '../../../components/pdf-picker/pdf-picker.component';
+import { SkeletonComponent } from '../../../components/skeleton/skeleton.component';
 import { mensajeDeError } from '../../../core/errors';
 import { fechaHora, normalizarTexto } from '../../../core/format';
 import {
@@ -85,7 +86,7 @@ const AVISO_GENERAL = {
 
 @Component({
   selector: 'app-legajo-section',
-  imports: [RouterLink, DocumentFieldsComponent, PdfPickerComponent, DocumentDialogComponent],
+  imports: [RouterLink, DocumentFieldsComponent, PdfPickerComponent, DocumentDialogComponent, SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './legajo-section.component.html',
   styleUrl: './legajo-section.component.css',
