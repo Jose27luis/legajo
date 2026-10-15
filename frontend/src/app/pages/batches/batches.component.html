@@ -3,8 +3,8 @@
     <p class="antetitulo">Digitalización</p>
     <h2>Carga masiva de documentos</h2>
     <p>
-      Elige la carpeta escaneada o los PDF sueltos. Los archivos cuyo nombre siga la convención entran solos al legajo; el resto
-      queda en la bandeja del lote para clasificarlos, dividirlos o descartarlos.
+      Elige la carpeta escaneada o los PDF sueltos. Los archivos cuyo nombre siga la convención entran solos al legajo; el resto queda en la
+      bandeja del lote para clasificarlos, dividirlos o descartarlos.
     </p>
   </div>
 </header>
@@ -95,9 +95,18 @@
     </div>
 
     <dl class="cifras">
-      <div class="verde"><dt>Entran directo</dt><dd>{{ reconocidos().length }}</dd></div>
-      <div class="ambar"><dt>Irán a la bandeja</dt><dd>{{ porRevisar().length }}</dd></div>
-      <div class="roja"><dt>No se pueden subir</dt><dd>{{ rechazados().length }}</dd></div>
+      <div class="verde">
+        <dt>Entran directo</dt>
+        <dd>{{ reconocidos().length }}</dd>
+      </div>
+      <div class="ambar">
+        <dt>Irán a la bandeja</dt>
+        <dd>{{ porRevisar().length }}</dd>
+      </div>
+      <div class="roja">
+        <dt>No se pueden subir</dt>
+        <dd>{{ rechazados().length }}</dd>
+      </div>
     </dl>
 
     @if (analizando()) {
@@ -199,7 +208,9 @@
                   <span>{{ fechaHora(lote.creadoEn) }}</span>
                   <span class="secundario">{{ lote.creadoPor }}</span>
                 </td>
-                <td><span class="pastilla" [class]="claseEstadoLote[lote.estado]">{{ textoEstadoLote[lote.estado] }}</span></td>
+                <td>
+                  <span class="pastilla" [class]="claseEstadoLote[lote.estado]">{{ textoEstadoLote[lote.estado] }}</span>
+                </td>
                 <td>{{ lote.clasificados }} de {{ lote.total }}</td>
                 <td>{{ lote.pendientes }}</td>
                 <td>{{ lote.conError }}</td>
