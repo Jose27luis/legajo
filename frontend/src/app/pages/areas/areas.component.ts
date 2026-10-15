@@ -1,12 +1,23 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { DialogComponent } from '../../../components/dialog/dialog.component';
-import { SearchSelectComponent, type OpcionBuscable } from '../../../components/search-select/search-select.component';
-import { SkeletonComponent } from '../../../components/skeleton/skeleton.component';
-import { mensajeDeError } from '../../../core/errors';
-import type { Area } from '../../../core/models';
-import { ToastService } from '../../../core/toast.service';
-import { CatalogsService } from '../../../services/catalogs.service';
+import { DialogComponent } from '../../components/dialog/dialog.component';
+import { SearchSelectComponent, type OpcionBuscable, type ValorOpcion } from '../../components/search-select/search-select.component';
+import { SkeletonComponent } from '../../components/skeleton/skeleton.component';
+import { mensajeDeError } from '../../core/errors';
+import { normalizarTexto } from '../../core/format';
+import type { Area } from '../../core/models';
+import { ToastService } from '../../core/toast.service';
+import { CatalogsService } from '../../services/catalogs.service';
+
+type FiltroEstado = 'activas' | 'inactivas' | 'todas';
+
+const OPCIONES_ESTADO: readonly OpcionBuscable[] = [
+  { valor: 'activas', etiqueta: 'Activas' },
+  { valor: 'inactivas', etiqueta: 'Inactivas' },
+  { valor: 'todas', etiqueta: 'Todas' },
+];
+
+const FILTROS: readonly FiltroEstado[] = ['activas', 'inactivas', 'todas'];
 
 @Component({
   selector: 'app-areas',
@@ -26,6 +37,28 @@ export class AreasComponent implements OnInit {
   protected readonly editando = signal<Area | null>(null);
   protected readonly guardando = signal(false);
   protected readonly errorFormulario = signal<string | null>(null);
+  protected readonly busqueda = signal('');
+  protected readonly estado = signal<FiltroEstado>('activas');
+  protected readonly opcionesEstado = OPCIONES_ESTADO;
+
+  protected readonly resumen = computed(() => {
+    const areas = this.areas();
+    return {
+      activas: areas.filter((area) => area.activo).length,
+      inactivas: areas.filter((area) => !area.activo).length,
+      dependencias: new Set(areas.filter((area) => area.activo && area.padreId !== null).map((area) => area.padreId)).size,
+    };
+  });
+
+  protected readonly visibles = computed(() => {
+    const termino = normalizarTexto(this.busqueda());
+    const estado = this.estado();
+    return this.areas()
+      .filter((area) => estado === 'todas' || area.activo === (estado === 'activas'))
+      .filter((area) => termino === '' || normalizarTexto(`${area.nombre} ${area.padreNombre ?? ''}`).includes(termino))
+      .sort((a, b) => (a.padreNombre ?? '').localeCompare(b.padreNombre ?? '') || a.nombre.localeCompare(b.nombre));
+  });
+
   protected readonly opcionesPadre = computed<OpcionBuscable[]>(() => {
     const actual = this.editando();
     return [
@@ -57,6 +90,16 @@ export class AreasComponent implements OnInit {
     } finally {
       this.cargando.set(false);
     }
+  }
+
+  protected buscar(evento: Event): void {
+    if (evento.target instanceof HTMLInputElement) {
+      this.busqueda.set(evento.target.value);
+    }
+  }
+
+  protected filtrar(valor: ValorOpcion): void {
+    this.estado.set(FILTROS.find((filtro) => filtro === valor) ?? 'activas');
   }
 
   protected nuevo(): void {
