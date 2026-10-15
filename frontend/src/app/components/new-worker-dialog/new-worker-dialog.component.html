@@ -105,7 +105,13 @@
 
   <ng-container pie>
     <button type="button" class="boton" (click)="cerrarDialogo()" [disabled]="guardando()">Cancelar</button>
-    <button type="submit" form="formulario-ingreso" class="boton principal" [disabled]="guardando() || existente() !== null">
+    <button
+      type="submit"
+      form="formulario-ingreso"
+      class="boton principal"
+      [disabled]="guardando() || existente() !== null"
+      [attr.aria-busy]="guardando()"
+    >
       {{ guardando() ? 'Registrando' : 'Registrar ingreso' }}
     </button>
   </ng-container>
