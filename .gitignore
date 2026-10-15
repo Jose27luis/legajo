@@ -3,6 +3,8 @@ node_modules/
 dist/
 .angular/
 coverage/
+e2e-informe/
+e2e-resultados/
 *.tsbuildinfo
 backend/src/generated/
 
