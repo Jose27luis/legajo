@@ -5,8 +5,9 @@ import type { DatosCliente } from '../common/client';
 import type { SesionActiva } from '../common/session';
 import { aFecha, hoyEnLima, normalizarBusqueda } from '../common/dates';
 import { sinDuplicados } from '../common/unique-violation';
-import type { ImportPreviewDto, ImportResultDto, ImportRowDto } from './dto/worker-import.dto';
-import type { MotivoCeseValor } from './dto/worker.dto';
+import { ESTABLECIMIENTOS, SEDE_DIRESA, UNIDADES_DIRESA } from '../organization-catalogs';
+import type { ImportPreviewDto, ImportResultDto, ImportRowDto, SexoImportacion, TipoDocImportacion } from './dto/worker-import.dto';
+import type { MotivoCeseValor, TipoPersonalValor } from './dto/worker.dto';
 import { leerArchivo, type FilaLeida } from './import-parser';
 
 const SIN_AREA = 'No especificada';
@@ -42,17 +43,84 @@ function primero(fila: FilaLeida, ...claves: string[]): string {
   return '';
 }
 
-function fecha(texto: string): string | null {
-  if (/^\d{4}-\d{2}-\d{2}$/.test(texto)) {
-    return Number.isNaN(Date.parse(texto)) ? null : texto;
-  }
-  const partes = /^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/.exec(texto);
-  if (partes === null) {
+function fechaReal(anio: number, mes: number, dia: number): string | null {
+  const calculada = new Date(Date.UTC(anio, mes - 1, dia));
+  if (calculada.getUTCFullYear() !== anio || calculada.getUTCMonth() !== mes - 1 || calculada.getUTCDate() !== dia) {
     return null;
   }
-  const iso = `${partes[3]}-${partes[2].padStart(2, '0')}-${partes[1].padStart(2, '0')}`;
-  return Number.isNaN(Date.parse(iso)) ? null : iso;
+  return calculada.toISOString().slice(0, 10);
 }
+
+function fecha(texto: string): string | null {
+  const iso = /^(\d{4})-(\d{2})-(\d{2})/.exec(texto);
+  if (iso !== null) {
+    return fechaReal(Number(iso[1]), Number(iso[2]), Number(iso[3]));
+  }
+  const partes = /^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/.exec(texto);
+  return partes === null ? null : fechaReal(Number(partes[3]), Number(partes[2]), Number(partes[1]));
+}
+
+function primeraFecha(fila: FilaLeida, ...claves: string[]): string | null {
+  for (const clave of claves) {
+    const valor = fecha(primero(fila, clave));
+    if (valor !== null) {
+      return valor;
+    }
+  }
+  return null;
+}
+
+const AREA_POR_RENIPRESS = new Map(ESTABLECIMIENTOS.map((establecimiento) => [establecimiento.codigo, establecimiento.nombre]));
+const UNIDAD_POR_CLAVE = new Map(UNIDADES_DIRESA.map((unidad) => [compacto(unidad), unidad]));
+
+function areaDelPadron(fila: FilaLeida): string | null {
+  const codigo = primero(fila, 'codigo_renaes', 'codigo_renipress');
+  if (codigo === '') {
+    return null;
+  }
+  if (normalizarBusqueda(primero(fila, 'clasificacion_de_establecimiento')) === 'diresa') {
+    return UNIDAD_POR_CLAVE.get(compacto(primero(fila, 'unidad_organica'))) ?? SEDE_DIRESA;
+  }
+  return AREA_POR_RENIPRESS.get(Number(codigo)) ?? (primero(fila, 'nombre_de_establecimiento') || null);
+}
+
+function tipoPersonal(fila: FilaLeida): TipoPersonalValor {
+  const declarado = normalizarBusqueda(primero(fila, 'tipo', 'tipo_personal'));
+  if (declarado !== '') {
+    return declarado.startsWith('asist') ? 'ASISTENCIAL' : 'ADMINISTRATIVO';
+  }
+  return /asis|salud|medico/.test(normalizarBusqueda(primero(fila, 'grupo_reporte'))) ? 'ASISTENCIAL' : 'ADMINISTRATIVO';
+}
+
+function sexo(fila: FilaLeida): SexoImportacion | null {
+  const valor = normalizarBusqueda(primero(fila, 'sexo'));
+  if (valor.startsWith('m')) {
+    return 'M';
+  }
+  return valor.startsWith('f') ? 'F' : null;
+}
+
+interface DocumentoLeido {
+  tipo: TipoDocImportacion;
+  numero: string;
+}
+
+function documento(fila: FilaLeida): DocumentoLeido | null {
+  const tipo = normalizarBusqueda(primero(fila, 'tipo_documento', 'tipo_de_documento', 'tipo_doc'));
+  const crudo = primero(fila, 'dni', 'numero_documento', 'numero_de_documento', 'documento');
+  if (/carn|extranj/.test(tipo) || tipo === 'ce') {
+    const numero = crudo.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    return /^[A-Z0-9]{9,12}$/.test(numero) ? { tipo: 'CE', numero } : null;
+  }
+  const limpio = crudo.replace(/\.0$/, '').replace(/\D/g, '');
+  if (limpio === '' || limpio.length > 8) {
+    return null;
+  }
+  const dni = limpio.padStart(8, '0');
+  return dni === '00000000' ? null : { tipo: 'DNI', numero: dni };
+}
+
+const claveDocumento = (tipo: TipoDocImportacion, numero: string): string => `${tipo}:${numero}`;
 
 function buscarRegimen(texto: string, regimenes: RegimenCatalogo[]): RegimenCatalogo | null {
   const buscado = compacto(texto);
@@ -87,14 +155,15 @@ export class WorkerImportService {
       this.prisma.area.findMany({ where: { activo: true }, select: { nombre: true } }),
       this.prisma.cargo.findMany({ where: { activo: true }, select: { nombre: true } }),
     ]);
-    const documentos = filas.map((fila) => this.normalizarDni(primero(fila, 'dni', 'numero_documento', 'documento')));
+    const documentos = filas.map(documento);
+    const leidos = documentos.filter((item): item is DocumentoLeido => item !== null);
     const existentes = new Set(
       (
         await this.prisma.trabajador.findMany({
-          where: { tipoDocIdentidad: 'DNI', numeroDoc: { in: documentos.filter((dni) => dni !== null) } },
-          select: { numeroDoc: true },
+          where: { numeroDoc: { in: leidos.map((item) => item.numero) } },
+          select: { tipoDocIdentidad: true, numeroDoc: true },
         })
-      ).map((trabajador) => trabajador.numeroDoc),
+      ).map((trabajador) => claveDocumento(trabajador.tipoDocIdentidad, trabajador.numeroDoc)),
     );
     const areasConocidas = new Set(areas.map((area) => compacto(area.nombre)));
     const cargosConocidos = new Set(cargos.map((cargo) => compacto(cargo.nombre)));
@@ -106,18 +175,19 @@ export class WorkerImportService {
     filas.forEach((fila, indice) => {
       const numeroFila = indice + 2;
       const observar = (motivo: string) => observaciones.push(`Fila ${numeroFila}: ${motivo}`);
-      const dni = documentos[indice];
-      if (dni === null) {
-        observar('DNI inválido.');
+      const leido = documentos[indice] ?? null;
+      if (leido === null) {
+        observar('documento de identidad inválido (DNI de 8 dígitos o carné de 9 a 12 caracteres).');
         return;
       }
-      if (vistos.has(dni)) {
-        observar(`DNI duplicado dentro del archivo (${dni}).`);
+      const clave = claveDocumento(leido.tipo, leido.numero);
+      if (vistos.has(clave)) {
+        observar(`${leido.tipo} duplicado dentro del archivo (${leido.numero}).`);
         return;
       }
-      vistos.add(dni);
-      if (existentes.has(dni)) {
-        observar(`DNI ya registrado (${dni}).`);
+      vistos.add(clave);
+      if (existentes.has(clave)) {
+        observar(`${leido.tipo} ya registrado (${leido.numero}).`);
         return;
       }
       const nombres = primero(fila, 'nombres', 'nombre');
@@ -126,7 +196,15 @@ export class WorkerImportService {
         observar('faltan nombres o apellido paterno.');
         return;
       }
-      const fechaIngreso = fecha(primero(fila, 'fecha_ingreso', 'ingreso'));
+      const fechaIngreso = primeraFecha(
+        fila,
+        'fecha_ingreso',
+        'ingreso',
+        'fecha_de_ingreso',
+        'fecha_de_primer_contrato',
+        'fecha_de_nombramiento',
+        'fecha_de_ingreso_al_eess_actual',
+      );
       if (fechaIngreso === null) {
         observar('falta la fecha de ingreso o no es válida (usa AAAA-MM-DD o DD/MM/AAAA).');
         return;
@@ -146,7 +224,7 @@ export class WorkerImportService {
       if (textoRegimen === '') {
         avisos.push(`Sin régimen: se registra como ${regimen.nombre}.`);
       }
-      const area = primero(fila, 'area', 'dependencia') || SIN_AREA;
+      const area = areaDelPadron(fila) ?? (primero(fila, 'area', 'dependencia') || SIN_AREA);
       const cargo = primero(fila, 'cargo', 'puesto') || SIN_CARGO;
       if (!areasConocidas.has(compacto(area))) {
         avisos.push(`El área «${area}» se agregará a Catálogos.`);
@@ -169,13 +247,17 @@ export class WorkerImportService {
           avisos.push('Motivo de cese no indicado o no reconocido: se registra como Otra causa.');
         }
       }
+      const nacimiento = primeraFecha(fila, 'fecha_nacimiento', 'fecha_de_nacimiento');
       validos.push({
         fila: numeroFila,
-        numeroDoc: dni,
+        tipoDocIdentidad: leido.tipo,
+        numeroDoc: leido.numero,
         nombres,
         apellidoPaterno,
         apellidoMaterno: primero(fila, 'apellido_materno', 'materno') || null,
-        tipoPersonal: normalizarBusqueda(primero(fila, 'tipo', 'tipo_personal')).startsWith('asist') ? 'ASISTENCIAL' : 'ADMINISTRATIVO',
+        sexo: sexo(fila),
+        fechaNacimiento: nacimiento !== null && nacimiento < fechaIngreso ? nacimiento : null,
+        tipoPersonal: tipoPersonal(fila),
         regimen: regimen.nombre,
         area,
         cargo,
@@ -190,13 +272,24 @@ export class WorkerImportService {
   }
 
   async importar(filas: ImportRowDto[], sesion: SesionActiva, cliente: DatosCliente): Promise<ImportResultDto> {
-    const documentos = filas.map((fila) => fila.numeroDoc);
+    const documentos = filas.map((fila) => claveDocumento(fila.tipoDocIdentidad, fila.numeroDoc));
     if (new Set(documentos).size !== documentos.length) {
-      throw new ConflictException('Hay DNI repetidos en la importación');
+      throw new ConflictException('Hay documentos de identidad repetidos en la importación');
     }
-    const existentes = await this.prisma.trabajador.count({ where: { tipoDocIdentidad: 'DNI', numeroDoc: { in: documentos } } });
+    const invalido = filas.find((fila) => (fila.tipoDocIdentidad === 'DNI') !== /^[0-9]{8}$/.test(fila.numeroDoc));
+    if (invalido !== undefined) {
+      throw new ConflictException(`Fila ${invalido.fila}: el número no corresponde al tipo de documento`);
+    }
+    const existentes = await this.prisma.trabajador.count({
+      where: {
+        OR: (['DNI', 'CE'] as const).map((tipo) => ({
+          tipoDocIdentidad: tipo,
+          numeroDoc: { in: filas.filter((fila) => fila.tipoDocIdentidad === tipo).map((fila) => fila.numeroDoc) },
+        })),
+      },
+    });
     if (existentes > 0) {
-      throw new ConflictException('Alguno de los DNI ya fue registrado. Vuelve a validar el archivo.');
+      throw new ConflictException('Alguno de los documentos de identidad ya fue registrado. Vuelve a validar el archivo.');
     }
     const regimenes = await this.prisma.regimen.findMany({ where: { activo: true }, select: { id: true, nombre: true } });
     const idRegimen = new Map(regimenes.map((regimen) => [regimen.nombre, regimen.id]));
@@ -256,11 +349,13 @@ export class WorkerImportService {
               const cesado = fila.estado === 'CESADO' && fila.fechaCese !== null;
               const trabajador = await transaccion.trabajador.create({
                 data: {
-                  tipoDocIdentidad: 'DNI',
+                  tipoDocIdentidad: fila.tipoDocIdentidad,
                   numeroDoc: fila.numeroDoc,
                   nombres: fila.nombres,
                   apellidoPaterno: fila.apellidoPaterno,
                   apellidoMaterno: fila.apellidoMaterno,
+                  sexo: fila.sexo,
+                  fechaNacimiento: fila.fechaNacimiento === null ? null : aFecha(fila.fechaNacimiento),
                   fechaIngreso: aFecha(fila.fechaIngreso),
                   estado: cesado ? 'CESADO' : 'ACTIVO',
                   vinculos: {
@@ -305,16 +400,7 @@ export class WorkerImportService {
           },
           { timeout: TIEMPO_TRANSACCION_MS, maxWait: 10000 },
         ),
-      'Alguno de los DNI ya fue registrado. Vuelve a validar el archivo.',
+      'Alguno de los documentos de identidad ya fue registrado. Vuelve a validar el archivo.',
     );
-  }
-
-  private normalizarDni(texto: string): string | null {
-    const limpio = texto.replace(/\.0$/, '').replace(/\D/g, '');
-    if (limpio === '' || limpio.length > 8) {
-      return null;
-    }
-    const dni = limpio.padStart(8, '0');
-    return dni === '00000000' ? null : dni;
   }
 }
