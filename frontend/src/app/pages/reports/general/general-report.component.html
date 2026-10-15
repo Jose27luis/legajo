@@ -77,7 +77,7 @@
     <button type="button" class="boton" (click)="limpiar()">Limpiar filtros</button>
     @if (sesion.tiene('reportes.exportar')) {
       <a class="boton" [href]="enlace()" download>Exportar Excel</a>
-      <button type="button" class="boton principal" (click)="imprimir()" [disabled]="imprimiendo()">
+      <button type="button" class="boton principal" (click)="imprimir()" [disabled]="imprimiendo()" [attr.aria-busy]="imprimiendo()">
         {{ imprimiendo() ? 'Preparando' : 'Imprimir / Guardar PDF' }}
       </button>
     }
@@ -116,7 +116,7 @@
           }
         } @else {
           <tr>
-            <td class="celda-vacia">Calculando el reporte</td>
+            <td colspan="10" class="celda-esqueleto"><app-skeleton [columnas]="8" texto="Calculando el reporte" /></td>
           </tr>
         }
       </tbody>
