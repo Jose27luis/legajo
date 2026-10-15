@@ -15,7 +15,9 @@
   font-size: 13.5px;
   text-align: center;
   cursor: pointer;
-  transition: border-color 140ms ease, background-color 140ms ease;
+  transition:
+    border-color 140ms ease,
+    background-color 140ms ease;
 }
 
 .zona:hover,
