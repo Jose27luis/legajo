@@ -43,7 +43,7 @@
         <button type="button" class="boton" [attr.aria-expanded]="cambiandoClave()" (click)="cambiandoClave.set(!cambiandoClave())">
           Cambiar clave
         </button>
-        <button type="button" class="boton principal" [disabled]="saliendo()" (click)="cerrarSesion()">
+        <button type="button" class="boton principal" [disabled]="saliendo()" [attr.aria-busy]="saliendo()" (click)="cerrarSesion()">
           {{ saliendo() ? 'Cerrando sesión' : 'Cerrar sesión' }}
         </button>
       </div>
