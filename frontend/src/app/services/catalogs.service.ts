@@ -57,6 +57,10 @@ export class CatalogsService {
     return firstValueFrom(this.http.patch<Area>(`${BASE}/areas/${id}`, datos));
   }
 
+  eliminarArea(id: number): Promise<void> {
+    return firstValueFrom(this.http.delete<void>(`${BASE}/areas/${id}`));
+  }
+
   cargos(): Promise<Cargo[]> {
     return firstValueFrom(this.http.get<Cargo[]>(`${BASE}/positions`));
   }
