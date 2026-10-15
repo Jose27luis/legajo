@@ -3,9 +3,9 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter, type Routes } from '@angular/router';
-import { autenticadoGuard, claveAlDiaGuard, invitadoGuard, permisoGuard } from './guards';
-import type { UsuarioSesion } from './models';
-import { SessionService } from './session.service';
+import { autenticadoGuard, claveAlDiaGuard, invitadoGuard, permisoGuard } from '../../src/app/core/guards';
+import type { UsuarioSesion } from '../../src/app/core/models';
+import { SessionService } from '../../src/app/core/session.service';
 
 const USUARIO: UsuarioSesion = {
   id: 'u1',
