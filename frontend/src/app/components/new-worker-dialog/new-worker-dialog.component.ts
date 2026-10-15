@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { DialogComponent } from '../dialog/dialog.component';
 import { LinkFieldsComponent } from '../link-fields/link-fields.component';
 import { crearCamposVinculo, leerCamposVinculo, reiniciarCamposVinculo } from '../link-fields/link-form';
+import { SearchSelectComponent, type OpcionBuscable } from '../search-select/search-select.component';
 import { mensajeDeError } from '../../core/errors';
 import { TEXTO_ESTADO, hoy, nombreCompleto, puedeReingresar } from '../../core/labels';
 import type { TipoDocIdentidad, TrabajadorDetalle, TrabajadorResumen } from '../../core/models';
@@ -11,9 +12,14 @@ import { WorkersService } from '../../services/workers.service';
 
 type CampoTrabajador = 'numeroDoc' | 'nombres' | 'apellidoPaterno' | 'fechaIngreso';
 
+const OPCIONES_TIPO_DOCUMENTO: readonly OpcionBuscable[] = [
+  { valor: 'DNI', etiqueta: 'DNI' },
+  { valor: 'CE', etiqueta: 'Carné de extranjería' },
+];
+
 @Component({
   selector: 'app-new-worker-dialog',
-  imports: [ReactiveFormsModule, RouterLink, DialogComponent, LinkFieldsComponent],
+  imports: [ReactiveFormsModule, RouterLink, DialogComponent, LinkFieldsComponent, SearchSelectComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './new-worker-dialog.component.html',
   styleUrl: './new-worker-dialog.component.css',
@@ -26,6 +32,7 @@ export class NewWorkerDialogComponent {
   readonly creado = output<TrabajadorDetalle>();
   readonly reingresar = output<TrabajadorResumen>();
 
+  protected readonly opcionesTipoDocumento = OPCIONES_TIPO_DOCUMENTO;
   protected readonly textoEstado = TEXTO_ESTADO;
   protected readonly nombreCompleto = nombreCompleto;
   protected readonly puedeReingresar = puedeReingresar;
