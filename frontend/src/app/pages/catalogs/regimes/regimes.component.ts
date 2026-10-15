@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DialogComponent } from '../../../components/dialog/dialog.component';
+import { SkeletonComponent } from '../../../components/skeleton/skeleton.component';
 import { mensajeDeError } from '../../../core/errors';
 import type { Regimen } from '../../../core/models';
 import { ToastService } from '../../../core/toast.service';
@@ -8,7 +9,7 @@ import { CatalogsService } from '../../../services/catalogs.service';
 
 @Component({
   selector: 'app-regimes',
-  imports: [ReactiveFormsModule, DialogComponent],
+  imports: [ReactiveFormsModule, DialogComponent, SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './regimes.component.html',
   styleUrl: './regimes.component.css',
