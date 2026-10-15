@@ -111,7 +111,9 @@ export class DocumentDialogComponent implements OnDestroy {
   protected readonly titulo = computed(() => {
     const modo = this.modo();
     const documento = this.documento();
-    return modo === 'visor' && documento !== null ? `Visor de PDF · ${this.versionActual()?.nombreOriginal ?? documento.tipo.nombre}` : TITULOS[modo];
+    return modo === 'visor' && documento !== null
+      ? `Visor de PDF · ${this.versionActual()?.nombreOriginal ?? documento.tipo.nombre}`
+      : TITULOS[modo];
   });
   protected readonly ocupado = signal(false);
   protected readonly error = signal<string | null>(null);
@@ -165,7 +167,10 @@ export class DocumentDialogComponent implements OnDestroy {
       return [];
     }
     const tipo = seccion.tipos.find((item) => item.id === documento.tipo.id) ?? documento.tipo;
-    return camposDelDocumento(seccion, tipo).map((campo) => ({ etiqueta: campo.etiqueta, valor: this.mostrar(campo, documento.datos[campo.clave] ?? null) }));
+    return camposDelDocumento(seccion, tipo).map((campo) => ({
+      etiqueta: campo.etiqueta,
+      valor: this.mostrar(campo, documento.datos[campo.clave] ?? null),
+    }));
   });
 
   protected readonly puedeConfirmar = computed(() => this.sesion.tiene('personal.editar'));
@@ -289,7 +294,10 @@ export class DocumentDialogComponent implements OnDestroy {
       this.error.set('Explica qué dato se corrigió (mínimo 5 caracteres).');
       return;
     }
-    await this.ejecutar(() => this.servicio.editar(documento.id, datos, this.motivo.value.trim()), 'Datos modificados. La fecha original de carga se conserva.');
+    await this.ejecutar(
+      () => this.servicio.editar(documento.id, datos, this.motivo.value.trim()),
+      'Datos modificados. La fecha original de carga se conserva.',
+    );
   }
 
   protected async anular(): Promise<void> {
@@ -353,7 +361,11 @@ export class DocumentDialogComponent implements OnDestroy {
   protected async vincular(): Promise<void> {
     const documento = this.documento();
     if (documento !== null) {
-      await this.ejecutar(() => this.servicio.vincular(documento.id), 'Sección 02 vinculada a la ficha y al historial de la Sección 01.', true);
+      await this.ejecutar(
+        () => this.servicio.vincular(documento.id),
+        'Sección 02 vinculada a la ficha y al historial de la Sección 01.',
+        true,
+      );
     }
   }
 
@@ -417,7 +429,11 @@ export class DocumentDialogComponent implements OnDestroy {
       fecha: valores.fecha,
       observacion: valores.observacion.trim() === '' ? null : valores.observacion.trim(),
     };
-    await this.ejecutar(() => this.servicio.confirmarCese(documento.id, datos), 'Cese confirmado. Sección 01 e historial actualizados.', true);
+    await this.ejecutar(
+      () => this.servicio.confirmarCese(documento.id, datos),
+      'Cese confirmado. Sección 01 e historial actualizados.',
+      true,
+    );
   }
 
   private prepararMovimiento(documento: Documento): void {
