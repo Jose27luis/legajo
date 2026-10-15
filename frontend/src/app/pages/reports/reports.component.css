@@ -29,7 +29,9 @@
   font-weight: 600;
   text-decoration: none;
   white-space: nowrap;
-  transition: color 120ms ease, border-color 120ms ease;
+  transition:
+    color 120ms ease,
+    border-color 120ms ease;
 }
 
 .pestanas a:hover {
