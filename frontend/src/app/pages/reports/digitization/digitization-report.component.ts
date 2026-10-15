@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, resource, signal } from '@angular/core';
+import { SkeletonComponent } from '../../../components/skeleton/skeleton.component';
 import { mensajeDeError } from '../../../core/errors';
 import { valorDe } from '../../../core/inputs';
 import { fechaCorta, tamanoLegible } from '../../../core/labels';
@@ -8,6 +9,7 @@ import { ReportsService } from '../../../services/reports.service';
 
 @Component({
   selector: 'app-digitization-report',
+  imports: [SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './digitization-report.component.html',
   styleUrl: './digitization-report.component.css',
