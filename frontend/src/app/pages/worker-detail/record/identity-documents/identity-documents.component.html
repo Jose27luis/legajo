@@ -51,11 +51,7 @@
     <form class="campos subida" [formGroup]="formulario" (ngSubmit)="registrar()" novalidate>
       <div class="campo">
         <label for="identidad-tipo">Tipo documental</label>
-        <select id="identidad-tipo" formControlName="tipoDocumentoId">
-          @for (tipo of actual.tipos; track tipo.id) {
-            <option [ngValue]="tipo.id">{{ tipo.nombre }}</option>
-          }
-        </select>
+        <app-search-select idCampo="identidad-tipo" formControlName="tipoDocumentoId" [opciones]="tiposDocumento()" />
       </div>
       <div class="campo">
         <label for="identidad-emision">Fecha de emisión (opcional)</label>
