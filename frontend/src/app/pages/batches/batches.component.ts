@@ -1,4 +1,15 @@
-import { ChangeDetectionStrategy, Component, ElementRef, HostListener, OnDestroy, computed, inject, resource, signal, viewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  HostListener,
+  OnDestroy,
+  computed,
+  inject,
+  resource,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { mensajeDeError } from '../../core/errors';
 import { fechaHora } from '../../core/format';
@@ -59,8 +70,12 @@ export class BatchesComponent implements OnDestroy {
     loader: () => this.servicio.listar(),
   });
 
-  protected readonly reconocidos = computed(() => this.elegidos().filter((item) => item.invalido === null && item.previa?.reconocido === true));
-  protected readonly porRevisar = computed(() => this.elegidos().filter((item) => item.invalido === null && item.previa?.reconocido === false));
+  protected readonly reconocidos = computed(() =>
+    this.elegidos().filter((item) => item.invalido === null && item.previa?.reconocido === true),
+  );
+  protected readonly porRevisar = computed(() =>
+    this.elegidos().filter((item) => item.invalido === null && item.previa?.reconocido === false),
+  );
   protected readonly rechazados = computed(() => this.elegidos().filter((item) => item.invalido !== null));
   protected readonly validos = computed(() => this.elegidos().filter((item) => item.invalido === null));
 
@@ -230,7 +245,9 @@ export class BatchesComponent implements OnDestroy {
       const previas = await this.servicio.previsualizar(porAnalizar);
       const porNombre = new Map(previas.map((previa) => [previa.nombre, previa]));
       this.elegidos.update((lista) =>
-        lista.map((item) => (item.previa === null && porNombre.has(item.archivo.name) ? { ...item, previa: porNombre.get(item.archivo.name) ?? null } : item)),
+        lista.map((item) =>
+          item.previa === null && porNombre.has(item.archivo.name) ? { ...item, previa: porNombre.get(item.archivo.name) ?? null } : item,
+        ),
       );
     } catch (error: unknown) {
       this.error.set(mensajeDeError(error));
