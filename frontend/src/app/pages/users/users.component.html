@@ -60,7 +60,7 @@
           <tbody>
             @if (cargando()) {
               <tr>
-                <td colspan="6" class="vacio">Cargando cuentas</td>
+                <td colspan="6" class="celda-esqueleto"><app-skeleton [columnas]="6" texto="Cargando cuentas" /></td>
               </tr>
             } @else {
               @for (usuario of filtrados(); track usuario.id) {
@@ -179,7 +179,7 @@
   </form>
   <ng-container pie>
     <button type="button" class="boton" (click)="cerrarFormulario()" [disabled]="guardando()">Cancelar</button>
-    <button type="submit" form="formulario-usuario" class="boton principal" [disabled]="guardando()">
+    <button type="submit" form="formulario-usuario" class="boton principal" [disabled]="guardando()" [attr.aria-busy]="guardando()">
       {{ guardando() ? 'Guardando' : editando() === null ? 'Crear usuario' : 'Guardar cambios' }}
     </button>
   </ng-container>
