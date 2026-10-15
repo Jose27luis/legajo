@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, resource, signal } from '@angular/core';
+import { SkeletonComponent } from '../../components/skeleton/skeleton.component';
 import { mensajeDeError } from '../../core/errors';
 import { fechaHora } from '../../core/format';
 import { tamanoLegible } from '../../core/labels';
@@ -22,6 +23,7 @@ export const CLASE_ESTADO_RESPALDO: Record<EstadoRespaldo, string> = {
 
 @Component({
   selector: 'app-backups',
+  imports: [SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './backups.component.html',
   styleUrl: './backups.component.css',
