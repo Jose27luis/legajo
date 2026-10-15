@@ -24,7 +24,9 @@
               [disabled]="fila.restringida"
               (change)="alternar(fila.numero)"
             />
-            <span class="nombre"><b>Sección {{ numeroSeccion(fila.numero) }}</b> · {{ fila.nombre }}</span>
+            <span class="nombre"
+              ><b>Sección {{ numeroSeccion(fila.numero) }}</b> · {{ fila.nombre }}</span
+            >
             <span class="cuenta">
               @if (fila.restringida) {
                 Sección restringida
@@ -42,8 +44,8 @@
       Generar portada e índice del expediente
     </label>
     <p class="nota">
-      Solo se unen los PDF registrados y procesados de las secciones elegidas ({{ totales().elegidos }} archivos). No se incluyen
-      los documentos anulados; de cada documento se toma su versión vigente.
+      Solo se unen los PDF registrados y procesados de las secciones elegidas ({{ totales().elegidos }} archivos). No se incluyen los
+      documentos anulados; de cada documento se toma su versión vigente.
     </p>
   }
   <ng-container pie>
