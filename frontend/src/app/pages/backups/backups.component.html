@@ -158,5 +158,6 @@
     la base de datos y los archivos, y comprueba que cada documento tenga su PDF.
   </p>
 } @else if (error() === null) {
-  <p class="celda-vacia">Cargando las copias</p>
+  <app-skeleton forma="tarjetas" [cantidad]="3" texto="Cargando las copias" />
+  <app-skeleton class="tarjeta" [columnas]="5" [cantidad]="4" texto="Cargando las copias" />
 }
