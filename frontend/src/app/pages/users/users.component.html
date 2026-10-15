@@ -162,12 +162,14 @@
     </div>
     <div class="campo completo">
       <label for="usuario-rol">Rol</label>
-      <select id="usuario-rol" formControlName="rolId" aria-describedby="ayuda-rol" [attr.aria-invalid]="invalido('rolId')">
-        <option value="" disabled>Selecciona un rol</option>
-        @for (rol of roles(); track rol.id) {
-          <option [value]="rol.id">{{ rol.nombre }}</option>
-        }
-      </select>
+      <app-search-select
+        idCampo="usuario-rol"
+        formControlName="rolId"
+        [opciones]="opcionesRol()"
+        [invalido]="invalido('rolId')"
+        descripcion="ayuda-rol"
+        sugerencia="Selecciona un rol"
+      />
       <span id="ayuda-rol" class="ayuda">{{ descripcionRol() }}</span>
     </div>
     @if (editando() === null) {
