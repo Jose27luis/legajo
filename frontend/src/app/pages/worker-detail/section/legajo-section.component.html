@@ -40,8 +40,17 @@
       <div class="filtros">
         <label class="buscador">
           <span class="solo-lector">Buscar documentos</span>
-          <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><circle cx="11" cy="11" r="6.5" /><path d="m16 16 4 4" /></svg>
-          <input type="search" [value]="busqueda()" (input)="alBuscar($event)" autocomplete="off" aria-label="Buscar por tipo, número o nombre del PDF" />
+          <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true">
+            <circle cx="11" cy="11" r="6.5" />
+            <path d="m16 16 4 4" />
+          </svg>
+          <input
+            type="search"
+            [value]="busqueda()"
+            (input)="alBuscar($event)"
+            autocomplete="off"
+            aria-label="Buscar por tipo, número o nombre del PDF"
+          />
           @if (busqueda() === '') {
             <span class="sugerencia" aria-hidden="true">Tipo, número o nombre del PDF</span>
           }
@@ -57,7 +66,9 @@
 
       @if (documentos().length === 0) {
         <div class="vacio">
-          <strong>{{ actual.total === 0 && filtroEstado() === '' && busqueda() === '' ? 'Todavía no hay documentos' : 'Nada coincide con los filtros' }}</strong>
+          <strong>{{
+            actual.total === 0 && filtroEstado() === '' && busqueda() === '' ? 'Todavía no hay documentos' : 'Nada coincide con los filtros'
+          }}</strong>
           <span>
             {{
               actual.total === 0 && filtroEstado() === '' && busqueda() === ''
@@ -69,13 +80,20 @@
       } @else {
         <ul class="leyenda">
           @for (estado of estados; track estado) {
-            <li><span class="pastilla" [class]="claseEstado[estado]">{{ textoEstado[estado] }}</span></li>
+            <li>
+              <span class="pastilla" [class]="claseEstado[estado]">{{ textoEstado[estado] }}</span>
+            </li>
           }
         </ul>
         <ul class="documentos">
           @for (documento of documentos(); track documento.id) {
             <li animate.enter="aparece">
-              <button type="button" class="documento" [class.anulado]="documento.estado === 'ANULADO'" (click)="seleccionadoId.set(documento.id)">
+              <button
+                type="button"
+                class="documento"
+                [class.anulado]="documento.estado === 'ANULADO'"
+                (click)="seleccionadoId.set(documento.id)"
+              >
                 <span class="hoja" [class.procesando]="documento.estado === 'PROCESANDO'" aria-hidden="true">PDF</span>
                 <span class="principal">
                   <strong>{{ documento.tipo.nombre }}</strong>
