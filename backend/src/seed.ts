@@ -158,7 +158,7 @@ async function sembrarOrganizacion(transaccion: Prisma.TransactionClient): Promi
 
   const grupos = new Map<string, number>();
   for (const nombre of [...MICROREDES, SIN_MICRORED]) {
-    grupos.set(nombre, (await transaccion.area.create({ data: { nombre } })).id);
+    grupos.set(nombre, (await transaccion.area.create({ data: { nombre, activo: false } })).id);
   }
   await transaccion.area.createMany({
     data: ESTABLECIMIENTOS.map((establecimiento) => {
