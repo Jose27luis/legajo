@@ -1,0 +1,18 @@
+:host {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--tinta-suave);
+  font-size: 13px;
+}
+
+:host .girador {
+  color: var(--primario);
+  font-size: 18px;
+}
+
+:host(.bloque) {
+  display: flex;
+  justify-content: center;
+  padding: 26px 14px;
+}
