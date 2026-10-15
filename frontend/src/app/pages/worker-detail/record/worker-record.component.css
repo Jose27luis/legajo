@@ -108,7 +108,9 @@ dd {
   font: inherit;
   text-align: left;
   cursor: pointer;
-  transition: background-color 140ms ease, border-color 140ms ease;
+  transition:
+    background-color 140ms ease,
+    border-color 140ms ease;
 }
 
 .periodo:hover,
