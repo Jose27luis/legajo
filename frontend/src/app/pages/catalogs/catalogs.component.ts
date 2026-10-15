@@ -29,9 +29,7 @@ export class CatalogsComponent {
   readonly tab = input<string>();
 
   protected readonly pestanas = PESTANAS;
-  protected readonly activa = computed<IdPestana>(
-    () => PESTANAS.find((pestana) => pestana.id === this.tab())?.id ?? 'document-types',
-  );
+  protected readonly activa = computed<IdPestana>(() => PESTANAS.find((pestana) => pestana.id === this.tab())?.id ?? 'document-types');
 
   protected seleccionar(id: IdPestana): void {
     void this.router.navigate([], { queryParams: { tab: id }, replaceUrl: true });
