@@ -90,7 +90,8 @@ export class BatchDetailComponent {
         return;
       }
       const lote = this.lote.value();
-      const activo = lote.estado === 'SUBIENDO' || lote.items.some((item) => item.documentos.some((documento) => documento.estado === 'PROCESANDO'));
+      const activo =
+        lote.estado === 'SUBIENDO' || lote.items.some((item) => item.documentos.some((documento) => documento.estado === 'PROCESANDO'));
       if (!activo) {
         return;
       }
