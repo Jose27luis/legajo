@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, resource, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { SkeletonComponent } from '../../components/skeleton/skeleton.component';
 import { mensajeDeError } from '../../core/errors';
 import { numeroDe } from '../../core/inputs';
 import { fechaCorta, numeroSeccion } from '../../core/labels';
@@ -10,7 +11,7 @@ const PLAZOS = [30, 60, 90, 180] as const;
 
 @Component({
   selector: 'app-alerts',
-  imports: [RouterLink],
+  imports: [RouterLink, SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './alerts.component.html',
   styleUrl: './alerts.component.css',
