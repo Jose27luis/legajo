@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DialogComponent } from '../../../components/dialog/dialog.component';
+import { SearchSelectComponent, type OpcionBuscable } from '../../../components/search-select/search-select.component';
 import { SkeletonComponent } from '../../../components/skeleton/skeleton.component';
 import { mensajeDeError } from '../../../core/errors';
 import type { Area } from '../../../core/models';
@@ -9,7 +10,7 @@ import { CatalogsService } from '../../../services/catalogs.service';
 
 @Component({
   selector: 'app-areas',
-  imports: [ReactiveFormsModule, DialogComponent, SkeletonComponent],
+  imports: [ReactiveFormsModule, DialogComponent, SkeletonComponent, SearchSelectComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './areas.component.html',
   styleUrl: './areas.component.css',
@@ -25,9 +26,14 @@ export class AreasComponent implements OnInit {
   protected readonly editando = signal<Area | null>(null);
   protected readonly guardando = signal(false);
   protected readonly errorFormulario = signal<string | null>(null);
-  protected readonly opcionesPadre = computed(() => {
+  protected readonly opcionesPadre = computed<OpcionBuscable[]>(() => {
     const actual = this.editando();
-    return this.areas().filter((area) => area.activo && area.id !== actual?.id);
+    return [
+      { valor: null, etiqueta: 'Ninguna' },
+      ...this.areas()
+        .filter((area) => area.activo && area.id !== actual?.id)
+        .map((area) => ({ valor: area.id, etiqueta: area.nombre, detalle: area.padreNombre })),
+    ];
   });
   protected readonly formulario = new FormGroup({
     nombre: new FormControl('', {
