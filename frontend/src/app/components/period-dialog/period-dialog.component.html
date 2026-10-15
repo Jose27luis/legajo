@@ -71,11 +71,7 @@
           <form id="formulario-periodo" class="campos" [formGroup]="formulario" (ngSubmit)="guardar()" novalidate animate.enter="aparece">
             <div class="campo completo">
               <label for="periodo-tipo">Tipo de documento <span class="obligatorio" aria-hidden="true">*</span></label>
-              <select id="periodo-tipo" formControlName="tipoDocumentoId">
-                @for (tipo of tiposVinculo(); track tipo.id) {
-                  <option [ngValue]="tipo.id">{{ tipo.nombre }}</option>
-                }
-              </select>
+              <app-search-select idCampo="periodo-tipo" formControlName="tipoDocumentoId" [opciones]="opcionesTipo()" />
             </div>
             <div class="campo">
               <label for="periodo-numero">Número del documento</label>
