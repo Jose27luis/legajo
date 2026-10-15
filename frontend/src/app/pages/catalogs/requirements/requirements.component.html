@@ -56,43 +56,24 @@
   <form id="formulario-requisito" class="campos" [formGroup]="formulario" (ngSubmit)="guardar()" novalidate>
     <div class="campo completo">
       <label for="requisito-tipo">Documento</label>
-      <select id="requisito-tipo" formControlName="tipoDocumentoId">
-        <option [ngValue]="null" disabled>Selecciona un tipo de documento</option>
-        @for (seccion of secciones(); track seccion.id) {
-          <optgroup [label]="seccion.numero + '. ' + seccion.nombre">
-            @for (tipo of seccion.tipos; track tipo.id) {
-              @if (tipo.activo) {
-                <option [ngValue]="tipo.id">{{ tipo.codigo }} {{ tipo.nombre }}</option>
-              }
-            }
-          </optgroup>
-        }
-      </select>
+      <app-search-select
+        idCampo="requisito-tipo"
+        formControlName="tipoDocumentoId"
+        [opciones]="opcionesTipo()"
+        sugerencia="Selecciona un tipo de documento"
+      />
     </div>
     <div class="campo">
       <label for="requisito-regimen">Régimen</label>
-      <select id="requisito-regimen" formControlName="regimenId">
-        <option [ngValue]="null">Todos los regímenes</option>
-        @for (regimen of regimenes(); track regimen.id) {
-          <option [ngValue]="regimen.id">{{ regimen.nombre }}</option>
-        }
-      </select>
+      <app-search-select idCampo="requisito-regimen" formControlName="regimenId" [opciones]="opcionesRegimen()" />
     </div>
     <div class="campo">
       <label for="requisito-personal">Tipo de personal</label>
-      <select id="requisito-personal" formControlName="tipoPersonal">
-        <option [ngValue]="null">Administrativo y asistencial</option>
-        <option ngValue="ADMINISTRATIVO">Solo administrativo</option>
-        <option ngValue="ASISTENCIAL">Solo asistencial</option>
-      </select>
+      <app-search-select idCampo="requisito-personal" formControlName="tipoPersonal" [opciones]="opcionesTipoPersonal" />
     </div>
     <div class="campo completo">
       <label for="requisito-aplica">Se exige a</label>
-      <select id="requisito-aplica" formControlName="aplicaA">
-        <option ngValue="TODOS">Trabajadores activos y cesados</option>
-        <option ngValue="ACTIVO">Solo trabajadores activos</option>
-        <option ngValue="CESADO">Solo trabajadores cesados</option>
-      </select>
+      <app-search-select idCampo="requisito-aplica" formControlName="aplicaA" [opciones]="opcionesAplicaA" />
     </div>
     @if (errorFormulario(); as mensaje) {
       <p class="aviso error completo" role="alert" animate.enter="aparece">{{ mensaje }}</p>
