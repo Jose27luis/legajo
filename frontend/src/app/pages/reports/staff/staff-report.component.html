@@ -15,52 +15,48 @@
   <div class="filtros-reporte">
     <div class="campo">
       <label for="personal-area">Área</label>
-      <select id="personal-area" (change)="cambiar('areaId', $event)">
-        <option value="" [selected]="filtros().areaId === null">Todas las áreas</option>
-        @if (opciones.value(); as datos) {
-          @for (area of datos.areas; track area.id) {
-            <option [value]="area.id" [selected]="filtros().areaId === area.id">{{ area.nombre }}</option>
-          }
-        }
-      </select>
+      <app-search-select
+        idCampo="personal-area"
+        [opciones]="opcionesArea()"
+        [seleccion]="filtros().areaId"
+        (cambio)="cambiarNumero('areaId', $event)"
+      />
     </div>
     <div class="campo">
       <label for="personal-regimen">Régimen</label>
-      <select id="personal-regimen" (change)="cambiar('regimenId', $event)">
-        <option value="" [selected]="filtros().regimenId === null">Todos los regímenes</option>
-        @if (opciones.value(); as datos) {
-          @for (regimen of datos.regimenes; track regimen.id) {
-            <option [value]="regimen.id" [selected]="filtros().regimenId === regimen.id">{{ regimen.nombre }}</option>
-          }
-        }
-      </select>
+      <app-search-select
+        idCampo="personal-regimen"
+        [opciones]="opcionesRegimen()"
+        [seleccion]="filtros().regimenId"
+        (cambio)="cambiarNumero('regimenId', $event)"
+      />
     </div>
     <div class="campo">
       <label for="personal-cargo">Cargo</label>
-      <select id="personal-cargo" (change)="cambiar('cargoId', $event)">
-        <option value="" [selected]="filtros().cargoId === null">Todos los cargos</option>
-        @if (opciones.value(); as datos) {
-          @for (cargo of datos.cargos; track cargo.id) {
-            <option [value]="cargo.id" [selected]="filtros().cargoId === cargo.id">{{ cargo.nombre }}</option>
-          }
-        }
-      </select>
+      <app-search-select
+        idCampo="personal-cargo"
+        [opciones]="opcionesCargo()"
+        [seleccion]="filtros().cargoId"
+        (cambio)="cambiarNumero('cargoId', $event)"
+      />
     </div>
     <div class="campo">
       <label for="personal-tipo">Tipo de personal</label>
-      <select id="personal-tipo" (change)="cambiar('tipoPersonal', $event)">
-        <option value="" [selected]="filtros().tipoPersonal === null">Ambos</option>
-        <option value="ADMINISTRATIVO" [selected]="filtros().tipoPersonal === 'ADMINISTRATIVO'">Administrativo</option>
-        <option value="ASISTENCIAL" [selected]="filtros().tipoPersonal === 'ASISTENCIAL'">Asistencial</option>
-      </select>
+      <app-search-select
+        idCampo="personal-tipo"
+        [opciones]="opcionesTipoPersonal"
+        [seleccion]="filtros().tipoPersonal"
+        (cambio)="cambiarTipoPersonal($event)"
+      />
     </div>
     <div class="campo">
       <label for="personal-estado">Estado laboral</label>
-      <select id="personal-estado" (change)="cambiar('estado', $event)">
-        <option value="" [selected]="filtros().estado === null">Todos</option>
-        <option value="ACTIVO" [selected]="filtros().estado === 'ACTIVO'">Activos</option>
-        <option value="CESADO" [selected]="filtros().estado === 'CESADO'">Cesados</option>
-      </select>
+      <app-search-select
+        idCampo="personal-estado"
+        [opciones]="opcionesEstado"
+        [seleccion]="filtros().estado"
+        (cambio)="cambiarEstado($event)"
+      />
     </div>
     <div class="campo">
       <label for="personal-desde">Ingreso desde</label>
