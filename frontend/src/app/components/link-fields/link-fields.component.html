@@ -6,7 +6,11 @@
     <p class="aviso completo falta">
       Primero registra al menos un área y un cargo.
       @if (sesion.tiene('catalogos.gestionar')) {
-        <a routerLink="/catalogs" [queryParams]="{ tab: 'areas' }">Ir a Catálogos</a>
+        @if (areas().length === 0) {
+          <a routerLink="/areas">Ir a Áreas y dependencias</a>
+        } @else {
+          <a routerLink="/catalogs" [queryParams]="{ tab: 'positions' }">Ir a Cargos</a>
+        }
       }
     </p>
   }
