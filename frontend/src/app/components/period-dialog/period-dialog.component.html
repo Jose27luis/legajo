@@ -36,7 +36,9 @@
             <li>
               <span class="dato">
                 <strong>{{ documento.tipo.nombre }}</strong>
-                <span>N.º {{ documento.numero ?? '—' }} · emisión {{ documento.fechaEmision ? fechaCorta(documento.fechaEmision) : '—' }}</span>
+                <span
+                  >N.º {{ documento.numero ?? '—' }} · emisión {{ documento.fechaEmision ? fechaCorta(documento.fechaEmision) : '—' }}</span
+                >
                 <span class="archivo">{{ nombreArchivo(documento) }}</span>
               </span>
               <span class="pastilla" [class]="claseEstado[documento.estado]">{{ textoEstado[documento.estado] }}</span>
@@ -62,8 +64,8 @@
           }
         </header>
         <p class="nota">
-          Esta parte es independiente de la consulta anterior. Al guardar otro PDF se vinculará al período seleccionado; el archivo
-          previo permanece en la Sección 02.
+          Esta parte es independiente de la consulta anterior. Al guardar otro PDF se vinculará al período seleccionado; el archivo previo
+          permanece en la Sección 02.
         </p>
         @if (registrando()) {
           <form id="formulario-periodo" class="campos" [formGroup]="formulario" (ngSubmit)="guardar()" novalidate animate.enter="aparece">
@@ -98,7 +100,9 @@
             <div class="acciones completo">
               <button type="button" class="boton" (click)="cancelarRegistro()" [disabled]="ocupado()">Cancelar</button>
               <button type="submit" class="boton principal" [disabled]="ocupado()">
-                {{ progreso() !== null ? 'Subiendo ' + progreso() + ' %' : ocupado() ? 'Guardando' : 'Guardar PDF en Sección 02 y vincular' }}
+                {{
+                  progreso() !== null ? 'Subiendo ' + progreso() + ' %' : ocupado() ? 'Guardando' : 'Guardar PDF en Sección 02 y vincular'
+                }}
               </button>
             </div>
           </form>
