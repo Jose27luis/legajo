@@ -17,10 +17,11 @@ import { ToastService } from '../../core/toast.service';
 import { DocumentsService, mensajeDeSubida, type SubidaEnCurso } from '../../services/documents.service';
 import { DialogComponent } from '../dialog/dialog.component';
 import { PdfPickerComponent } from '../pdf-picker/pdf-picker.component';
+import { SearchSelectComponent, type OpcionBuscable } from '../search-select/search-select.component';
 
 @Component({
   selector: 'app-period-dialog',
-  imports: [ReactiveFormsModule, DialogComponent, PdfPickerComponent],
+  imports: [ReactiveFormsModule, DialogComponent, PdfPickerComponent, SearchSelectComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './period-dialog.component.html',
   styleUrl: './period-dialog.component.css',
@@ -61,6 +62,9 @@ export class PeriodDialogComponent implements OnDestroy {
       this.secciones()
         .find((seccion) => seccion.numero === 2)
         ?.tipos.filter((tipo) => tipo.accion === 'VINCULO') ?? [],
+  );
+  protected readonly opcionesTipo = computed<OpcionBuscable[]>(() =>
+    this.tiposVinculo().map((tipo) => ({ valor: tipo.id, etiqueta: tipo.nombre })),
   );
   protected readonly puedeRegistrar = computed(
     () => !this.esSalida() && this.sesion.tiene('documentos.subir') && this.tiposVinculo().length > 0,
