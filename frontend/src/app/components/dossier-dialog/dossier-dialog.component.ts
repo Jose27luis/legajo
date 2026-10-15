@@ -79,7 +79,9 @@ export class DossierDialogComponent {
     };
   });
 
-  protected readonly enlacePdf = computed(() => this.enlace((id, secciones) => this.documentos.enlaceExpediente(id, secciones, this.portada())));
+  protected readonly enlacePdf = computed(() =>
+    this.enlace((id, secciones) => this.documentos.enlaceExpediente(id, secciones, this.portada())),
+  );
   protected readonly enlaceZip = computed(() => this.enlace((id, secciones) => this.documentos.enlaceZip(id, secciones)));
   protected readonly enlaceIndice = computed(() => this.enlace((id, secciones) => this.documentos.enlaceIndice(id, secciones)));
 
