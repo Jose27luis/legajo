@@ -6,10 +6,11 @@ import { SessionService } from '../../core/session.service';
 import { DocumentsService } from '../../services/documents.service';
 import { WorkersService } from '../../services/workers.service';
 import { DialogComponent } from '../dialog/dialog.component';
+import { SkeletonComponent } from '../skeleton/skeleton.component';
 
 @Component({
   selector: 'app-movement-dialog',
-  imports: [DialogComponent],
+  imports: [DialogComponent, SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './movement-dialog.component.html',
   styleUrl: './movement-dialog.component.css',
