@@ -9,20 +9,13 @@
     <form id="formulario-situacion" class="campos" [formGroup]="formulario" (ngSubmit)="guardar()" novalidate>
       <div class="campo">
         <label for="situacion-estado">Estado laboral <span class="obligatorio" aria-hidden="true">*</span></label>
-        <select id="situacion-estado" formControlName="estado">
-          <option ngValue="ACTIVO">ACTIVO</option>
-          <option ngValue="CESADO">CESADO</option>
-        </select>
+        <app-search-select idCampo="situacion-estado" formControlName="estado" [opciones]="opcionesEstado" />
       </div>
 
       @if (estadoElegido() === 'ACTIVO') {
         <div class="campo">
           <label for="situacion-movimiento">Último movimiento</label>
-          <select id="situacion-movimiento" formControlName="movimiento">
-            @for (movimiento of movimientos; track movimiento) {
-              <option [ngValue]="movimiento">{{ textoMovimiento[movimiento] }}</option>
-            }
-          </select>
+          <app-search-select idCampo="situacion-movimiento" formControlName="movimiento" [opciones]="opcionesMovimiento" />
         </div>
         @if (movimientoElegido() !== 'SIN_MOVIMIENTO') {
           <div class="campo">
@@ -33,32 +26,27 @@
           </div>
           <div class="campo">
             <label for="situacion-origen">Área o puesto de origen <span class="obligatorio" aria-hidden="true">*</span></label>
-            <select id="situacion-origen" formControlName="areaOrigenId">
-              <option [ngValue]="null" disabled>Selecciona de dónde procede</option>
-              @for (area of areas(); track area.id) {
-                <option [ngValue]="area.id">{{ area.nombre }}</option>
-              }
-            </select>
+            <app-search-select
+              idCampo="situacion-origen"
+              formControlName="areaOrigenId"
+              [opciones]="areas()"
+              sugerencia="Selecciona de dónde procede"
+            />
           </div>
           <div class="campo completo">
             <label for="situacion-destino"> Área o dependencia de destino <span class="obligatorio" aria-hidden="true">*</span> </label>
-            <select id="situacion-destino" formControlName="areaDestinoId">
-              <option [ngValue]="null" disabled>Selecciona el área de destino</option>
-              @for (area of areas(); track area.id) {
-                <option [ngValue]="area.id">{{ area.nombre }}</option>
-              }
-            </select>
+            <app-search-select
+              idCampo="situacion-destino"
+              formControlName="areaDestinoId"
+              [opciones]="areas()"
+              sugerencia="Selecciona el área de destino"
+            />
           </div>
         }
       } @else {
         <div class="campo">
           <label for="situacion-motivo">Motivo del cese <span class="obligatorio" aria-hidden="true">*</span></label>
-          <select id="situacion-motivo" formControlName="motivoCese">
-            <option [ngValue]="null" disabled>Selecciona</option>
-            @for (motivo of motivosCese; track motivo) {
-              <option [ngValue]="motivo">{{ textoMotivo[motivo] }}</option>
-            }
-          </select>
+          <app-search-select idCampo="situacion-motivo" formControlName="motivoCese" [opciones]="opcionesMotivoCese" />
         </div>
         <div class="campo">
           <label for="situacion-fecha-cese">Fecha de cese <span class="obligatorio" aria-hidden="true">*</span></label>
