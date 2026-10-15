@@ -2,14 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { DetailedError, Upload } from 'tus-js-client';
-import type {
-  ConfirmacionCese,
-  ConfirmacionMovimiento,
-  DatosDocumento,
-  Documento,
-  EntradaHistorial,
-  Legajo,
-} from '../core/models';
+import type { ConfirmacionCese, ConfirmacionMovimiento, DatosDocumento, Documento, EntradaHistorial, Legajo } from '../core/models';
 
 export const TAMANO_MAXIMO_MB = 200;
 const PARTE_BYTES = 8 * 1024 * 1024;
