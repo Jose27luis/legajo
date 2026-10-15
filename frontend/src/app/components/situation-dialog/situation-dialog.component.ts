@@ -8,10 +8,26 @@ import { MOTIVOS_CESE, MOVIMIENTOS, TEXTO_MOTIVO_CESE, TEXTO_MOVIMIENTO, hoy, no
 import type { EstadoTrabajador, MotivoCese, Movimiento, TrabajadorDetalle, TrabajadorResumen } from '../../core/models';
 import { LinkOptionsService } from '../../services/link-options.service';
 import { WorkersService } from '../../services/workers.service';
+import { SearchSelectComponent, type OpcionBuscable } from '../search-select/search-select.component';
+
+const OPCIONES_ESTADO: readonly OpcionBuscable[] = [
+  { valor: 'ACTIVO', etiqueta: 'ACTIVO' },
+  { valor: 'CESADO', etiqueta: 'CESADO' },
+];
+
+const OPCIONES_MOVIMIENTO: readonly OpcionBuscable[] = MOVIMIENTOS.map((movimiento) => ({
+  valor: movimiento,
+  etiqueta: TEXTO_MOVIMIENTO[movimiento],
+}));
+
+const OPCIONES_MOTIVO_CESE: readonly OpcionBuscable[] = MOTIVOS_CESE.map((motivo) => ({
+  valor: motivo,
+  etiqueta: TEXTO_MOTIVO_CESE[motivo],
+}));
 
 @Component({
   selector: 'app-situation-dialog',
-  imports: [ReactiveFormsModule, DialogComponent],
+  imports: [ReactiveFormsModule, DialogComponent, SearchSelectComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './situation-dialog.component.html',
   styleUrl: './situation-dialog.component.css',
@@ -25,16 +41,17 @@ export class SituationDialogComponent {
   readonly cerrar = output();
   readonly actualizado = output<TrabajadorDetalle>();
 
-  protected readonly movimientos = MOVIMIENTOS;
-  protected readonly motivosCese = MOTIVOS_CESE;
-  protected readonly textoMovimiento = TEXTO_MOVIMIENTO;
-  protected readonly textoMotivo = TEXTO_MOTIVO_CESE;
+  protected readonly opcionesEstado = OPCIONES_ESTADO;
+  protected readonly opcionesMovimiento = OPCIONES_MOVIMIENTO;
+  protected readonly opcionesMotivoCese = OPCIONES_MOTIVO_CESE;
   protected readonly nombreCompleto = nombreCompleto;
   protected readonly hoy = hoy();
   protected readonly guardando = signal(false);
   protected readonly error = signal<string | null>(null);
   protected readonly ceseConDocumento = signal(false);
-  protected readonly areas = computed(() => this.opcionesVinculo.opciones()?.areas ?? []);
+  protected readonly areas = computed<OpcionBuscable[]>(() =>
+    (this.opcionesVinculo.opciones()?.areas ?? []).map((area) => ({ valor: area.id, etiqueta: area.nombre, detalle: area.padreNombre })),
+  );
 
   protected readonly formulario = new FormGroup({
     estado: new FormControl<EstadoTrabajador>('ACTIVO', { nonNullable: true }),
