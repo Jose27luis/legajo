@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, linkedSignal, resource, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { BatchItemDialogComponent } from '../../components/batch-item-dialog/batch-item-dialog.component';
+import { SkeletonComponent } from '../../components/skeleton/skeleton.component';
 import { mensajeDeError } from '../../core/errors';
 import { fechaHora } from '../../core/format';
 import {
@@ -20,7 +21,7 @@ const INTERVALO_MS = 3000;
 
 @Component({
   selector: 'app-batch-detail',
-  imports: [RouterLink, BatchItemDialogComponent],
+  imports: [RouterLink, BatchItemDialogComponent, SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './batch-detail.component.html',
   styleUrl: './batch-detail.component.css',
