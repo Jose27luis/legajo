@@ -12,20 +12,21 @@
   }
   <div class="campo">
     <label [for]="prefijo + '-tipo'">Tipo de personal <span class="obligatorio" aria-hidden="true">*</span></label>
-    <select [id]="prefijo + '-tipo'" formControlName="tipoPersonal" [attr.aria-invalid]="invalido('tipoPersonal')">
-      <option [ngValue]="null" disabled>Selecciona</option>
-      <option ngValue="ADMINISTRATIVO">Administrativo</option>
-      <option ngValue="ASISTENCIAL">Asistencial</option>
-    </select>
+    <app-search-select
+      [idCampo]="prefijo + '-tipo'"
+      formControlName="tipoPersonal"
+      [opciones]="opcionesTipoPersonal"
+      [invalido]="invalido('tipoPersonal')"
+    />
   </div>
   <div class="campo">
     <label [for]="prefijo + '-regimen'">Régimen o modalidad <span class="obligatorio" aria-hidden="true">*</span></label>
-    <select [id]="prefijo + '-regimen'" formControlName="regimenId" [attr.aria-invalid]="invalido('regimenId')">
-      <option [ngValue]="null" disabled>Selecciona</option>
-      @for (regimen of opciones()?.regimenes ?? []; track regimen.id) {
-        <option [ngValue]="regimen.id">{{ regimen.nombre }}</option>
-      }
-    </select>
+    <app-search-select
+      [idCampo]="prefijo + '-regimen'"
+      formControlName="regimenId"
+      [opciones]="regimenes()"
+      [invalido]="invalido('regimenId')"
+    />
   </div>
   <div class="campo">
     <label [for]="prefijo + '-cargo'">Cargo o puesto <span class="obligatorio" aria-hidden="true">*</span></label>
