@@ -49,7 +49,7 @@
       }
     }
   } @else if (detalle.isLoading()) {
-    <p class="celda-vacia">Cargando movimiento</p>
+    <app-skeleton forma="texto" [cantidad]="6" texto="Cargando movimiento" />
   }
   <ng-container pie>
     <button type="button" class="boton" (click)="cerrar.emit()">Cerrar</button>
