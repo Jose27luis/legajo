@@ -43,6 +43,7 @@ import {
   prepararFormularioDocumento,
 } from '../document-fields/document-form';
 import { PdfPickerComponent } from '../pdf-picker/pdf-picker.component';
+import { SearchSelectComponent, type OpcionBuscable } from '../search-select/search-select.component';
 
 type Modo = 'detalle' | 'editar' | 'reemplazar' | 'anular' | 'visor' | 'movimiento' | 'cese' | 'reingreso';
 type MovimientoReal = Exclude<Movimiento, 'SIN_MOVIMIENTO'>;
@@ -60,6 +61,16 @@ const TITULOS: Record<Modo, string> = {
 
 const MINIMO_MOTIVO = 10;
 
+const OPCIONES_MOVIMIENTO: readonly OpcionBuscable[] = MOVIMIENTOS_REALES.map((movimiento) => ({
+  valor: movimiento,
+  etiqueta: TEXTO_MOVIMIENTO[movimiento],
+}));
+
+const OPCIONES_MOTIVO_CESE: readonly OpcionBuscable[] = MOTIVOS_CESE.map((motivo) => ({
+  valor: motivo,
+  etiqueta: TEXTO_MOTIVO_CESE[motivo],
+}));
+
 function texto(valor: ValorCampo | undefined): string | null {
   return typeof valor === 'string' && valor !== '' ? valor : null;
 }
@@ -70,7 +81,7 @@ function numero(valor: ValorCampo | undefined): number | null {
 
 @Component({
   selector: 'app-document-dialog',
-  imports: [ReactiveFormsModule, DialogComponent, DocumentFieldsComponent, PdfPickerComponent],
+  imports: [ReactiveFormsModule, DialogComponent, DocumentFieldsComponent, PdfPickerComponent, SearchSelectComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './document-dialog.component.html',
   styleUrl: './document-dialog.component.css',
@@ -92,8 +103,8 @@ export class DocumentDialogComponent implements OnDestroy {
   protected readonly textoEstado = TEXTO_ESTADO_DOCUMENTO;
   protected readonly claseEstado = CLASE_ESTADO_DOCUMENTO;
   protected readonly textoNivel = TEXTO_NIVEL_ACCESO;
-  protected readonly textoMovimiento = TEXTO_MOVIMIENTO;
-  protected readonly textoMotivo = TEXTO_MOTIVO_CESE;
+  protected readonly opcionesMovimiento = OPCIONES_MOVIMIENTO;
+  protected readonly opcionesMotivoCese = OPCIONES_MOTIVO_CESE;
   protected readonly movimientos = MOVIMIENTOS_REALES;
   protected readonly motivos = MOTIVOS_CESE;
   protected readonly fechaCorta = fechaCorta;
@@ -119,7 +130,9 @@ export class DocumentDialogComponent implements OnDestroy {
   protected readonly error = signal<string | null>(null);
   protected readonly progreso = signal<number | null>(null);
   protected readonly archivo = signal<File | null>(null);
-  protected readonly areas = computed(() => this.opcionesVinculo.opciones()?.areas ?? []);
+  protected readonly areas = computed<OpcionBuscable[]>(() =>
+    (this.opcionesVinculo.opciones()?.areas ?? []).map((area) => ({ valor: area.id, etiqueta: area.nombre, detalle: area.padreNombre })),
+  );
 
   protected readonly formulario = crearFormularioDocumento();
   protected readonly motivo = new FormControl('', {
