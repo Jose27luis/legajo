@@ -12,7 +12,7 @@
 
     <h3>Selecciona las secciones a incluir</h3>
     @if (legajo.isLoading() && filas().length === 0) {
-      <p class="celda-vacia">Cargando secciones</p>
+      <app-skeleton [columnas]="2" [cantidad]="6" texto="Cargando secciones" />
     }
     <ul class="secciones">
       @for (fila of filas(); track fila.numero) {
