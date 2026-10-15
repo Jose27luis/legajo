@@ -6,3 +6,6 @@ backend
 .git
 *.html
 !frontend/src/**/*.html
+**/*.xls
+**/*.xlsx
+**/*.csv
