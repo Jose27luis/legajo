@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DialogComponent } from '../../../components/dialog/dialog.component';
+import { SkeletonComponent } from '../../../components/skeleton/skeleton.component';
 import { mensajeDeError } from '../../../core/errors';
 import type { Seccion, TipoDocumento } from '../../../core/models';
 import { ToastService } from '../../../core/toast.service';
@@ -8,7 +9,7 @@ import { CatalogsService } from '../../../services/catalogs.service';
 
 @Component({
   selector: 'app-document-types',
-  imports: [ReactiveFormsModule, DialogComponent],
+  imports: [ReactiveFormsModule, DialogComponent, SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './document-types.component.html',
   styleUrl: './document-types.component.css',
