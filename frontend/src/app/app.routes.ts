@@ -73,8 +73,7 @@ export const routes: Routes = [
             path: '',
             pathMatch: 'full',
             canMatch: [() => inject(SessionService).tiene('documentos.ver')],
-            loadComponent: () =>
-              import('./pages/worker-detail/overview/legajo-overview.component').then((m) => m.LegajoOverviewComponent),
+            loadComponent: () => import('./pages/worker-detail/overview/legajo-overview.component').then((m) => m.LegajoOverviewComponent),
           },
           {
             path: '',
@@ -98,8 +97,7 @@ export const routes: Routes = [
           {
             path: 'sections/:numero',
             canMatch: [permisoGuard('documentos.ver')],
-            loadComponent: () =>
-              import('./pages/worker-detail/section/legajo-section.component').then((m) => m.LegajoSectionComponent),
+            loadComponent: () => import('./pages/worker-detail/section/legajo-section.component').then((m) => m.LegajoSectionComponent),
           },
           {
             path: '**',
