@@ -1,9 +1,11 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   ElementRef,
   computed,
   forwardRef,
+  inject,
   input,
   linkedSignal,
   output,
@@ -24,7 +26,18 @@ export interface OpcionBuscable {
 
 const MAXIMO_VISIBLES = 200;
 const ALTO_LISTA = 300;
+const ALTO_MINIMO = 160;
+const SEPARACION = 6;
+const MARGEN = 12;
 const UMBRAL_BUSCADOR = 7;
+
+interface PosicionPanel {
+  izquierda: number;
+  ancho: number;
+  arriba: number | null;
+  abajo: number | null;
+  alto: number;
+}
 
 @Component({
   selector: 'app-search-select',
@@ -53,7 +66,9 @@ export class SearchSelectComponent implements ControlValueAccessor {
   protected readonly abierto = signal(false);
   protected readonly activa = signal(-1);
   protected readonly arriba = signal(false);
+  protected readonly posicion = signal<PosicionPanel | null>(null);
   private readonly deshabilitadoPorFormulario = signal(false);
+  private readonly alMoverse = (): void => this.ubicar();
 
   protected readonly deshabilitado = computed(() => this.bloqueado() || this.deshabilitadoPorFormulario());
   protected readonly conBuscador = computed(() => this.buscador() ?? this.opciones().length > UMBRAL_BUSCADOR);
@@ -80,6 +95,10 @@ export class SearchSelectComponent implements ControlValueAccessor {
 
   protected readonly visibles = computed(() => this.coincidencias().slice(0, MAXIMO_VISIBLES));
 
+  constructor() {
+    inject(DestroyRef).onDestroy(() => this.soltarEscuchas());
+  }
+
   private alCambiar: (valor: ValorOpcion) => void = () => undefined;
   private alTocar: () => void = () => undefined;
 
@@ -103,9 +122,9 @@ export class SearchSelectComponent implements ControlValueAccessor {
     if (this.abierto() || this.deshabilitado()) {
       return;
     }
-    const caja = this.entrada().nativeElement.getBoundingClientRect();
-    const debajo = window.innerHeight - caja.bottom;
-    this.arriba.set(debajo < ALTO_LISTA && caja.top > debajo);
+    this.ubicar();
+    window.addEventListener('resize', this.alMoverse, { passive: true });
+    document.addEventListener('scroll', this.alMoverse, { capture: true, passive: true });
     this.texto.set('');
     const indice = this.visibles().findIndex((opcion) => opcion.valor === this.valor());
     this.activa.set(indice);
@@ -209,10 +228,34 @@ export class SearchSelectComponent implements ControlValueAccessor {
   }
 
   private cerrar(): void {
+    this.soltarEscuchas();
     this.abierto.set(false);
+    this.posicion.set(null);
     this.texto.set('');
     this.activa.set(-1);
     this.alTocar();
+  }
+
+  private ubicar(): void {
+    const caja = this.entrada().nativeElement.getBoundingClientRect();
+    const debajo = window.innerHeight - caja.bottom - SEPARACION - MARGEN;
+    const encima = caja.top - SEPARACION - MARGEN;
+    const haciaArriba = debajo < Math.min(ALTO_LISTA, ALTO_MINIMO * 1.5) && encima > debajo;
+    const ancho = Math.min(Math.max(caja.width, this.compacto() ? 220 : caja.width), window.innerWidth - MARGEN * 2);
+    const izquierda = Math.min(Math.max(MARGEN, caja.left), window.innerWidth - ancho - MARGEN);
+    this.arriba.set(haciaArriba);
+    this.posicion.set({
+      izquierda,
+      ancho,
+      arriba: haciaArriba ? null : caja.bottom + SEPARACION,
+      abajo: haciaArriba ? window.innerHeight - caja.top + SEPARACION : null,
+      alto: Math.max(ALTO_MINIMO, Math.min(ALTO_LISTA, haciaArriba ? encima : debajo)),
+    });
+  }
+
+  private soltarEscuchas(): void {
+    window.removeEventListener('resize', this.alMoverse);
+    document.removeEventListener('scroll', this.alMoverse, { capture: true });
   }
 
   private mostrarActiva(indice: number): void {
