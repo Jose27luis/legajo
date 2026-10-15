@@ -1,12 +1,13 @@
 <div class="campos" [class.compacto]="compacto()" [formGroup]="grupo()">
   <div class="campo completo">
     <label [for]="id('tipo')">Tipo de documento <span class="obligatorio" aria-hidden="true">*</span></label>
-    <select [id]="id('tipo')" formControlName="tipoDocumentoId" [attr.aria-invalid]="tipoInvalido()">
-      <option [ngValue]="null" disabled>Seleccionar tipo</option>
-      @for (tipo of seccion().tipos; track tipo.id) {
-        <option [ngValue]="tipo.id">{{ tipo.nombre }}</option>
-      }
-    </select>
+    <app-search-select
+      [idCampo]="id('tipo')"
+      formControlName="tipoDocumentoId"
+      [opciones]="opcionesTipo()"
+      [invalido]="tipoInvalido()"
+      sugerencia="Seleccionar tipo"
+    />
     @if (guia(); as texto) {
       <span class="ayuda guia">{{ texto }}</span>
     }
@@ -80,12 +81,12 @@
           }
         </label>
         @if (esSeleccion(campo)) {
-          <select [id]="id('dato-' + campo.clave)" [formControlName]="campo.clave" [attr.aria-invalid]="campoInvalido(campo)">
-            <option value="">Seleccionar...</option>
-            @for (opcion of opciones(campo); track opcion.valor) {
-              <option [value]="opcion.valor">{{ opcion.texto }}</option>
-            }
-          </select>
+          <app-search-select
+            [idCampo]="id('dato-' + campo.clave)"
+            [formControlName]="campo.clave"
+            [opciones]="opcionesDe(campo)"
+            [invalido]="campoInvalido(campo)"
+          />
         } @else if (campo.tipo === 'parrafo') {
           <textarea
             [id]="id('dato-' + campo.clave)"
@@ -128,11 +129,7 @@
   @if (niveles().length > 1) {
     <div class="campo">
       <label [for]="id('nivel')">Nivel de acceso</label>
-      <select [id]="id('nivel')" formControlName="nivelAcceso">
-        @for (nivel of niveles(); track nivel) {
-          <option [ngValue]="nivel" [disabled]="nivelBloqueado(nivel)">{{ textoNivel[nivel] }}</option>
-        }
-      </select>
+      <app-search-select [idCampo]="id('nivel')" formControlName="nivelAcceso" [opciones]="opcionesNivel()" />
       @if (tipoElegido()?.restringido === true) {
         <span class="ayuda">Este tipo se guarda siempre como restringido.</span>
       }
