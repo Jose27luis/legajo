@@ -60,14 +60,14 @@ test('inicia sesión y muestra el panel principal', async () => {
   await expect(pagina.getByText('Sistema Web de Legajos Digitales')).toBeVisible();
 });
 
-test('crea un área y un cargo en los catálogos', async () => {
-  await pagina.goto('/catalogs');
-  await pagina.getByRole('tab', { name: 'Áreas' }).click();
-  await pagina.getByRole('button', { name: 'Nueva área' }).click();
+test('crea un área en Áreas y dependencias y un cargo en los catálogos', async () => {
+  await pagina.goto('/areas');
+  await pagina.getByRole('button', { name: 'Nueva área o dependencia' }).click();
   await pagina.locator('#area-nombre').fill(AREA);
   await pagina.getByRole('button', { name: 'Crear área' }).click();
   await expect(pagina.getByRole('cell', { name: AREA })).toBeVisible();
 
+  await pagina.goto('/catalogs');
   await pagina.getByRole('tab', { name: 'Cargos' }).click();
   await pagina.getByRole('button', { name: 'Nuevo cargo' }).click();
   await pagina.locator('#cargo-nombre').fill(CARGO);
