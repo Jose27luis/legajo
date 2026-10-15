@@ -2,12 +2,14 @@ import { ChangeDetectionStrategy, Component, computed, effect, inject, input, mo
 import { nombreCompleto } from '../../core/labels';
 import type { TrabajadorLote, TrabajadorResumen } from '../../core/models';
 import { WorkersService } from '../../services/workers.service';
+import { SpinnerComponent } from '../spinner/spinner.component';
 
 const ESPERA_MS = 300;
 const MINIMO = 2;
 
 @Component({
   selector: 'app-worker-picker',
+  imports: [SpinnerComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './worker-picker.component.html',
   styleUrl: './worker-picker.component.css',
