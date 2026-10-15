@@ -11,6 +11,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
+import { SkeletonComponent } from '../../components/skeleton/skeleton.component';
 import { mensajeDeError } from '../../core/errors';
 import { fechaHora } from '../../core/format';
 import { CLASE_ESTADO_LOTE, TEXTO_ESTADO_LOTE, numeroSeccion, tamanoLegible } from '../../core/labels';
@@ -36,7 +37,7 @@ interface Avance {
 
 @Component({
   selector: 'app-batches',
-  imports: [RouterLink],
+  imports: [RouterLink, SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './batches.component.html',
   styleUrl: './batches.component.css',
