@@ -60,6 +60,7 @@
                     class="boton chico"
                     [class.principal]="cambios().has(rol.id)"
                     [disabled]="!cambios().has(rol.id) || guardando() !== null"
+                    [attr.aria-busy]="guardando() === rol.id"
                     (click)="guardar(rol)"
                   >
                     {{ guardando() === rol.id ? 'Guardando' : 'Guardar' }}
@@ -77,5 +78,5 @@
     </p>
   </section>
 } @else if (error() === null) {
-  <p class="celda-vacia">Cargando permisos</p>
+  <app-skeleton class="tarjeta" [columnas]="4" [cantidad]="8" texto="Cargando permisos" />
 }
