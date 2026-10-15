@@ -128,7 +128,9 @@ h3 {
   border-color: #ecd9ae;
   background: #fffdf7;
   cursor: pointer;
-  transition: border-color 140ms ease, box-shadow 160ms ease;
+  transition:
+    border-color 140ms ease,
+    box-shadow 160ms ease;
 }
 
 .archivo.pendiente:hover {
