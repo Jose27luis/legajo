@@ -64,6 +64,7 @@ const MENU: readonly GrupoMenu[] = [
     enlaces: [
       enlace('/profile', 'Mi perfil', 'perfil', null),
       enlace('/users', 'Usuarios', 'usuarios', 'usuarios.gestionar'),
+      enlace('/areas', 'Áreas y dependencias', 'catalogos', 'catalogos.gestionar'),
       enlace('/audit', 'Auditoría', 'auditoria', 'auditoria.ver'),
       enlace('/permissions', 'Permisos por sección', 'candado', 'usuarios.gestionar'),
       enlace('/catalogs', 'Catálogos', 'catalogos', 'catalogos.gestionar'),
