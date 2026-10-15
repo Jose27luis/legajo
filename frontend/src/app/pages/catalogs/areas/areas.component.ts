@@ -107,9 +107,7 @@ export class AreasComponent implements OnInit {
 
   protected async alternarActivo(area: Area): Promise<void> {
     try {
-      await this.recargarTras(
-        this.servicio.editarArea(area.id, { nombre: area.nombre, padreId: area.padreId, activo: !area.activo }),
-      );
+      await this.recargarTras(this.servicio.editarArea(area.id, { nombre: area.nombre, padreId: area.padreId, activo: !area.activo }));
       this.avisos.exito(`Área ${area.activo ? 'desactivada' : 'activada'}`);
     } catch (error: unknown) {
       this.avisos.error(mensajeDeError(error));
