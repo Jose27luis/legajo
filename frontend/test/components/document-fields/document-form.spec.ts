@@ -26,7 +26,13 @@ function tipo(cambios: Partial<TipoDocumento>): TipoDocumento {
 }
 
 const CAMPOS_VINCULO: CampoSeccion[] = [
-  { clave: 'tipoIncorporacion', etiqueta: 'Tipo de incorporación', tipo: 'seleccion', obligatorio: false, opciones: Object.values(INCORPORACION) },
+  {
+    clave: 'tipoIncorporacion',
+    etiqueta: 'Tipo de incorporación',
+    tipo: 'seleccion',
+    obligatorio: false,
+    opciones: Object.values(INCORPORACION),
+  },
   { clave: 'regimen', etiqueta: 'Régimen', tipo: 'regimen', obligatorio: false },
   { clave: 'inicio', etiqueta: 'Inicio', tipo: 'fecha', obligatorio: false },
   { clave: 'fin', etiqueta: 'Fin', tipo: 'fecha', obligatorio: false },
@@ -88,7 +94,9 @@ describe('leerFormularioDocumento', () => {
 
   it('exige el número cuando el tipo lo requiere', () => {
     const actual = tipo({ requiereNumero: true });
-    expect(leerFormularioDocumento(formulario(seccion([actual]), actual), seccion([actual]))).toBe('Este tipo de documento exige su número.');
+    expect(leerFormularioDocumento(formulario(seccion([actual]), actual), seccion([actual]))).toBe(
+      'Este tipo de documento exige su número.',
+    );
   });
 
   it('rechaza un vencimiento anterior a la emisión', () => {
@@ -103,7 +111,12 @@ describe('leerFormularioDocumento', () => {
     const secc = seccion([actual]);
     const form = formulario(secc, actual);
     expect(leerFormularioDocumento(form, secc)).toBe('Completa el campo "Tipo de incorporación".');
-    form.controls.datos.patchValue({ tipoIncorporacion: INCORPORACION.primerIngreso, regimen: '3', inicio: '2026-05-01', fin: '2026-01-01' });
+    form.controls.datos.patchValue({
+      tipoIncorporacion: INCORPORACION.primerIngreso,
+      regimen: '3',
+      inicio: '2026-05-01',
+      fin: '2026-01-01',
+    });
     expect(leerFormularioDocumento(form, secc)).toBe('La fecha de término no puede ser anterior a la fecha de inicio.');
   });
 
