@@ -247,12 +247,7 @@
         <form id="formulario-movimiento" class="campos" [formGroup]="confirmacionMovimiento" (ngSubmit)="confirmarMovimiento()" novalidate>
           <div class="campo">
             <label for="confirmar-tipo">Tipo de movimiento <span class="obligatorio" aria-hidden="true">*</span></label>
-            <select id="confirmar-tipo" formControlName="tipo">
-              <option [ngValue]="null" disabled>Seleccionar...</option>
-              @for (movimiento of movimientos; track movimiento) {
-                <option [ngValue]="movimiento">{{ textoMovimiento[movimiento] }}</option>
-              }
-            </select>
+            <app-search-select idCampo="confirmar-tipo" formControlName="tipo" [opciones]="opcionesMovimiento" />
           </div>
           <div class="campo">
             <label for="confirmar-fecha">Fecha efectiva del movimiento <span class="obligatorio" aria-hidden="true">*</span></label>
@@ -260,21 +255,11 @@
           </div>
           <div class="campo">
             <label for="confirmar-origen">Área o dependencia de origen <span class="obligatorio" aria-hidden="true">*</span></label>
-            <select id="confirmar-origen" formControlName="areaOrigenId">
-              <option [ngValue]="null" disabled>Seleccionar...</option>
-              @for (area of areas(); track area.id) {
-                <option [ngValue]="area.id">{{ area.nombre }}</option>
-              }
-            </select>
+            <app-search-select idCampo="confirmar-origen" formControlName="areaOrigenId" [opciones]="areas()" />
           </div>
           <div class="campo">
             <label for="confirmar-destino">Área o dependencia de destino <span class="obligatorio" aria-hidden="true">*</span></label>
-            <select id="confirmar-destino" formControlName="areaDestinoId">
-              <option [ngValue]="null" disabled>Seleccionar...</option>
-              @for (area of areas(); track area.id) {
-                <option [ngValue]="area.id">{{ area.nombre }}</option>
-              }
-            </select>
+            <app-search-select idCampo="confirmar-destino" formControlName="areaDestinoId" [opciones]="areas()" />
           </div>
           <div class="campo completo">
             <label for="confirmar-observacion">Referencia administrativa (opcional)</label>
@@ -292,12 +277,7 @@
         <form id="formulario-cese" class="campos" [formGroup]="confirmacionCese" (ngSubmit)="confirmarCese()" novalidate>
           <div class="campo">
             <label for="cese-motivo">Motivo del cese <span class="obligatorio" aria-hidden="true">*</span></label>
-            <select id="cese-motivo" formControlName="motivo">
-              <option [ngValue]="null" disabled>Seleccionar...</option>
-              @for (motivo of motivos; track motivo) {
-                <option [ngValue]="motivo">{{ textoMotivo[motivo] }}</option>
-              }
-            </select>
+            <app-search-select idCampo="cese-motivo" formControlName="motivo" [opciones]="opcionesMotivoCese" />
           </div>
           <div class="campo">
             <label for="cese-fecha">Fecha efectiva del cese <span class="obligatorio" aria-hidden="true">*</span></label>
