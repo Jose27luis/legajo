@@ -50,7 +50,11 @@
           <b>{{ barra.cantidad }}</b>
         </li>
       } @empty {
-        <li class="celda-vacia">{{ indicadores.isLoading() ? 'Calculando' : 'Sin documentos registrados' }}</li>
+        @if (indicadores.isLoading()) {
+          <li class="cargando"><app-skeleton forma="texto" [cantidad]="6" texto="Calculando" /></li>
+        } @else {
+          <li class="celda-vacia">Sin documentos registrados</li>
+        }
       }
     </ul>
   </section>
@@ -64,7 +68,11 @@
           <b>{{ barra.cantidad }}</b>
         </li>
       } @empty {
-        <li class="celda-vacia">{{ indicadores.isLoading() ? 'Calculando' : 'Sin trabajadores registrados' }}</li>
+        @if (indicadores.isLoading()) {
+          <li class="cargando"><app-skeleton forma="texto" [cantidad]="4" texto="Calculando" /></li>
+        } @else {
+          <li class="celda-vacia">Sin trabajadores registrados</li>
+        }
       }
     </ul>
   </section>
