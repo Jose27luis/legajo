@@ -1,10 +1,11 @@
 import { ChangeDetectionStrategy, Component, computed, inject, linkedSignal, resource, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { SearchSelectComponent, type OpcionBuscable, type ValorOpcion } from '../../../components/search-select/search-select.component';
 import { SkeletonComponent } from '../../../components/skeleton/skeleton.component';
 import { mensajeDeError } from '../../../core/errors';
-import { numeroDe, valorDe } from '../../../core/inputs';
+import { valorDe } from '../../../core/inputs';
 import { TEXTO_ESTADO, TEXTO_TIPO_PERSONAL, fechaCorta } from '../../../core/labels';
-import type { EstadoTrabajador, FiltrosReportePersonal, TipoPersonal } from '../../../core/models';
+import type { FiltrosReportePersonal, TipoPersonal } from '../../../core/models';
 import { SessionService } from '../../../core/session.service';
 import { FilterOptionsService } from '../../../services/filter-options.service';
 import { ReportsService } from '../../../services/reports.service';
@@ -19,9 +20,23 @@ const VACIOS: FiltrosReportePersonal = {
   ingresoHasta: '',
 };
 
+const TIPOS_PERSONAL: readonly TipoPersonal[] = ['ADMINISTRATIVO', 'ASISTENCIAL'];
+
+const OPCIONES_TIPO_PERSONAL: readonly OpcionBuscable[] = [
+  { valor: null, etiqueta: 'Ambos' },
+  { valor: 'ADMINISTRATIVO', etiqueta: 'Administrativo' },
+  { valor: 'ASISTENCIAL', etiqueta: 'Asistencial' },
+];
+
+const OPCIONES_ESTADO: readonly OpcionBuscable[] = [
+  { valor: null, etiqueta: 'Todos' },
+  { valor: 'ACTIVO', etiqueta: 'Activos' },
+  { valor: 'CESADO', etiqueta: 'Cesados' },
+];
+
 @Component({
   selector: 'app-staff-report',
-  imports: [RouterLink, SkeletonComponent],
+  imports: [RouterLink, SkeletonComponent, SearchSelectComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './staff-report.component.html',
   styleUrl: './staff-report.component.css',
@@ -58,21 +73,39 @@ export class StaffReportComponent {
     return Math.max(1, Math.ceil(reporte.total / reporte.porPagina));
   });
 
-  protected cambiar(campo: keyof FiltrosReportePersonal, evento: Event): void {
+  protected readonly opcionesTipoPersonal = OPCIONES_TIPO_PERSONAL;
+  protected readonly opcionesEstado = OPCIONES_ESTADO;
+  protected readonly opcionesArea = computed<OpcionBuscable[]>(() => [
+    { valor: null, etiqueta: 'Todas las áreas' },
+    ...(this.opciones.hasValue() ? this.opciones.value().areas : []).map((area) => ({ valor: area.id, etiqueta: area.nombre })),
+  ]);
+  protected readonly opcionesRegimen = computed<OpcionBuscable[]>(() => [
+    { valor: null, etiqueta: 'Todos los regímenes' },
+    ...(this.opciones.hasValue() ? this.opciones.value().regimenes : []).map((regimen) => ({
+      valor: regimen.id,
+      etiqueta: regimen.nombre,
+    })),
+  ]);
+  protected readonly opcionesCargo = computed<OpcionBuscable[]>(() => [
+    { valor: null, etiqueta: 'Todos los cargos' },
+    ...(this.opciones.hasValue() ? this.opciones.value().cargos : []).map((cargo) => ({ valor: cargo.id, etiqueta: cargo.nombre })),
+  ]);
+
+  protected cambiar(campo: 'ingresoDesde' | 'ingresoHasta', evento: Event): void {
     const valor = valorDe(evento);
-    if (campo === 'ingresoDesde' || campo === 'ingresoHasta') {
-      this.filtros.update((actual) => ({ ...actual, [campo]: valor }));
-      return;
-    }
-    if (campo === 'tipoPersonal') {
-      this.filtros.update((actual) => ({ ...actual, tipoPersonal: valor === '' ? null : (valor as TipoPersonal) }));
-      return;
-    }
-    if (campo === 'estado') {
-      this.filtros.update((actual) => ({ ...actual, estado: valor === '' ? null : (valor as EstadoTrabajador) }));
-      return;
-    }
-    this.filtros.update((actual) => ({ ...actual, [campo]: numeroDe(evento) }));
+    this.filtros.update((actual) => ({ ...actual, [campo]: valor }));
+  }
+
+  protected cambiarNumero(campo: 'areaId' | 'regimenId' | 'cargoId', valor: ValorOpcion): void {
+    this.filtros.update((actual) => ({ ...actual, [campo]: typeof valor === 'number' ? valor : null }));
+  }
+
+  protected cambiarTipoPersonal(valor: ValorOpcion): void {
+    this.filtros.update((actual) => ({ ...actual, tipoPersonal: TIPOS_PERSONAL.find((tipo) => tipo === valor) ?? null }));
+  }
+
+  protected cambiarEstado(valor: ValorOpcion): void {
+    this.filtros.update((actual) => ({ ...actual, estado: valor === 'ACTIVO' || valor === 'CESADO' ? valor : null }));
   }
 
   protected limpiar(): void {
