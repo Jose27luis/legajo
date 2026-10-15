@@ -1,4 +1,4 @@
-import type { CampoSeccion, SeccionLegajo, TipoDocumento } from '../../core/models';
+import type { CampoSeccion, SeccionLegajo, TipoDocumento } from '../../../src/app/core/models';
 import {
   INCORPORACION,
   campoObligatorio,
@@ -6,7 +6,7 @@ import {
   esCurriculum,
   leerFormularioDocumento,
   sincronizarCampos,
-} from './document-form';
+} from '../../../src/app/components/document-fields/document-form';
 
 function tipo(cambios: Partial<TipoDocumento>): TipoDocumento {
   return {
