@@ -7,7 +7,7 @@ import { ToastService } from '../../core/toast.service';
 import { ImportService } from '../../services/import.service';
 
 const TAMANO_MAXIMO = 5 * 1024 * 1024;
-const EXTENSIONES = /\.(csv|xlsx)$/i;
+const EXTENSIONES = /\.(csv|xlsx|xls)$/i;
 
 const PLANTILLA = [
   'dni;apellido_paterno;apellido_materno;nombres;tipo_personal;regimen;area;cargo;estado;fecha_ingreso;fecha_cese;motivo_cese',
@@ -52,7 +52,7 @@ export class ImportComponent {
     const entrada = evento.target;
     const elegido = entrada instanceof HTMLInputElement ? (entrada.files?.item(0) ?? null) : null;
     if (elegido !== null && !EXTENSIONES.test(elegido.name)) {
-      this.error.set('El archivo debe ser .csv o .xlsx.');
+      this.error.set('El archivo debe ser .csv, .xlsx o el padrón .xls de INFORHUS.');
       this.archivo.set(null);
       return;
     }
@@ -67,7 +67,7 @@ export class ImportComponent {
   protected async validar(): Promise<void> {
     const archivo = this.archivo();
     if (archivo === null) {
-      this.error.set('Selecciona un archivo .csv o .xlsx.');
+      this.error.set('Selecciona un archivo .csv, .xlsx o el padrón .xls de INFORHUS.');
       return;
     }
     this.validando.set(true);
