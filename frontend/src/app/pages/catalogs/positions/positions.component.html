@@ -21,7 +21,7 @@
       <tbody>
         @if (cargando()) {
           <tr>
-            <td colspan="3" class="celda-vacia">Cargando cargos</td>
+            <td colspan="3" class="celda-esqueleto"><app-skeleton [columnas]="3" texto="Cargando cargos" /></td>
           </tr>
         } @else {
           @for (cargo of cargos(); track cargo.id) {
@@ -71,7 +71,7 @@
   </form>
   <ng-container pie>
     <button type="button" class="boton" (click)="cerrar()" [disabled]="guardando()">Cancelar</button>
-    <button type="submit" form="formulario-cargo" class="boton principal" [disabled]="guardando()">
+    <button type="submit" form="formulario-cargo" class="boton principal" [disabled]="guardando()" [attr.aria-busy]="guardando()">
       {{ guardando() ? 'Guardando' : editando() === null ? 'Crear cargo' : 'Guardar cambios' }}
     </button>
   </ng-container>
