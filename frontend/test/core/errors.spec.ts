@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { mensajeDeError } from './errors';
+import { mensajeDeError } from '../../src/app/core/errors';
 
 describe('mensajeDeError', () => {
   it('usa el mensaje del servidor cuando es texto', () => {
