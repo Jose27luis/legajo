@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DialogComponent } from '../../components/dialog/dialog.component';
+import { SkeletonComponent } from '../../components/skeleton/skeleton.component';
 import { mensajeDeError } from '../../core/errors';
 import { fechaHora, normalizarTexto } from '../../core/format';
 import type { ClaveTemporal, Rol, Usuario } from '../../core/models';
@@ -17,7 +18,7 @@ interface Confirmacion {
 
 @Component({
   selector: 'app-users',
-  imports: [ReactiveFormsModule, DialogComponent],
+  imports: [ReactiveFormsModule, DialogComponent, SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './users.component.html',
   styleUrl: './users.component.css',
