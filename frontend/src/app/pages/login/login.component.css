@@ -52,6 +52,7 @@
 }
 
 h2 {
+  color: #fff;
   font-size: clamp(28px, 3vw, 36px);
   font-weight: 660;
   font-variation-settings: 'wdth' 112;
