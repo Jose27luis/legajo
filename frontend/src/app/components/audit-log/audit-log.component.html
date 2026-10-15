@@ -15,27 +15,21 @@
   <div class="filtros-reporte">
     <div class="campo">
       <label for="auditoria-usuario">Usuario</label>
-      <select id="auditoria-usuario" (change)="cambiar('usuarioId', $event)">
-        <option value="" [selected]="filtros().usuarioId === ''">Todos los usuarios</option>
-        @if (opciones.value(); as datos) {
-          @for (usuario of datos.usuarios; track usuario.id) {
-            <option [value]="usuario.id" [selected]="filtros().usuarioId === usuario.id">
-              {{ usuario.nombre }} ({{ usuario.usuario }})
-            </option>
-          }
-        }
-      </select>
+      <app-search-select
+        idCampo="auditoria-usuario"
+        [opciones]="opcionesUsuario()"
+        [seleccion]="filtros().usuarioId || null"
+        (cambio)="elegir('usuarioId', $event)"
+      />
     </div>
     <div class="campo">
       <label for="auditoria-accion">Acción</label>
-      <select id="auditoria-accion" (change)="cambiar('accion', $event)">
-        <option value="" [selected]="filtros().accion === ''">Todas las acciones</option>
-        @if (opciones.value(); as datos) {
-          @for (accion of datos.acciones; track accion) {
-            <option [value]="accion" [selected]="filtros().accion === accion">{{ accion }}</option>
-          }
-        }
-      </select>
+      <app-search-select
+        idCampo="auditoria-accion"
+        [opciones]="opcionesAccion()"
+        [seleccion]="filtros().accion || null"
+        (cambio)="elegir('accion', $event)"
+      />
     </div>
     @if (trabajadorId() === '') {
       <div class="campo">
