@@ -25,7 +25,7 @@
   @if (abierto() && opciones().length > 0) {
     <div class="panel" id="resultados-globales" role="listbox" animate.enter="aparece">
       @if (buscando()) {
-        <p class="aviso-panel">Buscando</p>
+        <app-spinner class="aviso-panel" texto="Buscando" />
       }
       @for (opcion of opciones(); track opcion.clave; let i = $index) {
         @if (opcion.grupo !== '' && opcion.grupo !== opciones()[i - 1]?.grupo) {
