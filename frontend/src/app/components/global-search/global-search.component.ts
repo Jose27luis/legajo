@@ -76,7 +76,9 @@ export class GlobalSearchComponent {
           clave: `d-${documento.id}`,
           grupo: 'Documentos',
           etiqueta: documento.tipo,
-          detalle: [documento.trabajador, documento.numero, documento.fechaEmision].filter((parte) => parte !== null && parte !== '').join(' · '),
+          detalle: [documento.trabajador, documento.numero, documento.fechaEmision]
+            .filter((parte) => parte !== null && parte !== '')
+            .join(' · '),
           ruta: ['/workers', documento.trabajadorId, 'sections', numeroSeccion(documento.seccion)],
           texto: null,
         });
