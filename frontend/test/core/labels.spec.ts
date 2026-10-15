@@ -1,5 +1,14 @@
-import type { TrabajadorResumen } from './models';
-import { diasRestantes, fechaCorta, iniciales, nombreCompleto, numeroSeccion, puedeReingresar, tamanoLegible, tonoSeccion } from './labels';
+import type { TrabajadorResumen } from '../../src/app/core/models';
+import {
+  diasRestantes,
+  fechaCorta,
+  iniciales,
+  nombreCompleto,
+  numeroSeccion,
+  puedeReingresar,
+  tamanoLegible,
+  tonoSeccion,
+} from '../../src/app/core/labels';
 
 function trabajador(cambios: Partial<TrabajadorResumen>): TrabajadorResumen {
   return {
