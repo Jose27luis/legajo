@@ -130,7 +130,9 @@
           }
         } @else {
           <tr>
-            <td [attr.colspan]="trabajadorId() === '' ? 5 : 4" class="celda-vacia">Cargando el historial</td>
+            <td [attr.colspan]="trabajadorId() === '' ? 5 : 4" class="celda-esqueleto">
+              <app-skeleton [columnas]="trabajadorId() === '' ? 5 : 4" texto="Cargando el historial" />
+            </td>
           </tr>
         }
       </tbody>
