@@ -17,5 +17,5 @@
 } @else if (faltantes.value(); as datos) {
   <app-requirements-table [datos]="datos" />
 } @else {
-  <p class="celda-vacia">Calculando los requisitos</p>
+  <app-skeleton class="tarjeta" [columnas]="4" texto="Calculando los requisitos" />
 }
