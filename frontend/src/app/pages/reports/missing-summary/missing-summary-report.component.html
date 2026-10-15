@@ -95,10 +95,14 @@
               <td class="celda-numero">{{ fila.vencidos }}</td>
             </tr>
           } @empty {
-            <tr><td [attr.colspan]="columnas()" class="celda-vacia">Ningún trabajador con estos filtros.</td></tr>
+            <tr>
+              <td [attr.colspan]="columnas()" class="celda-vacia">Ningún trabajador con estos filtros.</td>
+            </tr>
           }
         } @else {
-          <tr><td [attr.colspan]="columnas()" class="celda-vacia">Calculando el reporte</td></tr>
+          <tr>
+            <td [attr.colspan]="columnas()" class="celda-vacia">Calculando el reporte</td>
+          </tr>
         }
       </tbody>
     </table>
@@ -115,7 +119,9 @@
     <span>Página {{ pagina() }} de {{ ultimaPagina() }}</span>
     <div>
       <button type="button" class="boton chico" [disabled]="pagina() === 1" (click)="pagina.set(pagina() - 1)">Anterior</button>
-      <button type="button" class="boton chico" [disabled]="pagina() >= ultimaPagina()" (click)="pagina.set(pagina() + 1)">Siguiente</button>
+      <button type="button" class="boton chico" [disabled]="pagina() >= ultimaPagina()" (click)="pagina.set(pagina() + 1)">
+        Siguiente
+      </button>
     </div>
   </footer>
 </section>
