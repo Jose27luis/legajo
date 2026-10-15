@@ -5,10 +5,12 @@
       <div class="campos">
         <div class="campo">
           <label for="ingreso-tipo-doc">Documento de identidad <span class="obligatorio" aria-hidden="true">*</span></label>
-          <select id="ingreso-tipo-doc" formControlName="tipoDocIdentidad" (change)="revisarDocumento()">
-            <option value="DNI">DNI</option>
-            <option value="CE">Carné de extranjería</option>
-          </select>
+          <app-search-select
+            idCampo="ingreso-tipo-doc"
+            formControlName="tipoDocIdentidad"
+            [opciones]="opcionesTipoDocumento"
+            (cambio)="revisarDocumento()"
+          />
         </div>
         <div class="campo">
           <label for="ingreso-numero">
