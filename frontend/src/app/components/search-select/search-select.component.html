@@ -46,8 +46,16 @@
     <svg viewBox="0 0 16 16"><path d="m4 6 4 4 4-4" /></svg>
   </button>
 
-  @if (abierto()) {
-    <div class="panel" [class.arriba]="arriba()">
+  @if (abierto() && posicion(); as lugar) {
+    <div
+      class="panel"
+      [class.arriba]="arriba()"
+      [style.left.px]="lugar.izquierda"
+      [style.width.px]="lugar.ancho"
+      [style.top.px]="lugar.arriba"
+      [style.bottom.px]="lugar.abajo"
+      [style.--alto-panel.px]="lugar.alto"
+    >
       <ul [id]="idCampo() + '-lista'" role="listbox">
         @for (opcion of visibles(); track $index; let indice = $index) {
           <li
