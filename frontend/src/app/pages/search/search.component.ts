@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, linkedSignal, resource, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { SearchSelectComponent, type OpcionBuscable, type ValorOpcion } from '../../components/search-select/search-select.component';
 import { SkeletonComponent } from '../../components/skeleton/skeleton.component';
 import { WorkerPickerComponent } from '../../components/worker-picker/worker-picker.component';
 import { mensajeDeError } from '../../core/errors';
@@ -25,9 +26,30 @@ const ESPERA_MS = 300;
 const DNI = /^\d{8}$/;
 const MINIMO = 2;
 
+const TIPOS_PERSONAL: readonly TipoPersonal[] = ['ADMINISTRATIVO', 'ASISTENCIAL'];
+const ESTADOS_TRABAJADOR: readonly EstadoTrabajador[] = ['ACTIVO', 'CESADO'];
+
+const OPCIONES_ESTADO_DOCUMENTO: readonly OpcionBuscable[] = [
+  { valor: null, etiqueta: 'Registrados' },
+  ...ESTADOS_DOCUMENTO.map((estado) => ({ valor: estado, etiqueta: TEXTO_ESTADO_DOCUMENTO[estado] })),
+  { valor: 'TODOS', etiqueta: 'Todos, incluso anulados' },
+];
+
+const OPCIONES_TIPO_PERSONAL: readonly OpcionBuscable[] = [
+  { valor: null, etiqueta: 'Ambos' },
+  { valor: 'ADMINISTRATIVO', etiqueta: 'Administrativo' },
+  { valor: 'ASISTENCIAL', etiqueta: 'Asistencial' },
+];
+
+const OPCIONES_ESTADO: readonly OpcionBuscable[] = [
+  { valor: null, etiqueta: 'Todos' },
+  { valor: 'ACTIVO', etiqueta: 'Activos' },
+  { valor: 'CESADO', etiqueta: 'Cesados' },
+];
+
 @Component({
   selector: 'app-search',
-  imports: [RouterLink, WorkerPickerComponent, SkeletonComponent],
+  imports: [RouterLink, WorkerPickerComponent, SkeletonComponent, SearchSelectComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './search.component.html',
   styleUrl: './search.component.css',
@@ -43,7 +65,9 @@ export class SearchComponent {
   readonly texto = input('', { transform: (valor: string | undefined) => valor ?? '' });
 
   protected readonly maximoSeleccion = MAXIMO_SELECCION;
-  protected readonly estadosDocumento = ESTADOS_DOCUMENTO;
+  protected readonly opcionesEstadoDocumento = OPCIONES_ESTADO_DOCUMENTO;
+  protected readonly opcionesTipoPersonal = OPCIONES_TIPO_PERSONAL;
+  protected readonly opcionesEstado = OPCIONES_ESTADO;
   protected readonly textoEstadoDocumento = TEXTO_ESTADO_DOCUMENTO;
   protected readonly claseEstadoDocumento = CLASE_ESTADO_DOCUMENTO;
   protected readonly textoEstado = TEXTO_ESTADO;
@@ -86,6 +110,32 @@ export class SearchComponent {
       .flatMap((item) => item.tipos)
       .filter((tipo) => tipo.activo);
   });
+
+  protected readonly opcionesSeccion = computed<OpcionBuscable[]>(() => [
+    { valor: null, etiqueta: 'Todas las secciones' },
+    ...(this.opciones.hasValue()
+      ? this.opciones
+          .value()
+          .secciones.map((seccion) => ({ valor: seccion.numero, etiqueta: `${numeroSeccion(seccion.numero)} ${seccion.nombre}` }))
+      : []),
+  ]);
+
+  protected readonly opcionesTipo = computed<OpcionBuscable[]>(() => [
+    { valor: null, etiqueta: 'Todos los tipos' },
+    ...this.tipos().map((tipo) => ({ valor: tipo.id, etiqueta: `${tipo.codigo} ${tipo.nombre}` })),
+  ]);
+
+  protected readonly opcionesArea = computed<OpcionBuscable[]>(() => [
+    { valor: null, etiqueta: 'Todas las áreas' },
+    ...(this.opciones.hasValue() ? this.opciones.value().areas.map((area) => ({ valor: area.id, etiqueta: area.nombre })) : []),
+  ]);
+
+  protected readonly opcionesRegimen = computed<OpcionBuscable[]>(() => [
+    { valor: null, etiqueta: 'Todos los regímenes' },
+    ...(this.opciones.hasValue()
+      ? this.opciones.value().regimenes.map((regimen) => ({ valor: regimen.id, etiqueta: regimen.nombre }))
+      : []),
+  ]);
 
   protected readonly enlaceExportacion = computed(() => this.servicio.enlaceExportacion(this.filtros()));
 
@@ -141,38 +191,33 @@ export class SearchComponent {
     }
   }
 
-  protected cambiarSeccion(evento: Event): void {
-    const valor = this.leer(evento);
-    this.filtros.update((actual) => ({ ...actual, seccion: valor === '' ? null : Number(valor), tipoDocumentoId: null }));
+  protected cambiarSeccion(valor: ValorOpcion): void {
+    this.filtros.update((actual) => ({ ...actual, seccion: typeof valor === 'number' ? valor : null, tipoDocumentoId: null }));
   }
 
-  protected cambiarTipo(evento: Event): void {
-    const valor = this.leer(evento);
-    this.filtros.update((actual) => ({ ...actual, tipoDocumentoId: valor === '' ? null : Number(valor) }));
+  protected cambiarTipo(valor: ValorOpcion): void {
+    this.filtros.update((actual) => ({ ...actual, tipoDocumentoId: typeof valor === 'number' ? valor : null }));
   }
 
-  protected cambiarArea(evento: Event): void {
-    const valor = this.leer(evento);
-    this.filtros.update((actual) => ({ ...actual, areaId: valor === '' ? null : Number(valor) }));
+  protected cambiarArea(valor: ValorOpcion): void {
+    this.filtros.update((actual) => ({ ...actual, areaId: typeof valor === 'number' ? valor : null }));
   }
 
-  protected cambiarRegimen(evento: Event): void {
-    const valor = this.leer(evento);
-    this.filtros.update((actual) => ({ ...actual, regimenId: valor === '' ? null : Number(valor) }));
+  protected cambiarRegimen(valor: ValorOpcion): void {
+    this.filtros.update((actual) => ({ ...actual, regimenId: typeof valor === 'number' ? valor : null }));
   }
 
-  protected cambiarTipoPersonal(evento: Event): void {
-    const valor = this.leer(evento);
-    this.filtros.update((actual) => ({ ...actual, tipoPersonal: valor === '' ? null : (valor as TipoPersonal) }));
+  protected cambiarTipoPersonal(valor: ValorOpcion): void {
+    const tipoPersonal = TIPOS_PERSONAL.find((item) => item === valor) ?? null;
+    this.filtros.update((actual) => ({ ...actual, tipoPersonal }));
   }
 
-  protected cambiarEstado(evento: Event): void {
-    const valor = this.leer(evento);
-    this.filtros.update((actual) => ({ ...actual, estado: valor === '' ? null : (valor as EstadoTrabajador) }));
+  protected cambiarEstado(valor: ValorOpcion): void {
+    const estado = ESTADOS_TRABAJADOR.find((item) => item === valor) ?? null;
+    this.filtros.update((actual) => ({ ...actual, estado }));
   }
 
-  protected cambiarEstadoDocumento(evento: Event): void {
-    const valor = this.leer(evento);
+  protected cambiarEstadoDocumento(valor: ValorOpcion): void {
     const estado = valor === 'TODOS' ? 'TODOS' : (ESTADOS_DOCUMENTO.find((item) => item === valor) ?? null);
     this.filtros.update((actual) => ({ ...actual, estadoDocumento: estado }));
   }
@@ -245,7 +290,7 @@ export class SearchComponent {
   }
 
   private leer(evento: Event): string {
-    if (evento.target instanceof HTMLSelectElement || evento.target instanceof HTMLInputElement) {
+    if (evento.target instanceof HTMLInputElement) {
       return evento.target.value;
     }
     return '';
