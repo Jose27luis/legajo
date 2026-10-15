@@ -34,11 +34,13 @@
     <h3>Calendario documental</h3>
     <div class="herramientas">
       <label class="solo-lector" for="alertas-dias">Plazo</label>
-      <select id="alertas-dias" (change)="cambiarDias($event)">
-        @for (plazo of plazos; track plazo) {
-          <option [value]="plazo" [selected]="dias() === plazo">{{ plazo }} días</option>
-        }
-      </select>
+      <app-search-select
+        idCampo="alertas-dias"
+        [compacto]="true"
+        [opciones]="opcionesPlazo"
+        [seleccion]="dias()"
+        (cambio)="cambiarDias($event)"
+      />
       @if (sesion.tiene('reportes.exportar')) {
         <a class="boton chico" [href]="enlace()" download>Exportar Excel</a>
       }
