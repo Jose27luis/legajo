@@ -1,10 +1,11 @@
 import { ChangeDetectionStrategy, Component, computed, inject, linkedSignal, resource, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { SearchSelectComponent, type OpcionBuscable, type ValorOpcion } from '../../../components/search-select/search-select.component';
 import { SkeletonComponent } from '../../../components/skeleton/skeleton.component';
 import { mensajeDeError } from '../../../core/errors';
-import { marcadoDe, numeroDe, valorDe } from '../../../core/inputs';
+import { marcadoDe } from '../../../core/inputs';
 import { CLASE_SITUACION, TEXTO_SITUACION, numeroSeccion } from '../../../core/labels';
-import type { EstadoTrabajador, FiltrosConsolidado, TipoPersonal } from '../../../core/models';
+import type { FiltrosConsolidado, TipoPersonal } from '../../../core/models';
 import { SessionService } from '../../../core/session.service';
 import { FilterOptionsService } from '../../../services/filter-options.service';
 import { ReportsService } from '../../../services/reports.service';
@@ -17,9 +18,23 @@ const VACIOS: FiltrosConsolidado = {
   soloIncompletos: false,
 };
 
+const TIPOS_PERSONAL: readonly TipoPersonal[] = ['ADMINISTRATIVO', 'ASISTENCIAL'];
+
+const OPCIONES_TIPO_PERSONAL: readonly OpcionBuscable[] = [
+  { valor: null, etiqueta: 'Ambos' },
+  { valor: 'ADMINISTRATIVO', etiqueta: 'Administrativo' },
+  { valor: 'ASISTENCIAL', etiqueta: 'Asistencial' },
+];
+
+const OPCIONES_ESTADO: readonly OpcionBuscable[] = [
+  { valor: null, etiqueta: 'Todos' },
+  { valor: 'ACTIVO', etiqueta: 'Activos' },
+  { valor: 'CESADO', etiqueta: 'Cesados' },
+];
+
 @Component({
   selector: 'app-missing-summary-report',
-  imports: [RouterLink, SkeletonComponent],
+  imports: [RouterLink, SkeletonComponent, SearchSelectComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './missing-summary-report.component.html',
   styleUrl: './missing-summary-report.component.css',
@@ -57,18 +72,30 @@ export class MissingSummaryReportComponent {
     return Math.max(1, Math.ceil(reporte.total / reporte.porPagina));
   });
 
-  protected cambiar(campo: 'areaId' | 'regimenId', evento: Event): void {
-    this.filtros.update((actual) => ({ ...actual, [campo]: numeroDe(evento) }));
+  protected readonly opcionesTipoPersonal = OPCIONES_TIPO_PERSONAL;
+  protected readonly opcionesEstado = OPCIONES_ESTADO;
+  protected readonly opcionesArea = computed<OpcionBuscable[]>(() => [
+    { valor: null, etiqueta: 'Todas las áreas' },
+    ...(this.opciones.hasValue() ? this.opciones.value().areas : []).map((area) => ({ valor: area.id, etiqueta: area.nombre })),
+  ]);
+  protected readonly opcionesRegimen = computed<OpcionBuscable[]>(() => [
+    { valor: null, etiqueta: 'Todos los regímenes' },
+    ...(this.opciones.hasValue() ? this.opciones.value().regimenes : []).map((regimen) => ({
+      valor: regimen.id,
+      etiqueta: regimen.nombre,
+    })),
+  ]);
+
+  protected cambiar(campo: 'areaId' | 'regimenId', valor: ValorOpcion): void {
+    this.filtros.update((actual) => ({ ...actual, [campo]: typeof valor === 'number' ? valor : null }));
   }
 
-  protected cambiarTipoPersonal(evento: Event): void {
-    const valor = valorDe(evento);
-    this.filtros.update((actual) => ({ ...actual, tipoPersonal: valor === '' ? null : (valor as TipoPersonal) }));
+  protected cambiarTipoPersonal(valor: ValorOpcion): void {
+    this.filtros.update((actual) => ({ ...actual, tipoPersonal: TIPOS_PERSONAL.find((tipo) => tipo === valor) ?? null }));
   }
 
-  protected cambiarEstado(evento: Event): void {
-    const valor = valorDe(evento);
-    this.filtros.update((actual) => ({ ...actual, estado: valor === '' ? null : (valor as EstadoTrabajador) }));
+  protected cambiarEstado(valor: ValorOpcion): void {
+    this.filtros.update((actual) => ({ ...actual, estado: valor === 'ACTIVO' || valor === 'CESADO' ? valor : null }));
   }
 
   protected cambiarSoloIncompletos(evento: Event): void {
