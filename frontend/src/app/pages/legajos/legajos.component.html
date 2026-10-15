@@ -48,7 +48,9 @@
             <tbody>
               @for (trabajador of lista; track trabajador.id) {
                 <tr>
-                  <td><strong>{{ nombreCompleto(trabajador) }}</strong></td>
+                  <td>
+                    <strong>{{ nombreCompleto(trabajador) }}</strong>
+                  </td>
                   <td>{{ trabajador.numeroDoc }}</td>
                   <td>
                     <span class="pastilla" [class.verde]="trabajador.estado === 'ACTIVO'" [class.gris]="trabajador.estado === 'CESADO'">
