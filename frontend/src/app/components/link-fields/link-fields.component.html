@@ -29,21 +29,23 @@
   </div>
   <div class="campo">
     <label [for]="prefijo + '-cargo'">Cargo o puesto <span class="obligatorio" aria-hidden="true">*</span></label>
-    <select [id]="prefijo + '-cargo'" formControlName="cargoId" [attr.aria-invalid]="invalido('cargoId')">
-      <option [ngValue]="null" disabled>Selecciona</option>
-      @for (cargo of opciones()?.cargos ?? []; track cargo.id) {
-        <option [ngValue]="cargo.id">{{ cargo.nombre }}</option>
-      }
-    </select>
+    <app-search-select
+      [idCampo]="prefijo + '-cargo'"
+      formControlName="cargoId"
+      [opciones]="cargos()"
+      [invalido]="invalido('cargoId')"
+      sugerencia="Busca el cargo o puesto"
+    />
   </div>
   <div class="campo">
     <label [for]="prefijo + '-area'">Área o dependencia <span class="obligatorio" aria-hidden="true">*</span></label>
-    <select [id]="prefijo + '-area'" formControlName="areaId" [attr.aria-invalid]="invalido('areaId')">
-      <option [ngValue]="null" disabled>Selecciona</option>
-      @for (area of opciones()?.areas ?? []; track area.id) {
-        <option [ngValue]="area.id">{{ area.nombre }}{{ area.padreNombre ? ' - ' + area.padreNombre : '' }}</option>
-      }
-    </select>
+    <app-search-select
+      [idCampo]="prefijo + '-area'"
+      formControlName="areaId"
+      [opciones]="areas()"
+      [invalido]="invalido('areaId')"
+      sugerencia="Busca el área, establecimiento o microred"
+    />
   </div>
   <div class="campo completo">
     <label [for]="prefijo + '-referencia'">{{ etiquetaReferencia() }} (opcional)</label>
