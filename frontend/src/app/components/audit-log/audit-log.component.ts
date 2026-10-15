@@ -6,13 +6,15 @@ import { valorDe } from '../../core/inputs';
 import type { FiltrosAuditoria } from '../../core/models';
 import { SessionService } from '../../core/session.service';
 import { AuditService } from '../../services/audit.service';
+import { SearchSelectComponent, type OpcionBuscable, type ValorOpcion } from '../search-select/search-select.component';
 import { SkeletonComponent } from '../skeleton/skeleton.component';
 
-type CampoFiltro = 'usuarioId' | 'accion' | 'numeroDoc' | 'desde' | 'hasta';
+type CampoFiltro = 'numeroDoc' | 'desde' | 'hasta';
+type CampoElegible = 'usuarioId' | 'accion';
 
 @Component({
   selector: 'app-audit-log',
-  imports: [RouterLink, SkeletonComponent],
+  imports: [RouterLink, SkeletonComponent, SearchSelectComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './audit-log.component.html',
   styleUrl: './audit-log.component.css',
@@ -38,6 +40,18 @@ export class AuditLogComponent {
     loader: ({ params }) => this.servicio.listar(params.filtros, params.pagina),
   });
 
+  protected readonly opcionesUsuario = computed<OpcionBuscable[]>(() => [
+    { valor: null, etiqueta: 'Todos los usuarios' },
+    ...(this.opciones.hasValue()
+      ? this.opciones.value().usuarios.map((usuario) => ({ valor: usuario.id, etiqueta: `${usuario.nombre} (${usuario.usuario})` }))
+      : []),
+  ]);
+
+  protected readonly opcionesAccion = computed<OpcionBuscable[]>(() => [
+    { valor: null, etiqueta: 'Todas las acciones' },
+    ...(this.opciones.hasValue() ? this.opciones.value().acciones.map((accion) => ({ valor: accion, etiqueta: accion })) : []),
+  ]);
+
   protected readonly error = computed(() => {
     const error = this.registros.error();
     return error === undefined ? null : mensajeDeError(error);
@@ -54,6 +68,10 @@ export class AuditLogComponent {
   protected cambiar(campo: CampoFiltro, evento: Event): void {
     const valor = valorDe(evento).trim();
     this.filtros.update((actual) => ({ ...actual, [campo]: valor }));
+  }
+
+  protected elegir(campo: CampoElegible, valor: ValorOpcion): void {
+    this.filtros.update((actual) => ({ ...actual, [campo]: typeof valor === 'string' ? valor : '' }));
   }
 
   protected limpiar(): void {
