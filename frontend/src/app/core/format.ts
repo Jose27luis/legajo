@@ -9,9 +9,5 @@ export function fechaHora(valor: string | null): string {
 }
 
 export function normalizarTexto(valor: string): string {
-  return valor
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .toLowerCase()
-    .trim();
+  return valor.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
 }
