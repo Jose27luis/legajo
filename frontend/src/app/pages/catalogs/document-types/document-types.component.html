@@ -4,7 +4,7 @@
     <button type="button" class="boton chico" (click)="cargar()">Reintentar</button>
   </div>
 } @else if (cargando()) {
-  <p class="celda-vacia">Cargando secciones</p>
+  <app-skeleton [columnas]="4" [cantidad]="6" texto="Cargando tipos de documento" />
 } @else {
   <div class="distribucion">
     <nav class="secciones" aria-label="Secciones del legajo">
@@ -146,7 +146,7 @@
   </form>
   <ng-container pie>
     <button type="button" class="boton" (click)="cerrar()" [disabled]="guardando()">Cancelar</button>
-    <button type="submit" form="formulario-tipo" class="boton principal" [disabled]="guardando()">
+    <button type="submit" form="formulario-tipo" class="boton principal" [disabled]="guardando()" [attr.aria-busy]="guardando()">
       {{ guardando() ? 'Guardando' : editando() === null ? 'Crear tipo' : 'Guardar cambios' }}
     </button>
   </ng-container>
