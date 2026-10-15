@@ -384,37 +384,37 @@
         }
         @case ('editar') {
           <button type="button" class="boton" (click)="volver()" [disabled]="ocupado()">Cancelar</button>
-          <button type="submit" form="formulario-edicion" class="boton principal" [disabled]="ocupado()">
+          <button type="submit" form="formulario-edicion" class="boton principal" [disabled]="ocupado()" [attr.aria-busy]="ocupado()">
             {{ ocupado() ? 'Guardando' : 'Guardar cambios' }}
           </button>
         }
         @case ('reemplazar') {
           <button type="button" class="boton" (click)="volver()" [disabled]="ocupado()">Cancelar</button>
-          <button type="submit" form="formulario-reemplazo" class="boton principal" [disabled]="ocupado()">
+          <button type="submit" form="formulario-reemplazo" class="boton principal" [disabled]="ocupado()" [attr.aria-busy]="ocupado()">
             {{ progreso() !== null ? 'Subiendo' : ocupado() ? 'Guardando' : 'Confirmar reemplazo' }}
           </button>
         }
         @case ('anular') {
           <button type="button" class="boton" (click)="volver()" [disabled]="ocupado()">Cancelar</button>
-          <button type="submit" form="formulario-anulacion" class="boton peligro lleno" [disabled]="ocupado()">
+          <button type="submit" form="formulario-anulacion" class="boton peligro lleno" [disabled]="ocupado()" [attr.aria-busy]="ocupado()">
             {{ ocupado() ? 'Anulando' : 'Confirmar anulación' }}
           </button>
         }
         @case ('movimiento') {
           <button type="button" class="boton" (click)="volver()" [disabled]="ocupado()">Cancelar</button>
-          <button type="submit" form="formulario-movimiento" class="boton principal" [disabled]="ocupado()">
+          <button type="submit" form="formulario-movimiento" class="boton principal" [disabled]="ocupado()" [attr.aria-busy]="ocupado()">
             {{ ocupado() ? 'Confirmando' : 'Confirmar movimiento' }}
           </button>
         }
         @case ('cese') {
           <button type="button" class="boton" (click)="volver()" [disabled]="ocupado()">Cancelar</button>
-          <button type="submit" form="formulario-cese" class="boton peligro lleno" [disabled]="ocupado()">
+          <button type="submit" form="formulario-cese" class="boton peligro lleno" [disabled]="ocupado()" [attr.aria-busy]="ocupado()">
             {{ ocupado() ? 'Confirmando' : 'Confirmar cese' }}
           </button>
         }
         @case ('reingreso') {
           <button type="button" class="boton" (click)="volver()" [disabled]="ocupado()">Cancelar</button>
-          <button type="button" class="boton principal" (click)="confirmarReingreso()" [disabled]="ocupado()">
+          <button type="button" class="boton principal" (click)="confirmarReingreso()" [disabled]="ocupado()" [attr.aria-busy]="ocupado()">
             {{ ocupado() ? 'Confirmando' : 'Confirmar reingreso y activar' }}
           </button>
         }
