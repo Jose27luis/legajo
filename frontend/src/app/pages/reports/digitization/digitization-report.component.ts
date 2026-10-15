@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, resource, signal } from '@angular/core';
+import { SearchSelectComponent, type OpcionBuscable, type ValorOpcion } from '../../../components/search-select/search-select.component';
 import { SkeletonComponent } from '../../../components/skeleton/skeleton.component';
 import { mensajeDeError } from '../../../core/errors';
 import { valorDe } from '../../../core/inputs';
@@ -9,7 +10,7 @@ import { ReportsService } from '../../../services/reports.service';
 
 @Component({
   selector: 'app-digitization-report',
-  imports: [SkeletonComponent],
+  imports: [SkeletonComponent, SearchSelectComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './digitization-report.component.html',
   styleUrl: './digitization-report.component.css',
@@ -35,9 +36,13 @@ export class DigitizationReportComponent {
 
   protected readonly enlace = computed(() => this.reportes.enlaceDigitalizacion(this.filtros()));
 
-  protected cambiarUsuario(evento: Event): void {
-    const valor = valorDe(evento);
-    this.filtros.update((actual) => ({ ...actual, usuarioId: valor === '' ? null : valor }));
+  protected readonly opcionesUsuario = computed<OpcionBuscable[]>(() => [
+    { valor: null, etiqueta: 'Todas las cuentas' },
+    ...(this.reporte.hasValue() ? this.reporte.value().usuarios : []).map((usuario) => ({ valor: usuario.id, etiqueta: usuario.nombre })),
+  ]);
+
+  protected cambiarUsuario(valor: ValorOpcion): void {
+    this.filtros.update((actual) => ({ ...actual, usuarioId: typeof valor === 'string' && valor !== '' ? valor : null }));
   }
 
   protected cambiarDesde(evento: Event): void {
