@@ -105,7 +105,7 @@
           </span>
         }
       </a>
-      <button type="button" class="boton chico salir" (click)="cerrarSesion()" [disabled]="saliendo()">
+      <button type="button" class="boton chico salir" (click)="cerrarSesion()" [disabled]="saliendo()" [attr.aria-busy]="saliendo()">
         <app-icon nombre="salir" [tamano]="17" />
         <span>{{ saliendo() ? 'Saliendo' : 'Salir' }}</span>
       </button>
