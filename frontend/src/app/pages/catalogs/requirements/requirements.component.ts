@@ -95,9 +95,7 @@ export class RequirementsComponent implements OnInit {
     this.errorFormulario.set(null);
     try {
       const creado = await this.servicio.crearRequisito({ tipoDocumentoId, regimenId, tipoPersonal, aplicaA });
-      this.requisitos.update((lista) =>
-        [...lista, creado].sort((a, b) => a.tipoDocumento.codigo.localeCompare(b.tipoDocumento.codigo)),
-      );
+      this.requisitos.update((lista) => [...lista, creado].sort((a, b) => a.tipoDocumento.codigo.localeCompare(b.tipoDocumento.codigo)));
       this.dialogoAbierto.set(false);
       this.avisos.exito(`${creado.tipoDocumento.nombre} agregado como obligatorio`);
     } catch (error: unknown) {
