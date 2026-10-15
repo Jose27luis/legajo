@@ -35,8 +35,8 @@
         @if (existente(); as trabajador) {
           <div class="existente completo" role="status" aria-live="polite" animate.enter="aparece">
             <p>
-              Este documento ya corresponde a <strong>{{ nombreCompleto(trabajador) }}</strong> ({{ trabajador.estado }}). No
-              debe generarse otro legajo.
+              Este documento ya corresponde a <strong>{{ nombreCompleto(trabajador) }}</strong> ({{ trabajador.estado }}). No debe generarse
+              otro legajo.
             </p>
             <div class="atajos">
               <a class="boton chico" [routerLink]="['/workers', trabajador.id]" (click)="cerrar.emit()">Abrir legajo</a>
