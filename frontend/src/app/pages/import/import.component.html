@@ -14,8 +14,8 @@
     <li><b>3</b> Revisa las observaciones y confirma la importación.</li>
   </ol>
   <p class="nota">
-    Columnas obligatorias: dni, apellido_paterno, nombres, regimen y fecha_ingreso. Las áreas y cargos que no existan se agregan
-    al catálogo. Para un trabajador cesado indica estado CESADO, fecha_cese y motivo_cese. Los DNI ya registrados se omiten.
+    Columnas obligatorias: dni, apellido_paterno, nombres, regimen y fecha_ingreso. Las áreas y cargos que no existan se agregan al
+    catálogo. Para un trabajador cesado indica estado CESADO, fecha_cese y motivo_cese. Los DNI ya registrados se omiten.
   </p>
   <div class="carga">
     <div class="campo">
@@ -97,14 +97,18 @@
               </td>
               <td class="celda-numero">{{ fechaCorta(fila.fechaIngreso) }}</td>
               <td>
-                <span class="pastilla" [class.verde]="fila.estado === 'ACTIVO'" [class.gris]="fila.estado === 'CESADO'">{{ fila.estado }}</span>
+                <span class="pastilla" [class.verde]="fila.estado === 'ACTIVO'" [class.gris]="fila.estado === 'CESADO'">{{
+                  fila.estado
+                }}</span>
                 @if (fila.motivoCese; as motivo) {
                   <span class="secundario">{{ textoMotivo[motivo] }} · {{ fechaCorta(fila.fechaCese) }}</span>
                 }
               </td>
             </tr>
           } @empty {
-            <tr><td colspan="7" class="celda-vacia">Ninguna fila del archivo se puede importar.</td></tr>
+            <tr>
+              <td colspan="7" class="celda-vacia">Ninguna fila del archivo se puede importar.</td>
+            </tr>
           }
         </tbody>
       </table>
