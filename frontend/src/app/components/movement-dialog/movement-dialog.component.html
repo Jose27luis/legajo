@@ -4,23 +4,40 @@
   }
   @if (detalle.value(); as trabajador) {
     <p class="aviso info">
-      <strong>{{ nombreCompleto(trabajador) }} · {{ trabajador.tipoDocIdentidad }} {{ trabajador.numeroDoc }}</strong><br />
-      Movimiento laboral: <strong>{{ textoMovimiento[trabajador.movimientoActual].toUpperCase() }}</strong><br />
+      <strong>{{ nombreCompleto(trabajador) }} · {{ trabajador.tipoDocIdentidad }} {{ trabajador.numeroDoc }}</strong
+      ><br />
+      Movimiento laboral: <strong>{{ textoMovimiento[trabajador.movimientoActual].toUpperCase() }}</strong
+      ><br />
       Estado laboral: {{ trabajador.estado }}
     </p>
     @if (trabajador.movimientoActual === 'SIN_MOVIMIENTO') {
       <p class="nota">Este trabajador no tiene un movimiento laboral registrado.</p>
     } @else {
       <dl class="datos">
-        <div><dt>Puesto o cargo</dt><dd>{{ trabajador.vinculo?.cargo?.nombre ?? 'No registrado' }}</dd></div>
-        <div><dt>Área o dependencia de origen</dt><dd>{{ movimiento()?.areaOrigen?.nombre ?? 'No registrado' }}</dd></div>
-        <div><dt>Área o dependencia de destino</dt><dd>{{ movimiento()?.areaDestino?.nombre ?? trabajador.vinculo?.area?.nombre ?? 'No registrado' }}</dd></div>
-        <div><dt>Fecha efectiva</dt><dd>{{ fechaCorta(movimiento()?.fecha ?? trabajador.movimientoFecha) }}</dd></div>
+        <div>
+          <dt>Puesto o cargo</dt>
+          <dd>{{ trabajador.vinculo?.cargo?.nombre ?? 'No registrado' }}</dd>
+        </div>
+        <div>
+          <dt>Área o dependencia de origen</dt>
+          <dd>{{ movimiento()?.areaOrigen?.nombre ?? 'No registrado' }}</dd>
+        </div>
+        <div>
+          <dt>Área o dependencia de destino</dt>
+          <dd>{{ movimiento()?.areaDestino?.nombre ?? trabajador.vinculo?.area?.nombre ?? 'No registrado' }}</dd>
+        </div>
+        <div>
+          <dt>Fecha efectiva</dt>
+          <dd>{{ fechaCorta(movimiento()?.fecha ?? trabajador.movimientoFecha) }}</dd>
+        </div>
         <div>
           <dt>Documento sustentatorio</dt>
           <dd>{{ documento() ? documento()?.tipo?.nombre + ' · ' + (documento()?.numero ?? 'Sin número') : 'No vinculado' }}</dd>
         </div>
-        <div><dt>Sección documental</dt><dd>05 – Movimientos del personal</dd></div>
+        <div>
+          <dt>Sección documental</dt>
+          <dd>05 – Movimientos del personal</dd>
+        </div>
       </dl>
       @if (movimiento()?.observacion; as observacion) {
         <p class="nota">Referencia: {{ observacion }}</p>
