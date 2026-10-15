@@ -1,15 +1,30 @@
-import { ChangeDetectionStrategy, Component, ElementRef, computed, forwardRef, input, signal, viewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  computed,
+  forwardRef,
+  input,
+  linkedSignal,
+  output,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { NG_VALUE_ACCESSOR, type ControlValueAccessor } from '@angular/forms';
 import { normalizarTexto } from '../../core/format';
 
+export type ValorOpcion = string | number | null;
+
 export interface OpcionBuscable {
-  valor: number;
+  valor: ValorOpcion;
   etiqueta: string;
   detalle?: string | null;
+  deshabilitada?: boolean;
 }
 
 const MAXIMO_VISIBLES = 200;
 const ALTO_LISTA = 300;
+const UMBRAL_BUSCADOR = 7;
 
 @Component({
   selector: 'app-search-select',
@@ -17,21 +32,34 @@ const ALTO_LISTA = 300;
   templateUrl: './search-select.component.html',
   styleUrl: './search-select.component.css',
   providers: [{ provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => SearchSelectComponent), multi: true }],
+  host: { '[class.compacto]': 'compacto()' },
 })
 export class SearchSelectComponent implements ControlValueAccessor {
   readonly opciones = input<readonly OpcionBuscable[]>([]);
   readonly idCampo = input.required<string>();
   readonly invalido = input(false);
-  readonly sugerencia = input('Busca o elige una opción');
+  readonly sugerencia = input('');
+  readonly buscador = input<boolean | null>(null);
+  readonly compacto = input(false);
+  readonly seleccion = input<ValorOpcion | undefined>(undefined);
+  readonly bloqueado = input(false);
+  readonly descripcion = input<string | null>(null);
+  readonly cambio = output<ValorOpcion>();
 
   private readonly entrada = viewChild.required<ElementRef<HTMLInputElement>>('entrada');
 
-  protected readonly valor = signal<number | null>(null);
+  protected readonly valor = linkedSignal<ValorOpcion>(() => this.seleccion() ?? null);
   protected readonly texto = signal('');
   protected readonly abierto = signal(false);
   protected readonly activa = signal(-1);
   protected readonly arriba = signal(false);
-  protected readonly deshabilitado = signal(false);
+  private readonly deshabilitadoPorFormulario = signal(false);
+
+  protected readonly deshabilitado = computed(() => this.bloqueado() || this.deshabilitadoPorFormulario());
+  protected readonly conBuscador = computed(() => this.buscador() ?? this.opciones().length > UMBRAL_BUSCADOR);
+  protected readonly textoSugerencia = computed(
+    () => this.sugerencia() || (this.conBuscador() ? 'Busca o elige una opción' : 'Selecciona'),
+  );
 
   protected readonly seleccionada = computed(() => this.opciones().find((opcion) => opcion.valor === this.valor()) ?? null);
   protected readonly textoElegido = computed(() => {
@@ -52,14 +80,14 @@ export class SearchSelectComponent implements ControlValueAccessor {
 
   protected readonly visibles = computed(() => this.coincidencias().slice(0, MAXIMO_VISIBLES));
 
-  private alCambiar: (valor: number | null) => void = () => undefined;
+  private alCambiar: (valor: ValorOpcion) => void = () => undefined;
   private alTocar: () => void = () => undefined;
 
   writeValue(valor: unknown): void {
-    this.valor.set(typeof valor === 'number' ? valor : null);
+    this.valor.set(typeof valor === 'number' || typeof valor === 'string' ? valor : null);
   }
 
-  registerOnChange(funcion: (valor: number | null) => void): void {
+  registerOnChange(funcion: (valor: ValorOpcion) => void): void {
     this.alCambiar = funcion;
   }
 
@@ -68,7 +96,7 @@ export class SearchSelectComponent implements ControlValueAccessor {
   }
 
   setDisabledState(deshabilitado: boolean): void {
-    this.deshabilitado.set(deshabilitado);
+    this.deshabilitadoPorFormulario.set(deshabilitado);
   }
 
   protected abrir(): void {
@@ -100,12 +128,11 @@ export class SearchSelectComponent implements ControlValueAccessor {
     if (evento.target instanceof HTMLInputElement) {
       this.abrir();
       this.texto.set(evento.target.value);
-      this.activa.set(this.visibles().length > 0 ? 0 : -1);
+      this.activa.set(this.siguienteHabilitada(-1, 1));
     }
   }
 
   protected teclado(evento: KeyboardEvent): void {
-    const total = this.visibles().length;
     switch (evento.key) {
       case 'ArrowDown':
       case 'ArrowUp': {
@@ -114,20 +141,23 @@ export class SearchSelectComponent implements ControlValueAccessor {
           this.abrir();
           return;
         }
-        if (total === 0) {
-          return;
-        }
-        const paso = evento.key === 'ArrowDown' ? 1 : -1;
-        const siguiente = (this.activa() + paso + total) % total;
+        const siguiente = this.siguienteHabilitada(this.activa(), evento.key === 'ArrowDown' ? 1 : -1);
         this.activa.set(siguiente);
-        this.mostrarActiva(siguiente);
+        if (siguiente >= 0) {
+          this.mostrarActiva(siguiente);
+        }
         return;
       }
-      case 'Enter': {
-        if (!this.abierto()) {
+      case 'Enter':
+      case ' ': {
+        if (evento.key === ' ' && this.conBuscador()) {
           return;
         }
         evento.preventDefault();
+        if (!this.abierto()) {
+          this.abrir();
+          return;
+        }
         const opcion = this.visibles()[this.activa()];
         if (opcion !== undefined) {
           this.elegir(opcion);
@@ -150,13 +180,32 @@ export class SearchSelectComponent implements ControlValueAccessor {
   }
 
   protected elegir(opcion: OpcionBuscable): void {
+    if (opcion.deshabilitada) {
+      return;
+    }
+    const cambio = opcion.valor !== this.valor();
     this.valor.set(opcion.valor);
-    this.alCambiar(opcion.valor);
     this.cerrar();
+    if (cambio) {
+      this.alCambiar(opcion.valor);
+      this.cambio.emit(opcion.valor);
+    }
   }
 
   protected alSalir(): void {
     this.cerrar();
+  }
+
+  private siguienteHabilitada(desde: number, paso: 1 | -1): number {
+    const opciones = this.visibles();
+    const total = opciones.length;
+    for (let intento = 1; intento <= total; intento++) {
+      const indice = (((desde + paso * intento) % total) + total) % total;
+      if (!opciones[indice]?.deshabilitada) {
+        return indice;
+      }
+    }
+    return -1;
   }
 
   private cerrar(): void {
