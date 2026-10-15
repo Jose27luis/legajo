@@ -87,20 +87,6 @@ h3 {
   margin: 0;
 }
 
-.filtro {
-  height: 38px;
-  padding: 0 10px;
-  border: 1px solid var(--linea);
-  border-radius: var(--radio-control);
-  background: #fff;
-  font-size: 13.5px;
-}
-
-.filtro:focus-visible {
-  border-color: var(--primario);
-  box-shadow: 0 0 0 4px rgb(28 101 160 / 0.13);
-}
-
 .archivos {
   margin: 0;
   padding: 0;
