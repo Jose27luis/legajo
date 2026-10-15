@@ -3,9 +3,7 @@
     <h3 id="titulo-identidad">Documentación de identidad · Sección 01</h3>
     <span class="pastilla azul">{{ registrados() === 1 ? '1 documento' : registrados() + ' documentos' }}</span>
   </div>
-  <p class="aviso sensible">
-    La copia del DNI contiene datos personales. Solo debe ser consultada y descargada por usuarios autorizados.
-  </p>
+  <p class="aviso sensible">La copia del DNI contiene datos personales. Solo debe ser consultada y descargada por usuarios autorizados.</p>
 
   <div class="tabla-contenedor">
     <table class="tabla">
@@ -24,7 +22,9 @@
               <strong>{{ documento.tipo.nombre }}</strong>
               <span class="secundario">{{ nombreArchivo(documento) }}</span>
             </td>
-            <td><span class="pastilla" [class]="claseEstado[documento.estado]">{{ textoEstado[documento.estado] }}</span></td>
+            <td>
+              <span class="pastilla" [class]="claseEstado[documento.estado]">{{ textoEstado[documento.estado] }}</span>
+            </td>
             <td class="fecha">{{ fechaHora(documento.creadoEn) }}</td>
             <td>
               <div class="fila-acciones">
@@ -39,7 +39,9 @@
             </td>
           </tr>
         } @empty {
-          <tr><td colspan="4" class="celda-vacia">No se ha registrado un DNI ampliado para este trabajador.</td></tr>
+          <tr>
+            <td colspan="4" class="celda-vacia">No se ha registrado un DNI ampliado para este trabajador.</td>
+          </tr>
         }
       </tbody>
     </table>
