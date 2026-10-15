@@ -14,6 +14,7 @@ import {
 import { RouterLink } from '@angular/router';
 import { ReentryDialogComponent } from '../reentry-dialog/reentry-dialog.component';
 import { SituationDialogComponent } from '../situation-dialog/situation-dialog.component';
+import { SkeletonComponent } from '../skeleton/skeleton.component';
 import { mensajeDeError } from '../../core/errors';
 import {
   CLASE_MOVIMIENTO,
@@ -35,7 +36,7 @@ const ESPERA_BUSQUEDA_MS = 300;
 
 @Component({
   selector: 'app-worker-directory',
-  imports: [RouterLink, SituationDialogComponent, ReentryDialogComponent],
+  imports: [RouterLink, SituationDialogComponent, ReentryDialogComponent, SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './worker-directory.component.html',
   styleUrl: './worker-directory.component.css',
