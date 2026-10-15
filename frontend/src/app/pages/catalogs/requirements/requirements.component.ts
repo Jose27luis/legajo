@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DialogComponent } from '../../../components/dialog/dialog.component';
+import { SkeletonComponent } from '../../../components/skeleton/skeleton.component';
 import { mensajeDeError } from '../../../core/errors';
 import type { AplicaA, Regimen, Requisito, Seccion, TipoPersonal } from '../../../core/models';
 import { ToastService } from '../../../core/toast.service';
@@ -19,7 +20,7 @@ const TEXTO_APLICA_A: Record<AplicaA, string> = {
 
 @Component({
   selector: 'app-requirements',
-  imports: [ReactiveFormsModule, DialogComponent],
+  imports: [ReactiveFormsModule, DialogComponent, SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './requirements.component.html',
   styleUrl: './requirements.component.css',
