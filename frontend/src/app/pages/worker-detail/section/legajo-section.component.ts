@@ -178,10 +178,6 @@ export class LegajoSectionComponent implements OnDestroy {
     return seccion.campos.map((campo) => campo.etiqueta).join(' · ');
   }
 
-  protected listaTipos(seccion: SeccionLegajo): string {
-    return seccion.tipos.map((tipo) => `${tipo.codigo} ${tipo.nombre}`).join(' · ');
-  }
-
   protected readonly enlaceZip = computed(() => this.servicio.enlaceZip(this.contexto.id(), [Number(this.numero())]));
 
   protected readonly seleccionadoId = signal<string | null>(null);
