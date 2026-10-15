@@ -56,12 +56,13 @@
           }
         </label>
         <label class="solo-lector" for="filtro-estado">Estado</label>
-        <select id="filtro-estado" class="filtro" (change)="alFiltrar($event)">
-          <option value="" [selected]="filtroEstado() === ''">Todos los estados</option>
-          @for (estado of estados; track estado) {
-            <option [value]="estado" [selected]="filtroEstado() === estado">{{ textoEstado[estado] }}</option>
-          }
-        </select>
+        <app-search-select
+          idCampo="filtro-estado"
+          [compacto]="true"
+          [opciones]="opcionesEstado"
+          [seleccion]="filtroEstado() || null"
+          (cambio)="alFiltrar($event)"
+        />
       </div>
 
       @if (documentos().length === 0) {
