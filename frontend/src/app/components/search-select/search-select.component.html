@@ -1,29 +1,39 @@
-<div class="combo" [class.abierto]="abierto()" [class.invalido]="invalido()" [class.deshabilitado]="deshabilitado()">
-  <svg class="lupa" viewBox="0 0 24 24" aria-hidden="true">
-    <circle cx="11" cy="11" r="6.5" />
-    <path d="m16 16 4 4" />
-  </svg>
+<div
+  class="combo"
+  [class.abierto]="abierto()"
+  [class.invalido]="invalido()"
+  [class.deshabilitado]="deshabilitado()"
+  [class.con-buscador]="conBuscador()"
+>
+  @if (conBuscador()) {
+    <svg class="lupa" viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="11" cy="11" r="6.5" />
+      <path d="m16 16 4 4" />
+    </svg>
+  }
   <input
     #entrada
     [id]="idCampo()"
     type="text"
     role="combobox"
     autocomplete="off"
-    aria-autocomplete="list"
+    [attr.aria-autocomplete]="conBuscador() ? 'list' : 'none'"
     [attr.aria-expanded]="abierto()"
     [attr.aria-controls]="idCampo() + '-lista'"
     [attr.aria-activedescendant]="abierto() && activa() >= 0 ? idCampo() + '-opcion-' + activa() : null"
     [attr.aria-invalid]="invalido()"
+    [attr.aria-describedby]="descripcion()"
+    [readOnly]="!conBuscador()"
     [disabled]="deshabilitado()"
-    [value]="abierto() ? texto() : textoElegido()"
-    (focus)="abrir()"
-    (click)="abrir()"
+    [value]="abierto() && conBuscador() ? texto() : textoElegido()"
+    (focus)="conBuscador() && abrir()"
+    (click)="conBuscador() ? abrir() : alternar()"
     (input)="escribir($event)"
     (keydown)="teclado($event)"
     (blur)="alSalir()"
   />
-  @if (abierto() ? texto() === '' : seleccionada() === null) {
-    <span class="sugerencia" aria-hidden="true">{{ abierto() && seleccionada() ? textoElegido() : sugerencia() }}</span>
+  @if (abierto() && conBuscador() ? texto() === '' : seleccionada() === null) {
+    <span class="sugerencia" aria-hidden="true">{{ abierto() && seleccionada() ? textoElegido() : textoSugerencia() }}</span>
   }
   <button
     type="button"
@@ -39,14 +49,16 @@
   @if (abierto()) {
     <div class="panel" [class.arriba]="arriba()">
       <ul [id]="idCampo() + '-lista'" role="listbox">
-        @for (opcion of visibles(); track opcion.valor; let indice = $index) {
+        @for (opcion of visibles(); track $index; let indice = $index) {
           <li
             [id]="idCampo() + '-opcion-' + indice"
             role="option"
             [attr.aria-selected]="opcion.valor === valor()"
+            [attr.aria-disabled]="opcion.deshabilitada ? true : null"
             [class.activa]="indice === activa()"
+            [class.inactiva]="opcion.deshabilitada"
             (mousedown)="$event.preventDefault(); elegir(opcion)"
-            (mouseenter)="activa.set(indice)"
+            (mouseenter)="!opcion.deshabilitada && activa.set(indice)"
           >
             <span class="textos">
               <span class="etiqueta">{{ opcion.etiqueta }}</span>
@@ -62,12 +74,14 @@
           <li class="vacio" role="presentation">Ninguna opción coincide con «{{ texto() }}»</li>
         }
       </ul>
-      <p class="pie">
-        {{ coincidencias().length }} {{ coincidencias().length === 1 ? 'opción' : 'opciones' }}
-        @if (coincidencias().length > visibles().length) {
-          · escribe para acotar
-        }
-      </p>
+      @if (conBuscador()) {
+        <p class="pie">
+          {{ coincidencias().length }} {{ coincidencias().length === 1 ? 'opción' : 'opciones' }}
+          @if (coincidencias().length > visibles().length) {
+            · escribe para acotar
+          }
+        </p>
+      }
     </div>
   }
 </div>
