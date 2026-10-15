@@ -42,11 +42,11 @@
           <path d="M24 40V22m-7 7 7-7 7 7" />
         </svg>
         <span class="zona-titulo">{{ arrastrando() ? 'Suelta el archivo para analizarlo' : 'Arrastra el archivo aquí' }}</span>
-        <span class="zona-texto">o <u>elige uno desde tu equipo</u>. El análisis empieza solo.</span>
+        <span class="zona-texto">o <u>elige uno desde tu equipo</u></span>
         <span class="formatos">
           <span class="formato">CSV</span>
           <span class="formato">XLSX</span>
-          <span class="formato">INFORHUS .xls</span>
+          <span class="formato">XLS</span>
           <span class="limite">hasta 5 MB</span>
         </span>
         <input id="importar-archivo" class="solo-lector" type="file" accept=".csv,.xlsx,.xls" (change)="elegir($event)" />
@@ -60,14 +60,6 @@
             <code>fecha_ingreso</code>. Opcionales: <code>apellido_materno</code>, <code>tipo_personal</code>, <code>area</code>,
             <code>cargo</code>, <code>estado</code>, <code>fecha_cese</code> y <code>motivo_cese</code>. Las fechas pueden ir como
             AAAA-MM-DD o DD/MM/AAAA.
-          </p>
-        </details>
-        <details>
-          <summary>Cómo se lee el padrón de INFORHUS</summary>
-          <p>
-            Súbelo tal como sale del sistema. Cada trabajador se ubica en su establecimiento por el código RENIPRESS o, si es de la sede, en
-            su unidad orgánica. Se toman el cargo, el régimen, el sexo, la fecha de nacimiento y la fecha del primer contrato o del
-            nombramiento.
           </p>
         </details>
       </div>
