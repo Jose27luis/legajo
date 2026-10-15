@@ -72,6 +72,31 @@ function aObjetos(filas: string[][]): FilaLeida[] {
   return datos.map((fila) => Object.fromEntries(claves.map((nombre, posicion) => [nombre, (fila[posicion] ?? '').trim()])));
 }
 
+const ENTIDADES: Readonly<Record<string, string>> = { nbsp: ' ', amp: '&', lt: '<', gt: '>', quot: '"', apos: "'" };
+
+function textoHtml(celda: string): string {
+  return celda
+    .replace(/<br\s*\/?>/gi, ' ')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&#(\d+);/g, (_, codigo: string) => String.fromCodePoint(Number(codigo)))
+    .replace(/&([a-z]+);/gi, (entidad: string, nombre: string) => ENTIDADES[nombre.toLowerCase()] ?? entidad)
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function tablaHtml(texto: string): string[][] {
+  const limpio = texto.replace(/<!--[\s\S]*?-->/g, '');
+  const filas = [...limpio.matchAll(/<tr[^>]*>([\s\S]*?)<\/tr>/gi)].map((fila) =>
+    [...(fila[1] ?? '').matchAll(/<t[dh][^>]*>([\s\S]*?)<\/t[dh]>/gi)].map((celda) => textoHtml(celda[1] ?? '')),
+  );
+  const inicio = filas.findIndex((fila) => fila.filter((celda) => celda !== '').length >= 5);
+  if (inicio === -1) {
+    throw new BadRequestException('No se encontró una tabla con encabezados en el archivo');
+  }
+  const columnas = filas[inicio]?.length ?? 0;
+  return filas.slice(inicio).filter((fila, posicion) => posicion === 0 || (fila.length === columnas && fila.some((celda) => celda !== '')));
+}
+
 function textoDeCelda(valor: CellValue): string {
   if (valor === null || valor === undefined) {
     return '';
@@ -105,10 +130,14 @@ export async function leerArchivo(nombre: string, contenido: Buffer): Promise<Fi
     return aObjetos(separarCsv(texto.charCodeAt(0) === MARCA_BOM ? texto.slice(1) : texto));
   }
   if (extension === 'xls') {
-    throw new BadRequestException('El formato .xls antiguo no se admite. Guarda el archivo como .xlsx o .csv.');
+    const texto = contenido.toString('utf8');
+    if (!/<table/i.test(texto.slice(0, 20000))) {
+      throw new BadRequestException('Este .xls es del formato antiguo de Excel. Guárdalo como .xlsx o .csv, o usa el padrón exportado de INFORHUS.');
+    }
+    return aObjetos(tablaHtml(texto));
   }
   if (extension !== 'xlsx') {
-    throw new BadRequestException('Formato no permitido. Usa un archivo .csv o .xlsx.');
+    throw new BadRequestException('Formato no permitido. Usa un archivo .csv, .xlsx o el padrón .xls de INFORHUS.');
   }
   const libro = new Workbook();
   try {
