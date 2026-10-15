@@ -12,13 +12,7 @@
   <div class="filtros">
     <div class="campo buscar">
       <label for="directorio-busqueda">Buscar por documento o nombre</label>
-      <input
-        id="directorio-busqueda"
-        type="search"
-        autocomplete="off"
-        [value]="textoBusqueda()"
-        (input)="escribirBusqueda($event)"
-      />
+      <input id="directorio-busqueda" type="search" autocomplete="off" [value]="textoBusqueda()" (input)="escribirBusqueda($event)" />
     </div>
     <div class="campo">
       <label for="directorio-estado">Estado laboral</label>
@@ -71,57 +65,59 @@
           </tr>
         } @else {
           @if (listado.value(); as paginaActual) {
-          @for (trabajador of paginaActual.items; track trabajador.id) {
-            <tr>
-              <td>
-                <a class="nombre" [routerLink]="['/workers', trabajador.id]">{{ nombreCompleto(trabajador) }}</a>
-                <span class="secundario">{{ trabajador.tipoDocIdentidad }} {{ trabajador.numeroDoc }}</span>
-              </td>
-              <td>
-                {{ trabajador.vinculo?.cargo?.nombre ?? 'Sin vínculo' }}
-                @if (trabajador.vinculo; as vinculo) {
-                  <span class="secundario">{{ vinculo.regimen.nombre }}, {{ textoTipoPersonal[vinculo.tipoPersonal].toLowerCase() }}</span>
-                }
-              </td>
-              <td>{{ trabajador.vinculo?.area?.nombre ?? '' }}</td>
-              <td>
-                <span class="pastilla" [class.verde]="trabajador.estado === 'ACTIVO'" [class.gris]="trabajador.estado === 'CESADO'">
-                  {{ textoEstado[trabajador.estado] }}
-                </span>
-                @if (trabajador.estado === 'CESADO' && trabajador.vinculo?.motivoFin; as motivo) {
-                  <span class="secundario">{{ textoMotivo[motivo] }}</span>
-                }
-              </td>
-              <td>
-                @if (trabajador.movimientoActual === 'SIN_MOVIMIENTO') {
-                  <span class="sin-movimiento">Sin movimiento</span>
-                } @else {
-                  <span class="pastilla" [class]="claseMovimiento[trabajador.movimientoActual]">
-                    {{ textoMovimiento[trabajador.movimientoActual] }}
-                  </span>
-                }
-              </td>
-              <td class="legajo" [class.vacio]="trabajador.documentos === 0">
-                <span class="cantidad">{{ trabajador.documentos }}</span> PDF
-              </td>
-              <td>
-                <div class="fila-acciones">
-                  <a class="boton chico" [routerLink]="['/workers', trabajador.id]">Abrir legajo</a>
-                  @if (sesion.tiene('personal.editar')) {
-                    @if (trabajador.estado === 'ACTIVO') {
-                      <button type="button" class="boton chico" (click)="abrirSituacion(trabajador)">Situación</button>
-                    } @else if (puedeReingresar(trabajador)) {
-                      <button type="button" class="boton chico" (click)="abrirReingreso(trabajador)">Reingreso</button>
-                    }
+            @for (trabajador of paginaActual.items; track trabajador.id) {
+              <tr>
+                <td>
+                  <a class="nombre" [routerLink]="['/workers', trabajador.id]">{{ nombreCompleto(trabajador) }}</a>
+                  <span class="secundario">{{ trabajador.tipoDocIdentidad }} {{ trabajador.numeroDoc }}</span>
+                </td>
+                <td>
+                  {{ trabajador.vinculo?.cargo?.nombre ?? 'Sin vínculo' }}
+                  @if (trabajador.vinculo; as vinculo) {
+                    <span class="secundario"
+                      >{{ vinculo.regimen.nombre }}, {{ textoTipoPersonal[vinculo.tipoPersonal].toLowerCase() }}</span
+                    >
                   }
-                </div>
-              </td>
-            </tr>
-          } @empty {
-            <tr>
-              <td colspan="7" class="celda-vacia">No hay trabajadores con estos filtros.</td>
-            </tr>
-          }
+                </td>
+                <td>{{ trabajador.vinculo?.area?.nombre ?? '' }}</td>
+                <td>
+                  <span class="pastilla" [class.verde]="trabajador.estado === 'ACTIVO'" [class.gris]="trabajador.estado === 'CESADO'">
+                    {{ textoEstado[trabajador.estado] }}
+                  </span>
+                  @if (trabajador.estado === 'CESADO' && trabajador.vinculo?.motivoFin; as motivo) {
+                    <span class="secundario">{{ textoMotivo[motivo] }}</span>
+                  }
+                </td>
+                <td>
+                  @if (trabajador.movimientoActual === 'SIN_MOVIMIENTO') {
+                    <span class="sin-movimiento">Sin movimiento</span>
+                  } @else {
+                    <span class="pastilla" [class]="claseMovimiento[trabajador.movimientoActual]">
+                      {{ textoMovimiento[trabajador.movimientoActual] }}
+                    </span>
+                  }
+                </td>
+                <td class="legajo" [class.vacio]="trabajador.documentos === 0">
+                  <span class="cantidad">{{ trabajador.documentos }}</span> PDF
+                </td>
+                <td>
+                  <div class="fila-acciones">
+                    <a class="boton chico" [routerLink]="['/workers', trabajador.id]">Abrir legajo</a>
+                    @if (sesion.tiene('personal.editar')) {
+                      @if (trabajador.estado === 'ACTIVO') {
+                        <button type="button" class="boton chico" (click)="abrirSituacion(trabajador)">Situación</button>
+                      } @else if (puedeReingresar(trabajador)) {
+                        <button type="button" class="boton chico" (click)="abrirReingreso(trabajador)">Reingreso</button>
+                      }
+                    }
+                  </div>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="7" class="celda-vacia">No hay trabajadores con estos filtros.</td>
+              </tr>
+            }
           } @else {
             <tr>
               <td colspan="7" class="celda-vacia">Cargando trabajadores</td>
@@ -133,9 +129,7 @@
   </div>
 
   <footer class="pie">
-    <p>
-      Los movimientos (rotación, destaque, encargatura) no son estados laborales. Un trabajador rotado puede continuar ACTIVO.
-    </p>
+    <p>Los movimientos (rotación, destaque, encargatura) no son estados laborales. Un trabajador rotado puede continuar ACTIVO.</p>
     <div class="paginas">
       <button type="button" class="boton chico" [disabled]="!hayAnterior()" (click)="pagina.set(pagina() - 1)">Anterior</button>
       <button type="button" class="boton chico" [disabled]="!haySiguiente()" (click)="pagina.set(pagina() + 1)">Siguiente</button>
