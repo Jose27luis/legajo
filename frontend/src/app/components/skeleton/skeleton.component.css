@@ -1,0 +1,104 @@
+:host {
+  display: grid;
+  gap: 12px;
+}
+
+.linea {
+  height: 12px;
+}
+
+.linea.chica {
+  height: 9px;
+}
+
+.linea.titulo {
+  height: 18px;
+}
+
+.fila {
+  display: grid;
+  gap: 18px;
+  align-items: center;
+  padding: 6px 2px;
+}
+
+:host(.forma-filas) {
+  gap: 4px;
+  padding: 8px 6px;
+}
+
+:host(.forma-filas) .fila + .fila {
+  padding-top: 12px;
+  border-top: 1px solid var(--linea-suave);
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 4px;
+}
+
+.lineas {
+  display: grid;
+  flex: 1;
+  gap: 8px;
+}
+
+.avatar {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+}
+
+.avatar.grande {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+}
+
+.pastilla {
+  flex: none;
+  width: 70px;
+  height: 22px;
+  border-radius: 999px;
+}
+
+:host(.forma-tarjetas) {
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+}
+
+.tarjeta-esqueleto {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid var(--linea);
+  border-radius: 12px;
+  background: var(--hoja);
+}
+
+.cifra {
+  width: 38%;
+  height: 28px;
+}
+
+:host(.forma-texto) {
+  gap: 10px;
+}
+
+.persona {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border: 1px solid var(--linea);
+  border-radius: 12px;
+  background: var(--hoja);
+}
+
+.bloques {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+}
