@@ -16,29 +16,25 @@
     </div>
     <div class="campo">
       <label for="directorio-estado">Estado laboral</label>
-      <select id="directorio-estado" (change)="cambiarEstado($event)">
-        <option value="" [selected]="estado() === ''">Todos</option>
-        <option value="ACTIVO" [selected]="estado() === 'ACTIVO'">Activos</option>
-        <option value="CESADO" [selected]="estado() === 'CESADO'">Cesados</option>
-      </select>
+      <app-search-select
+        idCampo="directorio-estado"
+        [opciones]="opcionesEstado"
+        [seleccion]="estado() || null"
+        (cambio)="cambiarEstado($event)"
+      />
     </div>
     <div class="campo">
       <label for="directorio-movimiento">Último movimiento</label>
-      <select id="directorio-movimiento" (change)="cambiarMovimiento($event)">
-        <option value="" [selected]="movimiento() === ''">Todos</option>
-        @for (opcion of movimientos; track opcion) {
-          <option [value]="opcion" [selected]="movimiento() === opcion">{{ textoMovimiento[opcion] }}</option>
-        }
-      </select>
+      <app-search-select
+        idCampo="directorio-movimiento"
+        [opciones]="opcionesMovimiento"
+        [seleccion]="movimiento() || null"
+        (cambio)="cambiarMovimiento($event)"
+      />
     </div>
     <div class="campo">
       <label for="directorio-area">Área actual</label>
-      <select id="directorio-area" (change)="cambiarArea($event)">
-        <option value="" [selected]="areaId() === null">Todas las áreas</option>
-        @for (area of areas(); track area.id) {
-          <option [value]="area.id" [selected]="areaId() === area.id">{{ area.nombre }}</option>
-        }
-      </select>
+      <app-search-select idCampo="directorio-area" [opciones]="opcionesArea()" [seleccion]="areaId()" (cambio)="cambiarArea($event)" />
     </div>
   </div>
 
