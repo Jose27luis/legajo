@@ -62,7 +62,10 @@ export class PermissionsComponent {
   protected async guardar(rol: PermisoRolSeccion): Promise<void> {
     this.guardando.set(rol.id);
     try {
-      const actualizado = await this.servicio.actualizar(rol.id, [...rol.restringidas].sort((a, b) => a - b));
+      const actualizado = await this.servicio.actualizar(
+        rol.id,
+        [...rol.restringidas].sort((a, b) => a - b),
+      );
       this.permisos.update((datos) =>
         datos === undefined ? datos : { ...datos, roles: datos.roles.map((item) => (item.id === actualizado.id ? actualizado : item)) },
       );
