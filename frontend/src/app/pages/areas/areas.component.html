@@ -1,12 +1,43 @@
+<header class="cabecera-seccion">
+  <div>
+    <p class="antetitulo">Administración</p>
+    <h2>Áreas y dependencias</h2>
+    <p>Oficinas, unidades orgánicas y establecimientos de salud donde trabaja el personal. Cada una puede depender de otra.</p>
+  </div>
+  <button type="button" class="boton principal" (click)="nuevo()" [disabled]="cargando()">Nueva área o dependencia</button>
+</header>
+
 @if (errorCarga(); as mensaje) {
   <div class="aviso error" role="alert">
     {{ mensaje }}
     <button type="button" class="boton chico" (click)="cargar()">Reintentar</button>
   </div>
 } @else {
+  <dl class="cifras-reporte">
+    <div>
+      <dt>Áreas activas</dt>
+      <dd>{{ cargando() ? '—' : resumen().activas }}</dd>
+    </div>
+    <div>
+      <dt>Con áreas a su cargo</dt>
+      <dd>{{ cargando() ? '—' : resumen().dependencias }}</dd>
+    </div>
+    <div>
+      <dt>Inactivas</dt>
+      <dd>{{ cargando() ? '—' : resumen().inactivas }}</dd>
+    </div>
+  </dl>
+
   <div class="barra-tabla">
-    <p>Áreas, oficinas y establecimientos donde trabaja el personal. Pueden depender de otra área.</p>
-    <button type="button" class="boton principal" (click)="nuevo()" [disabled]="cargando()">Nueva área</button>
+    <div class="campo buscador">
+      <label for="areas-busqueda">Buscar área o dependencia</label>
+      <input id="areas-busqueda" type="search" autocomplete="off" [value]="busqueda()" (input)="buscar($event)" />
+    </div>
+    <div class="campo estado">
+      <label for="areas-estado">Estado</label>
+      <app-search-select idCampo="areas-estado" [opciones]="opcionesEstado" [seleccion]="estado()" (cambio)="filtrar($event)" />
+    </div>
+    <span class="conteo">{{ visibles().length }} de {{ areas().length }}</span>
   </div>
 
   <div class="tabla-contenedor">
@@ -25,7 +56,7 @@
             <td colspan="4" class="celda-esqueleto"><app-skeleton [columnas]="4" texto="Cargando áreas" /></td>
           </tr>
         } @else {
-          @for (area of areas(); track area.id) {
+          @for (area of visibles(); track area.id) {
             <tr [class.fila-inactiva]="!area.activo">
               <td class="nombre">{{ area.nombre }}</td>
               <td>{{ area.padreNombre ?? 'Ninguna' }}</td>
@@ -47,7 +78,13 @@
             </tr>
           } @empty {
             <tr>
-              <td colspan="4" class="celda-vacia">Todavía no hay áreas. Registra la primera con Nueva área.</td>
+              <td colspan="4" class="celda-vacia">
+                {{
+                  areas().length === 0
+                    ? 'Todavía no hay áreas. Registra la primera con Nueva área o dependencia.'
+                    : 'Ninguna área coincide con el filtro.'
+                }}
+              </td>
             </tr>
           }
         }
