@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, resource, signal } from '@angular/core';
 import { RequirementsTableComponent } from '../../../components/requirements-table/requirements-table.component';
+import { SkeletonComponent } from '../../../components/skeleton/skeleton.component';
 import { WorkerPickerComponent } from '../../../components/worker-picker/worker-picker.component';
 import { mensajeDeError } from '../../../core/errors';
 import type { TrabajadorLote } from '../../../core/models';
@@ -8,7 +9,7 @@ import { ReportsService } from '../../../services/reports.service';
 
 @Component({
   selector: 'app-missing-report',
-  imports: [WorkerPickerComponent, RequirementsTableComponent],
+  imports: [WorkerPickerComponent, RequirementsTableComponent, SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './missing-report.component.html',
   styleUrl: './missing-report.component.css',
