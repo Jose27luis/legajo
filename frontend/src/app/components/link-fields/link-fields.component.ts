@@ -4,13 +4,14 @@ import { RouterLink } from '@angular/router';
 import { mensajeDeError } from '../../core/errors';
 import { SessionService } from '../../core/session.service';
 import { LinkOptionsService } from '../../services/link-options.service';
+import { SearchSelectComponent, type OpcionBuscable } from '../search-select/search-select.component';
 import type { CamposVinculo } from './link-form';
 
 let siguienteId = 1;
 
 @Component({
   selector: 'app-link-fields',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, SearchSelectComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './link-fields.component.html',
   styleUrl: './link-fields.component.css',
@@ -25,6 +26,12 @@ export class LinkFieldsComponent implements OnInit {
   protected readonly prefijo = `vinculo-${siguienteId++}`;
   protected readonly opciones = this.servicio.opciones;
   protected readonly error = signal<string | null>(null);
+  protected readonly cargos = computed<OpcionBuscable[]>(() =>
+    (this.opciones()?.cargos ?? []).map((cargo) => ({ valor: cargo.id, etiqueta: cargo.nombre })),
+  );
+  protected readonly areas = computed<OpcionBuscable[]>(() =>
+    (this.opciones()?.areas ?? []).map((area) => ({ valor: area.id, etiqueta: area.nombre, detalle: area.padreNombre })),
+  );
   protected readonly faltanCatalogos = computed(() => {
     const opciones = this.opciones();
     return opciones !== null && (opciones.cargos.length === 0 || opciones.areas.length === 0);
