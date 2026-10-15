@@ -2,7 +2,15 @@ import { ChangeDetectionStrategy, Component, OnDestroy, computed, inject, input,
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { mensajeDeError } from '../../core/errors';
-import { CLASE_ESTADO_DOCUMENTO, MOTIVOS_CESE, TEXTO_ESTADO_DOCUMENTO, TEXTO_MOTIVO_FIN, fechaCorta, hoy, nombreCompleto } from '../../core/labels';
+import {
+  CLASE_ESTADO_DOCUMENTO,
+  MOTIVOS_CESE,
+  TEXTO_ESTADO_DOCUMENTO,
+  TEXTO_MOTIVO_FIN,
+  fechaCorta,
+  hoy,
+  nombreCompleto,
+} from '../../core/labels';
 import type { Documento, SeccionLegajo, TrabajadorDetalle, Vinculo } from '../../core/models';
 import { SessionService } from '../../core/session.service';
 import { ToastService } from '../../core/toast.service';
@@ -49,7 +57,10 @@ export class PeriodDialogComponent implements OnDestroy {
       : this.documentos().filter((documento) => documento.vinculoId === vinculo.id && documento.seccion === this.numeroSeccion());
   });
   protected readonly tiposVinculo = computed(
-    () => this.secciones().find((seccion) => seccion.numero === 2)?.tipos.filter((tipo) => tipo.accion === 'VINCULO') ?? [],
+    () =>
+      this.secciones()
+        .find((seccion) => seccion.numero === 2)
+        ?.tipos.filter((tipo) => tipo.accion === 'VINCULO') ?? [],
   );
   protected readonly puedeRegistrar = computed(
     () => !this.esSalida() && this.sesion.tiene('documentos.subir') && this.tiposVinculo().length > 0,
