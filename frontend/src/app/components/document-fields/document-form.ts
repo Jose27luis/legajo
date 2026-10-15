@@ -83,11 +83,7 @@ export function sincronizarCampos(
   }
 }
 
-export function prepararFormularioDocumento(
-  formulario: FormularioDocumento,
-  seccion: SeccionLegajo,
-  documento: Documento | null,
-): void {
+export function prepararFormularioDocumento(formulario: FormularioDocumento, seccion: SeccionLegajo, documento: Documento | null): void {
   const tipoId = documento?.tipo.id ?? (seccion.tipos.length === 1 ? seccion.tipos[0].id : null);
   const tipo = seccion.tipos.find((item) => item.id === tipoId) ?? documento?.tipo ?? null;
   for (const clave of Object.keys(formulario.controls.datos.controls)) {
