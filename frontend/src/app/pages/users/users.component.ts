@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DialogComponent } from '../../components/dialog/dialog.component';
+import { SearchSelectComponent, type OpcionBuscable } from '../../components/search-select/search-select.component';
 import { SkeletonComponent } from '../../components/skeleton/skeleton.component';
 import { mensajeDeError } from '../../core/errors';
 import { fechaHora, normalizarTexto } from '../../core/format';
@@ -18,7 +19,7 @@ interface Confirmacion {
 
 @Component({
   selector: 'app-users',
-  imports: [ReactiveFormsModule, DialogComponent, SkeletonComponent],
+  imports: [ReactiveFormsModule, DialogComponent, SkeletonComponent, SearchSelectComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './users.component.html',
   styleUrl: './users.component.css',
@@ -31,6 +32,7 @@ export class UsersComponent implements OnInit {
   protected readonly fechaHora = fechaHora;
   protected readonly usuarios = signal<Usuario[]>([]);
   protected readonly roles = signal<Rol[]>([]);
+  protected readonly opcionesRol = computed<OpcionBuscable[]>(() => this.roles().map((rol) => ({ valor: rol.id, etiqueta: rol.nombre })));
   protected readonly cargando = signal(true);
   protected readonly errorCarga = signal<string | null>(null);
   protected readonly busqueda = signal('');
