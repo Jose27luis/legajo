@@ -4,6 +4,7 @@ import { numeroSeccion } from '../../core/labels';
 import { SessionService } from '../../core/session.service';
 import { DocumentsService } from '../../services/documents.service';
 import { DialogComponent } from '../dialog/dialog.component';
+import { SkeletonComponent } from '../skeleton/skeleton.component';
 
 export interface TrabajadorExpediente {
   id: string;
@@ -24,7 +25,7 @@ interface FilaSeccion {
 
 @Component({
   selector: 'app-dossier-dialog',
-  imports: [DialogComponent],
+  imports: [DialogComponent, SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './dossier-dialog.component.html',
   styleUrl: './dossier-dialog.component.css',
