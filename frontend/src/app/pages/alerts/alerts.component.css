@@ -25,10 +25,9 @@
 
 .herramientas select {
   height: 32px;
-  padding: 0 10px;
-  border: 1px solid var(--linea);
+  padding: 0 34px 0 10px;
   border-radius: 7px;
-  background: #fff;
+  background-position: right 10px center;
 }
 
 .herramientas a {
