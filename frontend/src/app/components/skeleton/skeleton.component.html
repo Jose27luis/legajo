@@ -1,0 +1,56 @@
+@switch (forma()) {
+  @case ('filas') {
+    @for (fila of elementos(); track fila) {
+      <div class="fila" [style.grid-template-columns]="'repeat(' + columnas() + ', minmax(0, 1fr))'">
+        @for (celda of celdas(); track celda) {
+          <span class="esqueleto linea" [style.width]="ancho(fila + celda * 3)"></span>
+        }
+      </div>
+    }
+  }
+  @case ('lista') {
+    @for (item of elementos(); track item) {
+      <div class="item">
+        <span class="esqueleto avatar"></span>
+        <span class="lineas">
+          <span class="esqueleto linea" [style.width]="ancho(item)"></span>
+          <span class="esqueleto linea chica" [style.width]="ancho(item + 2)"></span>
+        </span>
+        <span class="esqueleto pastilla"></span>
+      </div>
+    }
+  }
+  @case ('tarjetas') {
+    @for (tarjeta of elementos(); track tarjeta) {
+      <div class="tarjeta-esqueleto">
+        <span class="esqueleto linea chica" style="width: 46%"></span>
+        <span class="esqueleto cifra"></span>
+        <span class="esqueleto linea chica" [style.width]="ancho(tarjeta)"></span>
+      </div>
+    }
+  }
+  @case ('texto') {
+    @for (linea of elementos(); track linea) {
+      <span class="esqueleto linea" [style.width]="ancho(linea)"></span>
+    }
+  }
+  @case ('ficha') {
+    <div class="persona">
+      <span class="esqueleto avatar grande"></span>
+      <span class="lineas">
+        <span class="esqueleto linea titulo" style="width: 38%"></span>
+        <span class="esqueleto linea chica" style="width: 56%"></span>
+      </span>
+    </div>
+    <div class="bloques">
+      @for (bloque of elementos(); track bloque) {
+        <div class="tarjeta-esqueleto">
+          <span class="esqueleto linea" style="width: 40%"></span>
+          <span class="esqueleto linea chica" [style.width]="ancho(bloque)"></span>
+          <span class="esqueleto linea chica" [style.width]="ancho(bloque + 3)"></span>
+          <span class="esqueleto linea chica" [style.width]="ancho(bloque + 5)"></span>
+        </div>
+      }
+    </div>
+  }
+}
