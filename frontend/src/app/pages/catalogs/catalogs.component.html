@@ -23,13 +23,7 @@
     }
   </div>
 
-  <section
-    class="panel"
-    role="tabpanel"
-    tabindex="0"
-    [id]="'panel-' + activa()"
-    [attr.aria-labelledby]="'pestana-' + activa()"
-  >
+  <section class="panel" role="tabpanel" tabindex="0" [id]="'panel-' + activa()" [attr.aria-labelledby]="'pestana-' + activa()">
     @switch (activa()) {
       @case ('document-types') {
         <app-document-types />
