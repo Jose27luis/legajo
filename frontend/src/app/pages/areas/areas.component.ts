@@ -37,6 +37,9 @@ export class AreasComponent implements OnInit {
   protected readonly editando = signal<Area | null>(null);
   protected readonly guardando = signal(false);
   protected readonly errorFormulario = signal<string | null>(null);
+  protected readonly porEliminar = signal<Area | null>(null);
+  protected readonly eliminando = signal(false);
+  protected readonly errorEliminar = signal<string | null>(null);
   protected readonly busqueda = signal('');
   protected readonly estado = signal<FiltroEstado>('activas');
   protected readonly opcionesEstado = OPCIONES_ESTADO;
@@ -162,6 +165,45 @@ export class AreasComponent implements OnInit {
     } catch (error: unknown) {
       this.avisos.error(mensajeDeError(error));
     }
+  }
+
+  protected pedirEliminar(area: Area): void {
+    this.errorEliminar.set(null);
+    this.porEliminar.set(area);
+  }
+
+  protected cerrarEliminar(): void {
+    if (!this.eliminando()) {
+      this.porEliminar.set(null);
+    }
+  }
+
+  protected async eliminar(): Promise<void> {
+    const area = this.porEliminar();
+    if (area === null || this.eliminando()) {
+      return;
+    }
+    this.eliminando.set(true);
+    this.errorEliminar.set(null);
+    try {
+      await this.servicio.eliminarArea(area.id);
+      this.areas.update((lista) => lista.filter((item) => item.id !== area.id));
+      this.porEliminar.set(null);
+      this.avisos.exito(`Área ${area.nombre} eliminada`);
+    } catch (error: unknown) {
+      this.errorEliminar.set(mensajeDeError(error));
+    } finally {
+      this.eliminando.set(false);
+    }
+  }
+
+  protected async desactivarEnLugar(): Promise<void> {
+    const area = this.porEliminar();
+    if (area === null || !area.activo) {
+      return;
+    }
+    await this.alternarActivo(area);
+    this.porEliminar.set(null);
   }
 
   private async recargarTras(operacion: Promise<Area>): Promise<void> {
