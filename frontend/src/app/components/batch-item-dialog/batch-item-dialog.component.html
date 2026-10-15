@@ -133,17 +133,17 @@
     <button type="button" class="boton" (click)="alCerrar()" [disabled]="ocupado()">Cerrar</button>
     @switch (pestana()) {
       @case ('clasificar') {
-        <button type="submit" form="formulario-clasificar" class="boton principal" [disabled]="ocupado()">
+        <button type="submit" form="formulario-clasificar" class="boton principal" [disabled]="ocupado()" [attr.aria-busy]="ocupado()">
           {{ ocupado() ? 'Guardando' : 'Registrar en el legajo' }}
         </button>
       }
       @case ('dividir') {
-        <button type="submit" form="formulario-dividir" class="boton principal" [disabled]="ocupado()">
+        <button type="submit" form="formulario-dividir" class="boton principal" [disabled]="ocupado()" [attr.aria-busy]="ocupado()">
           {{ ocupado() ? 'Dividiendo' : 'Dividir y registrar' }}
         </button>
       }
       @case ('descartar') {
-        <button type="submit" form="formulario-descartar" class="boton peligro lleno" [disabled]="ocupado()">
+        <button type="submit" form="formulario-descartar" class="boton peligro lleno" [disabled]="ocupado()" [attr.aria-busy]="ocupado()">
           {{ ocupado() ? 'Descartando' : 'Descartar archivo' }}
         </button>
       }
