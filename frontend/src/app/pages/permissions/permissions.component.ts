@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, linkedSignal, resource, signal } from '@angular/core';
+import { SkeletonComponent } from '../../components/skeleton/skeleton.component';
 import { mensajeDeError } from '../../core/errors';
 import { numeroSeccion } from '../../core/labels';
 import type { PermisoRolSeccion, PermisosSeccion } from '../../core/models';
@@ -7,6 +8,7 @@ import { SectionAccessService } from '../../services/section-access.service';
 
 @Component({
   selector: 'app-permissions',
+  imports: [SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './permissions.component.html',
   styleUrl: './permissions.component.css',
