@@ -1,6 +1,7 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DialogComponent } from '../../../components/dialog/dialog.component';
+import { SearchSelectComponent, type OpcionBuscable } from '../../../components/search-select/search-select.component';
 import { SkeletonComponent } from '../../../components/skeleton/skeleton.component';
 import { mensajeDeError } from '../../../core/errors';
 import type { AplicaA, Regimen, Requisito, Seccion, TipoPersonal } from '../../../core/models';
@@ -18,9 +19,21 @@ const TEXTO_APLICA_A: Record<AplicaA, string> = {
   CESADO: 'Solo cesados',
 };
 
+const OPCIONES_TIPO_PERSONAL: readonly OpcionBuscable[] = [
+  { valor: null, etiqueta: 'Administrativo y asistencial' },
+  { valor: 'ADMINISTRATIVO', etiqueta: 'Solo administrativo' },
+  { valor: 'ASISTENCIAL', etiqueta: 'Solo asistencial' },
+];
+
+const OPCIONES_APLICA_A: readonly OpcionBuscable[] = [
+  { valor: 'TODOS', etiqueta: 'Trabajadores activos y cesados' },
+  { valor: 'ACTIVO', etiqueta: 'Solo trabajadores activos' },
+  { valor: 'CESADO', etiqueta: 'Solo trabajadores cesados' },
+];
+
 @Component({
   selector: 'app-requirements',
-  imports: [ReactiveFormsModule, DialogComponent, SkeletonComponent],
+  imports: [ReactiveFormsModule, DialogComponent, SkeletonComponent, SearchSelectComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './requirements.component.html',
   styleUrl: './requirements.component.css',
@@ -34,6 +47,19 @@ export class RequirementsComponent implements OnInit {
   protected readonly requisitos = signal<Requisito[]>([]);
   protected readonly secciones = signal<Seccion[]>([]);
   protected readonly regimenes = signal<Regimen[]>([]);
+  protected readonly opcionesTipoPersonal = OPCIONES_TIPO_PERSONAL;
+  protected readonly opcionesAplicaA = OPCIONES_APLICA_A;
+  protected readonly opcionesTipo = computed<OpcionBuscable[]>(() =>
+    this.secciones().flatMap((seccion) =>
+      seccion.tipos
+        .filter((tipo) => tipo.activo)
+        .map((tipo) => ({ valor: tipo.id, etiqueta: `${tipo.codigo} ${tipo.nombre}`, detalle: `${seccion.numero}. ${seccion.nombre}` })),
+    ),
+  );
+  protected readonly opcionesRegimen = computed<OpcionBuscable[]>(() => [
+    { valor: null, etiqueta: 'Todos los regímenes' },
+    ...this.regimenes().map((regimen) => ({ valor: regimen.id, etiqueta: regimen.nombre })),
+  ]);
   protected readonly cargando = signal(true);
   protected readonly errorCarga = signal<string | null>(null);
 
