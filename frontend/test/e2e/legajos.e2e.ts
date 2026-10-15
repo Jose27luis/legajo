@@ -35,6 +35,12 @@ async function elegirEnBuscador(campo: Locator, texto: string, opcion: string): 
   await expect(campo).toHaveValue(opcion);
 }
 
+async function elegirEnLista(campo: Locator, opcion: string): Promise<void> {
+  await campo.click();
+  await pagina.getByRole('option', { name: opcion, exact: true }).click();
+  await expect(campo).toHaveValue(opcion);
+}
+
 async function iniciarSesion(identificador: string, clave: string): Promise<void> {
   await pagina.goto('/login');
   await pagina.locator('#identificador').fill(identificador);
@@ -80,8 +86,8 @@ test('registra un nuevo ingreso y abre su ficha', async () => {
   await dialogo.locator('#ingreso-nombres').fill('Ana María');
   await dialogo.locator('#ingreso-paterno').fill(APELLIDO);
   await dialogo.locator('#ingreso-materno').fill('Mamani');
-  await dialogo.getByLabel('Tipo de personal').selectOption({ label: 'Administrativo' });
-  await dialogo.getByLabel('Régimen o modalidad').selectOption({ index: 1 });
+  await elegirEnLista(dialogo.getByRole('combobox', { name: 'Tipo de personal' }), 'Administrativo');
+  await elegirEnLista(dialogo.getByRole('combobox', { name: 'Régimen o modalidad' }), 'D. Leg. 276');
   await elegirEnBuscador(dialogo.getByRole('combobox', { name: 'Cargo o puesto' }), MARCA, CARGO);
   await elegirEnBuscador(dialogo.getByRole('combobox', { name: 'Área o dependencia' }), MARCA, AREA);
   await dialogo.locator('#ingreso-fecha').fill('2026-01-05');
