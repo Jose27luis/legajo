@@ -10,7 +10,12 @@
 
     <nav class="navegacion" aria-label="Navegación principal">
       @if (sesion.tiene('personal.editar')) {
-        <a class="enlace nuevo" routerLink="/workers" [queryParams]="{ nuevo: 1 }" [attr.title]="contraido() ? 'Registrar nuevo ingreso' : null">
+        <a
+          class="enlace nuevo"
+          routerLink="/workers"
+          [queryParams]="{ nuevo: 1 }"
+          [attr.title]="contraido() ? 'Registrar nuevo ingreso' : null"
+        >
           <span class="numero" aria-hidden="true">+</span>
           <span class="etiqueta">Registrar nuevo ingreso</span>
         </a>
