@@ -13,6 +13,7 @@ import {
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ReentryDialogComponent } from '../reentry-dialog/reentry-dialog.component';
+import { SearchSelectComponent, type OpcionBuscable, type ValorOpcion } from '../search-select/search-select.component';
 import { SituationDialogComponent } from '../situation-dialog/situation-dialog.component';
 import { SkeletonComponent } from '../skeleton/skeleton.component';
 import { mensajeDeError } from '../../core/errors';
@@ -34,9 +35,20 @@ import { WorkersService } from '../../services/workers.service';
 
 const ESPERA_BUSQUEDA_MS = 300;
 
+const OPCIONES_ESTADO: readonly OpcionBuscable[] = [
+  { valor: null, etiqueta: 'Todos' },
+  { valor: 'ACTIVO', etiqueta: 'Activos' },
+  { valor: 'CESADO', etiqueta: 'Cesados' },
+];
+
+const OPCIONES_MOVIMIENTO: readonly OpcionBuscable[] = [
+  { valor: null, etiqueta: 'Todos' },
+  ...MOVIMIENTOS.map((movimiento) => ({ valor: movimiento, etiqueta: TEXTO_MOVIMIENTO[movimiento] })),
+];
+
 @Component({
   selector: 'app-worker-directory',
-  imports: [RouterLink, SituationDialogComponent, ReentryDialogComponent, SkeletonComponent],
+  imports: [RouterLink, SituationDialogComponent, ReentryDialogComponent, SkeletonComponent, SearchSelectComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './worker-directory.component.html',
   styleUrl: './worker-directory.component.css',
@@ -57,7 +69,8 @@ export class WorkerDirectoryComponent implements OnInit {
   private readonly reingreso = viewChild.required(ReentryDialogComponent);
   private temporizador: ReturnType<typeof setTimeout> | undefined;
 
-  protected readonly movimientos = MOVIMIENTOS;
+  protected readonly opcionesEstado = OPCIONES_ESTADO;
+  protected readonly opcionesMovimiento = OPCIONES_MOVIMIENTO;
   protected readonly textoEstado = TEXTO_ESTADO;
   protected readonly textoMovimiento = TEXTO_MOVIMIENTO;
   protected readonly claseMovimiento = CLASE_MOVIMIENTO;
@@ -72,7 +85,10 @@ export class WorkerDirectoryComponent implements OnInit {
   protected readonly movimiento = linkedSignal(() => this.movimientoInicial());
   protected readonly areaId = signal<number | null>(null);
   protected readonly pagina = signal(1);
-  protected readonly areas = computed(() => this.opcionesServicio.opciones()?.areas ?? []);
+  protected readonly opcionesArea = computed<OpcionBuscable[]>(() => [
+    { valor: null, etiqueta: 'Todas las áreas' },
+    ...(this.opcionesServicio.opciones()?.areas ?? []).map((area) => ({ valor: area.id, etiqueta: area.nombre })),
+  ]);
 
   protected readonly filtros = computed<FiltrosPersonal>(() => ({
     busqueda: this.busqueda(),
@@ -127,28 +143,19 @@ export class WorkerDirectoryComponent implements OnInit {
     }, ESPERA_BUSQUEDA_MS);
   }
 
-  protected cambiarEstado(evento: Event): void {
-    if (evento.target instanceof HTMLSelectElement) {
-      const valor = evento.target.value;
-      this.estado.set(valor === 'ACTIVO' || valor === 'CESADO' ? valor : '');
-      this.pagina.set(1);
-    }
+  protected cambiarEstado(valor: ValorOpcion): void {
+    this.estado.set(valor === 'ACTIVO' || valor === 'CESADO' ? valor : '');
+    this.pagina.set(1);
   }
 
-  protected cambiarMovimiento(evento: Event): void {
-    if (evento.target instanceof HTMLSelectElement) {
-      const valor = evento.target.value;
-      this.movimiento.set(MOVIMIENTOS.find((movimiento) => movimiento === valor) ?? '');
-      this.pagina.set(1);
-    }
+  protected cambiarMovimiento(valor: ValorOpcion): void {
+    this.movimiento.set(MOVIMIENTOS.find((movimiento) => movimiento === valor) ?? '');
+    this.pagina.set(1);
   }
 
-  protected cambiarArea(evento: Event): void {
-    if (evento.target instanceof HTMLSelectElement) {
-      const valor = Number(evento.target.value);
-      this.areaId.set(Number.isInteger(valor) && valor > 0 ? valor : null);
-      this.pagina.set(1);
-    }
+  protected cambiarArea(valor: ValorOpcion): void {
+    this.areaId.set(typeof valor === 'number' ? valor : null);
+    this.pagina.set(1);
   }
 
   protected abrirSituacion(trabajador: TrabajadorResumen): void {
