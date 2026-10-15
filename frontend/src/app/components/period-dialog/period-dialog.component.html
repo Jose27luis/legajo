@@ -99,7 +99,7 @@
             }
             <div class="acciones completo">
               <button type="button" class="boton" (click)="cancelarRegistro()" [disabled]="ocupado()">Cancelar</button>
-              <button type="submit" class="boton principal" [disabled]="ocupado()">
+              <button type="submit" class="boton principal" [disabled]="ocupado()" [attr.aria-busy]="ocupado()">
                 {{
                   progreso() !== null ? 'Subiendo ' + progreso() + ' %' : ocupado() ? 'Guardando' : 'Guardar PDF en Sección 02 y vincular'
                 }}
