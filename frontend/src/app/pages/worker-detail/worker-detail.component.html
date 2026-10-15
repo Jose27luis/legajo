@@ -6,5 +6,5 @@
 } @else if (detalle.hasValue()) {
   <router-outlet />
 } @else {
-  <p class="celda-vacia">Cargando legajo</p>
+  <app-skeleton forma="ficha" [cantidad]="4" texto="Cargando legajo" />
 }
