@@ -141,7 +141,6 @@ const TONOS_SECCION: readonly string[] = [
   '#c0306f',
   '#5b6b7c',
   '#7a5230',
-  '#1d7fb8',
 ];
 
 export function tonoSeccion(numero: number): string {
