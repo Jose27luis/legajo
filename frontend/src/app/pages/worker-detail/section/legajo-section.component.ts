@@ -44,11 +44,17 @@ const AVISOS: Record<number, { titulo: string | null; texto: string; sensible: b
   2: {
     titulo: 'Vinculación con la Sección 01:',
     texto:
-      'al registrar un contrato o resolución con régimen y fecha de inicio, se vincula automáticamente con la ficha y el historial de la Sección 01. Puedes comprobarlo desde Ver detalle; nunca cambia por sí mismo ACTIVO/CESADO. Los CV y declaraciones no actualizan la ficha.',
+      'al registrar un contrato o resolución con PDF real, régimen y fecha de inicio, se vincula automáticamente con la ficha y el historial de la Sección 01. Puedes comprobarlo desde Ver detalle; nunca cambia por sí mismo ACTIVO/CESADO. Los CV y declaraciones no actualizan la ficha.',
     sensible: false,
   },
   5: {
-    titulo: 'Sección 05 → Sección 01:',
+    titulo: 'Sección 05:',
+    texto:
+      'documentación de vacaciones, licencias y permisos. Los desplazamientos como rotaciones, destaque y encargatura corresponden a la Sección 07.',
+    sensible: false,
+  },
+  7: {
+    titulo: 'Sección 07 → Sección 01:',
     texto:
       'registra la resolución o memorando y luego pulsa Ver detalle → Confirmar movimiento laboral. Al confirmar se actualizan el área de destino y el último movimiento. Una rotación no cambia ACTIVO/CESADO. Los PDF sin confirmar solo quedan archivados.',
     sensible: false,
@@ -69,11 +75,6 @@ const AVISOS: Record<number, { titulo: string | null; texto: string; sensible: b
     titulo: null,
     texto:
       'Usa «Otros documentos» únicamente cuando el archivo no corresponda a ninguna de las otras 12 secciones. Registra una justificación.',
-    sensible: false,
-  },
-  13: {
-    titulo: null,
-    texto: 'Las vacaciones y licencias tienen su propia sección 13. No se mezclan con la sección 09.',
     sensible: false,
   },
 };
