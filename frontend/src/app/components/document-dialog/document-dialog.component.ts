@@ -54,7 +54,7 @@ const TITULOS: Record<Modo, string> = {
   reemplazar: 'Reemplazar el mismo PDF',
   anular: 'Anular PDF',
   visor: 'Visor de PDF',
-  movimiento: 'Confirmar movimiento laboral · Sección 05',
+  movimiento: 'Confirmar movimiento laboral · Sección 07',
   cese: 'Confirmar cese laboral · Sección 11',
   reingreso: 'Confirmar reingreso laboral · Sección 02',
 };
