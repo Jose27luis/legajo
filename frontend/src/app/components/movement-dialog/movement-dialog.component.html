@@ -44,7 +44,7 @@
       }
       @if (documento() === null) {
         <p class="nota">
-          No hay un documento de movimiento vinculado. Registra el PDF en la Sección 05 y confírmalo para acreditar el desplazamiento.
+          No hay un documento de movimiento vinculado. Registra el PDF en la Sección 07 y confírmalo para acreditar el desplazamiento.
         </p>
       }
     }
@@ -59,7 +59,7 @@
       }
     }
     @if (sesion.tiene('documentos.ver')) {
-      <button type="button" class="boton" (click)="irASeccion()">Ir a la Sección 05</button>
+      <button type="button" class="boton" (click)="irASeccion()">Ir a la Sección 07</button>
     }
   </ng-container>
 </app-dialog>
