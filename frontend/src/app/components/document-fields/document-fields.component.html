@@ -13,10 +13,14 @@
     }
   </div>
 
+  @if (tipoElegido() === null) {
+    <p class="aviso info completo adicionales">Selecciona un tipo de documento para habilitar el formulario de carga.</p>
+  }
+
   @if (!esCurriculum()) {
     <div class="campo">
       <label [for]="id('numero')">
-        {{ seccion().numero === 5 ? 'Número de documento (resolución, memorando u otro)' : 'Número de documento' }}
+        {{ seccion().numero === 7 ? 'Número de documento (resolución, memorando u otro)' : 'Número de documento' }}
         @if (tipoElegido()?.requiereNumero === true) {
           <span class="obligatorio" aria-hidden="true">*</span>
         }
