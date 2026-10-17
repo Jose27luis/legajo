@@ -1,7 +1,7 @@
 @if (contexto.detalle.value(); as trabajador) {
   <header class="cabecera-seccion" [style.--tono]="tono">
     <div>
-      <p class="antetitulo">Sección 01 de 13 · Datos estructurados</p>
+      <p class="antetitulo">Sección 01 de 12 · Datos estructurados</p>
       <h2>Información personal y familiar</h2>
       <p>
         Datos personales, contacto autorizado, régimen, puesto, unidad orgánica, condición laboral, períodos de servicio y eventos de cese o
@@ -9,7 +9,7 @@
       </p>
     </div>
     <div class="acciones-cabecera">
-      <a routerLink=".." class="boton chico">Ver 13 secciones</a>
+      <a routerLink=".." class="boton chico">Ver 12 secciones</a>
       @if (sesion.tiene('personal.editar')) {
         <button type="button" class="boton chico" (click)="abrirSituacion(trabajador)">Estado y movimiento</button>
         @if (trabajador.estado === 'ACTIVO') {
@@ -30,7 +30,7 @@
   @if (nuevo() === '1') {
     <div class="aviso exito resultado" role="status">
       <strong>Trabajador incorporado al directorio.</strong><br />
-      Estado inicial: ACTIVO. Ya tiene su ficha y sus 13 secciones creadas, con 0 documentos PDF iniciales.
+      Estado inicial: ACTIVO. Ya tiene su ficha y sus 12 secciones creadas, con 0 documentos PDF iniciales.
       <a class="boton chico principal" [routerLink]="['..', 'sections', 2]">Ir a la Sección 02 y subir contrato o resolución</a>
     </div>
   }
