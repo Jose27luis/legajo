@@ -6,7 +6,7 @@ import { ESTADOS, TIPOS_PERSONAL, type EstadoValor, type TipoPersonalValor } fro
 
 export const MAXIMO_SELECCION = 100;
 export const ESTADOS_BUSQUEDA = [...ESTADOS_DOCUMENTO, 'TODOS'] as const;
-export const SECCIONES = 13;
+export const SECCIONES = 12;
 
 const vacioANulo = ({ value }: { value: unknown }) => {
   if (typeof value !== 'string') {
