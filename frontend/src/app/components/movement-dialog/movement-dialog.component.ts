@@ -68,7 +68,7 @@ export class MovementDialogComponent {
     const id = this.trabajadorId();
     if (id !== null) {
       this.cerrar.emit();
-      void this.router.navigate(['/workers', id, 'sections', 5]);
+      void this.router.navigate(['/workers', id, 'sections', 7]);
     }
   }
 }
