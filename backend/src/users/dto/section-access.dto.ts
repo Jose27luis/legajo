@@ -34,9 +34,9 @@ export class SectionAccessDto {
 export class UpdateSectionAccessDto {
   @ApiProperty({ type: [Number] })
   @IsArray()
-  @ArrayMaxSize(12)
+  @ArrayMaxSize(11)
   @IsInt({ each: true })
   @Min(2, { each: true, message: 'La sección 01 es la ficha del trabajador y no se restringe' })
-  @Max(13, { each: true })
+  @Max(12, { each: true })
   restringidas: number[];
 }
