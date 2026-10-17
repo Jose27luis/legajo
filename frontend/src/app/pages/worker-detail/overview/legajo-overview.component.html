@@ -4,7 +4,7 @@
     <h2>Secciones del legajo</h2>
     <p>Selecciona una sección para consultar o registrar información.</p>
   </div>
-  <span class="pastilla azul">13 secciones</span>
+  <span class="pastilla azul">12 secciones</span>
 </header>
 
 @if (contexto.errorLegajo(); as mensaje) {
@@ -53,5 +53,5 @@
     }
   </ul>
 } @else if (contexto.errorLegajo() === null) {
-  <app-skeleton class="tarjeta" forma="lista" [cantidad]="13" texto="Cargando secciones" />
+  <app-skeleton class="tarjeta" forma="lista" [cantidad]="12" texto="Cargando secciones" />
 }
