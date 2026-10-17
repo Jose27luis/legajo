@@ -81,6 +81,20 @@ export function sincronizarCampos(
       { emitEvent: false },
     );
   }
+  bloquearSinTipo(formulario, tipo === null);
+}
+
+function bloquearSinTipo(formulario: FormularioDocumento, bloquear: boolean): void {
+  for (const [clave, control] of Object.entries(formulario.controls)) {
+    if (clave === 'tipoDocumentoId') {
+      continue;
+    }
+    if (bloquear) {
+      control.disable({ emitEvent: false });
+    } else {
+      control.enable({ emitEvent: false });
+    }
+  }
 }
 
 export function prepararFormularioDocumento(formulario: FormularioDocumento, seccion: SeccionLegajo, documento: Documento | null): void {
