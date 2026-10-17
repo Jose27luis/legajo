@@ -5,18 +5,18 @@
       <h2>Acceso restringido</h2>
       <p>No tienes permisos para consultar los documentos de esta sección.</p>
     </div>
-    <a routerLink=".." class="boton chico">Ver las 13 secciones</a>
+    <a routerLink=".." class="boton chico">Ver 12 secciones</a>
   </header>
   <p class="aviso sensible">Solicita autorización al administrador del sistema.</p>
 } @else if (seccion(); as actual) {
   <header class="cabecera-seccion" [style.--tono]="tono(actual.numero)">
     <div>
-      <p class="antetitulo">Sección {{ numeroSeccion(actual.numero) }} de 13</p>
+      <p class="antetitulo">Sección {{ numeroSeccion(actual.numero) }} de 12 · Sección documental</p>
       <h2>{{ actual.nombre }}</h2>
       <p>{{ actual.descripcion }}</p>
     </div>
     <div class="acciones-cabecera">
-      <a routerLink=".." class="boton chico">Ver las 13 secciones</a>
+      <a routerLink=".." class="boton chico">Ver 12 secciones</a>
       @if (sesion.tiene('documentos.descargar') && hayDisponibles()) {
         <a class="boton chico" [href]="enlaceZip()" download>Descargar sección en ZIP</a>
       }
