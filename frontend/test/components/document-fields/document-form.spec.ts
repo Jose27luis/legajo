@@ -12,8 +12,8 @@ function tipo(cambios: Partial<TipoDocumento>): TipoDocumento {
   return {
     id: 1,
     seccionId: 2,
-    codigo: '0202',
-    nombre: 'Contrato administrativo de servicios',
+    codigo: '0206',
+    nombre: 'Contrato',
     restringido: false,
     requiereNumero: false,
     tieneVencimiento: false,
@@ -81,6 +81,19 @@ describe('sincronizarCampos', () => {
     expect(Object.keys(form.controls.datos.controls).sort()).toEqual(['emisorInterno', 'fin', 'inicio', 'regimen', 'tipoIncorporacion']);
     expect(form.controls.datos.controls['inicio']?.value).toBe('2026-01-01');
     expect(form.controls.datos.controls['emisorInterno']?.hasError('required')).toBe(true);
+  });
+
+  it('bloquea el formulario hasta elegir el tipo y luego muestra los campos del tipo', () => {
+    const form = crearFormularioDocumento();
+    const actual = tipo({ accion: 'VINCULO', campos: CAMPOS_VINCULO });
+    sincronizarCampos(form, seccion([actual]), null, {});
+    expect(form.controls.tipoDocumentoId.enabled).toBe(true);
+    expect(form.controls.numero.disabled).toBe(true);
+    expect(form.controls.observaciones.disabled).toBe(true);
+    expect(Object.keys(form.controls.datos.controls)).toEqual([]);
+    sincronizarCampos(form, seccion([actual]), actual, {});
+    expect(form.controls.numero.enabled).toBe(true);
+    expect(form.controls.datos.controls['regimen']?.enabled).toBe(true);
   });
 });
 
