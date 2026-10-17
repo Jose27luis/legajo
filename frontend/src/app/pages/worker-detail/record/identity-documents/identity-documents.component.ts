@@ -12,7 +12,7 @@ import { ToastService } from '../../../../core/toast.service';
 import { DocumentsService, mensajeDeSubida, type SubidaEnCurso } from '../../../../services/documents.service';
 import { WorkerContext } from '../../worker-context';
 
-const CODIGO_DNI = '0101';
+const CODIGO_DNI = '0102';
 
 @Component({
   selector: 'app-identity-documents',
