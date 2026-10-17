@@ -2,7 +2,7 @@
 
 ## Descripción
 
-Sistema web del área de Legajos de la Oficina de Personal. Registra a los trabajadores con sus vínculos laborales y digitaliza su legajo personal en 13 secciones.
+Sistema web del área de Legajos de la Oficina de Personal. Registra a los trabajadores con sus vínculos laborales y digitaliza su legajo personal en 12 secciones.
 
 Incluye subida por partes y carga masiva de PDFs, descarga del legajo en ZIP, acceso restringido a documentos disciplinarios y médicos, auditoría de cada acción y copias de seguridad automáticas.
 
@@ -130,7 +130,7 @@ flowchart TB
 
 ## Estructura del legajo
 
-Cada trabajador tiene una ficha de datos y 13 secciones de documentos.
+Cada trabajador tiene una ficha de datos y 12 secciones de documentos, según el catálogo «Contenido de las secciones del legajo».
 
 ```mermaid
 flowchart LR
@@ -140,242 +140,235 @@ flowchart LR
     L --> S02["02 Incorporación"]
     L --> S03["03 Formación académica y capacitación"]
     L --> S04["04 Experiencia laboral"]
-    L --> S05["05 Movimientos del personal"]
+    L --> S05["05 Movimientos del personal<br/>vacaciones, licencias y permisos"]
     L --> S06["06 Compensaciones"]
-    L --> S07["07 Evaluación de desempeño y progresión en la carrera"]
+    L --> S07["07 Evaluación de desempeño, progresión<br/>en la carrera y desplazamiento"]
     L --> S08["08 Reconocimientos y sanciones disciplinarias"]
     L --> S09["09 Relaciones laborales individuales y colectivas"]
     L --> S10["10 Seguridad y Salud en el Trabajo y bienestar social"]
     L --> S11["11 Desvinculación"]
     L --> S12["12 Otros que considere la entidad"]
-    L --> S13["13 Vacaciones, licencias y permisos"]
 
     classDef restringida fill:#7a1f1f,stroke:#521414,color:#ffffff
-    class S08,S10,S13 restringida
+    class S08,S10 restringida
 ```
 
-En rojo, las secciones con tipos de acceso restringido. La restricción va por tipo de documento: en la sección 08 los reconocimientos son visibles y las sanciones no.
+En rojo, las secciones restringidas: todos sus tipos se guardan como Restringido o Muy restringido.
 
 ### Reglas de clasificación
 
 | Documento | Dónde va |
 |---|---|
-| Contratos con número (CAS N.° 036-2022, Contrato Administrativo N.° 0089-2022) | Tipo 0202 o 0203, con `036-2022` o `0089-2022` en el campo número |
+| Contratos con número (CAS N.° 036-2022) | Tipo 0206 Contrato, con `036-2022` en el campo número |
 | Tipo de personal, régimen, cargo, área y fecha de ingreso | Campos de la ficha y del vínculo, no se suben como PDF |
-| Resolución de nombramiento y resolución CAS | 02 Incorporación |
-| Resolución SERUMS | 03 Formación académica y capacitación |
-| Descanso médico común | 13, restringido |
-| Descanso médico por accidente de trabajo o enfermedad ocupacional | 10, restringido |
-| Constancia de trabajo de un empleador anterior | 04 Experiencia laboral |
-| Constancia de trabajo emitida al cese | 11 Desvinculación |
-| Memorandos | Según su finalidad: rotación o encargatura en la 05, desempeño en la 07, reconocimiento o disciplina en la 08 |
-| Licencias y permisos | 13. En la 10 solo los vinculados a seguridad y salud en el trabajo |
-| Contrato de locación de servicios | 02 Incorporación, con régimen "Locación de servicios" (no laboral) |
+| Ficha de datos del servidor civil | 0101, solo texto: es la ficha de la Sección 01, no se sube como PDF |
+| Resoluciones de designación, renovación y del servicio civil de carrera | 02 Incorporación |
+| Vacaciones, licencias y permisos | 05 Movimientos del personal |
+| Designación, rotación, destaque y encargo | 07 Evaluación de desempeño, progresión en la carrera y desplazamiento |
+| Descansos médicos | 10, restringido |
+| Constancias y certificados de trabajo | 04 Experiencia laboral |
+| Memorandos | Según su finalidad: funciones en la 04, desplazamiento en la 07, felicitación en la 08, término de vínculo en la 11 |
 
 ### Catálogo de tipos de documento
 
-Código de cuatro dígitos: sección y tipo. El 99 de cada sección es "Otro". R = restringido, Nº = número obligatorio, V = tiene vencimiento. El administrador puede agregar, desactivar o reordenar tipos.
+Código de cuatro dígitos: sección y tipo. R = restringido, Nº = número obligatorio, V = tiene vencimiento. El administrador puede agregar, desactivar o reordenar tipos. Los tipos del catálogo anterior quedaron inactivos con códigos que empiezan en 9.
 
 **01 Información personal y familiar** (carpeta `01_Informacion_Personal_y_Familiar`)
 
 | Código | Tipo | R | Nº | V |
 |---|---|---|---|---|
-| 0101 | DNI | | | Sí |
-| 0102 | Ficha de datos personales | | | |
-| 0103 | Domicilio y contacto (sustento) | | | |
-| 0104 | Datos familiares (partidas, actas y otros sustentos) | | | |
-| 0105 | Declaración jurada personal | | | |
-| 0199 | Otro documento de identificación del trabajador | | | |
+| 0101 | Ficha de datos del servidor civil (SOLO TEXTO) | | | |
+| 0102 | Copia del DNI o documento equivalente | | | Sí |
+| 0103 | Declaración jurada o certificado de antecedentes penales | | | |
+| 0104 | Declaración jurada o certificado de antecedentes policiales | | | |
+| 0105 | Declaración jurada de bienes y rentas, cuando corresponda | | | |
+| 0106 | Declaración jurada de no tener impedimentos para designación, según Ley N.º 31419 | | | |
+| 0107 | Partida de matrimonio o constancia de unión de hecho | | | |
+| 0108 | Información de impedimentos e inhabilitaciones (RNSSC, REDJUM, entre otros) | | | |
+| 0109 | Copia del DNI del cónyuge o conviviente | | | |
+| 0110 | Copia del DNI de los hijos menores de edad | | | |
+| 0111 | Certificado de discapacidad emitido por CONADIS, cuando corresponda | | | |
+| 0112 | Otras declaraciones juradas que correspondan | | | |
 
 **02 Incorporación** (carpeta `02_Incorporacion`)
 
 | Código | Tipo | R | Nº | V |
 |---|---|---|---|---|
-| 0201 | Currículum vitae | | | |
-| 0202 | Contrato Administrativo de Servicios (CAS) | | Sí | Sí |
-| 0203 | Contrato administrativo | | Sí | Sí |
-| 0204 | Contrato de locación de servicios | | Sí | Sí |
-| 0205 | Adenda | | Sí | Sí |
-| 0206 | Renovación o prórroga | | Sí | Sí |
-| 0207 | Resolución de nombramiento | | Sí | |
-| 0208 | Resolución CAS | | Sí | |
-| 0209 | Documentos presentados para la contratación (ficha curricular, solicitudes, copia de DNI, títulos, certificados y constancias laborales presentados en la convocatoria) | | | |
-| 0210 | Declaración jurada de contratación | | | |
-| 0211 | Anexo de convocatoria | | | |
-| 0212 | Documento de adjudicación o resultado | | | |
-| 0299 | Otro documento relacionado con el ingreso o la contratación | | | |
+| 0201 | Resultado final del proceso de selección donde el servidor resultó ganador | | | |
+| 0202 | Informe de Recursos Humanos que verifica el cumplimiento de los requisitos del puesto, cuando corresponda | | | |
+| 0203 | Resolución administrativa de designación | | Sí | |
+| 0204 | Resolución administrativa de renovación | | Sí | |
+| 0205 | Resolución administrativa del servicio civil de carrera | | Sí | |
+| 0206 | Contrato | | Sí | |
+| 0207 | Adenda | | Sí | |
+| 0208 | Registro de inducción general y específica | | | |
+| 0209 | Cargo de entrega del perfil del puesto y funciones | | | |
+| 0210 | Cargo de entrega del reglamento interno de servidores civiles | | | |
+| 0211 | Cargo de entrega del código de conducta y ética | | | |
+| 0212 | Otros documentos similares | | | |
+| 0213 | Evaluación y resultados del período de prueba | | | |
+
+Las resoluciones 0203 a 0205, el contrato y la adenda crean o actualizan el vínculo laboral de la ficha.
 
 **03 Formación académica y capacitación** (carpeta `03_Formacion_Academica_y_Capacitacion`)
 
 | Código | Tipo | R | Nº | V |
 |---|---|---|---|---|
-| 0301 | Registro Nacional de Grados Académicos y Títulos Profesionales | | | |
-| 0302 | Título profesional | | | |
-| 0303 | Grado académico | | | |
-| 0304 | Título técnico | | | |
-| 0305 | Constancia de estudios | | | |
-| 0306 | Colegiatura | | Sí | |
-| 0307 | Constancia de habilitación profesional | | | Sí |
-| 0308 | Especialización | | | |
-| 0309 | Registro de especialidad | | Sí | |
-| 0310 | Certificado | | | |
-| 0311 | Curso | | | |
-| 0312 | Diplomado | | | |
-| 0313 | Taller | | | |
-| 0314 | Seminario | | | |
-| 0315 | Constancia de capacitación | | | |
-| 0316 | Resolución SERUMS | | Sí | |
-| 0399 | Otro documento académico o de capacitación | | | |
+| 0301 | Certificado oficial de estudios básicos, cuando corresponda | | | |
+| 0302 | Títulos o grados de estudios superiores técnicos o universitarios | | | |
+| 0303 | Colegiatura y habilitación profesional | | | Sí |
+| 0304 | Certificados o diplomas de postgrado (diplomados o programas de especialización) | | | |
+| 0305 | Diploma de grado académico de Maestría o Doctorado | | | |
+| 0306 | Certificados, constancias o diplomas de cursos y programas de capacitación | | | |
+| 0307 | Constancias de participación en congresos, convenciones, seminarios, talleres, fórums, simposios, conferencias, charlas y similares | | | |
+| 0308 | Otros documentos relacionados con la formación académica y capacitación | | | |
 
 **04 Experiencia laboral** (carpeta `04_Experiencia_Laboral`)
 
 | Código | Tipo | R | Nº | V |
 |---|---|---|---|---|
-| 0401 | Constancia de trabajo de empleador anterior | | | |
-| 0402 | Certificado de trabajo | | | |
-| 0403 | Resolución que acredita servicios anteriores | | Sí | |
-| 0404 | Constancia de prácticas | | | |
-| 0499 | Otro documento que acredite experiencia laboral | | | |
+| 0401 | Certificados de trabajo | | | |
+| 0402 | Constancias de trabajo | | | |
+| 0403 | Otros documentos que acrediten el tiempo de servicio | | | |
+| 0404 | Resoluciones que acrediten funciones desempeñadas | | | |
+| 0405 | Memorandos que acrediten asignación de funciones | | | |
+| 0406 | Otros documentos que acrediten funciones desempeñadas | | | |
 
-**05 Movimientos del personal** (carpeta `05_Movimientos_del_Personal`)
+**05 Movimientos del personal: vacaciones, licencias y permisos** (carpeta `05_Movimientos_del_Personal`)
 
 | Código | Tipo | R | Nº | V |
 |---|---|---|---|---|
-| 0501 | Memorando de rotación | | Sí | |
-| 0502 | Memorando o documento de encargatura | | Sí | |
-| 0503 | Cambio de funciones | | Sí | |
-| 0504 | Resolución de destaque | | Sí | Sí |
-| 0505 | Resolución de reasignación | | Sí | |
-| 0506 | Resolución de designación | | Sí | |
-| 0507 | Resolución Directoral Regional | | Sí | |
-| 0508 | Resolución relacionada con movimientos | | Sí | |
-| 0509 | Resolución de rotación | | Sí | |
-| 0599 | Otro memorando de acción de personal | | | |
+| 0501 | Documento que aprueba una licencia o permiso | | | |
+| 0502 | Documento que sustenta el goce vacacional | | | |
+| 0503 | Documento de adelanto de vacaciones | | | |
+| 0504 | Documento de postergación de vacaciones | | | |
+| 0505 | Rol de vacaciones | | | |
+| 0506 | Licencia por maternidad | | | |
+| 0507 | Licencia por paternidad | | | |
+| 0508 | Licencia por lactancia | | | |
+| 0509 | Licencia por adopción | | | |
+| 0510 | Licencia sindical | | | |
+| 0511 | Licencia por enfermedad de familiar grave | | | |
+| 0512 | Licencia por participación en comité SST | | | |
+| 0513 | Licencia por asistencia médica a un familiar | | | |
+| 0514 | Licencia por servicio como bombero voluntario | | | |
+| 0515 | Otras licencias otorgadas | | | |
 
 **06 Compensaciones** (carpeta `06_Compensaciones`)
 
 | Código | Tipo | R | Nº | V |
 |---|---|---|---|---|
-| 0601 | Documento de remuneraciones | | | |
-| 0602 | Bonificación | | | |
-| 0603 | Asignación | | | |
-| 0604 | Beneficio laboral | | | |
-| 0605 | Informe de compensaciones | | | |
-| 0606 | Constancia de pago | | | |
-| 0699 | Otro documento económico | | | |
+| 0601 | Documento de reconocimiento de tiempo de servicios | | | |
+| 0602 | Documentación referente al pago de compensaciones económicas | | | |
+| 0603 | Documentación referente a compensaciones no económicas | | | |
+| 0604 | Certificado de retención de quinta categoría | | | |
+| 0605 | Certificado de retención de cuarta categoría | | | |
+| 0606 | Otros certificados de retención, cuando corresponda | | | |
+| 0607 | Liquidación de beneficios sociales | | | |
 
-**07 Evaluación de desempeño y progresión en la carrera** (carpeta `07_Evaluacion_y_Progresion`)
+**07 Evaluación de desempeño, progresión en la carrera y desplazamiento** (carpeta `07_Desempeno_Carrera_y_Desplazamiento`)
 
 | Código | Tipo | R | Nº | V |
 |---|---|---|---|---|
-| 0701 | Evaluación de desempeño | | | |
-| 0702 | Informe de desempeño o de jefatura | | | |
-| 0703 | Evaluación periódica | | | |
-| 0704 | Documento de ascenso o progresión | | Sí | |
-| 0705 | Memorando relacionado con desempeño | | Sí | |
-| 0706 | Informe de cumplimiento de metas | | | |
-| 0799 | Otro documento de evaluación laboral | | | |
+| 0701 | Formato para la gestión del rendimiento | | | |
+| 0702 | Registro de evidencias de evaluación | | | |
+| 0703 | Formato de reunión de seguimiento | | | |
+| 0704 | Notificación de evaluación obtenida | | | |
+| 0705 | Acta de retroalimentación de resultados | | | |
+| 0706 | Plan de mejora del desempeño | | | |
+| 0707 | Resolución de progresión en la carrera | | | |
+| 0708 | Documento de designación | | | |
+| 0709 | Documento de rotación | | | |
+| 0710 | Documento de destaque | | | |
+| 0711 | Documento de encargo de puestos o funciones | | | |
+| 0712 | Otros documentos de desplazamiento | | | |
+
+Los tipos 0708 a 0712 se confirman como movimiento laboral y actualizan el área de la ficha.
 
 **08 Reconocimientos y sanciones disciplinarias** (carpeta `08_Reconocimientos_y_Sanciones`)
 
 | Código | Tipo | R | Nº | V |
 |---|---|---|---|---|
-| 0801 | Reconocimiento | | | |
-| 0802 | Felicitación | | | |
-| 0803 | Memorando de reconocimiento | | Sí | |
-| 0804 | Amonestación | Sí | Sí | |
-| 0805 | Memorando disciplinario | Sí | Sí | |
-| 0806 | Resolución sancionadora | Sí | Sí | |
-| 0807 | Proceso administrativo disciplinario | Sí | Sí | |
-| 0808 | Suspensión | Sí | Sí | |
-| 0809 | Carta de reconocimiento | | | |
-| 0899 | Otro documento disciplinario | Sí | | |
+| 0801 | Carta de felicitación | Sí | | |
+| 0802 | Oficio de felicitación | Sí | | |
+| 0803 | Memorando de felicitación | Sí | | |
+| 0804 | Condecoración | Sí | | |
+| 0805 | Diploma por reconocimiento de participación excepcional en proyectos o eventos | Sí | | |
+| 0806 | Certificado o constancia de reconocimiento excepcional por labor docente | Sí | | |
+| 0807 | Certificado o constancia de reconocimiento por tiempo de servicios | Sí | | |
+| 0808 | Documento de amonestación escrita | Sí | | |
+| 0809 | Documento de suspensión | Sí | | |
+| 0810 | Documento de destitución | Sí | | |
+| 0811 | Documento que declara fundado un recurso impugnatorio | Sí | | |
+| 0812 | Documento que declara infundado un recurso impugnatorio | Sí | | |
+| 0813 | Documento que declara improcedente un recurso impugnatorio | Sí | | |
 
 **09 Relaciones laborales individuales y colectivas** (carpeta `09_Relaciones_Laborales`)
 
 | Código | Tipo | R | Nº | V |
 |---|---|---|---|---|
-| 0901 | Comunicación laboral | | | |
-| 0902 | Solicitud sobre condiciones laborales | | | |
-| 0903 | Documento de relación individual | | | |
-| 0904 | Documento colectivo | | | |
-| 0905 | Acta de reunión laboral | | Sí | |
-| 0906 | Convenio colectivo | | Sí | |
-| 0907 | Resolución sobre relación laboral | | Sí | |
-| 0999 | Otro documento de relaciones laborales | | | |
+| 0901 | Documentación relacionada con controversias individuales | | | |
+| 0902 | Documentación relacionada con controversias colectivas | | | |
+| 0903 | Resolución que indique la afiliación sindical | | | |
+| 0904 | Acta que indique la afiliación sindical | | | |
+| 0905 | Otro documento que indique la afiliación sindical | | | |
 
-**10 Seguridad y Salud en el Trabajo y bienestar social** (carpeta `10_SST_y_Bienestar_Social`)
+**10 Seguridad y Salud en el Trabajo (SST) y bienestar social** (carpeta `10_SST_y_Bienestar_Social`)
 
 | Código | Tipo | R | Nº | V |
 |---|---|---|---|---|
-| 1001 | Documento de SST | | | |
-| 1002 | Evaluación o aptitud ocupacional | Sí | | Sí |
-| 1003 | Documento de bienestar social | | | |
-| 1004 | Licencia o descanso médico de origen ocupacional | Sí | | |
-| 1005 | Constancia de inducción SST | | | |
-| 1006 | Constancia de capacitación SST | | | |
-| 1007 | Acta de entrega de EPP | | | |
-| 1099 | Otro documento de SST o bienestar | | | |
+| 1001 | Cargo de entrega del Reglamento de Seguridad y Salud en el Trabajo | Sí | | |
+| 1002 | Registro de entrenamiento y simulacros de emergencia | Sí | | |
+| 1003 | Lista de asistencia a capacitaciones brindadas por la entidad pública | Sí | | |
+| 1004 | Documentos de trámites y gestiones de seguros | Sí | | |
+| 1005 | Documentos de trámites y gestiones de subsidios | Sí | | |
+| 1006 | Documentos de descansos médicos | Sí | | |
+| 1007 | Documentos de afiliación a Entidades Prestadoras de Salud (EPS) | Sí | | |
 
 **11 Desvinculación** (carpeta `11_Desvinculacion`)
 
 | Código | Tipo | R | Nº | V |
 |---|---|---|---|---|
-| 1101 | Carta de renuncia | | | |
-| 1102 | Resolución de cese | | Sí | |
-| 1103 | Resolución por término o finalización de contrato | | Sí | |
-| 1104 | Constancia de trabajo emitida por la entidad | | | |
-| 1105 | Liquidación | | | |
-| 1106 | Entrega de cargo | | | |
-| 1107 | Resolución de jubilación | | Sí | |
-| 1108 | Sustento de fallecimiento | Sí | | |
-| 1199 | Otro documento de salida | | | |
+| 1101 | Resolución de término de designación | | | |
+| 1102 | Resolución de término del servicio civil de carrera | | | |
+| 1103 | Memorando de término de vínculo del servicio civil | | | |
+| 1104 | Informe de gestión | | | |
+| 1105 | Documento de entrega de cargo o puesto | | | |
+| 1106 | Liquidación de beneficios sociales y/o pensión | | | |
+| 1107 | Carta de no renovación de contrato a plazo determinado (D. Leg. N.º 1057) | | | |
 
-**12 Otros que considere la entidad** (carpeta `12_Otros`)
+Los tipos 1101, 1102, 1103 y 1107 sustentan la confirmación del cese.
 
-| Código | Tipo | R | Nº | V |
-|---|---|---|---|---|
-| 1201 | Comunicación administrativa | | | |
-| 1202 | Documentación complementaria | | | |
-| 1203 | Anexo | | | |
-| 1204 | Informe complementario | | | |
-| 1299 | Documento que no corresponde a otra sección | | | |
-
-**13 Vacaciones, licencias y permisos** (carpeta `13_Vacaciones_Licencias_y_Permisos`)
+**12 Otros que considere la entidad** (carpeta `12_Otros_que_Considere_la_Entidad`)
 
 | Código | Tipo | R | Nº | V |
 |---|---|---|---|---|
-| 1301 | Resolución de vacaciones | | Sí | |
-| 1302 | Solicitud de vacaciones | | | |
-| 1303 | Rol de vacaciones | | | |
-| 1304 | Licencia con goce | | | |
-| 1305 | Licencia sin goce | | | |
-| 1306 | Autorización de permiso | | | |
-| 1307 | Descanso médico | Sí | | |
-| 1308 | Solicitud de licencia | | | |
-| 1309 | Resolución de licencia | | Sí | |
-| 1310 | Solicitud de permiso | | | |
-| 1311 | Documento de reincorporación | | | |
-| 1399 | Otro documento de ausencias autorizadas | | | |
+| 1201 | Otros documentos administrativos del trabajador | | | |
+| 1202 | Comunicaciones administrativas relevantes | | | |
+| 1203 | Informes relacionados con la trayectoria laboral | | | |
+| 1204 | Documentos complementarios de recursos humanos | | | |
+| 1205 | Documentación de fiscalización posterior | | | |
+| 1206 | Otros documentos no clasificados | | | |
 
 ### Campos propios por sección
 
-Además de tipo, número, fecha de emisión, vencimiento, emisor, observaciones y ubicación física, cada sección pide sus propios datos. Se guardan en `documento.datos`.
+Además de tipo, número, fecha de emisión, vencimiento, emisor, observaciones y ubicación física, cada sección pide sus propios datos. Se guardan en `documento.datos`. Al subir un PDF el formulario queda bloqueado hasta elegir el tipo de documento; luego aparecen los campos de la sección y los del tipo elegido.
 
 | Sección | Campos |
 |---|---|
-| 02 | Régimen o modalidad, inicio del vínculo, fin del vínculo, área o dependencia |
-| 03 | Institución emisora, carrera o curso, fecha de culminación, fecha de vencimiento |
+| 02 | En resoluciones, contrato y adenda: tipo de incorporación, régimen, inicio, fin, dependencia y puesto |
+| 03 | Institución emisora, carrera o curso, fecha de culminación, colegio profesional, número de colegiatura |
 | 04 | Entidad donde trabajó, cargo desempeñado, inicio y fin del período |
-| 05 | Tipo de movimiento, área de origen, área de destino, fecha de efecto |
+| 05 | Categoría (vacaciones, licencia, permiso u otro), fecha de inicio, fecha de término |
 | 06 | Concepto, período de referencia, fecha de efecto, referencia administrativa |
-| 07 | Período evaluado, cargo evaluado, resultado, área evaluadora |
-| 08 | Categoría (reconocimiento, sanción, actuación disciplinaria), autoridad emisora, fecha de efecto, nivel de acceso |
+| 07 | Período evaluado, cargo evaluado, resultado, área evaluadora; en desplazamientos, también tipo de movimiento, áreas de origen y destino y fecha efectiva |
+| 08 | Categoría (reconocimiento, sanción, actuación disciplinaria), autoridad emisora, fecha de efecto |
 | 09 | Materia, instancia participante, fecha de reunión, número de expediente |
-| 10 | Categoría SST, área responsable, vigencia, nivel de acceso |
+| 10 | Categoría SST, área responsable |
 | 11 | Motivo de cese, fecha efectiva, sustento, área que tramita |
 | 12 | Categoría propuesta, justificación (obligatoria), oficina emisora |
-| 13 | Clase de ausencia, fecha de inicio, fecha de término, días autorizados, área que autoriza |
+
+Cada tipo suma sus datos adicionales: concurso y resultado en la selección, grado y registro SUNEDU en títulos, colegio y vigencia en la colegiatura, horas y modalidad en cursos, documento que autoriza la ausencia en la 05, acto de sustento y monto en la 06, proceso y resultado en la 07, acto resolutivo en la 08, asunto y expediente en la 09, código SST y vigencia en la 10.
 
 Nivel de acceso por documento: **Restringido** (Administrador y Operador) o **Muy restringido** (solo Administrador). Los tipos marcados con R nunca bajan de Restringido. En la sección 10 no se registran diagnósticos ni datos clínicos en campos abiertos.
 
@@ -524,7 +517,7 @@ erDiagram
     }
     SECCION {
         int id PK
-        int numero UK "1 a 13"
+        int numero UK "1 a 12"
         varchar nombre
         varchar carpeta "nombre de carpeta en el ZIP"
         text descripcion
@@ -693,7 +686,7 @@ stateDiagram-v2
 Motivos de cese: `RENUNCIA`, `JUBILACION`, `FALLECIMIENTO`, `FIN_CONTRATO`, `DESTITUCION`, `OTRA_CAUSA`. Motivos de fin de vínculo sin cese: `RENOVACION`, `CAMBIO_REGIMEN`, `CAMBIO_CARGO_O_AREA`.
 
 - El reingreso exige una fecha posterior al último cese y no se permite si el motivo fue fallecimiento.
-- El movimiento actual (rotación, destaque, encargatura, reasignación) no es un estado laboral: un trabajador rotado sigue ACTIVO. Se actualiza con la fecha del movimiento y su sustento va en la sección 05.
+- El movimiento actual (rotación, destaque, encargatura, reasignación) no es un estado laboral: un trabajador rotado sigue ACTIVO. Se actualiza con la fecha del movimiento y su sustento va en la sección 07.
 - Registrar un PDF de cese no cambia el estado: el cese se registra en la ficha con motivo y fecha.
 
 El trabajador no se borra. Al cesar, su legajo sigue consultable y en faltantes se le exigen los documentos de cese.
@@ -735,7 +728,7 @@ flowchart TD
     J --> L["Transacción: trabajador + vínculo vigente<br/>auditoría TRABAJADOR_CREAR"]
     K --> L
     E --> H
-    L --> M["Abre el legajo con las 13 secciones vacías<br/>y la lista de faltantes según su régimen"]
+    L --> M["Abre el legajo con las 12 secciones vacías<br/>y la lista de faltantes según su régimen"]
     M --> N["Familiares opcionales"]
     M --> O["Subida de documentos"]
 
@@ -982,8 +975,8 @@ Convención de nombres:
 ```
 <DNI>_<CÓDIGO>[_<NÚMERO>][_<AAAAMMDD>].pdf
 
-45781236_0101.pdf                          DNI del trabajador
-45781236_0202_036-2022_20220115.pdf        Contrato CAS N.° 036-2022 del 15/01/2022
+45781236_0102.pdf                          DNI del trabajador
+45781236_0206_036-2022_20220115.pdf        Contrato N.° 036-2022 del 15/01/2022
 45781236_0302_20190520.pdf                 Título profesional del 20/05/2019
 ```
 
@@ -1116,14 +1109,14 @@ Estructura del ZIP:
 45781236_PEREZ_QUISPE_JUAN.zip
 └── 45781236_PEREZ_QUISPE_JUAN/
     ├── 01_Informacion_Personal_y_Familiar/
-    │   ├── 0101_DNI.pdf
-    │   └── 0102_Ficha_de_datos_personales.pdf
+    │   ├── 0102_Copia_del_DNI_o_documento_equivalente.pdf
+    │   └── 0103_Declaracion_jurada_o_certificado_de_antecedentes_penales.pdf
     ├── 02_Incorporacion/
-    │   ├── 0201_Curriculum_vitae.pdf
-    │   ├── 0202_Contrato_CAS_036-2022_2022-01-15.pdf
-    │   └── 0203_Contrato_administrativo_0089-2022_2022-03-01.pdf
+    │   ├── 0201_Resultado_final_del_proceso_de_seleccion.pdf
+    │   ├── 0206_Contrato_036-2022_2022-01-15.pdf
+    │   └── 0207_Adenda_0089-2022_2022-03-01.pdf
     └── 03_Formacion_Academica_y_Capacitacion/
-        └── 0302_Titulo_profesional_2019-05-20.pdf
+        └── 0302_Titulos_o_grados_de_estudios_superiores_2019-05-20.pdf
 ```
 
 - Sin archivos temporales; memoria constante.
@@ -1187,16 +1180,12 @@ Requisitos iniciales de la semilla:
 
 | Tipo | Régimen | Tipo de personal | Estado |
 |---|---|---|---|
-| 0101 DNI | Todos | Ambos | Todos |
-| 0102 Ficha de datos personales | Todos | Ambos | Todos |
-| 0105 Declaración jurada personal | Todos | Ambos | Todos |
-| 0201 Currículum vitae | Todos | Ambos | Todos |
-| 0202 Contrato Administrativo de Servicios (CAS) | D. Leg. 1057 | Ambos | Todos |
-| 0204 Contrato de locación de servicios | Locación de servicios | Ambos | Todos |
-| 0207 Resolución de nombramiento | D. Leg. 276 | Ambos | Todos |
-| 0302 Título profesional | Todos | Asistencial | Todos |
-| 1102 Resolución de cese | D. Leg. 276 | Ambos | Cesado |
-| 1103 Resolución por término o finalización de contrato | D. Leg. 1057 | Ambos | Cesado |
+| 0102 Copia del DNI o documento equivalente | Todos | Ambos | Todos |
+| 0206 Contrato | D. Leg. 1057 | Ambos | Todos |
+| 0205 Resolución administrativa del servicio civil de carrera | D. Leg. 276 | Ambos | Todos |
+| 0302 Títulos o grados de estudios superiores técnicos o universitarios | Todos | Asistencial | Todos |
+| 1102 Resolución de término del servicio civil de carrera | D. Leg. 276 | Ambos | Cesado |
+| 1107 Carta de no renovación de contrato a plazo determinado | D. Leg. 1057 | Ambos | Cesado |
 
 ### Auditoría
 
@@ -1329,7 +1318,7 @@ flowchart LR
     CC --> INI
     INI --> PER["Personal<br/>listado con filtros"]
     PER --> TRA["Trabajador<br/>ficha, familiares, vínculos"]
-    TRA --> LEG["Legajo<br/>13 secciones, visor,<br/>subida, ZIP, historial"]
+    TRA --> LEG["Legajo<br/>12 secciones, visor,<br/>subida, ZIP, historial"]
     PER --> LEG
     INI --> BUS["Búsqueda avanzada"]
     BUS --> LEG
@@ -1351,7 +1340,7 @@ El menú se arma según los permisos. Cada pantalla tiene un guard con su permis
 | Zona | Contenido |
 |---|---|
 | Cabecera | DNI, nombre, estado, régimen, tipo de personal, cargo, área, fecha de ingreso y completitud |
-| Columna izquierda | 13 secciones en acordeón con conteo y faltantes; documentos por tipo y fecha con número, folios y estado |
+| Columna izquierda | 12 secciones en acordeón con conteo y faltantes; documentos por tipo y fecha con número, folios y estado |
 | Panel derecho | Visor, datos, versiones y acciones: editar, reemplazar, anular, descargar |
 | Barra de acciones | Subir (o soltar sobre una sección), ZIP del legajo, ZIP de secciones marcadas |
 | Pestañas | Documentos, Faltantes, Vínculos, Historial |
