@@ -38,7 +38,7 @@ export class LaborController {
 
   @Post('confirm-movement')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Confirma el movimiento de la sección 05 y actualiza la ubicación del trabajador' })
+  @ApiOperation({ summary: 'Confirma el movimiento de la sección 07 y actualiza la ubicación del trabajador' })
   @ApiResponse({ status: 200, type: DocumentDto })
   async confirmarMovimiento(
     @Param('id', ID) id: string,
