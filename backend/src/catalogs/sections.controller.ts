@@ -14,7 +14,7 @@ export class SectionsController {
   constructor(private readonly tipos: DocumentTypesService) {}
 
   @Get('sections')
-  @ApiOperation({ summary: 'Las 13 secciones del legajo con sus campos propios y tipos de documento' })
+  @ApiOperation({ summary: 'Las 12 secciones del legajo con sus campos propios y tipos de documento' })
   @ApiResponse({ status: 200, type: [SectionDto] })
   async secciones(): Promise<SectionDto[]> {
     return this.tipos.listarSecciones();
