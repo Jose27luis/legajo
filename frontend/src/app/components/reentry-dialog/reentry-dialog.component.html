@@ -1,7 +1,7 @@
 <app-dialog [abierto]="trabajador() !== null" titulo="Registrar reingreso" (cerrar)="cerrarDialogo()">
   @if (trabajador(); as actual) {
     <p class="intro">
-      <strong>{{ nombreCompleto(actual) }}</strong> ya tiene legajo. Se conservan sus 13 secciones y documentos, y se agrega un nuevo
+      <strong>{{ nombreCompleto(actual) }}</strong> ya tiene legajo. Se conservan sus 12 secciones y documentos, y se agrega un nuevo
       período laboral.
       @if (actual.vinculo?.fechaFin; as cese) {
         Último cese: {{ fechaCorta(cese) }}.
