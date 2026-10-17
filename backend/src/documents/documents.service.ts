@@ -34,6 +34,7 @@ import {
 import { DocumentQueueService } from './document-queue.service';
 import { UploadServerService } from './upload-server.service';
 import { LaborService } from '../labor/labor.service';
+import { CODIGO_FICHA_TEXTO } from '../seed-catalogs';
 
 const EVENTOS_DOCUMENTO: Readonly<Record<string, string>> = {
   DOCUMENTO_SUBIR: 'Registrado',
@@ -115,7 +116,7 @@ export class DocumentsService {
       orderBy: { numero: 'asc' },
       include: {
         tipos: {
-          where: { activo: true, ...(verRestringidos ? {} : { restringido: false }) },
+          where: { activo: true, codigo: { not: CODIGO_FICHA_TEXTO }, ...(verRestringidos ? {} : { restringido: false }) },
           orderBy: [{ orden: 'asc' }, { codigo: 'asc' }],
         },
       },
@@ -487,6 +488,9 @@ export class DocumentsService {
     });
     if (tipo === null || !tipo.activo) {
       throw new BadRequestException('El tipo de documento no existe o está inactivo');
+    }
+    if (tipo.codigo === CODIGO_FICHA_TEXTO) {
+      throw new BadRequestException('La ficha de datos del servidor civil es solo texto y se completa en la Sección 01');
     }
     if (seccionId !== null && tipo.seccionId !== seccionId) {
       throw new BadRequestException('Solo se puede reclasificar dentro de la misma sección');
