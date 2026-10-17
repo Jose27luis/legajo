@@ -48,35 +48,34 @@ export const SECCIONES: readonly SeccionSemilla[] = [
     numero: 1,
     nombre: 'Información personal y familiar',
     carpeta: '01_Informacion_Personal_y_Familiar',
-    descripcion:
-      'Datos personales, contacto autorizado, régimen, puesto, unidad orgánica, condición laboral, períodos de servicio y eventos de cese o reingreso.',
+    descripcion: 'Datos personales y familiares del servidor civil, documentos de identidad, antecedentes y declaraciones juradas.',
     campos: [],
   },
   {
     numero: 2,
     nombre: 'Incorporación',
     carpeta: '02_Incorporacion',
-    descripcion: 'Documentos de ingreso a la entidad, currículum, contratos, adendas y anexos de incorporación.',
+    descripcion: 'Selección, vínculo e inducción: resultados del proceso de selección, resoluciones, contratos, adendas e inducción.',
     campos: [],
   },
   {
     numero: 3,
     nombre: 'Formación académica y capacitación',
     carpeta: '03_Formacion_Academica_y_Capacitacion',
-    descripcion: 'Grados, títulos, colegiatura, habilitación, capacitaciones, certificaciones y SERUMS cuando corresponda.',
+    descripcion: 'Grados y capacitaciones: estudios, títulos, colegiatura, postgrados y cursos.',
     campos: [
-      texto('institucion', 'Institución formadora o emisora'),
+      texto('institucion', 'Institución formadora / emisora'),
       texto('programa', 'Carrera, especialidad o curso'),
-      fecha('fechaCulminacion', 'Fecha de culminación, si aplica'),
-      texto('colegioProfesional', 'Colegio profesional, si aplica'),
-      texto('numeroColegiatura', 'Número de colegiatura, si aplica'),
+      fecha('fechaCulminacion', 'Fecha de culminación (si aplica)'),
+      texto('colegioProfesional', 'Colegio profesional (si aplica)'),
+      texto('numeroColegiatura', 'Número de colegiatura (si aplica)'),
     ],
   },
   {
     numero: 4,
     nombre: 'Experiencia laboral',
     carpeta: '04_Experiencia_Laboral',
-    descripcion: 'Documentos que acreditan experiencia previa o servicios desempeñados dentro o fuera de la entidad.',
+    descripcion: 'Experiencia acreditada: certificados, constancias y documentos que acreditan tiempo de servicio y funciones.',
     campos: [
       texto('entidad', 'Entidad donde trabajó'),
       texto('cargo', 'Cargo desempeñado'),
@@ -88,21 +87,18 @@ export const SECCIONES: readonly SeccionSemilla[] = [
     numero: 5,
     nombre: 'Movimientos del personal',
     carpeta: '05_Movimientos_del_Personal',
-    descripcion:
-      'Resoluciones o memorandos de desplazamiento, rotación, encargatura, destaque, reasignación y designación.',
+    descripcion: 'Vacaciones, licencias y permisos.',
     campos: [
-      seleccion('tipoMovimiento', 'Tipo de movimiento', TIPOS_MOVIMIENTO),
-      catalogo('areaOrigen', 'Área de origen', 'area'),
-      catalogo('areaDestino', 'Área de destino', 'area'),
-      fecha('fechaEfecto', 'Fecha efectiva del movimiento'),
+      seleccion('categoria', 'Categoría documental', ['Vacaciones', 'Licencia', 'Permiso', 'Otro']),
+      fecha('inicio', 'Fecha de inicio (si corresponde)'),
+      fecha('fin', 'Fecha de término (si corresponde)'),
     ],
   },
   {
     numero: 6,
     nombre: 'Compensaciones',
     carpeta: '06_Compensaciones',
-    descripcion:
-      'Documentos administrativos de beneficios, asignaciones y otros conceptos autorizados, sin desarrollar un módulo de planillas.',
+    descripcion: 'Reconocimiento de tiempo de servicios, compensaciones económicas y no económicas, retenciones y liquidaciones.',
     campos: [
       texto('concepto', 'Concepto del beneficio'),
       texto('periodo', 'Período de referencia'),
@@ -112,22 +108,21 @@ export const SECCIONES: readonly SeccionSemilla[] = [
   },
   {
     numero: 7,
-    nombre: 'Evaluación de desempeño y progresión',
-    carpeta: '07_Evaluacion_y_Progresion',
-    descripcion: 'Documentación sobre resultados de evaluación, promoción o progresión que corresponda al régimen aplicable.',
+    nombre: 'Evaluación de desempeño, progresión en la carrera y desplazamiento',
+    carpeta: '07_Desempeno_Carrera_y_Desplazamiento',
+    descripcion: 'Desempeño, carrera y desplazamiento: gestión del rendimiento, progresión, designación, rotación, destaque y encargo.',
     campos: [
       texto('periodo', 'Período evaluado'),
       texto('cargoEvaluado', 'Cargo evaluado'),
-      texto('resultado', 'Resultado o calificación'),
+      texto('resultado', 'Resultado o calificación (opcional)'),
       texto('areaEvaluadora', 'Área evaluadora'),
     ],
   },
   {
     numero: 8,
-    nombre: 'Reconocimientos y sanciones',
+    nombre: 'Reconocimientos y sanciones disciplinarias',
     carpeta: '08_Reconocimientos_y_Sanciones',
-    descripcion:
-      'Resoluciones de reconocimiento, felicitaciones y sanciones, conservando trazabilidad y restricciones cuando correspondan.',
+    descripcion: 'Reconocimientos, felicitaciones, sanciones y recursos impugnatorios.',
     campos: [
       seleccion('categoria', 'Categoría', ['Reconocimiento', 'Sanción', 'Actuación disciplinaria']),
       texto('autoridad', 'Autoridad emisora'),
@@ -138,19 +133,19 @@ export const SECCIONES: readonly SeccionSemilla[] = [
     numero: 9,
     nombre: 'Relaciones laborales individuales y colectivas',
     carpeta: '09_Relaciones_Laborales',
-    descripcion: 'Documentos laborales individuales y colectivos que no correspondan a vacaciones o licencias de la sección 13.',
+    descripcion: 'Controversias y sindicalización: controversias individuales y colectivas y afiliación sindical.',
     campos: [
       texto('materia', 'Materia o asunto laboral'),
       texto('instancia', 'Área o instancia participante'),
-      fecha('fechaReunion', 'Fecha de reunión, si aplica'),
-      texto('expediente', 'Número de expediente, si aplica'),
+      fecha('fechaReunion', 'Fecha de reunión (si aplica)'),
+      texto('expediente', 'Número de expediente (si aplica)'),
     ],
   },
   {
     numero: 10,
-    nombre: 'Seguridad, salud en el trabajo y bienestar',
-    carpeta: '10_SST_y_Bienestar',
-    descripcion: 'Archivos administrativos de SST y bienestar. No almacenar historias clínicas ni diagnósticos en campos abiertos.',
+    nombre: 'Seguridad y Salud en el Trabajo (SST) y bienestar social',
+    carpeta: '10_SST_y_Bienestar_Social',
+    descripcion: 'SST y bienestar social: reglamento SST, simulacros, capacitaciones, seguros, subsidios, descansos médicos y EPS.',
     campos: [
       seleccion('categoria', 'Categoría SST', ['Capacitación', 'Aptitud ocupacional', 'Prevención', 'Bienestar', 'EPP', 'Otro']),
       texto('areaResponsable', 'Área responsable'),
@@ -160,38 +155,23 @@ export const SECCIONES: readonly SeccionSemilla[] = [
     numero: 11,
     nombre: 'Desvinculación',
     carpeta: '11_Desvinculacion',
-    descripcion:
-      'Registro documental de renuncias, jubilaciones, fallecimientos, vencimientos y otros ceses. El cambio de estado laboral se valida por separado.',
+    descripcion: 'Documentos de desvinculación: término del vínculo, entrega de cargo, informe de gestión y liquidación.',
     campos: [
       seleccion('motivoCese', 'Motivo de cese', MOTIVOS_CESE),
       fecha('fechaCese', 'Fecha efectiva de cese'),
-      texto('sustento', 'Documento de sustento o referencia'),
+      texto('sustento', 'Documento de sustento / referencia'),
       texto('areaTramite', 'Área que tramita'),
     ],
   },
   {
     numero: 12,
-    nombre: 'Otros documentos',
-    carpeta: '12_Otros',
-    descripcion:
-      'Archivos que no encajen en otra sección. Se debe justificar su clasificación para evitar que esta sección se convierta en un depósito desordenado.',
+    nombre: 'Otros que considere la entidad',
+    carpeta: '12_Otros_que_Considere_la_Entidad',
+    descripcion: 'Complementarios del legajo: documentos que no corresponden a ninguna de las otras 11 secciones.',
     campos: [
       texto('categoria', 'Categoría propuesta'),
       { clave: 'justificacion', etiqueta: '¿Por qué corresponde a Otros?', tipo: 'parrafo', obligatorio: true },
       texto('oficinaEmisora', 'Oficina emisora'),
-    ],
-  },
-  {
-    numero: 13,
-    nombre: 'Vacaciones, licencias y permisos',
-    carpeta: '13_Vacaciones_Licencias_y_Permisos',
-    descripcion: 'Solicitudes, resoluciones y autorizaciones de vacaciones, licencias y permisos; no se mezclan con la sección 09.',
-    campos: [
-      seleccion('clase', 'Clase de ausencia', ['Vacaciones', 'Licencia', 'Permiso']),
-      fecha('inicio', 'Fecha de inicio'),
-      fecha('fin', 'Fecha de término'),
-      { clave: 'dias', etiqueta: 'Días autorizados, si aplica', tipo: 'numero', obligatorio: false },
-      texto('areaAutoriza', 'Área que autoriza'),
     ],
   },
 ];
@@ -204,56 +184,62 @@ const CAMPOS_VINCULO: CampoSeccion[] = [
   catalogo('dependencia', 'Área o dependencia', 'area'),
   catalogo('puesto', 'Cargo o puesto objeto del contrato', 'cargo'),
 ];
-const CAMPOS_CV: CampoSeccion[] = [
-  seleccion('tipoCv', 'Tipo de currículum', ['Simple', 'Documentado']),
-  fecha('fechaCv', 'Fecha de actualización del CV'),
-  texto('perfilCv', 'Perfil o especialidad, si consta'),
-];
-const CAMPOS_DECLARACION: CampoSeccion[] = [
-  texto('finalidad', 'Finalidad de la declaración jurada'),
-  fecha('fechaSuscripcion', 'Fecha de suscripción'),
-  texto('proceso', 'Concurso o convocatoria de referencia'),
+const vigencia = (): CampoSeccion => fecha('vigenciaHasta', 'Vigencia hasta (si corresponde)');
+
+const CAMPOS_CONTRATO: CampoSeccion[] = [
+  ...CAMPOS_VINCULO,
+  fecha('vigenciaDesde', 'Vigencia desde'),
+  fecha('vigenciaHasta', 'Vigencia hasta'),
 ];
 const CAMPOS_CONCURSO: CampoSeccion[] = [
-  texto('concurso', 'Concurso o convocatoria'),
+  texto('concurso', 'Concurso / convocatoria'),
   texto('plaza', 'Plaza o cargo al que postuló'),
-  texto('resultadoConcurso', 'Resultado, puntaje o referencia, si corresponde'),
+  texto('resultadoConcurso', 'Resultado, puntaje o referencia (si corresponde)'),
 ];
-const CAMPOS_CONSULTA: CampoSeccion[] = [
-  texto('entidadConsulta', 'Entidad o plataforma emisora'),
-  fecha('fechaConsulta', 'Fecha de emisión o consulta'),
-];
-const CAMPOS_PENSION: CampoSeccion[] = [
-  seleccion('sistemaPensionario', 'Sistema pensionario', ['SNP / ONP', 'SPP / AFP', 'Otro']),
-  fecha('fechaEleccion', 'Fecha de elección'),
-];
-const CAMPOS_TRAMITE: CampoSeccion[] = [texto('procedimiento', 'Proceso o trámite relacionado')];
+const CAMPOS_TRAMITE: CampoSeccion[] = [texto('procedimiento', 'Proceso o trámite relacionado (opcional)')];
+const CAMPOS_RESOLUCION_VINCULO: CampoSeccion[] = [...CAMPOS_VINCULO, ...CAMPOS_TRAMITE];
 const CAMPOS_GRADO: CampoSeccion[] = [
   texto('gradoAcreditado', 'Grado o título acreditado'),
-  texto('registroSunedu', 'Registro o código SUNEDU, si corresponde'),
-  fecha('fechaGrado', 'Fecha de grado o título'),
+  texto('registroSunedu', 'Registro / código SUNEDU (si corresponde)'),
+  fecha('fechaGrado', 'Fecha de grado / título'),
+];
+const CAMPOS_COLEGIATURA: CampoSeccion[] = [
+  texto('colegioHabilitacion', 'Colegio profesional'),
+  texto('numeroHabilitacion', 'Número de colegiatura'),
+  vigencia(),
 ];
 const CAMPOS_CURSO: CampoSeccion[] = [
-  texto('horasAcademicas', 'Horas académicas, si constan'),
-  texto('modalidadEstudio', 'Modalidad o especialidad'),
+  texto('horasAcademicas', 'Horas académicas (si constan)'),
+  texto('modalidadEstudio', 'Modalidad / especialidad'),
+  vigencia(),
 ];
-const CAMPOS_SERVICIO: CampoSeccion[] = [
-  texto('ordenReferencia', 'N.º de orden de servicio o referencia'),
-  texto('objetoServicio', 'Objeto o descripción del servicio'),
-];
-const CAMPOS_EXPERIENCIA: CampoSeccion[] = [texto('referenciaLaboral', 'Documento o contrato relacionado')];
+const CAMPOS_EXPERIENCIA: CampoSeccion[] = [texto('referenciaLaboral', 'Documento / contrato relacionado (opcional)')];
+const CAMPOS_AUSENCIA: CampoSeccion[] = [texto('sustentoAusencia', 'Documento que autoriza la ausencia')];
 const CAMPOS_COMPENSACION: CampoSeccion[] = [
   texto('actoSustento', 'Acto administrativo de sustento'),
-  texto('montoReferencial', 'Monto o referencia, solo si consta'),
+  texto('montoReferencial', 'Monto o referencia (solo si consta)'),
 ];
-const CAMPOS_EVALUACION: CampoSeccion[] = [texto('procesoEvaluado', 'Proceso de evaluación o progresión')];
-const CAMPOS_RESOLUTIVO: CampoSeccion[] = [texto('actoResolutivo', 'Acto o número de resolución')];
-const CAMPOS_SST: CampoSeccion[] = [texto('documentoSst', 'Código o referencia SST')];
+const CAMPOS_EVALUACION: CampoSeccion[] = [
+  texto('procesoEvaluado', 'Proceso de evaluación / progresión'),
+  texto('resultadoDocumento', 'Resultado consignado'),
+];
+const CAMPOS_DESPLAZAMIENTO: CampoSeccion[] = [
+  ...CAMPOS_EVALUACION,
+  seleccion('tipoMovimiento', 'Tipo de movimiento', TIPOS_MOVIMIENTO),
+  catalogo('areaOrigen', 'Área de origen', 'area'),
+  catalogo('areaDestino', 'Área de destino', 'area'),
+  fecha('fechaEfecto', 'Fecha efectiva del movimiento'),
+];
+const CAMPOS_RESOLUTIVO: CampoSeccion[] = [
+  texto('actoResolutivo', 'Acto o número de resolución'),
+  fecha('fechaEfectiva', 'Fecha efectiva (si corresponde)'),
+];
+const CAMPOS_RELACION_LABORAL: CampoSeccion[] = [
+  texto('asuntoDocumento', 'Asunto o materia'),
+  texto('expedienteReferencia', 'Expediente o referencia asociada'),
+];
+const CAMPOS_SST: CampoSeccion[] = [texto('documentoSst', 'Código / referencia SST'), vigencia()];
 const CAMPOS_OTROS: CampoSeccion[] = [texto('referenciaOrigen', 'Documento o expediente relacionado')];
-const CAMPOS_AUSENCIA: CampoSeccion[] = [
-  texto('actoAutorizacion', 'Documento de autorización'),
-  fecha('fechaEfecto', 'Fecha de efecto'),
-];
 
 export interface TipoSemilla {
   codigo: string;
@@ -281,143 +267,140 @@ const contrato = { requiereNumero: true, accion: 'VINCULO' } as const;
 const movimiento = { accion: 'MOVIMIENTO' } as const;
 const cese = { accion: 'CESE' } as const;
 
+const restringido = { restringido: true } as const;
+
+export const CODIGO_FICHA_TEXTO = '0101';
+
 export const TIPOS_DOCUMENTO: readonly TipoSemilla[] = [
-  tipo('0101', 'Copia de DNI ampliado', [], { tieneVencimiento: true }),
-  tipo('0102', 'Ficha INFORHUS'),
-  tipo('0105', 'Declaración jurada de datos personales'),
-  tipo('0106', 'Autorización de notificación vía correo electrónico (actualización de contacto)'),
+  tipo(CODIGO_FICHA_TEXTO, 'Ficha de datos del servidor civil (SOLO TEXTO)'),
+  tipo('0102', 'Copia del DNI o documento equivalente', [], { tieneVencimiento: true }),
+  tipo('0103', 'Declaración jurada o certificado de antecedentes penales'),
+  tipo('0104', 'Declaración jurada o certificado de antecedentes policiales'),
+  tipo('0105', 'Declaración jurada de bienes y rentas, cuando corresponda'),
+  tipo('0106', 'Declaración jurada de no tener impedimentos para designación, según Ley N.º 31419'),
+  tipo('0107', 'Partida de matrimonio o constancia de unión de hecho'),
+  tipo('0108', 'Información de impedimentos e inhabilitaciones (RNSSC, REDJUM, entre otros)'),
+  tipo('0109', 'Copia del DNI del cónyuge o conviviente'),
+  tipo('0110', 'Copia del DNI de los hijos menores de edad'),
+  tipo('0111', 'Certificado de discapacidad emitido por CONADIS, cuando corresponda'),
+  tipo('0112', 'Otras declaraciones juradas que correspondan'),
 
-  tipo('0202', 'Contrato CAS', CAMPOS_VINCULO, contrato),
-  tipo('0203', 'Contrato administrativo', CAMPOS_VINCULO, contrato),
-  tipo('0205', 'Adenda contractual', CAMPOS_VINCULO, contrato),
-  tipo('0207', 'Resolución de nombramiento', CAMPOS_VINCULO, contrato),
-  tipo('0210', 'Declaración jurada de ingreso', CAMPOS_DECLARACION),
-  tipo('0299', 'Otro documento de incorporación', CAMPOS_TRAMITE),
-  tipo('0213', 'Solicitud de postulación a concurso público', CAMPOS_CONCURSO),
-  tipo('0214', 'Ficha de postulante', CAMPOS_CONCURSO),
-  tipo('0215', 'Currículum Vitae (CV) documentado', CAMPOS_CV),
-  tipo('0216', 'Ficha de evaluación curricular', CAMPOS_CONCURSO),
-  tipo('0217', 'Resultado de evaluación de conocimientos (examen)', CAMPOS_CONCURSO),
-  tipo('0218', 'Ficha de evaluación de entrevista personal', CAMPOS_CONCURSO),
-  tipo('0219', 'Cuadro de méritos del concurso público', CAMPOS_CONCURSO),
-  tipo('0220', 'Resultados finales del concurso público', CAMPOS_CONCURSO),
-  tipo('0221', 'Memorando de resultados del concurso público', CAMPOS_CONCURSO),
-  tipo('0212', 'Acta de adjudicación de plaza', CAMPOS_CONCURSO),
-  tipo('0223', 'Declaración jurada de veracidad de documentos', CAMPOS_DECLARACION),
-  tipo('0224', 'Declaración jurada de compromiso', CAMPOS_DECLARACION),
-  tipo('0225', 'Declaración jurada de gozar buena salud', CAMPOS_DECLARACION),
-  tipo('0226', 'Declaración jurada de conocimiento del Código de Ética de la Función Pública', CAMPOS_DECLARACION),
-  tipo('0227', 'Declaración jurada de antecedentes policiales, penales y judiciales', CAMPOS_DECLARACION),
-  tipo('0228', 'Declaración jurada para prevenir casos de nepotismo', CAMPOS_DECLARACION),
-  tipo('0229', 'Declaración jurada de ausencia de incompatibilidades', CAMPOS_DECLARACION),
-  tipo('0230', 'Declaración jurada de no tener impedimentos para contratar', CAMPOS_DECLARACION),
-  tipo('0231', 'Constancia de consulta REDAM', CAMPOS_CONSULTA, { tieneVencimiento: true }),
-  tipo('0232', 'Constancia de consulta RNSSC', CAMPOS_CONSULTA, { tieneVencimiento: true }),
-  tipo('0233', 'Certificado Único Laboral (CUL)', CAMPOS_CONSULTA, { tieneVencimiento: true }),
-  tipo('0234', 'Formato de elección del régimen pensionario', CAMPOS_PENSION),
-  tipo('0235', 'Autorización de notificación vía correo electrónico', CAMPOS_TRAMITE),
-  tipo('0236', 'Copia de resultados de concurso', CAMPOS_CONCURSO),
-  tipo('0237', 'Fe de erratas de documento de incorporación', CAMPOS_TRAMITE),
+  tipo('0201', 'Resultado final del proceso de selección donde el servidor resultó ganador', CAMPOS_CONCURSO),
+  tipo(
+    '0202',
+    'Informe de Recursos Humanos que verifica el cumplimiento de los requisitos del puesto, cuando corresponda',
+    CAMPOS_TRAMITE,
+  ),
+  tipo('0203', 'Resolución administrativa de designación', CAMPOS_RESOLUCION_VINCULO, contrato),
+  tipo('0204', 'Resolución administrativa de renovación', CAMPOS_RESOLUCION_VINCULO, contrato),
+  tipo('0205', 'Resolución administrativa del servicio civil de carrera', CAMPOS_RESOLUCION_VINCULO, contrato),
+  tipo('0206', 'Contrato', CAMPOS_CONTRATO, contrato),
+  tipo('0207', 'Adenda', CAMPOS_CONTRATO, contrato),
+  tipo('0208', 'Registro de inducción general y específica', CAMPOS_TRAMITE),
+  tipo('0209', 'Cargo de entrega del perfil del puesto y funciones', CAMPOS_TRAMITE),
+  tipo('0210', 'Cargo de entrega del reglamento interno de servidores civiles', CAMPOS_TRAMITE),
+  tipo('0211', 'Cargo de entrega del código de conducta y ética', CAMPOS_TRAMITE),
+  tipo('0212', 'Otros documentos similares', CAMPOS_TRAMITE),
+  tipo('0213', 'Evaluación y resultados del período de prueba', CAMPOS_CONCURSO),
 
-  tipo('0303', 'Grado académico', CAMPOS_GRADO),
-  tipo('0302', 'Título profesional', CAMPOS_GRADO),
-  tipo('0304', 'Título técnico', CAMPOS_GRADO),
-  tipo('0311', 'Certificado de curso', CAMPOS_CURSO),
-  tipo('0312', 'Diplomado', CAMPOS_CURSO),
-  tipo('0315', 'Constancia de capacitación', CAMPOS_CURSO),
-  tipo('0306', 'Constancia de colegiatura', [], { requiereNumero: true }),
-  tipo('0307', 'Habilitación profesional', [], { tieneVencimiento: true }),
-  tipo('0316', 'Resolución SERUMS', [], { requiereNumero: true }),
-  tipo('0317', 'Grado de Bachiller', CAMPOS_GRADO),
-  tipo('0318', 'Diploma de grado de Bachiller', CAMPOS_GRADO),
-  tipo('0301', 'Constancia de inscripción de grados y títulos – SUNEDU', CAMPOS_GRADO),
-  tipo('0320', 'Diploma de diplomado', CAMPOS_CURSO),
-  tipo('0321', 'Constancia de habilidad profesional', [], { tieneVencimiento: true }),
-  tipo('0322', 'Certificado de estudios', CAMPOS_CURSO),
-  tipo('0310', 'Certificado de capacitación', CAMPOS_CURSO),
-  tipo('0324', 'Certificado de diplomado', CAMPOS_CURSO),
+  tipo('0301', 'Certificado oficial de estudios básicos, cuando corresponda', CAMPOS_CURSO),
+  tipo('0302', 'Títulos o grados de estudios superiores técnicos o universitarios', CAMPOS_GRADO),
+  tipo('0303', 'Colegiatura y habilitación profesional', CAMPOS_COLEGIATURA, { tieneVencimiento: true }),
+  tipo('0304', 'Certificados o diplomas de postgrado (diplomados o programas de especialización)', CAMPOS_GRADO),
+  tipo('0305', 'Diploma de grado académico de Maestría o Doctorado', CAMPOS_GRADO),
+  tipo('0306', 'Certificados, constancias o diplomas de cursos y programas de capacitación', CAMPOS_CURSO),
+  tipo(
+    '0307',
+    'Constancias de participación en congresos, convenciones, seminarios, talleres, fórums, simposios, conferencias, charlas y similares',
+  ),
+  tipo('0308', 'Otros documentos relacionados con la formación académica y capacitación', CAMPOS_CURSO),
 
-  tipo('0401', 'Constancia de trabajo', CAMPOS_EXPERIENCIA),
-  tipo('0402', 'Certificado de trabajo', CAMPOS_EXPERIENCIA),
-  tipo('0403', 'Resolución que acredita servicios', CAMPOS_EXPERIENCIA, { requiereNumero: true }),
-  tipo('0404', 'Constancia de prácticas', CAMPOS_EXPERIENCIA),
-  tipo('0405', 'Documento de servicios prestados', CAMPOS_EXPERIENCIA),
-  tipo('0499', 'Otro documento de experiencia', CAMPOS_EXPERIENCIA),
-  tipo('0406', 'Orden de Servicio', CAMPOS_SERVICIO),
-  tipo('0407', 'Conformidad de Servicio', CAMPOS_SERVICIO),
-  tipo('0408', 'Constancia de prestación de servicios', CAMPOS_SERVICIO),
-  tipo('0409', 'Contrato de locación de servicios (experiencia previa)', CAMPOS_SERVICIO),
-  tipo('0410', 'Recibo por honorarios (sustento complementario)', CAMPOS_SERVICIO),
-  tipo('0411', 'Certificado de prácticas preprofesionales', CAMPOS_EXPERIENCIA),
+  tipo('0401', 'Certificados de trabajo', CAMPOS_EXPERIENCIA),
+  tipo('0402', 'Constancias de trabajo', CAMPOS_EXPERIENCIA),
+  tipo('0403', 'Otros documentos que acrediten el tiempo de servicio', CAMPOS_EXPERIENCIA),
+  tipo('0404', 'Resoluciones que acrediten funciones desempeñadas', CAMPOS_EXPERIENCIA),
+  tipo('0405', 'Memorandos que acrediten asignación de funciones', CAMPOS_EXPERIENCIA),
+  tipo('0406', 'Otros documentos que acrediten funciones desempeñadas', CAMPOS_EXPERIENCIA),
 
-  tipo('0509', 'Resolución de rotación', [], movimiento),
-  tipo('0501', 'Memorando de rotación', [], movimiento),
-  tipo('0504', 'Resolución de destaque', [], movimiento),
-  tipo('0505', 'Resolución de reasignación', [], movimiento),
-  tipo('0502', 'Documento de encargatura', [], movimiento),
-  tipo('0506', 'Resolución de designación', [], movimiento),
-  tipo('0503', 'Cambio de funciones', [], movimiento),
+  tipo('0501', 'Documento que aprueba una licencia o permiso', CAMPOS_AUSENCIA),
+  tipo('0502', 'Documento que sustenta el goce vacacional', CAMPOS_AUSENCIA),
+  tipo('0503', 'Documento de adelanto de vacaciones', CAMPOS_AUSENCIA),
+  tipo('0504', 'Documento de postergación de vacaciones', CAMPOS_AUSENCIA),
+  tipo('0505', 'Rol de vacaciones', CAMPOS_AUSENCIA),
+  tipo('0506', 'Licencia por maternidad', CAMPOS_AUSENCIA),
+  tipo('0507', 'Licencia por paternidad', CAMPOS_AUSENCIA),
+  tipo('0508', 'Licencia por lactancia', CAMPOS_AUSENCIA),
+  tipo('0509', 'Licencia por adopción', CAMPOS_AUSENCIA),
+  tipo('0510', 'Licencia sindical', CAMPOS_AUSENCIA),
+  tipo('0511', 'Licencia por enfermedad de familiar grave', CAMPOS_AUSENCIA),
+  tipo('0512', 'Licencia por participación en comité SST', CAMPOS_AUSENCIA),
+  tipo('0513', 'Licencia por asistencia médica a un familiar', CAMPOS_AUSENCIA),
+  tipo('0514', 'Licencia por servicio como bombero voluntario', CAMPOS_AUSENCIA),
+  tipo('0515', 'Otras licencias otorgadas', CAMPOS_AUSENCIA),
 
-  tipo('0603', 'Resolución de asignación', CAMPOS_COMPENSACION),
-  tipo('0604', 'Resolución de beneficio', CAMPOS_COMPENSACION),
-  tipo('0607', 'Reconocimiento de beneficio', CAMPOS_COMPENSACION),
-  tipo('0605', 'Informe de compensaciones', CAMPOS_COMPENSACION),
-  tipo('0606', 'Constancia de pago', CAMPOS_COMPENSACION),
-  tipo('0699', 'Otro documento de compensación', CAMPOS_COMPENSACION),
+  tipo('0601', 'Documento de reconocimiento de tiempo de servicios', CAMPOS_COMPENSACION),
+  tipo('0602', 'Documentación referente al pago de compensaciones económicas', CAMPOS_COMPENSACION),
+  tipo('0603', 'Documentación referente a compensaciones no económicas', CAMPOS_COMPENSACION),
+  tipo('0604', 'Certificado de retención de quinta categoría', CAMPOS_COMPENSACION),
+  tipo('0605', 'Certificado de retención de cuarta categoría', CAMPOS_COMPENSACION),
+  tipo('0606', 'Otros certificados de retención, cuando corresponda', CAMPOS_COMPENSACION),
+  tipo('0607', 'Liquidación de beneficios sociales', CAMPOS_COMPENSACION),
 
-  tipo('0701', 'Evaluación de desempeño', CAMPOS_EVALUACION),
-  tipo('0702', 'Informe de desempeño', CAMPOS_EVALUACION),
-  tipo('0704', 'Resolución de progresión', CAMPOS_EVALUACION, { requiereNumero: true }),
-  tipo('0707', 'Resolución de ascenso', CAMPOS_EVALUACION, { requiereNumero: true }),
-  tipo('0706', 'Informe de cumplimiento de metas', CAMPOS_EVALUACION),
-  tipo('0799', 'Otro documento de evaluación', CAMPOS_EVALUACION),
+  tipo('0701', 'Formato para la gestión del rendimiento', CAMPOS_EVALUACION),
+  tipo('0702', 'Registro de evidencias de evaluación', CAMPOS_EVALUACION),
+  tipo('0703', 'Formato de reunión de seguimiento', CAMPOS_EVALUACION),
+  tipo('0704', 'Notificación de evaluación obtenida', CAMPOS_EVALUACION),
+  tipo('0705', 'Acta de retroalimentación de resultados', CAMPOS_EVALUACION),
+  tipo('0706', 'Plan de mejora del desempeño', CAMPOS_EVALUACION),
+  tipo('0707', 'Resolución de progresión en la carrera', CAMPOS_EVALUACION),
+  tipo('0708', 'Documento de designación', CAMPOS_DESPLAZAMIENTO, movimiento),
+  tipo('0709', 'Documento de rotación', CAMPOS_DESPLAZAMIENTO, movimiento),
+  tipo('0710', 'Documento de destaque', CAMPOS_DESPLAZAMIENTO, movimiento),
+  tipo('0711', 'Documento de encargo de puestos o funciones', CAMPOS_DESPLAZAMIENTO, movimiento),
+  tipo('0712', 'Otros documentos de desplazamiento', CAMPOS_DESPLAZAMIENTO, movimiento),
 
-  tipo('0802', 'Resolución de felicitación', CAMPOS_RESOLUTIVO),
-  tipo('0809', 'Carta de reconocimiento', CAMPOS_RESOLUTIVO),
-  tipo('0803', 'Memorando de felicitación', CAMPOS_RESOLUTIVO),
-  tipo('0806', 'Resolución de sanción', CAMPOS_RESOLUTIVO, { restringido: true, requiereNumero: true }),
-  tipo('0805', 'Memorando disciplinario', CAMPOS_RESOLUTIVO, { restringido: true, requiereNumero: true }),
-  tipo('0807', 'Documento de procedimiento disciplinario', CAMPOS_RESOLUTIVO, { restringido: true }),
+  tipo('0801', 'Carta de felicitación', CAMPOS_RESOLUTIVO, restringido),
+  tipo('0802', 'Oficio de felicitación', CAMPOS_RESOLUTIVO, restringido),
+  tipo('0803', 'Memorando de felicitación', CAMPOS_RESOLUTIVO, restringido),
+  tipo('0804', 'Condecoración', CAMPOS_RESOLUTIVO, restringido),
+  tipo('0805', 'Diploma por reconocimiento de participación excepcional en proyectos o eventos', CAMPOS_RESOLUTIVO, restringido),
+  tipo('0806', 'Certificado o constancia de reconocimiento excepcional por labor docente', CAMPOS_RESOLUTIVO, restringido),
+  tipo('0807', 'Certificado o constancia de reconocimiento por tiempo de servicios', CAMPOS_RESOLUTIVO, restringido),
+  tipo('0808', 'Documento de amonestación escrita', CAMPOS_RESOLUTIVO, restringido),
+  tipo('0809', 'Documento de suspensión', CAMPOS_RESOLUTIVO, restringido),
+  tipo('0810', 'Documento de destitución', CAMPOS_RESOLUTIVO, restringido),
+  tipo('0811', 'Documento que declara fundado un recurso impugnatorio', CAMPOS_RESOLUTIVO, restringido),
+  tipo('0812', 'Documento que declara infundado un recurso impugnatorio', CAMPOS_RESOLUTIVO, restringido),
+  tipo('0813', 'Documento que declara improcedente un recurso impugnatorio', CAMPOS_RESOLUTIVO, restringido),
 
-  tipo('0905', 'Acta de reunión laboral'),
-  tipo('0903', 'Acuerdo individual'),
-  tipo('0906', 'Convenio colectivo'),
-  tipo('0901', 'Comunicación laboral'),
-  tipo('0902', 'Solicitud laboral'),
-  tipo('0907', 'Resolución sobre relación laboral', [], { requiereNumero: true }),
-  tipo('0999', 'Otro documento laboral'),
+  tipo('0901', 'Documentación relacionada con controversias individuales', CAMPOS_RELACION_LABORAL),
+  tipo('0902', 'Documentación relacionada con controversias colectivas', CAMPOS_RELACION_LABORAL),
+  tipo('0903', 'Resolución que indique la afiliación sindical', CAMPOS_RELACION_LABORAL),
+  tipo('0904', 'Acta que indique la afiliación sindical', CAMPOS_RELACION_LABORAL),
+  tipo('0905', 'Otro documento que indique la afiliación sindical', CAMPOS_RELACION_LABORAL),
 
-  tipo('1005', 'Constancia de inducción SST', CAMPOS_SST),
-  tipo('1006', 'Constancia de capacitación SST', CAMPOS_SST),
-  tipo('1002', 'Aptitud ocupacional administrativa', CAMPOS_SST, { restringido: true, tieneVencimiento: true }),
-  tipo('1007', 'Acta de entrega EPP', CAMPOS_SST),
-  tipo('1008', 'Registro de capacitación preventiva', CAMPOS_SST),
-  tipo('1003', 'Documento de bienestar', CAMPOS_SST),
-  tipo('1099', 'Otro documento SST', CAMPOS_SST),
+  tipo('1001', 'Cargo de entrega del Reglamento de Seguridad y Salud en el Trabajo', CAMPOS_SST, restringido),
+  tipo('1002', 'Registro de entrenamiento y simulacros de emergencia', CAMPOS_SST, restringido),
+  tipo('1003', 'Lista de asistencia a capacitaciones brindadas por la entidad pública', CAMPOS_SST, restringido),
+  tipo('1004', 'Documentos de trámites y gestiones de seguros', CAMPOS_SST, restringido),
+  tipo('1005', 'Documentos de trámites y gestiones de subsidios', CAMPOS_SST, restringido),
+  tipo('1006', 'Documentos de descansos médicos', CAMPOS_SST, restringido),
+  tipo('1007', 'Documentos de afiliación a Entidades Prestadoras de Salud (EPS)', CAMPOS_SST, restringido),
 
-  tipo('1101', 'Carta de renuncia', [], cese),
-  tipo('1102', 'Resolución de cese', [], { ...cese, requiereNumero: true }),
-  tipo('1107', 'Resolución de jubilación', [], { ...cese, requiereNumero: true }),
-  tipo('1108', 'Documento de fallecimiento (sustento autorizado)', [], { ...cese, restringido: true }),
-  tipo('1104', 'Constancia de trabajo por cese'),
-  tipo('1106', 'Acta de entrega de cargo'),
-  tipo('1103', 'Documento de término de contrato', [], cese),
-  tipo('1109', 'Carta de comunicación de término de contrato', [], cese),
-  tipo('1110', 'Fe de erratas de resolución de cese'),
+  tipo('1101', 'Resolución de término de designación', [], cese),
+  tipo('1102', 'Resolución de término del servicio civil de carrera', [], cese),
+  tipo('1103', 'Memorando de término de vínculo del servicio civil', [], cese),
+  tipo('1104', 'Informe de gestión'),
+  tipo('1105', 'Documento de entrega de cargo o puesto'),
+  tipo('1106', 'Liquidación de beneficios sociales y/o pensión'),
+  tipo('1107', 'Carta de no renovación de contrato a plazo determinado (D. Leg. N.º 1057)', [], cese),
 
-  tipo('1204', 'Informe complementario', CAMPOS_OTROS),
-  tipo('1201', 'Comunicación administrativa', CAMPOS_OTROS),
-  tipo('1202', 'Documento de archivo', CAMPOS_OTROS),
-  tipo('1203', 'Anexo complementario', CAMPOS_OTROS),
-  tipo('1299', 'Otro documento', CAMPOS_OTROS),
-
-  tipo('1302', 'Solicitud de vacaciones', CAMPOS_AUSENCIA),
-  tipo('1301', 'Resolución de vacaciones', CAMPOS_AUSENCIA, { requiereNumero: true }),
-  tipo('1308', 'Solicitud de licencia', CAMPOS_AUSENCIA),
-  tipo('1309', 'Resolución de licencia', CAMPOS_AUSENCIA, { requiereNumero: true }),
-  tipo('1310', 'Solicitud de permiso', CAMPOS_AUSENCIA),
-  tipo('1306', 'Autorización de permiso', CAMPOS_AUSENCIA),
-  tipo('1311', 'Documento de reincorporación', CAMPOS_AUSENCIA),
+  tipo('1201', 'Otros documentos administrativos del trabajador', CAMPOS_OTROS),
+  tipo('1202', 'Comunicaciones administrativas relevantes', CAMPOS_OTROS),
+  tipo('1203', 'Informes relacionados con la trayectoria laboral', CAMPOS_OTROS),
+  tipo('1204', 'Documentos complementarios de recursos humanos', CAMPOS_OTROS),
+  tipo('1205', 'Documentación de fiscalización posterior', CAMPOS_OTROS),
+  tipo('1206', 'Otros documentos no clasificados', CAMPOS_OTROS),
 ];
 
 export const REGIMENES: ReadonlyArray<{ codigo: string; nombre: string; esLaboral: boolean }> = [
@@ -442,13 +425,10 @@ export interface RequisitoSemilla {
 }
 
 export const REQUISITOS: readonly RequisitoSemilla[] = [
-  { tipo: '0101', regimen: null, tipoPersonal: null, aplicaA: 'TODOS' },
   { tipo: '0102', regimen: null, tipoPersonal: null, aplicaA: 'TODOS' },
-  { tipo: '0105', regimen: null, tipoPersonal: null, aplicaA: 'TODOS' },
-  { tipo: '0215', regimen: null, tipoPersonal: null, aplicaA: 'TODOS' },
-  { tipo: '0202', regimen: 'DL1057', tipoPersonal: null, aplicaA: 'TODOS' },
-  { tipo: '0207', regimen: 'DL276', tipoPersonal: null, aplicaA: 'TODOS' },
+  { tipo: '0206', regimen: 'DL1057', tipoPersonal: null, aplicaA: 'TODOS' },
+  { tipo: '0205', regimen: 'DL276', tipoPersonal: null, aplicaA: 'TODOS' },
   { tipo: '0302', regimen: null, tipoPersonal: 'ASISTENCIAL', aplicaA: 'TODOS' },
   { tipo: '1102', regimen: 'DL276', tipoPersonal: null, aplicaA: 'CESADO' },
-  { tipo: '1103', regimen: 'DL1057', tipoPersonal: null, aplicaA: 'CESADO' },
+  { tipo: '1107', regimen: 'DL1057', tipoPersonal: null, aplicaA: 'CESADO' },
 ];
