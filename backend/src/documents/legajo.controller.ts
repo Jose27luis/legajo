@@ -16,8 +16,8 @@ function leerSecciones(valor: string | undefined): number[] | null {
     return null;
   }
   const numeros = valor.split(',').map((parte) => Number(parte.trim()));
-  if (numeros.some((numero) => !Number.isInteger(numero) || numero < 1 || numero > 13)) {
-    throw new BadRequestException('Las secciones deben ser números del 1 al 13');
+  if (numeros.some((numero) => !Number.isInteger(numero) || numero < 1 || numero > 12)) {
+    throw new BadRequestException('Las secciones deben ser números del 1 al 12');
   }
   return [...new Set(numeros)];
 }
