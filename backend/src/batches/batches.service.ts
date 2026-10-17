@@ -26,6 +26,7 @@ import { ejecutar } from '../documents/pdf-tools';
 import { UploadServerService } from '../documents/upload-server.service';
 import { bloquearLote, recalcularLote } from './batch-counters';
 import { interpretarNombre, type NombreInterpretado } from './batch-names';
+import { CODIGO_FICHA_TEXTO } from '../seed-catalogs';
 import type { ClassifyItemDto, CreateBatchDto, DiscardItemDto, SplitItemDto, UploadedItemDto } from './dto/batch-input.dto';
 import type { BatchDetailDto, BatchDto, BatchItemDto, BatchWorkerDto, PreviewItemDto } from './dto/batch.dto';
 
@@ -426,7 +427,7 @@ export class BatchesService {
       let motivo: string | null = null;
       if (trabajador === null) {
         motivo = `No hay un trabajador registrado con el documento ${interpretado.numeroDoc}`;
-      } else if (tipo === null || !tipo.activo) {
+      } else if (tipo === null || !tipo.activo || tipo.codigo === CODIGO_FICHA_TEXTO) {
         motivo = `El código ${interpretado.codigo} no corresponde a un tipo de documento activo`;
       } else if (tipo.restringido && !sesion.permisos.includes('documentos.restringidos')) {
         motivo = 'El tipo es restringido y tu cuenta no puede registrarlo';
