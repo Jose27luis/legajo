@@ -84,14 +84,14 @@ describe('fechaCorta', () => {
 describe('numeroSeccion', () => {
   it('completa con cero a la izquierda', () => {
     expect(numeroSeccion(1)).toBe('01');
-    expect(numeroSeccion(13)).toBe('13');
+    expect(numeroSeccion(12)).toBe('12');
   });
 });
 
 describe('tonoSeccion', () => {
-  it('devuelve un color para cada una de las 13 secciones', () => {
-    const tonos = Array.from({ length: 13 }, (_, indice) => tonoSeccion(indice + 1));
-    expect(new Set(tonos).size).toBe(13);
+  it('devuelve un color para cada una de las 12 secciones', () => {
+    const tonos = Array.from({ length: 12 }, (_, indice) => tonoSeccion(indice + 1));
+    expect(new Set(tonos).size).toBe(12);
     tonos.forEach((tono) => expect(tono).toMatch(/^#[0-9a-f]{6}$/));
   });
 });
