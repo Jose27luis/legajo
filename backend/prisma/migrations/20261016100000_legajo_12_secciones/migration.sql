@@ -1,4 +1,4 @@
-CREATE TEMP TABLE codigo_anterior ON COMMIT DROP AS
+CREATE TABLE codigo_anterior AS
 SELECT id, codigo FROM tipo_documento;
 
 UPDATE tipo_documento
@@ -31,7 +31,7 @@ FROM (
 ) AS n (numero, codigo, nombre, requiere_numero, tiene_vencimiento, accion)
 JOIN seccion s ON s.numero = n.numero;
 
-CREATE TEMP TABLE equivalencia ON COMMIT DROP AS
+CREATE TABLE equivalencia AS
 SELECT a.id AS anterior_id, t.id AS nuevo_id
 FROM (
   VALUES
@@ -64,3 +64,6 @@ UPDATE documento
 SET datos = (datos - 'clase') || jsonb_build_object('categoria', datos -> 'clase')
 WHERE datos ? 'clase'
   AND tipo_documento_id = (SELECT id FROM tipo_documento WHERE codigo = '0502');
+
+DROP TABLE equivalencia;
+DROP TABLE codigo_anterior;
