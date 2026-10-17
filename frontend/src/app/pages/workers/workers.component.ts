@@ -57,7 +57,7 @@ export class WorkersComponent {
 
   protected alCrear(trabajador: TrabajadorDetalle): void {
     this.nuevoAbierto.set(false);
-    this.avisos.exito('Nuevo trabajador ACTIVO registrado. Su legajo tiene 13 secciones y 0 PDF iniciales.');
+    this.avisos.exito('Nuevo trabajador ACTIVO registrado. Su legajo tiene 12 secciones y 0 PDF iniciales.');
     void this.router.navigate(['/workers', trabajador.id, 'record'], { queryParams: { nuevo: 1 } });
   }
 
