@@ -113,7 +113,7 @@ export class DocumentFieldsComponent {
       return null;
     }
     if (tipo.accion === 'VINCULO') {
-      return 'Documento de vínculo laboral: completa el tipo de incorporación, el régimen, el inicio, el término y la dependencia según el PDF.';
+      return 'Documento de vínculo laboral: completa régimen, inicio, término y dependencia según el PDF.';
     }
     if (this.esCurriculum()) {
       return 'Currículum vitae: registra los datos del CV. No se modifica el vínculo laboral.';
