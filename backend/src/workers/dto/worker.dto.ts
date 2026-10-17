@@ -213,7 +213,7 @@ export class MovementDto {
   @ApiProperty({ type: CatalogRefDto })
   areaDestino: CatalogRefDto;
 
-  @ApiProperty({ type: String, format: 'uuid', nullable: true, description: 'Documento de la sección 05 que lo sustenta' })
+  @ApiProperty({ type: String, format: 'uuid', nullable: true, description: 'Documento de la sección 07 que lo sustenta' })
   documentoId: string | null;
 
   @ApiProperty({ type: String, nullable: true })
