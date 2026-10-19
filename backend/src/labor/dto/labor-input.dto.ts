@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsIn, IsInt, IsISO8601, IsOptional, IsPositive, IsString, Length } from 'class-validator';
+import { IsIn, IsInt, IsISO8601, IsOptional, IsPositive, IsString, IsUUID, Length } from 'class-validator';
 import { MOTIVOS_CESE, MOVIMIENTOS, type MotivoCeseValor, type MovimientoValor } from '../../workers/dto/worker.dto';
 
 const vacioANulo = ({ value }: { value: unknown }) => {
@@ -20,6 +20,12 @@ class ConObservacion {
   @IsString()
   @Length(1, 500)
   observacion: string | null = null;
+}
+
+export class LinkPeriodInputDto {
+  @ApiProperty({ format: 'uuid', description: 'Período del historial laboral al que se enlaza el contrato' })
+  @IsUUID('4', { message: 'Elige el período del historial' })
+  vinculoId: string;
 }
 
 export class MovementInputDto extends ConObservacion {
