@@ -12,7 +12,7 @@ import type { CreateWorkerDto, LookupQueryDto, UpdateWorkerDto, WorkerQueryDto }
 import type { WorkerDetailDto, WorkerLookupDto, WorkerPageDto, WorkerSummaryDto } from './dto/worker.dto';
 import { exigirCatalogosActivos } from './catalog-guard';
 import { TEXTO_MOVIMIENTO } from './labels';
-import { aDetalleDto, aDirectorioDto, aListadoDto, incluirDetalle, incluirDirectorio, incluirListado, validarDocumento } from './worker.mapper';
+import { aDetalleDto, aDirectorioDto, aListadoDto, incluirDetalle, incluirDirectorio, incluirListado, validarDocumento, validarUbigeo } from './worker.mapper';
 
 const MENSAJE_DUPLICADO = 'Ya existe un trabajador registrado con ese documento';
 const LIMITE_EXPORTACION = 10000;
@@ -226,6 +226,7 @@ export class WorkersService {
   async editar(id: string, datos: UpdateWorkerDto, actor: SesionActiva, cliente: DatosCliente): Promise<WorkerDetailDto> {
     const actual = await this.cargar(id);
     validarDocumento(datos.tipoDocIdentidad, datos.numeroDoc);
+    validarUbigeo(datos.departamento, datos.provincia, datos.distrito);
     if (datos.fechaIngreso > hoyEnLima() || (datos.fechaNacimiento !== null && datos.fechaNacimiento > hoyEnLima())) {
       throw new BadRequestException('Las fechas no pueden ser futuras');
     }
