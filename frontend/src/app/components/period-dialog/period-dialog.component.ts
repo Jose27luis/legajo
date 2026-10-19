@@ -66,6 +66,19 @@ export class PeriodDialogComponent implements OnDestroy {
   protected readonly opcionesTipo = computed<OpcionBuscable[]>(() =>
     this.tiposVinculo().map((tipo) => ({ valor: tipo.id, etiqueta: tipo.nombre })),
   );
+  protected readonly sinEnlazar = computed(() =>
+    this.esSalida()
+      ? []
+      : this.documentos().filter(
+          (documento) =>
+            documento.seccion === 2 &&
+            documento.tipo.accion === 'VINCULO' &&
+            documento.vinculoId === null &&
+            documento.estado !== 'ANULADO',
+        ),
+  );
+  protected readonly puedeEnlazar = computed(() => this.sesion.tiene('personal.editar'));
+  protected readonly enlazando = signal<string | null>(null);
   protected readonly puedeRegistrar = computed(
     () => !this.esSalida() && this.sesion.tiene('documentos.subir') && this.tiposVinculo().length > 0,
   );
@@ -115,6 +128,24 @@ export class PeriodDialogComponent implements OnDestroy {
   protected alCerrar(): void {
     if (!this.ocupado()) {
       this.cerrar.emit();
+    }
+  }
+
+  protected async enlazar(documento: Documento): Promise<void> {
+    const vinculo = this.vinculo();
+    if (vinculo === null || this.enlazando() !== null) {
+      return;
+    }
+    this.enlazando.set(documento.id);
+    this.error.set(null);
+    try {
+      const actualizado = await this.servicio.enlazarPeriodo(documento.id, vinculo.id);
+      this.registrado.emit(actualizado);
+      this.avisos.exito('Contrato enlazado al período laboral.');
+    } catch (error: unknown) {
+      this.error.set(mensajeDeError(error));
+    } finally {
+      this.enlazando.set(null);
     }
   }
 
