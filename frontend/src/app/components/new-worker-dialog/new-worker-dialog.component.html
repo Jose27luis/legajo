@@ -77,7 +77,45 @@
     </fieldset>
 
     <fieldset class="grupo">
-      <legend><span class="indicador">2</span> Puesto y vínculo</legend>
+      <legend><span class="indicador">2</span> Datos personales y contacto</legend>
+      <div class="campos">
+        <div class="campo">
+          <label for="ingreso-nacimiento">Fecha de nacimiento</label>
+          <input id="ingreso-nacimiento" type="date" formControlName="fechaNacimiento" [max]="hoy" />
+        </div>
+        <div class="campo">
+          <label for="ingreso-telefono">Teléfono</label>
+          <input
+            id="ingreso-telefono"
+            type="tel"
+            formControlName="telefono"
+            maxlength="20"
+            inputmode="tel"
+            autocomplete="off"
+            [attr.aria-invalid]="invalido('telefono')"
+          />
+        </div>
+        <div class="campo completo">
+          <label for="ingreso-correo">Correo</label>
+          <input
+            id="ingreso-correo"
+            type="email"
+            formControlName="correo"
+            maxlength="120"
+            autocomplete="off"
+            [attr.aria-invalid]="invalido('correo')"
+          />
+        </div>
+        <div class="campo completo">
+          <label for="ingreso-direccion">Dirección</label>
+          <input id="ingreso-direccion" formControlName="direccion" maxlength="200" autocomplete="off" />
+        </div>
+        <app-ubigeo-fields [grupo]="formulario.controls.ubicacion" prefijo="ingreso" />
+      </div>
+    </fieldset>
+
+    <fieldset class="grupo">
+      <legend><span class="indicador">3</span> Puesto y vínculo</legend>
       <app-link-fields [grupo]="vinculo" etiquetaReferencia="Referencia del documento de ingreso" />
       <div class="campos fechas">
         <div class="campo">
