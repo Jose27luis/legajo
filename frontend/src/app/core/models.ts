@@ -253,6 +253,13 @@ export interface NuevoTrabajador extends DatosNuevoVinculo {
   nombres: string;
   apellidoPaterno: string;
   apellidoMaterno: string | null;
+  fechaNacimiento: string | null;
+  direccion: string | null;
+  departamento: string | null;
+  provincia: string | null;
+  distrito: string | null;
+  telefono: string | null;
+  correo: string | null;
   fechaIngreso: string;
 }
 
