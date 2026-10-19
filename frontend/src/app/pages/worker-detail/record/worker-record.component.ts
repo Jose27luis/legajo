@@ -6,11 +6,13 @@ import { LinkFieldsComponent } from '../../../components/link-fields/link-fields
 import { crearCamposVinculo, leerCamposVinculo, reiniciarCamposVinculo } from '../../../components/link-fields/link-form';
 import { PeriodDialogComponent } from '../../../components/period-dialog/period-dialog.component';
 import { ReentryDialogComponent } from '../../../components/reentry-dialog/reentry-dialog.component';
-import { SearchSelectComponent, type OpcionBuscable, type ValorOpcion } from '../../../components/search-select/search-select.component';
+import { SearchSelectComponent, type OpcionBuscable } from '../../../components/search-select/search-select.component';
 import { SituationDialogComponent } from '../../../components/situation-dialog/situation-dialog.component';
+import { UbigeoFieldsComponent } from '../../../components/ubigeo-fields/ubigeo-fields.component';
+import { crearCamposUbigeo, leerCamposUbigeo, ubicarEnLista } from '../../../components/ubigeo-fields/ubigeo-form';
 import { IdentityDocumentsComponent } from './identity-documents/identity-documents.component';
 import { mensajeDeError } from '../../../core/errors';
-import { fechaHora, normalizarTexto } from '../../../core/format';
+import { fechaHora } from '../../../core/format';
 import {
   MOTIVOS_CAMBIO,
   MOTIVOS_CESE,
@@ -61,8 +63,6 @@ const OPCIONES_ESTADO_CIVIL: readonly OpcionBuscable[] = [
   ...['Soltero(a)', 'Casado(a)', 'Conviviente', 'Divorciado(a)', 'Viudo(a)'].map((estado) => ({ valor: estado, etiqueta: estado })),
 ];
 
-const SIN_REGISTRAR: OpcionBuscable = { valor: '', etiqueta: 'No registrado' };
-
 const OPCIONES_MOTIVO_CAMBIO: readonly OpcionBuscable[] = MOTIVOS_CAMBIO.map((motivo) => ({
   valor: motivo,
   etiqueta: TEXTO_MOTIVO_CAMBIO[motivo],
@@ -80,6 +80,7 @@ const OPCIONES_MOTIVO_CAMBIO: readonly OpcionBuscable[] = MOTIVOS_CAMBIO.map((mo
     PeriodDialogComponent,
     IdentityDocumentsComponent,
     SearchSelectComponent,
+    UbigeoFieldsComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './worker-record.component.html',
@@ -150,48 +151,10 @@ export class WorkerRecordComponent {
     this.contexto.actualizarDocumento(documento);
   }
 
-  protected readonly departamento = signal('');
-  protected readonly provincia = signal('');
-
-  private readonly lugarElegido = computed(() => this.ubigeo.departamentos().find((item) => item.nombre === this.departamento()) ?? null);
-
-  protected readonly opcionesDepartamento = computed<OpcionBuscable[]>(() => [
-    SIN_REGISTRAR,
-    ...this.ubigeo.departamentos().map((item) => ({ valor: item.nombre, etiqueta: item.nombre })),
-  ]);
-  protected readonly opcionesProvincia = computed<OpcionBuscable[]>(() => [
-    SIN_REGISTRAR,
-    ...(this.lugarElegido()?.provincias ?? []).map((item) => ({ valor: item.nombre, etiqueta: item.nombre })),
-  ]);
-  protected readonly opcionesDistrito = computed<OpcionBuscable[]>(() => [
-    SIN_REGISTRAR,
-    ...(this.lugarElegido()?.provincias.find((item) => item.nombre === this.provincia())?.distritos ?? []).map((nombre) => ({
-      valor: nombre,
-      etiqueta: nombre,
-    })),
-  ]);
-
-  protected elegirDepartamento(valor: ValorOpcion): void {
-    this.departamento.set(typeof valor === 'string' ? valor : '');
-    this.provincia.set('');
-    this.ficha.patchValue({ provincia: '', distrito: '' });
-  }
-
-  protected elegirProvincia(valor: ValorOpcion): void {
-    this.provincia.set(typeof valor === 'string' ? valor : '');
-    this.ficha.patchValue({ distrito: '' });
-  }
-
   private async ubicarFicha(trabajador: TrabajadorDetalle): Promise<void> {
     try {
       const lista = await this.ubigeo.cargar();
-      const igual = (a: string, b: string | null): boolean => b !== null && normalizarTexto(a) === normalizarTexto(b);
-      const lugar = lista.find((item) => igual(item.nombre, trabajador.departamento));
-      const zona = lugar?.provincias.find((item) => igual(item.nombre, trabajador.provincia));
-      const distrito = zona?.distritos.find((nombre) => igual(nombre, trabajador.distrito));
-      this.departamento.set(lugar?.nombre ?? '');
-      this.provincia.set(zona?.nombre ?? '');
-      this.ficha.patchValue({ departamento: lugar?.nombre ?? '', provincia: zona?.nombre ?? '', distrito: distrito ?? '' });
+      this.ficha.controls.ubicacion.setValue(ubicarEnLista(lista, trabajador));
     } catch (error: unknown) {
       this.errorFicha.set(`No se pudo cargar la lista de departamentos. ${mensajeDeError(error)}`);
     }
@@ -210,9 +173,7 @@ export class WorkerRecordComponent {
     sexo: new FormControl('', { nonNullable: true }),
     estadoCivil: new FormControl('', { nonNullable: true }),
     direccion: new FormControl('', { nonNullable: true, validators: [Validators.maxLength(200)] }),
-    departamento: new FormControl('', { nonNullable: true }),
-    provincia: new FormControl('', { nonNullable: true }),
-    distrito: new FormControl('', { nonNullable: true }),
+    ubicacion: crearCamposUbigeo(),
     telefono: new FormControl('', { nonNullable: true }),
     correo: new FormControl('', { nonNullable: true, validators: [Validators.email] }),
     fechaIngreso: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
@@ -254,15 +215,11 @@ export class WorkerRecordComponent {
       sexo: trabajador.sexo ?? '',
       estadoCivil: trabajador.estadoCivil ?? '',
       direccion: trabajador.direccion ?? '',
-      departamento: trabajador.departamento ?? '',
-      provincia: trabajador.provincia ?? '',
-      distrito: trabajador.distrito ?? '',
+      ubicacion: { departamento: '', provincia: '', distrito: '' },
       telefono: trabajador.telefono ?? '',
       correo: trabajador.correo ?? '',
       fechaIngreso: trabajador.fechaIngreso,
     });
-    this.departamento.set('');
-    this.provincia.set('');
     this.fichaAbierta.set(true);
     void this.ubicarFicha(trabajador);
   }
@@ -298,9 +255,7 @@ export class WorkerRecordComponent {
         sexo: opcional(valores.sexo),
         estadoCivil: opcional(valores.estadoCivil),
         direccion: opcional(valores.direccion),
-        departamento: opcional(valores.departamento),
-        provincia: opcional(valores.provincia),
-        distrito: opcional(valores.distrito),
+        ...leerCamposUbigeo(this.ficha.controls.ubicacion),
         telefono: opcional(valores.telefono),
         correo: opcional(valores.correo),
         fechaIngreso: valores.fechaIngreso,
