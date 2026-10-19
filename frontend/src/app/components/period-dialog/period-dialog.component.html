@@ -51,6 +51,45 @@
       }
     </section>
 
+    @if (sinEnlazar().length > 0 && puedeEnlazar()) {
+      <section class="bloque">
+        <header>
+          <h3>Contratos de la Sección 02 sin período</h3>
+        </header>
+        <p class="nota">
+          Estos PDF ya están registrados en la Sección 02 pero no figuran en ningún período. Enlaza el que sustenta este vínculo.
+        </p>
+        <ul class="vinculados">
+          @for (documento of sinEnlazar(); track documento.id) {
+            <li>
+              <span class="dato">
+                <strong>{{ documento.tipo.nombre }}</strong>
+                <span
+                  >N.º {{ documento.numero ?? '—' }} · emisión {{ documento.fechaEmision ? fechaCorta(documento.fechaEmision) : '—' }}</span
+                >
+                <span class="archivo">{{ nombreArchivo(documento) }}</span>
+              </span>
+              @if (documento.estado === 'DISPONIBLE') {
+                <a class="boton chico" [href]="enlace(documento)" target="_blank" rel="noopener">Ver PDF</a>
+              }
+              <button
+                type="button"
+                class="boton chico principal"
+                (click)="enlazar(documento)"
+                [disabled]="enlazando() !== null"
+                [attr.aria-busy]="enlazando() === documento.id"
+              >
+                {{ enlazando() === documento.id ? 'Enlazando' : 'Enlazar a este período' }}
+              </button>
+            </li>
+          }
+        </ul>
+        @if (!registrando() && error(); as mensaje) {
+          <p class="aviso error" role="alert" animate.enter="aparece">{{ mensaje }}</p>
+        }
+      </section>
+    }
+
     @if (!esSalida()) {
       <section class="bloque">
         <header>
