@@ -2,7 +2,7 @@
   <form id="formulario-ingreso" [formGroup]="formulario" (ngSubmit)="guardar()" novalidate>
     <fieldset class="grupo">
       <legend><span class="indicador">1</span> Identidad</legend>
-      <div class="campos">
+      <div class="campos tres">
         <div class="campo">
           <label for="ingreso-tipo-doc">Documento de identidad <span class="obligatorio" aria-hidden="true">*</span></label>
           <app-search-select
@@ -49,17 +49,7 @@
           </div>
         }
 
-        <div class="campo completo">
-          <label for="ingreso-nombres">Nombres <span class="obligatorio" aria-hidden="true">*</span></label>
-          <input
-            id="ingreso-nombres"
-            formControlName="nombres"
-            maxlength="100"
-            autocomplete="off"
-            [attr.aria-invalid]="invalido('nombres')"
-          />
-        </div>
-        <div class="campo">
+        <div class="campo inicio-fila">
           <label for="ingreso-paterno">Apellido paterno <span class="obligatorio" aria-hidden="true">*</span></label>
           <input
             id="ingreso-paterno"
@@ -73,12 +63,22 @@
           <label for="ingreso-materno">Apellido materno</label>
           <input id="ingreso-materno" formControlName="apellidoMaterno" maxlength="80" autocomplete="off" />
         </div>
+        <div class="campo">
+          <label for="ingreso-nombres">Nombres <span class="obligatorio" aria-hidden="true">*</span></label>
+          <input
+            id="ingreso-nombres"
+            formControlName="nombres"
+            maxlength="100"
+            autocomplete="off"
+            [attr.aria-invalid]="invalido('nombres')"
+          />
+        </div>
       </div>
     </fieldset>
 
     <fieldset class="grupo">
       <legend><span class="indicador">2</span> Datos personales y contacto</legend>
-      <div class="campos">
+      <div class="campos tres">
         <div class="campo">
           <label for="ingreso-nacimiento">Fecha de nacimiento</label>
           <input id="ingreso-nacimiento" type="date" formControlName="fechaNacimiento" [max]="hoy" />
@@ -95,7 +95,7 @@
             [attr.aria-invalid]="invalido('telefono')"
           />
         </div>
-        <div class="campo completo">
+        <div class="campo">
           <label for="ingreso-correo">Correo</label>
           <input
             id="ingreso-correo"
