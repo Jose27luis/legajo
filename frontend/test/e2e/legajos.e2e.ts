@@ -21,13 +21,13 @@ test.describe.configure({ mode: 'serial' });
 let pagina: Page;
 let rutaTrabajador = '';
 
-function pdfMinimo(): Buffer {
+function pdfMinimo(marca: string): Buffer {
   const objetos = [
     '<< /Type /Catalog /Pages 2 0 R >>',
     '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
     '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] >>',
   ];
-  let contenido = '%PDF-1.4\n';
+  let contenido = `%PDF-1.4\n%${marca}\n`;
   const posiciones: number[] = [];
   objetos.forEach((objeto, indice) => {
     posiciones.push(contenido.length);
@@ -41,7 +41,7 @@ function pdfMinimo(): Buffer {
 }
 
 function archivoPdf(nombre: string): { name: string; mimeType: string; buffer: Buffer } {
-  return { name: `${nombre}.pdf`, mimeType: 'application/pdf', buffer: pdfMinimo() };
+  return { name: `${nombre}.pdf`, mimeType: 'application/pdf', buffer: pdfMinimo(`${MARCA}-${nombre}`) };
 }
 
 test.beforeAll(async ({ browser }) => {
@@ -84,6 +84,8 @@ async function registrarPdf(nombreArchivo: string, aviso: RegExp): Promise<void>
   await pagina.locator('#nuevo-archivo').setInputFiles(archivoPdf(nombreArchivo));
   await pagina.getByRole('button', { name: 'Registrar PDF' }).click();
   await expect(pagina.getByRole('status').filter({ hasText: aviso }).last()).toBeVisible();
+  const fila = pagina.locator('ul.documentos li').filter({ hasText: `${nombreArchivo}.pdf` });
+  await expect(fila.getByText('Registrado', { exact: true })).toBeVisible({ timeout: 30_000 });
 }
 
 async function estadoTrabajador(): Promise<string> {
