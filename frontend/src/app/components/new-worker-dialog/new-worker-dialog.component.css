@@ -1,12 +1,14 @@
 form {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  align-items: start;
   gap: 16px;
 }
 
-form > .completo {
-  grid-column: 1 / -1;
+.campos.tres {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.inicio-fila {
+  grid-column-start: 1;
 }
 
 .grupo {
@@ -78,7 +80,13 @@ input[readonly] {
 }
 
 @media (max-width: 900px) {
-  form {
+  .campos.tres {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .campos.tres {
     grid-template-columns: 1fr;
   }
 }
