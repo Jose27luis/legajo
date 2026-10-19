@@ -168,8 +168,12 @@ export class WorkersService {
 
   async crear(datos: CreateWorkerDto, actor: SesionActiva, cliente: DatosCliente): Promise<WorkerDetailDto> {
     validarDocumento(datos.tipoDocIdentidad, datos.numeroDoc);
+    validarUbigeo(datos.departamento, datos.provincia, datos.distrito);
     if (datos.fechaIngreso > hoyEnLima()) {
       throw new BadRequestException('La fecha de ingreso no puede ser futura');
+    }
+    if (datos.fechaNacimiento !== null && datos.fechaNacimiento > hoyEnLima()) {
+      throw new BadRequestException('La fecha de nacimiento no puede ser futura');
     }
     const existente = await this.prisma.trabajador.findUnique({
       where: { tipoDocIdentidad_numeroDoc: { tipoDocIdentidad: datos.tipoDocIdentidad, numeroDoc: datos.numeroDoc } },
@@ -190,6 +194,13 @@ export class WorkersService {
               nombres: datos.nombres,
               apellidoPaterno: datos.apellidoPaterno,
               apellidoMaterno: datos.apellidoMaterno ?? null,
+              fechaNacimiento: datos.fechaNacimiento === null ? null : aFecha(datos.fechaNacimiento),
+              direccion: datos.direccion,
+              departamento: datos.departamento,
+              provincia: datos.provincia,
+              distrito: datos.distrito,
+              telefono: datos.telefono,
+              correo: datos.correo === null ? null : datos.correo.toLowerCase(),
               fechaIngreso: aFecha(datos.fechaIngreso),
               vinculos: {
                 create: {
