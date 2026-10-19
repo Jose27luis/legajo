@@ -3,6 +3,7 @@ import type { Prisma } from '../generated/prisma/client';
 import { aTexto, aTextoOpcional } from '../common/dates';
 import type { SesionActiva } from '../common/session';
 import { filtroVisibilidad } from '../documents/document.mapper';
+import { UBIGEO_PERU } from '../ubigeo-catalog';
 import type {
   LinkDto,
   MovementDto,
@@ -129,5 +130,31 @@ export function validarDocumento(tipo: 'DNI' | 'CE', numero: string): void {
   }
   if (tipo === 'CE' && !/^[A-Z0-9]{9,12}$/.test(numero)) {
     throw new BadRequestException('El carné de extranjería debe tener de 9 a 12 caracteres');
+  }
+}
+
+export function validarUbigeo(departamento: string | null, provincia: string | null, distrito: string | null): void {
+  if (departamento === null) {
+    if (provincia !== null || distrito !== null) {
+      throw new BadRequestException('Elige el departamento antes de la provincia y el distrito');
+    }
+    return;
+  }
+  const lugar = UBIGEO_PERU.find((item) => item.nombre === departamento);
+  if (lugar === undefined) {
+    throw new BadRequestException('El departamento no existe en el Perú');
+  }
+  if (provincia === null) {
+    if (distrito !== null) {
+      throw new BadRequestException('Elige la provincia antes del distrito');
+    }
+    return;
+  }
+  const zona = lugar.provincias.find((item) => item.nombre === provincia);
+  if (zona === undefined) {
+    throw new BadRequestException(`La provincia no pertenece a ${departamento}`);
+  }
+  if (distrito !== null && !zona.distritos.includes(distrito)) {
+    throw new BadRequestException(`El distrito no pertenece a la provincia de ${provincia}`);
   }
 }
