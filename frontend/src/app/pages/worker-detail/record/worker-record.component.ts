@@ -6,11 +6,11 @@ import { LinkFieldsComponent } from '../../../components/link-fields/link-fields
 import { crearCamposVinculo, leerCamposVinculo, reiniciarCamposVinculo } from '../../../components/link-fields/link-form';
 import { PeriodDialogComponent } from '../../../components/period-dialog/period-dialog.component';
 import { ReentryDialogComponent } from '../../../components/reentry-dialog/reentry-dialog.component';
-import { SearchSelectComponent, type OpcionBuscable } from '../../../components/search-select/search-select.component';
+import { SearchSelectComponent, type OpcionBuscable, type ValorOpcion } from '../../../components/search-select/search-select.component';
 import { SituationDialogComponent } from '../../../components/situation-dialog/situation-dialog.component';
 import { IdentityDocumentsComponent } from './identity-documents/identity-documents.component';
 import { mensajeDeError } from '../../../core/errors';
-import { fechaHora } from '../../../core/format';
+import { fechaHora, normalizarTexto } from '../../../core/format';
 import {
   MOTIVOS_CAMBIO,
   MOTIVOS_CESE,
@@ -35,6 +35,7 @@ import type {
 } from '../../../core/models';
 import { SessionService } from '../../../core/session.service';
 import { ToastService } from '../../../core/toast.service';
+import { UbigeoService } from '../../../services/ubigeo.service';
 import { WorkersService } from '../../../services/workers.service';
 import { WorkerContext } from '../worker-context';
 
@@ -60,6 +61,8 @@ const OPCIONES_ESTADO_CIVIL: readonly OpcionBuscable[] = [
   ...['Soltero(a)', 'Casado(a)', 'Conviviente', 'Divorciado(a)', 'Viudo(a)'].map((estado) => ({ valor: estado, etiqueta: estado })),
 ];
 
+const SIN_REGISTRAR: OpcionBuscable = { valor: '', etiqueta: 'No registrado' };
+
 const OPCIONES_MOTIVO_CAMBIO: readonly OpcionBuscable[] = MOTIVOS_CAMBIO.map((motivo) => ({
   valor: motivo,
   etiqueta: TEXTO_MOTIVO_CAMBIO[motivo],
@@ -84,6 +87,7 @@ const OPCIONES_MOTIVO_CAMBIO: readonly OpcionBuscable[] = MOTIVOS_CAMBIO.map((mo
 })
 export class WorkerRecordComponent {
   private readonly servicio = inject(WorkersService);
+  private readonly ubigeo = inject(UbigeoService);
   private readonly avisos = inject(ToastService);
   protected readonly contexto = inject(WorkerContext);
   protected readonly sesion = inject(SessionService);
@@ -144,6 +148,53 @@ export class WorkerRecordComponent {
 
   protected alRegistrarSustento(documento: Documento): void {
     this.contexto.actualizarDocumento(documento);
+  }
+
+  protected readonly departamento = signal('');
+  protected readonly provincia = signal('');
+
+  private readonly lugarElegido = computed(() => this.ubigeo.departamentos().find((item) => item.nombre === this.departamento()) ?? null);
+
+  protected readonly opcionesDepartamento = computed<OpcionBuscable[]>(() => [
+    SIN_REGISTRAR,
+    ...this.ubigeo.departamentos().map((item) => ({ valor: item.nombre, etiqueta: item.nombre })),
+  ]);
+  protected readonly opcionesProvincia = computed<OpcionBuscable[]>(() => [
+    SIN_REGISTRAR,
+    ...(this.lugarElegido()?.provincias ?? []).map((item) => ({ valor: item.nombre, etiqueta: item.nombre })),
+  ]);
+  protected readonly opcionesDistrito = computed<OpcionBuscable[]>(() => [
+    SIN_REGISTRAR,
+    ...(this.lugarElegido()?.provincias.find((item) => item.nombre === this.provincia())?.distritos ?? []).map((nombre) => ({
+      valor: nombre,
+      etiqueta: nombre,
+    })),
+  ]);
+
+  protected elegirDepartamento(valor: ValorOpcion): void {
+    this.departamento.set(typeof valor === 'string' ? valor : '');
+    this.provincia.set('');
+    this.ficha.patchValue({ provincia: '', distrito: '' });
+  }
+
+  protected elegirProvincia(valor: ValorOpcion): void {
+    this.provincia.set(typeof valor === 'string' ? valor : '');
+    this.ficha.patchValue({ distrito: '' });
+  }
+
+  private async ubicarFicha(trabajador: TrabajadorDetalle): Promise<void> {
+    try {
+      const lista = await this.ubigeo.cargar();
+      const igual = (a: string, b: string | null): boolean => b !== null && normalizarTexto(a) === normalizarTexto(b);
+      const lugar = lista.find((item) => igual(item.nombre, trabajador.departamento));
+      const zona = lugar?.provincias.find((item) => igual(item.nombre, trabajador.provincia));
+      const distrito = zona?.distritos.find((nombre) => igual(nombre, trabajador.distrito));
+      this.departamento.set(lugar?.nombre ?? '');
+      this.provincia.set(zona?.nombre ?? '');
+      this.ficha.patchValue({ departamento: lugar?.nombre ?? '', provincia: zona?.nombre ?? '', distrito: distrito ?? '' });
+    } catch (error: unknown) {
+      this.errorFicha.set(`No se pudo cargar la lista de departamentos. ${mensajeDeError(error)}`);
+    }
   }
 
   protected readonly fichaAbierta = signal(false);
@@ -210,7 +261,10 @@ export class WorkerRecordComponent {
       correo: trabajador.correo ?? '',
       fechaIngreso: trabajador.fechaIngreso,
     });
+    this.departamento.set('');
+    this.provincia.set('');
     this.fichaAbierta.set(true);
+    void this.ubicarFicha(trabajador);
   }
 
   protected cerrarFicha(): void {
