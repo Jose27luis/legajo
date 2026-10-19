@@ -49,6 +49,10 @@ export class DocumentsService {
     return firstValueFrom(this.http.post<Documento>(`/api/documents/${id}/link`, {}));
   }
 
+  enlazarPeriodo(id: string, vinculoId: string): Promise<Documento> {
+    return firstValueFrom(this.http.post<Documento>(`/api/documents/${id}/link-period`, { vinculoId }));
+  }
+
   confirmarReingreso(id: string): Promise<Documento> {
     return firstValueFrom(this.http.post<Documento>(`/api/documents/${id}/confirm-reentry`, {}));
   }
