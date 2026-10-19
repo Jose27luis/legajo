@@ -125,6 +125,33 @@ export class LaborService {
     return aDocumentoDto(await this.cargar(id, sesion), sesion);
   }
 
+  async enlazarPeriodo(id: string, vinculoId: string, sesion: SesionActiva, cliente: DatosCliente): Promise<DocumentDto> {
+    const documento = await this.cargar(id, sesion);
+    if (documento.tipoDocumento.accion !== 'VINCULO') {
+      throw new BadRequestException('Solo un contrato, adenda o resolución sustenta un período del historial');
+    }
+    if (documento.estado === 'ANULADO') {
+      throw new BadRequestException('El documento está anulado');
+    }
+    if (documento.vinculoId !== null) {
+      throw new ConflictException('Este documento ya está enlazado a un período del historial');
+    }
+    await this.prisma.$transaction(async (transaccion) => {
+      const trabajador = await this.trabajador(transaccion, documento.trabajadorId);
+      const vinculo = trabajador.vinculos.find((item) => item.id === vinculoId);
+      if (vinculo === undefined) {
+        throw new BadRequestException('El período elegido no pertenece a este trabajador');
+      }
+      await this.enlazar(transaccion, documento, vinculo, sesion, cliente, { origen: 'historial' });
+      const reingresoPendiente =
+        texto(leerDatosGuardados(documento.datos)['tipoIncorporacion']) === INCORPORACION.REINGRESO && documento.confirmadoEn === null;
+      if (reingresoPendiente && vinculo.actual && trabajador.estado === 'ACTIVO') {
+        await this.marcarConfirmado(transaccion, documento, sesion, cliente);
+      }
+    });
+    return aDocumentoDto(await this.cargar(id, sesion), sesion);
+  }
+
   async confirmarReingreso(id: string, sesion: SesionActiva, cliente: DatosCliente): Promise<DocumentDto> {
     const documento = await this.cargar(id, sesion);
     this.exigirDisponible(documento, 'VINCULO');
