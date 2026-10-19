@@ -1,0 +1,33 @@
+<div class="contenedor" [formGroup]="grupo()">
+  <div class="campo">
+    <label [for]="id('departamento')">Departamento</label>
+    <app-search-select
+      [idCampo]="id('departamento')"
+      formControlName="departamento"
+      [opciones]="opcionesDepartamento()"
+      sugerencia="Busca el departamento"
+      (cambio)="elegirDepartamento($event)"
+    />
+  </div>
+  <div class="campo">
+    <label [for]="id('provincia')">Provincia</label>
+    <app-search-select
+      [idCampo]="id('provincia')"
+      formControlName="provincia"
+      [opciones]="opcionesProvincia()"
+      [bloqueado]="departamento() === ''"
+      [sugerencia]="departamento() === '' ? 'Elige primero el departamento' : 'Busca la provincia'"
+      (cambio)="elegirProvincia($event)"
+    />
+  </div>
+  <div class="campo">
+    <label [for]="id('distrito')">Distrito</label>
+    <app-search-select
+      [idCampo]="id('distrito')"
+      formControlName="distrito"
+      [opciones]="opcionesDistrito()"
+      [bloqueado]="provincia() === ''"
+      [sugerencia]="provincia() === '' ? 'Elige primero la provincia' : 'Busca el distrito'"
+    />
+  </div>
+</div>
