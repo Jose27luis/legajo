@@ -107,6 +107,16 @@ export interface Cargo {
   activo: boolean;
 }
 
+export interface ProvinciaUbigeo {
+  nombre: string;
+  distritos: string[];
+}
+
+export interface DepartamentoUbigeo {
+  nombre: string;
+  provincias: ProvinciaUbigeo[];
+}
+
 export type TipoPersonal = 'ADMINISTRATIVO' | 'ASISTENCIAL';
 export type AplicaA = 'ACTIVO' | 'CESADO' | 'TODOS';
 
