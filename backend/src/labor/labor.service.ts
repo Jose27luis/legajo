@@ -427,8 +427,13 @@ export class LaborService {
     detalle: Record<string, string | number | null>,
   ): Promise<void> {
     await transaccion.documento.update({ where: { id: documento.id }, data: { vinculoId: vinculo.id } });
+    const sinReferencia = vinculo.referencia === null || vinculo.referencia.trim() === '';
+    if (sinReferencia) {
+      await transaccion.vinculo.update({ where: { id: vinculo.id }, data: { referencia: referencia(documento) } });
+    }
     await this.anotar(transaccion, 'DOCUMENTO_VINCULAR', 'documento', documento.id, documento.trabajadorId, sesion, cliente, {
       vinculo: vinculo.id,
+      ...(sinReferencia ? { referencia: referencia(documento) } : {}),
       ...detalle,
     });
   }
