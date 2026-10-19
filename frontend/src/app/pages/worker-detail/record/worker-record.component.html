@@ -384,16 +384,35 @@
       <input id="ficha-direccion" formControlName="direccion" autocomplete="off" />
     </div>
     <div class="campo">
-      <label for="ficha-distrito">Distrito</label>
-      <input id="ficha-distrito" formControlName="distrito" autocomplete="off" />
+      <label for="ficha-departamento">Departamento</label>
+      <app-search-select
+        idCampo="ficha-departamento"
+        formControlName="departamento"
+        [opciones]="opcionesDepartamento()"
+        sugerencia="Busca el departamento"
+        (cambio)="elegirDepartamento($event)"
+      />
     </div>
     <div class="campo">
       <label for="ficha-provincia">Provincia</label>
-      <input id="ficha-provincia" formControlName="provincia" autocomplete="off" />
+      <app-search-select
+        idCampo="ficha-provincia"
+        formControlName="provincia"
+        [opciones]="opcionesProvincia()"
+        [bloqueado]="departamento() === ''"
+        [sugerencia]="departamento() === '' ? 'Elige primero el departamento' : 'Busca la provincia'"
+        (cambio)="elegirProvincia($event)"
+      />
     </div>
     <div class="campo">
-      <label for="ficha-departamento">Departamento</label>
-      <input id="ficha-departamento" formControlName="departamento" autocomplete="off" />
+      <label for="ficha-distrito">Distrito</label>
+      <app-search-select
+        idCampo="ficha-distrito"
+        formControlName="distrito"
+        [opciones]="opcionesDistrito()"
+        [bloqueado]="provincia() === ''"
+        [sugerencia]="provincia() === '' ? 'Elige primero la provincia' : 'Busca el distrito'"
+      />
     </div>
     @if (errorFicha(); as mensaje) {
       <p class="aviso error completo" role="alert" animate.enter="aparece">{{ mensaje }}</p>
