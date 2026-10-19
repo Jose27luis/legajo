@@ -87,6 +87,9 @@ export class LaborService {
     const datos = this.datosVinculo(documento);
     if (datos.tipoIncorporacion === INCORPORACION.REINGRESO) {
       this.exigirReingresoPosible(trabajador, datos.inicio);
+      if (datos.inicio <= hoyEnLima()) {
+        await this.aplicarReingreso(transaccion, documento, trabajador, datos, sesion, cliente);
+      }
       return;
     }
     if (trabajador.estado === 'CESADO') {
@@ -134,41 +137,69 @@ export class LaborService {
     }
     await this.prisma.$transaction(async (transaccion) => {
       const trabajador = await this.trabajador(transaccion, documento.trabajadorId);
-      const anterior = this.exigirReingresoPosible(trabajador, datos.inicio);
-      const nuevo = {
-        regimenId: datos.regimenId,
-        cargoId: datos.cargoId ?? anterior.cargoId,
-        areaId: datos.areaId ?? anterior.areaId,
-      };
-      await exigirCatalogosActivos(this.prisma, nuevo);
-      await transaccion.vinculo.update({ where: { id: anterior.id }, data: { actual: false } });
-      const vinculo = await transaccion.vinculo.create({
-        data: {
-          trabajadorId: trabajador.id,
-          ...nuevo,
-          tipoPersonal: anterior.tipoPersonal,
-          fechaInicio: aFecha(datos.inicio),
-          referencia: referencia(documento),
-        },
-      });
-      await transaccion.trabajador.update({
-        where: { id: trabajador.id },
-        data: { estado: 'ACTIVO', movimientoActual: 'SIN_MOVIMIENTO', movimientoFecha: null, fechaIngreso: aFecha(datos.inicio) },
-      });
-      await transaccion.documento.update({
-        where: { id: documento.id },
-        data: { vinculoId: vinculo.id, confirmadoPorId: sesion.usuarioId, confirmadoEn: new Date() },
-      });
-      await this.anotar(transaccion, 'VINCULO_CREAR', 'vinculo', vinculo.id, trabajador.id, sesion, cliente, {
-        origen: 'reingreso',
-        fechaIngreso: datos.inicio,
-        documento: documento.id,
-      });
-      await this.anotar(transaccion, 'DOCUMENTO_CONFIRMAR', 'documento', documento.id, trabajador.id, sesion, cliente, {
-        efecto: 'reingreso',
-      });
+      const actual = trabajador.estado === 'ACTIVO' ? this.vinculoActual(trabajador) : null;
+      if (actual !== null && aTexto(actual.fechaInicio) === datos.inicio) {
+        await this.enlazar(transaccion, documento, actual, sesion, cliente, { origen: 'reingreso' });
+        await this.marcarConfirmado(transaccion, documento, sesion, cliente);
+        return;
+      }
+      this.exigirReingresoPosible(trabajador, datos.inicio);
+      await this.aplicarReingreso(transaccion, documento, trabajador, datos, sesion, cliente);
     });
     return aDocumentoDto(await this.cargar(id, sesion), sesion);
+  }
+
+  private async aplicarReingreso(
+    transaccion: Prisma.TransactionClient,
+    documento: DocumentoCompleto,
+    trabajador: TrabajadorConVinculos,
+    datos: DatosVinculo,
+    sesion: SesionActiva,
+    cliente: DatosCliente,
+  ): Promise<void> {
+    const anterior = this.vinculoActual(trabajador);
+    const nuevo = {
+      regimenId: datos.regimenId,
+      cargoId: datos.cargoId ?? anterior.cargoId,
+      areaId: datos.areaId ?? anterior.areaId,
+    };
+    await exigirCatalogosActivos(this.prisma, nuevo);
+    await transaccion.vinculo.update({ where: { id: anterior.id }, data: { actual: false } });
+    const vinculo = await transaccion.vinculo.create({
+      data: {
+        trabajadorId: trabajador.id,
+        ...nuevo,
+        tipoPersonal: anterior.tipoPersonal,
+        fechaInicio: aFecha(datos.inicio),
+        referencia: referencia(documento),
+      },
+    });
+    await transaccion.trabajador.update({
+      where: { id: trabajador.id },
+      data: { estado: 'ACTIVO', movimientoActual: 'SIN_MOVIMIENTO', movimientoFecha: null, fechaIngreso: aFecha(datos.inicio) },
+    });
+    await transaccion.documento.update({ where: { id: documento.id }, data: { vinculoId: vinculo.id } });
+    await this.anotar(transaccion, 'VINCULO_CREAR', 'vinculo', vinculo.id, trabajador.id, sesion, cliente, {
+      origen: 'reingreso',
+      fechaIngreso: datos.inicio,
+      documento: documento.id,
+    });
+    await this.marcarConfirmado(transaccion, documento, sesion, cliente);
+  }
+
+  private async marcarConfirmado(
+    transaccion: Prisma.TransactionClient,
+    documento: DocumentoCompleto,
+    sesion: SesionActiva,
+    cliente: DatosCliente,
+  ): Promise<void> {
+    await transaccion.documento.update({
+      where: { id: documento.id },
+      data: { confirmadoPorId: sesion.usuarioId, confirmadoEn: new Date() },
+    });
+    await this.anotar(transaccion, 'DOCUMENTO_CONFIRMAR', 'documento', documento.id, documento.trabajadorId, sesion, cliente, {
+      efecto: 'reingreso',
+    });
   }
 
   async confirmarMovimiento(id: string, datos: MovementInputDto, sesion: SesionActiva, cliente: DatosCliente): Promise<DocumentDto> {
