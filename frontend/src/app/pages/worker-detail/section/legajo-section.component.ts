@@ -44,7 +44,7 @@ const AVISOS: Record<number, { titulo: string | null; texto: string; sensible: b
   2: {
     titulo: 'Vinculación con la Sección 01:',
     texto:
-      'al registrar un contrato o resolución con PDF real, régimen y fecha de inicio, se vincula automáticamente con la ficha y el historial de la Sección 01. Puedes comprobarlo desde Ver detalle; nunca cambia por sí mismo ACTIVO/CESADO. Los CV y declaraciones no actualizan la ficha.',
+      'al registrar un contrato o resolución con PDF real, régimen y fecha de inicio, se vincula automáticamente con la ficha y el historial de la Sección 01. Puedes comprobarlo desde Ver detalle. Si el trabajador está CESADO y el contrato es un Reingreso vigente, pasa a ACTIVO al registrarlo; con fecha de inicio futura se confirma desde el detalle cuando llegue esa fecha.',
     sensible: false,
   },
   5: {
@@ -293,7 +293,11 @@ export class LegajoSectionComponent implements OnDestroy {
       this.selector()?.limpiar();
       if (documento.vinculoId !== null) {
         this.contexto.detalle.reload();
-        this.avisos.exito('PDF registrado y vinculado automáticamente con la Sección 01.');
+        this.avisos.exito(
+          documento.confirmadoEn !== null
+            ? 'PDF registrado: reingreso aplicado, el trabajador está ACTIVO.'
+            : 'PDF registrado y vinculado automáticamente con la Sección 01.',
+        );
       } else if (
         documento.tipo.accion === 'CESE' ||
         (documento.tipo.accion === 'VINCULO' && documento.datos['tipoIncorporacion'] === INCORPORACION.reingreso)
