@@ -101,6 +101,52 @@ export class CreateWorkerDto extends DatosVinculo {
   @Length(1, 80)
   apellidoMaterno: string | null = null;
 
+  @ApiPropertyOptional({ format: 'date' })
+  @Transform(vacioANulo)
+  @IsOptional()
+  @IsISO8601({ strict: true }, fechaMensaje)
+  fechaNacimiento: string | null = null;
+
+  @ApiPropertyOptional({ maxLength: 200 })
+  @Transform(vacioANulo)
+  @IsOptional()
+  @IsString()
+  @Length(1, 200)
+  direccion: string | null = null;
+
+  @ApiPropertyOptional({ maxLength: 60 })
+  @Transform(vacioANulo)
+  @IsOptional()
+  @IsString()
+  @Length(1, 60)
+  departamento: string | null = null;
+
+  @ApiPropertyOptional({ maxLength: 60 })
+  @Transform(vacioANulo)
+  @IsOptional()
+  @IsString()
+  @Length(1, 60)
+  provincia: string | null = null;
+
+  @ApiPropertyOptional({ maxLength: 60 })
+  @Transform(vacioANulo)
+  @IsOptional()
+  @IsString()
+  @Length(1, 60)
+  distrito: string | null = null;
+
+  @ApiPropertyOptional({ maxLength: 20 })
+  @Transform(vacioANulo)
+  @IsOptional()
+  @Matches(/^[0-9+() -]{6,20}$/, { message: 'Teléfono no válido' })
+  telefono: string | null = null;
+
+  @ApiPropertyOptional({ maxLength: 120 })
+  @Transform(vacioANulo)
+  @IsOptional()
+  @IsEmail({}, { message: 'Correo no válido' })
+  correo: string | null = null;
+
   @ApiProperty({ format: 'date' })
   @IsISO8601({ strict: true }, fechaMensaje)
   fechaIngreso: string;
