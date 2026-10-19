@@ -5,12 +5,16 @@ import { DialogComponent } from '../dialog/dialog.component';
 import { LinkFieldsComponent } from '../link-fields/link-fields.component';
 import { crearCamposVinculo, leerCamposVinculo, reiniciarCamposVinculo } from '../link-fields/link-form';
 import { SearchSelectComponent, type OpcionBuscable } from '../search-select/search-select.component';
+import { UbigeoFieldsComponent } from '../ubigeo-fields/ubigeo-fields.component';
+import { crearCamposUbigeo, leerCamposUbigeo } from '../ubigeo-fields/ubigeo-form';
 import { mensajeDeError } from '../../core/errors';
 import { TEXTO_ESTADO, hoy, nombreCompleto, puedeReingresar } from '../../core/labels';
 import type { TipoDocIdentidad, TrabajadorDetalle, TrabajadorResumen } from '../../core/models';
 import { WorkersService } from '../../services/workers.service';
 
-type CampoTrabajador = 'numeroDoc' | 'nombres' | 'apellidoPaterno' | 'fechaIngreso';
+type CampoTrabajador = 'numeroDoc' | 'nombres' | 'apellidoPaterno' | 'telefono' | 'correo' | 'fechaIngreso';
+
+const opcional = (valor: string): string | null => (valor.trim() === '' ? null : valor.trim());
 
 const OPCIONES_TIPO_DOCUMENTO: readonly OpcionBuscable[] = [
   { valor: 'DNI', etiqueta: 'DNI' },
@@ -19,7 +23,7 @@ const OPCIONES_TIPO_DOCUMENTO: readonly OpcionBuscable[] = [
 
 @Component({
   selector: 'app-new-worker-dialog',
-  imports: [ReactiveFormsModule, RouterLink, DialogComponent, LinkFieldsComponent, SearchSelectComponent],
+  imports: [ReactiveFormsModule, RouterLink, DialogComponent, LinkFieldsComponent, SearchSelectComponent, UbigeoFieldsComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './new-worker-dialog.component.html',
   styleUrl: './new-worker-dialog.component.css',
@@ -49,6 +53,11 @@ export class NewWorkerDialogComponent {
     nombres: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(100)] }),
     apellidoPaterno: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(80)] }),
     apellidoMaterno: new FormControl('', { nonNullable: true, validators: [Validators.maxLength(80)] }),
+    fechaNacimiento: new FormControl('', { nonNullable: true }),
+    telefono: new FormControl('', { nonNullable: true, validators: [Validators.pattern(/^[0-9+() -]{6,20}$/)] }),
+    correo: new FormControl('', { nonNullable: true, validators: [Validators.email, Validators.maxLength(120)] }),
+    direccion: new FormControl('', { nonNullable: true, validators: [Validators.maxLength(200)] }),
+    ubicacion: crearCamposUbigeo(),
     fechaIngreso: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
   });
 
@@ -61,6 +70,11 @@ export class NewWorkerDialogComponent {
       nombres: '',
       apellidoPaterno: '',
       apellidoMaterno: '',
+      fechaNacimiento: '',
+      telefono: '',
+      correo: '',
+      direccion: '',
+      ubicacion: { departamento: '', provincia: '', distrito: '' },
       fechaIngreso: hoy(),
     });
     reiniciarCamposVinculo(this.vinculo, null);
@@ -125,6 +139,10 @@ export class NewWorkerDialogComponent {
       this.error.set('Para un trabajador que ya ingresó, la fecha de ingreso no puede ser futura.');
       return;
     }
+    if (valores.fechaNacimiento !== '' && valores.fechaNacimiento > hoy()) {
+      this.error.set('La fecha de nacimiento no puede ser futura.');
+      return;
+    }
     this.guardando.set(true);
     this.error.set(null);
     try {
@@ -134,7 +152,12 @@ export class NewWorkerDialogComponent {
         numeroDoc: valores.numeroDoc.trim().toUpperCase(),
         nombres: valores.nombres.trim(),
         apellidoPaterno: valores.apellidoPaterno.trim(),
-        apellidoMaterno: valores.apellidoMaterno.trim() === '' ? null : valores.apellidoMaterno.trim(),
+        apellidoMaterno: opcional(valores.apellidoMaterno),
+        fechaNacimiento: opcional(valores.fechaNacimiento),
+        telefono: opcional(valores.telefono),
+        correo: opcional(valores.correo),
+        direccion: opcional(valores.direccion),
+        ...leerCamposUbigeo(this.formulario.controls.ubicacion),
         fechaIngreso: valores.fechaIngreso,
       });
       this.creado.emit(creado);
