@@ -206,6 +206,19 @@ test('sube un contrato de renovación en la Sección 02 vinculado a la ficha', a
   await registrarPdf('contrato', /vinculado automáticamente/);
 });
 
+test('un contrato posterior abre un nuevo período sin cesar al trabajador', async () => {
+  await abrirSeccion(2);
+  await elegirTipo('Resolución administrativa de renovación');
+  await expect(pagina.locator('#nuevo-dato-tipoIncorporacion')).toHaveValue('Renovación o continuidad');
+  await elegirEnLista(pagina.locator('#nuevo-dato-regimen'), 'D. Leg. 276');
+  await pagina.locator('#nuevo-dato-inicio').fill('2026-02-01');
+  await pagina.locator('#nuevo-numero').fill(`RN-${MARCA}`);
+  await registrarPdf('renovacion', /vinculado automáticamente/);
+  expect(await estadoTrabajador()).toBe('ACTIVO');
+  await pagina.goto(`${rutaTrabajador}/record`);
+  await expect(pagina.getByText('Terminó por renovación')).toBeVisible();
+});
+
 for (const subida of SUBIDAS_SIMPLES) {
   test(`sube un PDF en la Sección ${String(subida.seccion).padStart(2, '0')}`, async () => {
     await abrirSeccion(subida.seccion);
