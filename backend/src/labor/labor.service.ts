@@ -4,12 +4,13 @@ import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import type { DatosCliente } from '../common/client';
 import type { SesionActiva } from '../common/session';
-import { aFecha, aTexto, hoyEnLima } from '../common/dates';
+import { aFecha, aTexto, diaAnterior, diaSiguiente, hoyEnLima } from '../common/dates';
 import { leerDatosGuardados, type ValorCampo } from '../catalogs/section-fields';
 import { aDocumentoDto, filtroVisibilidad, incluirDocumento, type DocumentoCompleto } from '../documents/document.mapper';
 import type { DocumentDto } from '../documents/dto/document.dto';
 import { exigirCatalogosActivos } from '../workers/catalog-guard';
 import { TEXTO_MOTIVO_CESE, TEXTO_MOVIMIENTO } from '../workers/labels';
+import type { MotivoCambioValor as MotivoCambio } from '../workers/dto/worker.dto';
 import type { CeseInputDto, MovementInputDto } from './dto/labor-input.dto';
 import { ContractExpiryService, type ActorVencimiento } from './contract-expiry.service';
 
@@ -114,10 +115,59 @@ export class LaborService {
     }
     const actual = this.vinculoActual(trabajador);
     if (datos.tipoIncorporacion === INCORPORACION.RENOVACION) {
+      if (datos.inicio > aTexto(actual.fechaInicio) && datos.inicio <= hoyEnLima()) {
+        await this.abrirPeriodo(transaccion, documento, trabajador, actual, datos, sesion, cliente);
+        return;
+      }
       await this.enlazar(transaccion, documento, actual, sesion, cliente, { origen: 'renovacion' });
       return;
     }
     await this.vincularIngreso(transaccion, documento, trabajador, actual, datos, sesion, cliente);
+  }
+
+  private async abrirPeriodo(
+    transaccion: Prisma.TransactionClient,
+    documento: DocumentoCompleto,
+    trabajador: TrabajadorConVinculos,
+    anterior: Vinculo,
+    datos: DatosVinculo,
+    sesion: SesionActiva,
+    cliente: DatosCliente,
+  ): Promise<void> {
+    const nuevo = {
+      regimenId: datos.regimenId,
+      cargoId: datos.cargoId ?? anterior.cargoId,
+      areaId: datos.areaId ?? anterior.areaId,
+    };
+    await exigirCatalogosActivos(this.prisma, nuevo);
+    const motivo: MotivoCambio =
+      nuevo.regimenId !== anterior.regimenId
+        ? 'CAMBIO_REGIMEN'
+        : nuevo.areaId !== anterior.areaId || nuevo.cargoId !== anterior.cargoId
+          ? 'CAMBIO_CARGO_O_AREA'
+          : 'RENOVACION';
+    const fin = diaAnterior(datos.inicio);
+    await transaccion.vinculo.update({ where: { id: anterior.id }, data: { fechaFin: aFecha(fin), motivoFin: motivo, actual: false } });
+    const vinculo = await transaccion.vinculo.create({
+      data: {
+        trabajadorId: trabajador.id,
+        ...nuevo,
+        tipoPersonal: anterior.tipoPersonal,
+        fechaInicio: aFecha(datos.inicio),
+        referencia: referencia(documento),
+      },
+    });
+    await transaccion.documento.update({ where: { id: documento.id }, data: { vinculoId: vinculo.id } });
+    await this.anotar(transaccion, 'VINCULO_FINALIZAR', 'vinculo', anterior.id, trabajador.id, sesion, cliente, {
+      motivo,
+      fechaFin: fin,
+      documento: documento.id,
+    });
+    await this.anotar(transaccion, 'VINCULO_CREAR', 'vinculo', vinculo.id, trabajador.id, sesion, cliente, {
+      origen: 'renovacion',
+      fechaInicio: datos.inicio,
+      documento: documento.id,
+    });
   }
 
   async vincular(id: string, sesion: SesionActiva, cliente: DatosCliente): Promise<DocumentDto> {
@@ -211,7 +261,12 @@ export class LaborService {
       areaId: datos.areaId ?? anterior.areaId,
     };
     await exigirCatalogosActivos(this.prisma, nuevo);
-    await transaccion.vinculo.update({ where: { id: anterior.id }, data: { actual: false } });
+    const continuidad =
+      anterior.motivoFin === 'FIN_CONTRATO' && anterior.fechaFin !== null && datos.inicio === diaSiguiente(aTexto(anterior.fechaFin));
+    await transaccion.vinculo.update({
+      where: { id: anterior.id },
+      data: continuidad ? { actual: false, motivoFin: 'RENOVACION' } : { actual: false },
+    });
     const vinculo = await transaccion.vinculo.create({
       data: {
         trabajadorId: trabajador.id,
@@ -227,7 +282,7 @@ export class LaborService {
     });
     await transaccion.documento.update({ where: { id: documento.id }, data: { vinculoId: vinculo.id } });
     await this.anotar(transaccion, 'VINCULO_CREAR', 'vinculo', vinculo.id, trabajador.id, sesion, cliente, {
-      origen: 'reingreso',
+      origen: continuidad ? 'continuidad' : 'reingreso',
       fechaIngreso: datos.inicio,
       documento: documento.id,
     });
@@ -478,7 +533,7 @@ export class LaborService {
   private exigirReingresoPosible(trabajador: TrabajadorConVinculos, inicio: string): Vinculo {
     if (trabajador.estado !== 'CESADO') {
       throw new BadRequestException(
-        'Para registrar un reingreso el trabajador debe estar cesado. Si continúa activo, elige Renovación o continuidad.',
+        'Para registrar un reingreso el trabajador debe estar cesado. Si continúa activo, elige Renovación o continuidad: el contrato abre un nuevo período con su régimen, área y cargo sin cesar al trabajador.',
       );
     }
     const ultimo = this.vinculoActual(trabajador);
