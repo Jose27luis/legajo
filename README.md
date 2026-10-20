@@ -688,6 +688,7 @@ Motivos de cese: `RENUNCIA`, `JUBILACION`, `FALLECIMIENTO`, `FIN_CONTRATO`, `DES
 - El reingreso exige una fecha posterior al último cese y no se permite si el motivo fue fallecimiento.
 - El movimiento actual (rotación, destaque, encargatura, reasignación) no es un estado laboral: un trabajador rotado sigue ACTIVO. Se actualiza con la fecha del movimiento y su sustento va en la sección 07.
 - Registrar un PDF de cese no cambia el estado: el cese se registra en la ficha con motivo y fecha.
+- El contrato manda sobre el estado. Los contratos, adendas y resoluciones de la sección 02 llevan fecha de fin; la más lejana entre los enlazados al vínculo actual es el fin del contrato vigente y se muestra en la ficha. Cuando esa fecha ya pasó, el trabajador queda CESADO por `FIN_CONTRATO` en esa fecha: al registrar el contrato si ya venció, o en la revisión diaria del worker cuando vence después. Un contrato posterior se registra como reingreso y vuelve a activarlo.
 
 El trabajador no se borra. Al cesar, su legajo sigue consultable y en faltantes se le exigen los documentos de cese.
 
