@@ -184,6 +184,7 @@ export interface Familiar {
 }
 
 export interface TrabajadorDetalle extends TrabajadorResumen {
+  finContrato: string | null;
   fechaNacimiento: string | null;
   sexo: string | null;
   estadoCivil: string | null;
