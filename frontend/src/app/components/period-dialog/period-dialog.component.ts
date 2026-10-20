@@ -4,9 +4,9 @@ import { Router } from '@angular/router';
 import { mensajeDeError } from '../../core/errors';
 import {
   CLASE_ESTADO_DOCUMENTO,
-  MOTIVOS_CESE,
   TEXTO_ESTADO_DOCUMENTO,
   TEXTO_MOTIVO_FIN,
+  esSalidaDocumentada,
   fechaCorta,
   hoy,
   nombreCompleto,
@@ -47,8 +47,8 @@ export class PeriodDialogComponent implements OnDestroy {
   protected readonly hoy = hoy();
 
   protected readonly esSalida = computed(() => {
-    const motivo = this.vinculo()?.motivoFin ?? null;
-    return motivo !== null && MOTIVOS_CESE.some((cese) => cese === motivo);
+    const vinculo = this.vinculo();
+    return vinculo !== null && esSalidaDocumentada(vinculo, this.documentos());
   });
   protected readonly numeroSeccion = computed(() => (this.esSalida() ? 11 : 2));
   protected readonly vinculados = computed(() => {
