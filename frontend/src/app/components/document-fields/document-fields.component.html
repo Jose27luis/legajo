@@ -114,7 +114,8 @@
         @if (campo.clave === 'tipoIncorporacion') {
           <span class="ayuda">
             Reingreso: al registrar el PDF el trabajador pasa de CESADO a ACTIVO; con fecha de inicio futura se confirma desde el detalle.
-            Renovación: no crea otro ingreso.
+            Renovación o continuidad: si el contrato empieza después del período actual, abre un nuevo período con su régimen, área y cargo
+            sin cesar al trabajador; si empieza el mismo día, se suma al período actual.
           </span>
         }
       </div>
