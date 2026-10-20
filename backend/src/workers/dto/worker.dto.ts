@@ -157,6 +157,14 @@ export class RelativeDto {
 }
 
 export class WorkerDetailDto extends WorkerListItemDto {
+  @ApiProperty({
+    type: String,
+    format: 'date',
+    nullable: true,
+    description: 'Fin del contrato vigente según el último contrato o adenda de la sección 02; al vencer, el trabajador pasa a CESADO',
+  })
+  finContrato: string | null;
+
   @ApiProperty({ type: String, format: 'date', nullable: true })
   fechaNacimiento: string | null;
 
