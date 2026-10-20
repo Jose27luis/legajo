@@ -15,12 +15,12 @@ import { mensajeDeError } from '../../../core/errors';
 import { fechaHora } from '../../../core/format';
 import {
   MOTIVOS_CAMBIO,
-  MOTIVOS_CESE,
   TEXTO_ESTADO,
   TEXTO_MOTIVO_CAMBIO,
   TEXTO_MOTIVO_FIN,
   TEXTO_MOVIMIENTO,
   TEXTO_TIPO_PERSONAL,
+  esSalidaDocumentada,
   fechaCorta,
   hoy,
   puedeReingresar,
@@ -132,7 +132,7 @@ export class WorkerRecordComponent {
   }
 
   protected esCese(vinculo: Vinculo): boolean {
-    return vinculo.motivoFin !== null && MOTIVOS_CESE.some((motivo) => motivo === vinculo.motivoFin);
+    return esSalidaDocumentada(vinculo, this.documentosLegajo());
   }
 
   protected pistaPeriodo(vinculo: Vinculo): string {
