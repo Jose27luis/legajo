@@ -11,6 +11,7 @@ import type { DocumentDto } from '../documents/dto/document.dto';
 import { exigirCatalogosActivos } from '../workers/catalog-guard';
 import { TEXTO_MOTIVO_CESE, TEXTO_MOVIMIENTO } from '../workers/labels';
 import type { CeseInputDto, MovementInputDto } from './dto/labor-input.dto';
+import { ContractExpiryService, type ActorVencimiento } from './contract-expiry.service';
 
 export const INCORPORACION = {
   PRIMER_INGRESO: 'Primer ingreso',
@@ -55,11 +56,16 @@ function referencia(documento: DocumentoCompleto): string {
   return `${documento.tipoDocumento.nombre} N.º ${documento.numero ?? 'sin número'}`.slice(0, 160);
 }
 
+function actor(sesion: SesionActiva, cliente: DatosCliente): ActorVencimiento {
+  return { usuarioId: sesion.usuarioId, cliente };
+}
+
 @Injectable()
 export class LaborService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly auditoria: AuditService,
+    private readonly vencimientos: ContractExpiryService,
   ) {}
 
   async alRegistrar(
@@ -75,6 +81,17 @@ export class LaborService {
       }
       return;
     }
+    await this.registrarVinculo(transaccion, documento, vinculoElegido, sesion, cliente);
+    await this.vencimientos.vencer(transaccion, documento.trabajadorId, actor(sesion, cliente));
+  }
+
+  private async registrarVinculo(
+    transaccion: Prisma.TransactionClient,
+    documento: DocumentoCompleto,
+    vinculoElegido: string | null,
+    sesion: SesionActiva,
+    cliente: DatosCliente,
+  ): Promise<void> {
     const trabajador = await this.trabajador(transaccion, documento.trabajadorId);
     if (vinculoElegido !== null) {
       const vinculo = trabajador.vinculos.find((item) => item.id === vinculoElegido);
@@ -121,6 +138,7 @@ export class LaborService {
         throw new BadRequestException('El trabajador está cesado: registra el contrato como Reingreso');
       }
       await this.vincularIngreso(transaccion, documento, trabajador, this.vinculoActual(trabajador), datos, sesion, cliente);
+      await this.vencimientos.vencer(transaccion, trabajador.id, actor(sesion, cliente));
     });
     return aDocumentoDto(await this.cargar(id, sesion), sesion);
   }
@@ -148,6 +166,7 @@ export class LaborService {
       if (reingresoPendiente && vinculo.actual && trabajador.estado === 'ACTIVO') {
         await this.marcarConfirmado(transaccion, documento, sesion, cliente);
       }
+      await this.vencimientos.vencer(transaccion, trabajador.id, actor(sesion, cliente));
     });
     return aDocumentoDto(await this.cargar(id, sesion), sesion);
   }
@@ -168,10 +187,11 @@ export class LaborService {
       if (actual !== null && aTexto(actual.fechaInicio) === datos.inicio) {
         await this.enlazar(transaccion, documento, actual, sesion, cliente, { origen: 'reingreso' });
         await this.marcarConfirmado(transaccion, documento, sesion, cliente);
-        return;
+      } else {
+        this.exigirReingresoPosible(trabajador, datos.inicio);
+        await this.aplicarReingreso(transaccion, documento, trabajador, datos, sesion, cliente);
       }
-      this.exigirReingresoPosible(trabajador, datos.inicio);
-      await this.aplicarReingreso(transaccion, documento, trabajador, datos, sesion, cliente);
+      await this.vencimientos.vencer(transaccion, trabajador.id, actor(sesion, cliente));
     });
     return aDocumentoDto(await this.cargar(id, sesion), sesion);
   }
