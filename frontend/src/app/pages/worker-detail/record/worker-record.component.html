@@ -81,6 +81,18 @@
           <dd>{{ fechaCorta(trabajador.fechaIngreso) }}</dd>
         </div>
         <div>
+          <dt>Fin del contrato vigente</dt>
+          <dd>
+            {{
+              trabajador.finContrato
+                ? fechaCorta(trabajador.finContrato)
+                : trabajador.estado === 'ACTIVO'
+                  ? 'Sin fecha de término'
+                  : 'No corresponde'
+            }}
+          </dd>
+        </div>
+        <div>
           <dt>Registrado en el sistema</dt>
           <dd>{{ fechaHora(trabajador.creadoEn) }}</dd>
         </div>
