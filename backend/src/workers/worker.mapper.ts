@@ -3,6 +3,7 @@ import type { Prisma } from '../generated/prisma/client';
 import { aTexto, aTextoOpcional } from '../common/dates';
 import type { SesionActiva } from '../common/session';
 import { filtroVisibilidad } from '../documents/document.mapper';
+import { finDeContrato } from '../labor/contract-expiry.service';
 import { UBIGEO_PERU } from '../ubigeo-catalog';
 import type {
   LinkDto,
@@ -27,7 +28,13 @@ export function incluirDirectorio(sesion: SesionActiva) {
 }
 
 export const incluirDetalle = {
-  vinculos: { include: incluirVinculo, orderBy: [{ fechaInicio: 'desc' }, { creadoEn: 'desc' }] },
+  vinculos: {
+    include: {
+      ...incluirVinculo,
+      documentos: { where: { estado: { not: 'ANULADO' }, tipoDocumento: { accion: 'VINCULO' } }, select: { datos: true } },
+    },
+    orderBy: [{ fechaInicio: 'desc' }, { creadoEn: 'desc' }],
+  },
   familiares: { orderBy: { creadoEn: 'asc' } },
   movimientos: {
     include: { areaOrigen: true, areaDestino: true, creadoPor: { select: { nombreCompleto: true } } },
@@ -89,11 +96,10 @@ export function aFamiliarDto(familiar: TrabajadorDetalle['familiares'][number]):
 }
 
 export function aDetalleDto(trabajador: TrabajadorDetalle): WorkerDetailDto {
+  const actual = trabajador.vinculos.find((vinculo) => vinculo.actual);
   return {
-    ...base(
-      trabajador,
-      trabajador.vinculos.find((vinculo) => vinculo.actual),
-    ),
+    ...base(trabajador, actual),
+    finContrato: actual === undefined || actual.fechaFin !== null ? null : finDeContrato(actual.documentos),
     fechaNacimiento: aTextoOpcional(trabajador.fechaNacimiento),
     sexo: trabajador.sexo,
     estadoCivil: trabajador.estadoCivil,
