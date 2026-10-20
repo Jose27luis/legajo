@@ -1,4 +1,5 @@
 import type {
+  Documento,
   EstadoDocumento,
   EstadoItemLote,
   EstadoLote,
@@ -11,6 +12,7 @@ import type {
   SituacionCelda,
   TipoPersonal,
   TrabajadorResumen,
+  Vinculo,
 } from './models';
 
 export const TEXTO_ESTADO: Record<EstadoTrabajador, string> = {
@@ -66,6 +68,19 @@ export const MOVIMIENTOS_REALES = MOVIMIENTOS.filter(
 );
 export const MOTIVOS_CESE: readonly MotivoCese[] = ['RENUNCIA', 'JUBILACION', 'FALLECIMIENTO', 'FIN_CONTRATO', 'DESTITUCION', 'OTRA_CAUSA'];
 export const MOTIVOS_CAMBIO: readonly MotivoCambio[] = ['RENOVACION', 'CAMBIO_REGIMEN', 'CAMBIO_CARGO_O_AREA'];
+
+export function esSalidaDocumentada(
+  vinculo: Pick<Vinculo, 'id' | 'motivoFin'>,
+  documentos: readonly Pick<Documento, 'vinculoId' | 'seccion' | 'estado'>[],
+): boolean {
+  if (vinculo.motivoFin === null || !MOTIVOS_CESE.some((motivo) => motivo === vinculo.motivoFin)) {
+    return false;
+  }
+  if (vinculo.motivoFin !== 'FIN_CONTRATO') {
+    return true;
+  }
+  return documentos.some((documento) => documento.vinculoId === vinculo.id && documento.seccion === 11 && documento.estado !== 'ANULADO');
+}
 
 export function nombreCompleto(trabajador: Pick<TrabajadorResumen, 'nombres' | 'apellidoPaterno' | 'apellidoMaterno'>): string {
   const apellidos = [trabajador.apellidoPaterno, trabajador.apellidoMaterno].filter((parte) => parte !== null && parte !== '');
