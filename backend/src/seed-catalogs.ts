@@ -203,11 +203,7 @@ const CAMPOS_GRADO: CampoSeccion[] = [
   texto('registroSunedu', 'Registro / código SUNEDU (si corresponde)'),
   fecha('fechaGrado', 'Fecha de grado / título'),
 ];
-const CAMPOS_COLEGIATURA: CampoSeccion[] = [
-  texto('colegioHabilitacion', 'Colegio profesional'),
-  texto('numeroHabilitacion', 'Número de colegiatura'),
-  vigencia(),
-];
+const CAMPOS_COLEGIATURA: CampoSeccion[] = [vigencia()];
 const CAMPOS_CURSO: CampoSeccion[] = [
   texto('horasAcademicas', 'Horas académicas (si constan)'),
   texto('modalidadEstudio', 'Modalidad / especialidad'),
