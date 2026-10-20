@@ -253,6 +253,20 @@ test('un contrato de reingreso vuelve ACTIVO al trabajador cesado', async () => 
   expect(await estadoTrabajador()).toBe('ACTIVO');
 });
 
+test('una adenda con fecha de fin ya vencida cesa al trabajador por fin de contrato', async () => {
+  await abrirSeccion(2);
+  await elegirTipo('Adenda');
+  await expect(pagina.locator('#nuevo-dato-tipoIncorporacion')).toHaveValue('Renovación o continuidad');
+  await elegirEnLista(pagina.locator('#nuevo-dato-regimen'), 'D. Leg. 276');
+  await pagina.locator('#nuevo-dato-inicio').fill('2026-03-02');
+  await pagina.locator('#nuevo-dato-fin').fill('2026-04-30');
+  await pagina.locator('#nuevo-numero').fill(`AD-${MARCA}`);
+  await registrarPdf('adenda', /vinculado automáticamente/);
+  expect(await estadoTrabajador()).toBe('CESADO');
+  await pagina.goto(`${rutaTrabajador}/record`);
+  await expect(pagina.getByText('Fin de contrato', { exact: true })).toBeVisible();
+});
+
 test('exporta el padrón de trabajadores a Excel', async () => {
   await pagina.goto('/workers');
   const descarga = pagina.waitForEvent('download');
