@@ -146,6 +146,7 @@ export class DocumentDialogComponent implements OnDestroy {
     nonNullable: true,
     validators: [Validators.required, Validators.maxLength(500)],
   });
+  protected readonly clave = new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(200)] });
   protected readonly confirmacionMovimiento = new FormGroup({
     tipo: new FormControl<MovimientoReal | null>(null, { validators: [Validators.required] }),
     fecha: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
@@ -266,6 +267,7 @@ export class DocumentDialogComponent implements OnDestroy {
     }
     this.error.set(null);
     this.motivo.reset('');
+    this.clave.reset('');
     this.archivo.set(null);
     this.progreso.set(null);
     if (modo === 'editar') {
@@ -354,15 +356,20 @@ export class DocumentDialogComponent implements OnDestroy {
       this.error.set(`Ingresa un motivo de al menos ${MINIMO_MOTIVO} caracteres.`);
       return;
     }
+    if (this.clave.value === '') {
+      this.error.set('Ingresa tu contraseña para confirmar la eliminación.');
+      return;
+    }
     this.ocupado.set(true);
     this.error.set(null);
     try {
-      await this.servicio.eliminar(documento.id, this.motivo.value.trim());
+      await this.servicio.eliminar(documento.id, this.motivo.value.trim(), this.clave.value);
       this.eliminado.emit(documento.id);
       this.avisos.exito('Documento eliminado definitivamente. Quedó registrado en la auditoría.');
     } catch (error: unknown) {
       this.error.set(mensajeDeError(error));
     } finally {
+      this.clave.reset('');
       this.ocupado.set(false);
     }
   }
