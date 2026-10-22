@@ -12,7 +12,7 @@ import type { CreateWorkerDto, LookupQueryDto, UpdateWorkerDto, WorkerQueryDto }
 import type { WorkerDetailDto, WorkerLookupDto, WorkerPageDto, WorkerSummaryDto } from './dto/worker.dto';
 import { exigirCatalogosActivos } from './catalog-guard';
 import { TEXTO_MOVIMIENTO } from './labels';
-import { aDetalleDto, aDirectorioDto, aListadoDto, incluirDetalle, incluirDirectorio, incluirListado, validarDocumento, validarUbigeo } from './worker.mapper';
+import { aDetalleDto, aDirectorioDto, aListadoDto, incluirDetalle, incluirDirectorio, incluirListado, validarDocumento, validarFormacion, validarUbigeo } from './worker.mapper';
 
 const MENSAJE_DUPLICADO = 'Ya existe un trabajador registrado con ese documento';
 const LIMITE_EXPORTACION = 10000;
@@ -169,6 +169,7 @@ export class WorkersService {
   async crear(datos: CreateWorkerDto, actor: SesionActiva, cliente: DatosCliente): Promise<WorkerDetailDto> {
     validarDocumento(datos.tipoDocIdentidad, datos.numeroDoc);
     validarUbigeo(datos.departamento, datos.provincia, datos.distrito);
+    validarFormacion(datos.gradoInstruccion, datos.profesion, datos.condicionProfesion);
     if (datos.fechaIngreso > hoyEnLima()) {
       throw new BadRequestException('La fecha de ingreso no puede ser futura');
     }
@@ -201,6 +202,9 @@ export class WorkersService {
               distrito: datos.distrito,
               telefono: datos.telefono,
               correo: datos.correo === null ? null : datos.correo.toLowerCase(),
+              gradoInstruccion: datos.gradoInstruccion,
+              profesion: datos.profesion === null ? null : datos.profesion.toUpperCase(),
+              condicionProfesion: datos.condicionProfesion,
               fechaIngreso: aFecha(datos.fechaIngreso),
               vinculos: {
                 create: {
@@ -238,6 +242,7 @@ export class WorkersService {
     const actual = await this.cargar(id);
     validarDocumento(datos.tipoDocIdentidad, datos.numeroDoc);
     validarUbigeo(datos.departamento, datos.provincia, datos.distrito);
+    validarFormacion(datos.gradoInstruccion, datos.profesion, datos.condicionProfesion);
     if (datos.fechaIngreso > hoyEnLima() || (datos.fechaNacimiento !== null && datos.fechaNacimiento > hoyEnLima())) {
       throw new BadRequestException('Las fechas no pueden ser futuras');
     }
@@ -256,6 +261,9 @@ export class WorkersService {
       distrito: datos.distrito,
       telefono: datos.telefono,
       correo: datos.correo === null ? null : datos.correo.toLowerCase(),
+      gradoInstruccion: datos.gradoInstruccion,
+      profesion: datos.profesion === null ? null : datos.profesion.toUpperCase(),
+      condicionProfesion: datos.condicionProfesion,
       fechaIngreso: aFecha(datos.fechaIngreso),
     };
     const actualizado = await sinDuplicados(
@@ -329,6 +337,9 @@ export class WorkersService {
       direccion: trabajador.direccion,
       telefono: trabajador.telefono,
       correo: trabajador.correo,
+      gradoInstruccion: trabajador.gradoInstruccion,
+      profesion: trabajador.profesion,
+      condicionProfesion: trabajador.condicionProfesion,
     };
   }
 }
