@@ -6,6 +6,7 @@ import type {
   Cargo,
   DatosTipoDocumento,
   DepartamentoUbigeo,
+  GradoInstruccion,
   NuevoRequisito,
   Regimen,
   Requisito,
@@ -85,5 +86,9 @@ export class CatalogsService {
 
   ubigeo(): Promise<DepartamentoUbigeo[]> {
     return firstValueFrom(this.http.get<DepartamentoUbigeo[]>(`${BASE}/ubigeo`));
+  }
+
+  formacion(): Promise<GradoInstruccion[]> {
+    return firstValueFrom(this.http.get<GradoInstruccion[]>(`${BASE}/education`));
   }
 }
