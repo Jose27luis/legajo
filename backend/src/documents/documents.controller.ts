@@ -1,10 +1,10 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Patch, Post, Query, Req, Res } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Patch, Post, Query, Req, Res } from '@nestjs/common';
 import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import type { Request, Response } from 'express';
 import { datosCliente } from '../common/client';
 import { Requiere, SesionActual } from '../common/decorators';
 import type { SesionActiva } from '../common/session';
-import { ReplaceDocumentDto, UpdateDocumentDto, VoidDocumentDto } from './dto/document-input.dto';
+import { DeleteDocumentDto, ReplaceDocumentDto, UpdateDocumentDto, VoidDocumentDto } from './dto/document-input.dto';
 import { DocumentDto, DocumentHistoryEntryDto } from './dto/document.dto';
 import { DocumentsService } from './documents.service';
 
@@ -40,6 +40,22 @@ export class DocumentsController {
     @Req() solicitud: Request,
   ): Promise<DocumentDto> {
     return this.documentos.anular(id, datos, sesion, datosCliente(solicitud));
+  }
+
+  @Requiere('documentos.eliminar')
+  @Delete()
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({
+    summary: 'Elimina el documento de forma definitiva: borra sus versiones y archivos; queda registrado en la auditoría',
+  })
+  @ApiResponse({ status: 204, description: 'Documento eliminado' })
+  async eliminar(
+    @Param('id', ID) id: string,
+    @Body() datos: DeleteDocumentDto,
+    @SesionActual() sesion: SesionActiva,
+    @Req() solicitud: Request,
+  ): Promise<void> {
+    await this.documentos.eliminar(id, datos, sesion, datosCliente(solicitud));
   }
 
   @Requiere('documentos.editar')
