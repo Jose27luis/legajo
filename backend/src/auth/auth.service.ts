@@ -180,6 +180,28 @@ export class AuthService implements OnModuleInit {
     return this.aUsuarioSesion(actualizado, this.permisosDe(actualizado));
   }
 
+  async confirmarClave(sesion: SesionActiva, clave: string, cliente: DatosCliente): Promise<void> {
+    const permitido = await this.limite.consumir(`confirmar:${sesion.usuarioId}`, 5, 15 * 60);
+    if (!permitido) {
+      throw new HttpException('Demasiados intentos con la contraseña. Espera 15 minutos.', HttpStatus.TOO_MANY_REQUESTS);
+    }
+    const usuario = await this.prisma.usuario.findUnique({ where: { id: sesion.usuarioId }, select: { activo: true, claveHash: true } });
+    if (usuario === null || !usuario.activo) {
+      await this.sesiones.cerrar(sesion);
+      throw new UnauthorizedException('Sesión no válida');
+    }
+    if (!(await argon2.verify(usuario.claveHash, clave))) {
+      await this.auditoria.registrar({
+        accion: 'CLAVE_CONFIRMAR_FALLIDA',
+        entidad: 'usuario',
+        entidadId: sesion.usuarioId,
+        usuarioId: sesion.usuarioId,
+        cliente,
+      });
+      throw new BadRequestException('La contraseña no es correcta');
+    }
+  }
+
   private async registrarIntentoFallido(usuarioId: string, ahora: Date, cliente: DatosCliente): Promise<boolean> {
     return this.prisma.$transaction(async (transaccion) => {
       const { intentosFallidos } = await transaccion.usuario.update({
