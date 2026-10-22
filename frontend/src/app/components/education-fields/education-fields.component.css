@@ -1,0 +1,16 @@
+:host {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.contenedor {
+  display: contents;
+}
+
+@media (max-width: 560px) {
+  :host {
+    grid-template-columns: 1fr;
+  }
+}

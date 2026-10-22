@@ -1,0 +1,32 @@
+<div class="contenedor" [formGroup]="grupo()">
+  <div class="campo">
+    <label [for]="id('grado')">Grado de instrucción</label>
+    <app-search-select
+      [idCampo]="id('grado')"
+      formControlName="gradoInstruccion"
+      [opciones]="opcionesGrado()"
+      sugerencia="Elige el grado de instrucción"
+      (cambio)="elegirGrado($event)"
+    />
+  </div>
+  <div class="campo">
+    <label [for]="id('profesion')">Profesión</label>
+    <app-search-select
+      [idCampo]="id('profesion')"
+      formControlName="profesion"
+      [opciones]="opcionesProfesion()"
+      [bloqueado]="grado() === ''"
+      [sugerencia]="grado() === '' ? 'Elige primero el grado' : 'Busca la profesión'"
+    />
+  </div>
+  <div class="campo">
+    <label [for]="id('condicion')">Condición de la profesión</label>
+    <app-search-select
+      [idCampo]="id('condicion')"
+      formControlName="condicionProfesion"
+      [opciones]="opcionesCondicion()"
+      [bloqueado]="grado() === ''"
+      [sugerencia]="grado() === '' ? 'Elige primero el grado' : 'Título, bachiller, egresado…'"
+    />
+  </div>
+</div>
