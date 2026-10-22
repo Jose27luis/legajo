@@ -117,6 +117,9 @@
                       <span class="menor">{{ textoEstadoDocumento[documento.estado] }}</span>
                     </a>
                   }
+                  @if (eliminable(item)) {
+                    <button type="button" class="boton chico peligro" (click)="seleccionadoId.set(item.id)">Eliminar</button>
+                  }
                 </span>
               </div>
             }
@@ -133,6 +136,7 @@
       [secciones]="lista"
       (cerrar)="seleccionadoId.set(null)"
       (actualizado)="alActualizar($event)"
+      (eliminado)="alEliminar($event)"
     />
   }
 } @else {
