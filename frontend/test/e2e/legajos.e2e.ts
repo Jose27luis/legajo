@@ -97,12 +97,12 @@ async function estadoTrabajador(): Promise<string> {
 
 const SUBIDAS_SIMPLES: readonly { seccion: number; tipo: string }[] = [
   { seccion: 3, tipo: 'Títulos o grados de estudios superiores técnicos o universitarios' },
-  { seccion: 4, tipo: 'Certificados de trabajo' },
+  { seccion: 4, tipo: 'Documentos que acreditan tiempo de servicio' },
   { seccion: 5, tipo: 'Rol de vacaciones' },
-  { seccion: 6, tipo: 'Certificado de retención de quinta categoría' },
-  { seccion: 8, tipo: 'Carta de felicitación' },
-  { seccion: 9, tipo: 'Acta que indique la afiliación sindical' },
-  { seccion: 10, tipo: 'Documentos de descansos médicos' },
+  { seccion: 6, tipo: 'Certificados de retenciones tributarias' },
+  { seccion: 8, tipo: 'Reconocimientos por participación en proyectos o eventos' },
+  { seccion: 9, tipo: 'Documentos de afiliación sindical' },
+  { seccion: 10, tipo: 'Descansos médicos' },
 ];
 
 async function iniciarSesion(identificador: string, clave: string): Promise<void> {
@@ -154,11 +154,15 @@ test('registra un nuevo ingreso y abre su ficha', async () => {
   await elegirEnLista(dialogo.getByRole('combobox', { name: 'Régimen o modalidad' }), 'D. Leg. 276');
   await elegirEnBuscador(dialogo.getByRole('combobox', { name: 'Cargo o puesto' }), MARCA, CARGO);
   await elegirEnBuscador(dialogo.getByRole('combobox', { name: 'Área o dependencia' }), MARCA, AREA);
+  await elegirEnLista(dialogo.getByRole('combobox', { name: 'Grado de instrucción' }), 'Superior completo');
+  await elegirEnBuscador(dialogo.getByRole('combobox', { name: 'Profesión' }), 'ENFERMERA', 'ENFERMERA(O)');
+  await elegirEnLista(dialogo.getByRole('combobox', { name: 'Condición de la profesión' }), 'TITULO');
   await dialogo.locator('#ingreso-fecha').fill('2026-01-05');
   await dialogo.getByRole('button', { name: 'Registrar ingreso' }).click();
 
   await expect(pagina).toHaveURL(/\/workers\/[0-9a-f-]+\/record\?nuevo=1$/);
   await expect(pagina.getByText(`${APELLIDO} MAMANI, ANA MARÍA`).first()).toBeVisible();
+  await expect(pagina.getByText('ENFERMERA(O)', { exact: true })).toBeVisible();
   rutaTrabajador = new URL(pagina.url()).pathname.replace(/\/record$/, '');
 });
 
@@ -191,15 +195,17 @@ test('bloquea el formulario de carga hasta elegir el tipo de documento', async (
   await abrirSeccion(4);
   await expect(pagina.getByText('Selecciona un tipo de documento para habilitar el formulario de carga.')).toBeVisible();
   await expect(pagina.locator('#nuevo-observaciones')).toBeDisabled();
-  await elegirTipo('Certificados de trabajo');
+  await elegirTipo('Documentos que acreditan tiempo de servicio');
   await expect(pagina.locator('#nuevo-observaciones')).toBeEnabled();
-  await expect(pagina.locator('#nuevo-dato-referenciaLaboral')).toBeVisible();
+  await expect(pagina.locator('#nuevo-dato-cargo')).toBeVisible();
+  await expect(pagina.getByText('Entidad o institución emisora')).toBeVisible();
+  await expect(pagina.locator('#nuevo-ubicacion')).toHaveCount(0);
 });
 
-test('sube un contrato de renovación en la Sección 02 vinculado a la ficha', async () => {
+test('sube el contrato de ingreso en la Sección 02 vinculado a la ficha', async () => {
   await abrirSeccion(2);
   await elegirTipo('Contrato');
-  await elegirEnLista(pagina.locator('#nuevo-dato-tipoIncorporacion'), 'Renovación o continuidad');
+  await expect(pagina.locator('#nuevo-dato-tipoIncorporacion')).toHaveCount(0);
   await elegirEnLista(pagina.locator('#nuevo-dato-regimen'), 'D. Leg. 276');
   await pagina.locator('#nuevo-dato-inicio').fill('2026-01-05');
   await pagina.locator('#nuevo-numero').fill(`CT-${MARCA}`);
@@ -209,8 +215,6 @@ test('sube un contrato de renovación en la Sección 02 vinculado a la ficha', a
 test('un contrato posterior abre un nuevo período sin cesar al trabajador', async () => {
   await abrirSeccion(2);
   await elegirTipo('Resolución administrativa de renovación');
-  await expect(pagina.locator('#nuevo-dato-tipoIncorporacion')).toHaveValue('Renovación o continuidad');
-  await elegirEnLista(pagina.locator('#nuevo-dato-regimen'), 'D. Leg. 276');
   await pagina.locator('#nuevo-dato-inicio').fill('2026-02-01');
   await pagina.locator('#nuevo-numero').fill(`RN-${MARCA}`);
   await registrarPdf('renovacion', /vinculado automáticamente/);
@@ -229,21 +233,22 @@ for (const subida of SUBIDAS_SIMPLES) {
 
 test('sube un documento de desplazamiento en la Sección 07', async () => {
   await abrirSeccion(7);
-  await elegirTipo('Documento de rotación');
-  await expect(pagina.getByText('Número de documento (resolución, memorando u otro)')).toBeVisible();
+  await elegirTipo('Rotación');
+  await expect(pagina.getByText('Dependencia de origen')).toBeVisible();
   await registrarPdf('rotacion', /Confirma el movimiento/);
 });
 
-test('sube un documento en la Sección 12 con su justificación', async () => {
+test('sube un documento en la Sección 12 con su nombre y asunto', async () => {
   await abrirSeccion(12);
   await elegirTipo('Otros documentos no clasificados');
-  await pagina.locator('#nuevo-dato-justificacion').fill('No corresponde a ninguna de las otras secciones del legajo.');
+  await pagina.locator('#nuevo-dato-nombreDocumento').fill('Informe administrativo');
+  await pagina.locator('#nuevo-dato-asunto').fill('Comunicación administrativa');
   await registrarPdf('otros', /PDF registrado/);
 });
 
 test('confirma el cese con un PDF de la Sección 11', async () => {
   await abrirSeccion(11);
-  await elegirTipo('Memorando de término de vínculo del servicio civil');
+  await elegirTipo('Memorando de término del vínculo laboral');
   await registrarPdf('cese', /confírmalo desde este detalle/);
   const confirmar = pagina.getByRole('button', { name: 'Confirmar cese laboral' });
   await expect(confirmar).toBeEnabled({ timeout: 60_000 });
@@ -258,7 +263,6 @@ test('confirma el cese con un PDF de la Sección 11', async () => {
 test('un contrato de reingreso vuelve ACTIVO al trabajador cesado', async () => {
   await abrirSeccion(2);
   await elegirTipo('Contrato');
-  await expect(pagina.locator('#nuevo-dato-tipoIncorporacion')).toHaveValue('Reingreso');
   await elegirEnLista(pagina.locator('#nuevo-dato-regimen'), 'D. Leg. 276');
   await pagina.locator('#nuevo-dato-inicio').fill('2026-03-02');
   await pagina.locator('#nuevo-numero').fill(`RE-${MARCA}`);
@@ -269,8 +273,8 @@ test('un contrato de reingreso vuelve ACTIVO al trabajador cesado', async () => 
 test('una adenda con fecha de fin ya vencida cesa al trabajador por fin de contrato', async () => {
   await abrirSeccion(2);
   await elegirTipo('Adenda');
-  await expect(pagina.locator('#nuevo-dato-tipoIncorporacion')).toHaveValue('Renovación o continuidad');
-  await elegirEnLista(pagina.locator('#nuevo-dato-regimen'), 'D. Leg. 276');
+  await elegirEnLista(pagina.locator('#nuevo-dato-contratoRelacionado'), `Contrato N.º RE-${MARCA}`);
+  await elegirEnLista(pagina.locator('#nuevo-dato-motivoAdenda'), 'Ampliación del plazo');
   await pagina.locator('#nuevo-dato-inicio').fill('2026-03-02');
   await pagina.locator('#nuevo-dato-fin').fill('2026-04-30');
   await pagina.locator('#nuevo-numero').fill(`AD-${MARCA}`);
