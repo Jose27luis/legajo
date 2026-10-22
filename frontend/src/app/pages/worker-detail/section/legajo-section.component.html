@@ -185,6 +185,7 @@
     (cerrar)="seleccionadoId.set(null)"
     (actualizado)="contexto.actualizarDocumento($event)"
     (fichaActualizada)="contexto.detalle.reload()"
+    (eliminado)="seleccionadoId.set(null); contexto.quitarDocumento($event)"
   />
 } @else if (contexto.errorLegajo(); as mensaje) {
   <div class="aviso error" role="alert">
