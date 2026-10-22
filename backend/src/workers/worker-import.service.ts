@@ -6,7 +6,15 @@ import type { SesionActiva } from '../common/session';
 import { aFecha, hoyEnLima, normalizarBusqueda } from '../common/dates';
 import { sinDuplicados } from '../common/unique-violation';
 import { ESTABLECIMIENTOS, SEDE_DIRESA, UNIDADES_DIRESA } from '../organization-catalogs';
-import type { ImportPreviewDto, ImportResultDto, ImportRowDto, SexoImportacion, TipoDocImportacion } from './dto/worker-import.dto';
+import { GRADOS_INSTRUCCION } from '../education-catalog';
+import type {
+  FormationImportDto,
+  ImportPreviewDto,
+  ImportResultDto,
+  ImportRowDto,
+  SexoImportacion,
+  TipoDocImportacion,
+} from './dto/worker-import.dto';
 import type { MotivoCeseValor, TipoPersonalValor } from './dto/worker.dto';
 import { leerArchivo, type FilaLeida } from './import-parser';
 
@@ -31,6 +39,27 @@ interface RegimenCatalogo {
 
 function compacto(texto: string): string {
   return normalizarBusqueda(texto).replace(/[^a-z0-9]/g, '');
+}
+
+interface FormacionLeida {
+  gradoInstruccion: string | null;
+  profesion: string | null;
+  condicionProfesion: string | null;
+}
+
+function formacion(fila: FilaLeida): FormacionLeida {
+  const textoGrado = normalizarBusqueda(primero(fila, 'grado_educativo_sustento', 'grado_educativo', 'grado_instruccion'));
+  const grado = GRADOS_INSTRUCCION.find((item) => normalizarBusqueda(item.nombre) === textoGrado);
+  if (grado === undefined) {
+    return { gradoInstruccion: null, profesion: null, condicionProfesion: null };
+  }
+  const profesion = primero(fila, 'profesion_1', 'profesion').toUpperCase().slice(0, 120);
+  const condicion = primero(fila, 'condicion_profesion_1', 'condicion_profesion').toUpperCase();
+  return {
+    gradoInstruccion: grado.nombre,
+    profesion: profesion === '' ? null : profesion,
+    condicionProfesion: grado.condiciones.includes(condicion) ? condicion : null,
+  };
 }
 
 function primero(fila: FilaLeida, ...claves: string[]): string {
@@ -157,14 +186,15 @@ export class WorkerImportService {
     ]);
     const documentos = filas.map(documento);
     const leidos = documentos.filter((item): item is DocumentoLeido => item !== null);
-    const existentes = new Set(
+    const existentes = new Map(
       (
         await this.prisma.trabajador.findMany({
           where: { numeroDoc: { in: leidos.map((item) => item.numero) } },
-          select: { tipoDocIdentidad: true, numeroDoc: true },
+          select: { tipoDocIdentidad: true, numeroDoc: true, gradoInstruccion: true, profesion: true, condicionProfesion: true },
         })
-      ).map((trabajador) => claveDocumento(trabajador.tipoDocIdentidad, trabajador.numeroDoc)),
+      ).map((trabajador) => [claveDocumento(trabajador.tipoDocIdentidad, trabajador.numeroDoc), trabajador]),
     );
+    const completar: FormationImportDto[] = [];
     const areasConocidas = new Set(areas.map((area) => compacto(area.nombre)));
     const cargosConocidos = new Set(cargos.map((cargo) => compacto(cargo.nombre)));
     const hoy = hoyEnLima();
@@ -186,7 +216,17 @@ export class WorkerImportService {
         return;
       }
       vistos.add(clave);
-      if (existentes.has(clave)) {
+      const registrado = existentes.get(clave);
+      if (registrado !== undefined) {
+        const leida = formacion(fila);
+        const faltan =
+          (registrado.gradoInstruccion === null && leida.gradoInstruccion !== null) ||
+          (registrado.profesion === null && leida.profesion !== null) ||
+          (registrado.condicionProfesion === null && leida.condicionProfesion !== null);
+        if (leida.gradoInstruccion !== null && faltan) {
+          completar.push({ tipoDocIdentidad: leido.tipo, numeroDoc: leido.numero, ...leida, gradoInstruccion: leida.gradoInstruccion });
+          return;
+        }
         observar(`${leido.tipo} ya registrado (${leido.numero}).`);
         return;
       }
@@ -265,13 +305,32 @@ export class WorkerImportService {
         fechaIngreso,
         motivoCese,
         fechaCese,
+        ...formacion(fila),
         avisos,
       });
     });
-    return { validos, observaciones, total: filas.length };
+    return { validos, completar, observaciones, total: filas.length };
   }
 
-  async importar(filas: ImportRowDto[], sesion: SesionActiva, cliente: DatosCliente): Promise<ImportResultDto> {
+  async importar(
+    filas: ImportRowDto[],
+    completar: FormationImportDto[],
+    sesion: SesionActiva,
+    cliente: DatosCliente,
+  ): Promise<ImportResultDto> {
+    if (filas.length === 0 && completar.length === 0) {
+      throw new ConflictException('No hay trabajadores para importar ni datos de formación para completar');
+    }
+    const fueraDeCatalogo = completar.find(
+      (item) =>
+        !GRADOS_INSTRUCCION.some(
+          (grado) =>
+            grado.nombre === item.gradoInstruccion && (item.condicionProfesion === null || grado.condiciones.includes(item.condicionProfesion)),
+        ),
+    );
+    if (fueraDeCatalogo !== undefined) {
+      throw new ConflictException(`${fueraDeCatalogo.numeroDoc}: el grado o la condición de la profesión no están en el catálogo`);
+    }
     const documentos = filas.map((fila) => claveDocumento(fila.tipoDocIdentidad, fila.numeroDoc));
     if (new Set(documentos).size !== documentos.length) {
       throw new ConflictException('Hay documentos de identidad repetidos en la importación');
@@ -356,6 +415,9 @@ export class WorkerImportService {
                   apellidoMaterno: fila.apellidoMaterno,
                   sexo: fila.sexo,
                   fechaNacimiento: fila.fechaNacimiento === null ? null : aFecha(fila.fechaNacimiento),
+                  gradoInstruccion: fila.gradoInstruccion,
+                  profesion: fila.profesion,
+                  condicionProfesion: fila.condicionProfesion,
                   fechaIngreso: aFecha(fila.fechaIngreso),
                   estado: cesado ? 'CESADO' : 'ACTIVO',
                   vinculos: {
@@ -386,17 +448,51 @@ export class WorkerImportService {
                 transaccion,
               );
             }
+            let completados = 0;
+            for (const item of completar) {
+              const trabajador = await transaccion.trabajador.findUnique({
+                where: { tipoDocIdentidad_numeroDoc: { tipoDocIdentidad: item.tipoDocIdentidad, numeroDoc: item.numeroDoc } },
+                select: { id: true, gradoInstruccion: true, profesion: true, condicionProfesion: true },
+              });
+              if (trabajador === null) {
+                continue;
+              }
+              const cambios = {
+                ...(trabajador.gradoInstruccion === null ? { gradoInstruccion: item.gradoInstruccion } : {}),
+                ...(trabajador.profesion === null && item.profesion !== null ? { profesion: item.profesion } : {}),
+                ...(trabajador.condicionProfesion === null && item.condicionProfesion !== null
+                  ? { condicionProfesion: item.condicionProfesion }
+                  : {}),
+              };
+              if (Object.keys(cambios).length === 0) {
+                continue;
+              }
+              await transaccion.trabajador.update({ where: { id: trabajador.id }, data: cambios });
+              await this.auditoria.registrar(
+                {
+                  accion: 'TRABAJADOR_EDITAR',
+                  entidad: 'trabajador',
+                  entidadId: trabajador.id,
+                  trabajadorId: trabajador.id,
+                  usuarioId: sesion.usuarioId,
+                  cliente,
+                  detalle: { origen: 'padron', ...cambios },
+                },
+                transaccion,
+              );
+              completados++;
+            }
             await this.auditoria.registrar(
               {
                 accion: 'TRABAJADORES_IMPORTAR',
                 entidad: 'trabajador',
                 usuarioId: sesion.usuarioId,
                 cliente,
-                detalle: { importados: filas.length, catalogosCreados },
+                detalle: { importados: filas.length, completados, catalogosCreados },
               },
               transaccion,
             );
-            return { importados: filas.length, catalogosCreados };
+            return { importados: filas.length, completados, catalogosCreados };
           },
           { timeout: TIEMPO_TRANSACCION_MS, maxWait: 10000 },
         ),
