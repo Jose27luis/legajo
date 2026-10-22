@@ -41,6 +41,7 @@ import {
 import { DocumentQueueService } from './document-queue.service';
 import { UploadServerService } from './upload-server.service';
 import { LaborService } from '../labor/labor.service';
+import { AuthService } from '../auth/auth.service';
 import { CODIGO_FICHA_TEXTO } from '../seed-catalogs';
 
 const EVENTOS_DOCUMENTO: Readonly<Record<string, string>> = {
@@ -114,6 +115,7 @@ export class DocumentsService {
     private readonly cola: DocumentQueueService,
     private readonly subidas: UploadServerService,
     private readonly laboral: LaborService,
+    private readonly autenticacion: AuthService,
     @Inject(ENTORNO) private readonly entorno: Entorno,
   ) {}
 
@@ -292,7 +294,8 @@ export class DocumentsService {
 
   async eliminar(id: string, datos: DeleteDocumentDto, sesion: SesionActiva, cliente: DatosCliente): Promise<void> {
     const actual = await this.cargarVisible(id, sesion);
-    const versionActual = actual.archivos.find((archivo) => archivo.id === actual.archivoActualId) ?? null;
+    await this.autenticacion.confirmarClave(sesion, datos.clave, cliente);
+    const versionActual =actual.archivos.find((archivo) => archivo.id === actual.archivoActualId) ?? null;
     await this.prisma.$transaction(async (transaccion) => {
       await transaccion.$executeRaw`SELECT set_config('legajos.eliminar_documento', 'on', true)`;
       await transaccion.documento.update({
