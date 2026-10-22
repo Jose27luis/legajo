@@ -1,12 +1,24 @@
 export const COLA_DOCUMENTOS = 'documentos';
 export const TRABAJO_PROCESAR = 'procesar-documento';
 export const TRABAJO_LIMPIAR = 'limpiar-subidas';
+export const TRABAJO_ELIMINAR = 'eliminar-archivos';
 
 export interface TrabajoProcesar {
   documentoId: string;
   subidaId: string;
   nombreOriginal: string;
   usuarioId: string;
+}
+
+export interface TrabajoEliminar {
+  trabajadorId: string;
+  documentoId: string;
+}
+
+export type TrabajoDocumentos = TrabajoProcesar | TrabajoEliminar;
+
+export function esProcesar(trabajo: TrabajoDocumentos): trabajo is TrabajoProcesar {
+  return 'subidaId' in trabajo;
 }
 
 export interface ConexionRedis {
