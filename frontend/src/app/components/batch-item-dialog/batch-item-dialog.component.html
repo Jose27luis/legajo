@@ -6,7 +6,9 @@
           <span class="archivo">{{ actual.nombreArchivo }}</span>
           <span class="peso">{{ tamanoLegible(actual.tamano) }}</span>
         </div>
-        <iframe [src]="enlace()" title="Vista del documento"></iframe>
+        @if (pendiente()) {
+          <iframe [src]="enlace()" title="Vista del documento"></iframe>
+        }
         @if (actual.motivo; as motivo) {
           <p class="aviso sensible">{{ motivo }}</p>
         }
@@ -14,14 +16,19 @@
 
       <section class="acciones" aria-label="Qué hacer con el archivo">
         <div class="pestanas" role="tablist">
-          <button type="button" role="tab" [attr.aria-selected]="pestana() === 'clasificar'" (click)="cambiarPestana('clasificar')">
-            Clasificar
-          </button>
-          <button type="button" role="tab" [attr.aria-selected]="pestana() === 'dividir'" (click)="cambiarPestana('dividir')">
-            Dividir
-          </button>
-          <button type="button" role="tab" [attr.aria-selected]="pestana() === 'descartar'" (click)="cambiarPestana('descartar')">
-            Descartar
+          @if (pendiente()) {
+            <button type="button" role="tab" [attr.aria-selected]="pestana() === 'clasificar'" (click)="cambiarPestana('clasificar')">
+              Clasificar
+            </button>
+            <button type="button" role="tab" [attr.aria-selected]="pestana() === 'dividir'" (click)="cambiarPestana('dividir')">
+              Dividir
+            </button>
+            <button type="button" role="tab" [attr.aria-selected]="pestana() === 'descartar'" (click)="cambiarPestana('descartar')">
+              Descartar
+            </button>
+          }
+          <button type="button" role="tab" [attr.aria-selected]="pestana() === 'eliminar'" (click)="cambiarPestana('eliminar')">
+            Eliminar
           </button>
         </div>
 
@@ -118,6 +125,25 @@
               </div>
             </form>
           }
+
+          @case ('eliminar') {
+            <form id="formulario-eliminar" class="formulario" (submit)="$event.preventDefault(); eliminar()" novalidate>
+              <p class="aviso sensible">
+                <strong>Esta acción no se puede deshacer.</strong> El archivo sale de la bandeja y del lote; solo queda en la auditoría
+                quién lo eliminó y por qué. Si era el último archivo, el lote también se elimina.
+              </p>
+              <div class="campo">
+                <label for="eliminar-motivo">Motivo (mínimo {{ minimoMotivoEliminar }} caracteres)</label>
+                <textarea
+                  id="eliminar-motivo"
+                  [formControl]="motivo"
+                  maxlength="300"
+                  rows="3"
+                  [attr.aria-invalid]="motivoInvalido()"
+                ></textarea>
+              </div>
+            </form>
+          }
         }
 
         @if (error(); as mensaje) {
@@ -143,6 +169,11 @@
       @case ('descartar') {
         <button type="submit" form="formulario-descartar" class="boton peligro lleno" [disabled]="ocupado()" [attr.aria-busy]="ocupado()">
           {{ ocupado() ? 'Descartando' : 'Descartar archivo' }}
+        </button>
+      }
+      @case ('eliminar') {
+        <button type="submit" form="formulario-eliminar" class="boton peligro lleno" [disabled]="ocupado()" [attr.aria-busy]="ocupado()">
+          {{ ocupado() ? 'Eliminando' : 'Eliminar definitivamente' }}
         </button>
       }
     }
