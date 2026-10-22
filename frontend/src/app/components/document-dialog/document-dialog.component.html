@@ -245,6 +245,30 @@
         </form>
       }
 
+      @case ('eliminar') {
+        <form id="formulario-eliminacion" class="formulario" (submit)="$event.preventDefault(); eliminar()" novalidate>
+          <p class="aviso sensible">
+            <strong>Esta acción no se puede deshacer.</strong> Se borran el documento, todas sus versiones y el PDF. Solo queda en la
+            auditoría quién lo eliminó, cuándo y por qué. Si solo quieres sacarlo de circulación, usa «Anular».
+          </p>
+          @for (efecto of efectosEliminacion(); track efecto) {
+            <p class="aviso info">Este documento {{ efecto }}.</p>
+          }
+          <div class="campo">
+            <label for="eliminacion-motivo">
+              Motivo <span class="obligatorio" aria-hidden="true">*</span> (mínimo {{ minimoMotivo }} caracteres)
+            </label>
+            <textarea
+              id="eliminacion-motivo"
+              [formControl]="motivo"
+              maxlength="500"
+              rows="3"
+              [attr.aria-invalid]="motivoInvalido()"
+            ></textarea>
+          </div>
+        </form>
+      }
+
       @case ('movimiento') {
         <p class="aviso info">
           <strong>Trabajador:</strong> {{ trabajador() ? nombreCompleto(trabajador()!) : '' }}<br />
@@ -331,6 +355,9 @@
             @if (sesion.tiene('documentos.anular') && doc.estado !== 'ANULADO' && doc.estado !== 'PROCESANDO') {
               <button type="button" class="boton chico peligro" (click)="cambiarModo('anular')">Anular</button>
             }
+            @if (sesion.tiene('documentos.eliminar')) {
+              <button type="button" class="boton chico peligro" (click)="cambiarModo('eliminar')">Eliminar</button>
+            }
           </div>
           @if (doc.reintentable && sesion.tiene('documentos.subir')) {
             <button type="button" class="boton" (click)="reintentar()" [disabled]="ocupado()">Reintentar</button>
@@ -386,6 +413,18 @@
           <button type="button" class="boton" (click)="volver()" [disabled]="ocupado()">Cancelar</button>
           <button type="submit" form="formulario-anulacion" class="boton peligro lleno" [disabled]="ocupado()" [attr.aria-busy]="ocupado()">
             {{ ocupado() ? 'Anulando' : 'Confirmar anulación' }}
+          </button>
+        }
+        @case ('eliminar') {
+          <button type="button" class="boton" (click)="volver()" [disabled]="ocupado()">Cancelar</button>
+          <button
+            type="submit"
+            form="formulario-eliminacion"
+            class="boton peligro lleno"
+            [disabled]="ocupado()"
+            [attr.aria-busy]="ocupado()"
+          >
+            {{ ocupado() ? 'Eliminando' : 'Eliminar definitivamente' }}
           </button>
         }
         @case ('movimiento') {
