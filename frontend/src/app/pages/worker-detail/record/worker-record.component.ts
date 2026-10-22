@@ -10,6 +10,8 @@ import { SearchSelectComponent, type OpcionBuscable } from '../../../components/
 import { SituationDialogComponent } from '../../../components/situation-dialog/situation-dialog.component';
 import { UbigeoFieldsComponent } from '../../../components/ubigeo-fields/ubigeo-fields.component';
 import { crearCamposUbigeo, leerCamposUbigeo, ubicarEnLista } from '../../../components/ubigeo-fields/ubigeo-form';
+import { EducationFieldsComponent } from '../../../components/education-fields/education-fields.component';
+import { crearCamposFormacion, leerCamposFormacion, reiniciarCamposFormacion } from '../../../components/education-fields/education-form';
 import { IdentityDocumentsComponent } from './identity-documents/identity-documents.component';
 import { mensajeDeError } from '../../../core/errors';
 import { fechaHora } from '../../../core/format';
@@ -81,6 +83,7 @@ const OPCIONES_MOTIVO_CAMBIO: readonly OpcionBuscable[] = MOTIVOS_CAMBIO.map((mo
     IdentityDocumentsComponent,
     SearchSelectComponent,
     UbigeoFieldsComponent,
+    EducationFieldsComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './worker-record.component.html',
@@ -174,6 +177,7 @@ export class WorkerRecordComponent {
     estadoCivil: new FormControl('', { nonNullable: true }),
     direccion: new FormControl('', { nonNullable: true, validators: [Validators.maxLength(200)] }),
     ubicacion: crearCamposUbigeo(),
+    formacion: crearCamposFormacion(),
     telefono: new FormControl('', { nonNullable: true }),
     correo: new FormControl('', { nonNullable: true, validators: [Validators.email] }),
     fechaIngreso: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
@@ -220,6 +224,7 @@ export class WorkerRecordComponent {
       correo: trabajador.correo ?? '',
       fechaIngreso: trabajador.fechaIngreso,
     });
+    reiniciarCamposFormacion(this.ficha.controls.formacion, trabajador);
     this.fichaAbierta.set(true);
     void this.ubicarFicha(trabajador);
   }
@@ -256,6 +261,7 @@ export class WorkerRecordComponent {
         estadoCivil: opcional(valores.estadoCivil),
         direccion: opcional(valores.direccion),
         ...leerCamposUbigeo(this.ficha.controls.ubicacion),
+        ...leerCamposFormacion(this.ficha.controls.formacion),
         telefono: opcional(valores.telefono),
         correo: opcional(valores.correo),
         fechaIngreso: valores.fechaIngreso,
