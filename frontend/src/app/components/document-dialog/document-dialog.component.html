@@ -43,17 +43,21 @@
             <dt>Tipo de documento</dt>
             <dd>{{ doc.tipo.nombre }}</dd>
           </div>
-          <div>
-            <dt>N.º documento</dt>
-            <dd>{{ doc.numero ?? 'No registrado' }}</dd>
-          </div>
-          <div>
-            <dt>Fecha de emisión</dt>
-            <dd>{{ doc.fechaEmision ? fechaCorta(doc.fechaEmision) : 'No registrada' }}</dd>
-          </div>
-          @if (doc.tipo.tieneVencimiento || doc.fechaVencimiento !== null) {
+          @if (doc.tipo.formulario.numero || doc.numero !== null) {
             <div>
-              <dt>Vencimiento</dt>
+              <dt>{{ doc.tipo.formulario.numero ?? 'Número de documento' }}</dt>
+              <dd>{{ doc.numero ?? 'No registrado' }}</dd>
+            </div>
+          }
+          @if (doc.tipo.formulario.fechaEmision || doc.fechaEmision !== null) {
+            <div>
+              <dt>{{ doc.tipo.formulario.fechaEmision ?? 'Fecha de emisión' }}</dt>
+              <dd>{{ doc.fechaEmision ? fechaCorta(doc.fechaEmision) : 'No registrada' }}</dd>
+            </div>
+          }
+          @if (doc.tipo.formulario.fechaVencimiento || doc.fechaVencimiento !== null) {
+            <div>
+              <dt>{{ doc.tipo.formulario.fechaVencimiento ?? 'Fecha de vencimiento' }}</dt>
               <dd>{{ doc.fechaVencimiento ? fechaCorta(doc.fechaVencimiento) : 'No registrada' }}</dd>
             </div>
           }
@@ -86,17 +90,21 @@
             <dd>{{ versionActual()?.nombreOriginal ?? '—' }}</dd>
           </div>
           <div class="ancho">
-            <dt>Descripción</dt>
+            <dt>Descripción y observaciones</dt>
             <dd>{{ doc.observaciones ?? '—' }}</dd>
           </div>
-          <div>
-            <dt>Emitido por</dt>
-            <dd>{{ doc.emisor ?? '—' }}</dd>
-          </div>
-          <div>
-            <dt>Ubicación del físico</dt>
-            <dd>{{ doc.ubicacionFisica ?? '—' }}</dd>
-          </div>
+          @if (doc.tipo.formulario.emisor || doc.emisor !== null) {
+            <div>
+              <dt>{{ doc.tipo.formulario.emisor ?? 'Emitido por' }}</dt>
+              <dd>{{ doc.emisor ?? '—' }}</dd>
+            </div>
+          }
+          @if (doc.ubicacionFisica !== null) {
+            <div>
+              <dt>Ubicación del físico</dt>
+              <dd>{{ doc.ubicacionFisica }}</dd>
+            </div>
+          }
           @for (propio of propios(); track propio.etiqueta) {
             <div>
               <dt>{{ propio.etiqueta }}</dt>
@@ -178,7 +186,7 @@
       @case ('editar') {
         @if (seccion(); as actual) {
           <form id="formulario-edicion" class="formulario" (submit)="$event.preventDefault(); guardarEdicion()" novalidate>
-            <app-document-fields [grupo]="formulario" [seccion]="actual" prefijo="edicion" [conVinculo]="true" />
+            <app-document-fields [grupo]="formulario" [seccion]="actual" prefijo="edicion" [contratos]="contratos()" />
             <div class="campo">
               <label for="edicion-motivo">Motivo de la modificación <span class="obligatorio" aria-hidden="true">*</span></label>
               <textarea
