@@ -43,7 +43,7 @@ export interface NuevoUsuario extends DatosUsuario {
   usuario: string;
 }
 
-export type TipoCampo = 'texto' | 'fecha' | 'numero' | 'seleccion' | 'parrafo' | 'regimen' | 'area' | 'cargo';
+export type TipoCampo = 'texto' | 'fecha' | 'numero' | 'seleccion' | 'parrafo' | 'regimen' | 'area' | 'cargo' | 'contrato';
 export type AccionDocumento = 'NINGUNA' | 'VINCULO' | 'MOVIMIENTO' | 'CESE';
 
 export interface CampoSeccion {
@@ -51,7 +51,16 @@ export interface CampoSeccion {
   etiqueta: string;
   tipo: TipoCampo;
   opciones?: string[];
+  dependeDe?: { clave: string; opciones: Record<string, string[]> };
   obligatorio: boolean;
+}
+
+export interface FormularioTipo {
+  numero?: string;
+  fechaEmision?: string;
+  emisor?: string;
+  emisorOpciones?: string[];
+  fechaVencimiento?: string;
 }
 
 export interface TipoDocumento {
@@ -66,6 +75,7 @@ export interface TipoDocumento {
   orden: number;
   accion: AccionDocumento;
   campos: CampoSeccion[];
+  formulario: FormularioTipo;
 }
 
 export interface Seccion {
@@ -115,6 +125,18 @@ export interface ProvinciaUbigeo {
 export interface DepartamentoUbigeo {
   nombre: string;
   provincias: ProvinciaUbigeo[];
+}
+
+export interface GradoInstruccion {
+  nombre: string;
+  profesiones: string[];
+  condiciones: string[];
+}
+
+export interface Formacion {
+  gradoInstruccion: string | null;
+  profesion: string | null;
+  condicionProfesion: string | null;
 }
 
 export type TipoPersonal = 'ADMINISTRATIVO' | 'ASISTENCIAL';
@@ -194,6 +216,9 @@ export interface TrabajadorDetalle extends TrabajadorResumen {
   distrito: string | null;
   telefono: string | null;
   correo: string | null;
+  gradoInstruccion: string | null;
+  profesion: string | null;
+  condicionProfesion: string | null;
   creadoEn: string;
   vinculos: Vinculo[];
   familiares: Familiar[];
@@ -248,7 +273,7 @@ export interface DatosNuevoVinculo {
   referencia: string | null;
 }
 
-export interface NuevoTrabajador extends DatosNuevoVinculo {
+export interface NuevoTrabajador extends DatosNuevoVinculo, Formacion {
   tipoDocIdentidad: TipoDocIdentidad;
   numeroDoc: string;
   nombres: string;
@@ -264,7 +289,7 @@ export interface NuevoTrabajador extends DatosNuevoVinculo {
   fechaIngreso: string;
 }
 
-export interface FichaTrabajador {
+export interface FichaTrabajador extends Formacion {
   tipoDocIdentidad: TipoDocIdentidad;
   numeroDoc: string;
   nombres: string;
@@ -844,17 +869,28 @@ export interface FilaImportacion {
   fechaIngreso: string;
   motivoCese: MotivoCese | null;
   fechaCese: string | null;
+  gradoInstruccion: string | null;
+  profesion: string | null;
+  condicionProfesion: string | null;
   avisos: string[];
+}
+
+export interface FormacionImportacion extends Formacion {
+  tipoDocIdentidad: TipoDocIdentidad;
+  numeroDoc: string;
+  gradoInstruccion: string;
 }
 
 export interface VistaImportacion {
   validos: FilaImportacion[];
+  completar: FormacionImportacion[];
   observaciones: string[];
   total: number;
 }
 
 export interface ResultadoImportacion {
   importados: number;
+  completados: number;
   catalogosCreados: number;
 }
 
