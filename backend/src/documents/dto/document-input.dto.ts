@@ -97,6 +97,14 @@ export class VoidDocumentDto {
   motivo: string;
 }
 
+export class DeleteDocumentDto {
+  @ApiProperty({ minLength: 10, maxLength: 500 })
+  @Transform(recortar)
+  @IsString({ message: 'Indica el motivo' })
+  @Length(10, 500, { message: 'Indica el motivo de la eliminación (mínimo 10 caracteres)' })
+  motivo: string;
+}
+
 export class ReplaceDocumentDto extends VoidDocumentDto {
   @ApiProperty()
   @Matches(SUBIDA, { message: 'La subida no es válida' })
