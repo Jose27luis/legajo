@@ -1,7 +1,7 @@
 import { HttpClient, HttpEventType } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { filter, firstValueFrom, map, type Observable } from 'rxjs';
-import type { FilaImportacion, ResultadoImportacion, VistaImportacion } from '../core/models';
+import type { FilaImportacion, FormacionImportacion, ResultadoImportacion, VistaImportacion } from '../core/models';
 
 const BASE = '/api/workers/import';
 
@@ -30,7 +30,7 @@ export class ImportService {
     );
   }
 
-  importar(filas: FilaImportacion[]): Promise<ResultadoImportacion> {
-    return firstValueFrom(this.http.post<ResultadoImportacion>(BASE, { filas }));
+  importar(filas: FilaImportacion[], completar: FormacionImportacion[]): Promise<ResultadoImportacion> {
+    return firstValueFrom(this.http.post<ResultadoImportacion>(BASE, { filas, completar }));
   }
 }
