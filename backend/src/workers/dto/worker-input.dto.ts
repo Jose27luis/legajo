@@ -147,6 +147,27 @@ export class CreateWorkerDto extends DatosVinculo {
   @IsEmail({}, { message: 'Correo no válido' })
   correo: string | null = null;
 
+  @ApiPropertyOptional({ maxLength: 40, description: 'Grado de instrucción, según el catálogo de formación' })
+  @Transform(vacioANulo)
+  @IsOptional()
+  @IsString()
+  @Length(1, 40)
+  gradoInstruccion: string | null = null;
+
+  @ApiPropertyOptional({ maxLength: 120 })
+  @Transform(vacioANulo)
+  @IsOptional()
+  @IsString()
+  @Length(1, 120)
+  profesion: string | null = null;
+
+  @ApiPropertyOptional({ maxLength: 40, description: 'Documento que sustenta la profesión: título, bachiller, constancia de egresado…' })
+  @Transform(vacioANulo)
+  @IsOptional()
+  @IsString()
+  @Length(1, 40)
+  condicionProfesion: string | null = null;
+
   @ApiProperty({ format: 'date' })
   @IsISO8601({ strict: true }, fechaMensaje)
   fechaIngreso: string;
@@ -229,6 +250,27 @@ export class UpdateWorkerDto extends DocumentoIdentidad {
   @IsOptional()
   @IsEmail({}, { message: 'Correo no válido' })
   correo: string | null = null;
+
+  @ApiPropertyOptional({ maxLength: 40, description: 'Grado de instrucción, según el catálogo de formación' })
+  @Transform(vacioANulo)
+  @IsOptional()
+  @IsString()
+  @Length(1, 40)
+  gradoInstruccion: string | null = null;
+
+  @ApiPropertyOptional({ maxLength: 120 })
+  @Transform(vacioANulo)
+  @IsOptional()
+  @IsString()
+  @Length(1, 120)
+  profesion: string | null = null;
+
+  @ApiPropertyOptional({ maxLength: 40, description: 'Documento que sustenta la profesión: título, bachiller, constancia de egresado…' })
+  @Transform(vacioANulo)
+  @IsOptional()
+  @IsString()
+  @Length(1, 40)
+  condicionProfesion: string | null = null;
 
   @ApiProperty({ format: 'date' })
   @IsISO8601({ strict: true }, fechaMensaje)
