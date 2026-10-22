@@ -29,6 +29,8 @@ interface DatosVinculo {
   cargoId: number | null;
 }
 
+type LecturaVinculo = Omit<DatosVinculo, 'inicio'> & { inicio: string | null };
+
 export interface NuevoMovimiento {
   tipo: MovementInputDto['tipo'];
   fecha: string;
@@ -102,7 +104,21 @@ export class LaborService {
       await this.enlazar(transaccion, documento, vinculo, sesion, cliente, { origen: 'historial' });
       return;
     }
-    const datos = this.datosVinculo(documento);
+    const actual = this.vinculoActual(trabajador);
+    const relacionado = await this.vinculoDelContrato(transaccion, documento, trabajador);
+    if (relacionado !== null) {
+      await this.enlazar(transaccion, documento, relacionado, sesion, cliente, { origen: 'adenda' });
+      return;
+    }
+    const lectura = this.datosVinculo(documento, trabajador, actual);
+    if (lectura.inicio === null) {
+      if (trabajador.estado === 'CESADO') {
+        throw new BadRequestException('El trabajador está cesado: indica el inicio del vínculo para registrar su reingreso.');
+      }
+      await this.enlazar(transaccion, documento, actual, sesion, cliente, { origen: 'renovacion' });
+      return;
+    }
+    const datos: DatosVinculo = { ...lectura, inicio: lectura.inicio };
     if (datos.tipoIncorporacion === INCORPORACION.REINGRESO) {
       this.exigirReingresoPosible(trabajador, datos.inicio);
       if (datos.inicio <= hoyEnLima()) {
@@ -111,9 +127,8 @@ export class LaborService {
       return;
     }
     if (trabajador.estado === 'CESADO') {
-      throw new BadRequestException('El trabajador está cesado: elige Reingreso. El nuevo contrato no borra el cese anterior.');
+      throw new BadRequestException('El trabajador está cesado: el contrato debe empezar después de su último cese.');
     }
-    const actual = this.vinculoActual(trabajador);
     if (datos.tipoIncorporacion === INCORPORACION.RENOVACION) {
       if (datos.inicio > aTexto(actual.fechaInicio) && datos.inicio <= hoyEnLima()) {
         await this.abrirPeriodo(transaccion, documento, trabajador, actual, datos, sesion, cliente);
@@ -123,6 +138,31 @@ export class LaborService {
       return;
     }
     await this.vincularIngreso(transaccion, documento, trabajador, actual, datos, sesion, cliente);
+  }
+
+  private async vinculoDelContrato(
+    transaccion: Prisma.TransactionClient,
+    documento: DocumentoCompleto,
+    trabajador: TrabajadorConVinculos,
+  ): Promise<Vinculo | null> {
+    const contratoId = texto(leerDatosGuardados(documento.datos)['contratoRelacionado']);
+    if (contratoId === null) {
+      return null;
+    }
+    const contrato = await transaccion.documento.findFirst({
+      where: {
+        id: contratoId,
+        trabajadorId: trabajador.id,
+        estado: { not: 'ANULADO' },
+        tipoDocumento: { accion: 'VINCULO' },
+      },
+      select: { vinculoId: true },
+    });
+    if (contrato === null) {
+      throw new BadRequestException('El contrato relacionado no pertenece a este trabajador o fue anulado');
+    }
+    const vinculo = trabajador.vinculos.find((item) => item.id === contrato.vinculoId);
+    return vinculo ?? this.vinculoActual(trabajador);
   }
 
   private async abrirPeriodo(
@@ -178,16 +218,12 @@ export class LaborService {
     if (documento.vinculoId !== null) {
       throw new ConflictException('Este documento ya figura en el historial');
     }
-    const datos = this.datosVinculo(documento);
-    if (datos.tipoIncorporacion !== INCORPORACION.PRIMER_INGRESO) {
-      throw new BadRequestException('Un reingreso se confirma desde el detalle del documento; una renovación no crea otro ingreso');
-    }
     await this.prisma.$transaction(async (transaccion) => {
       const trabajador = await this.trabajador(transaccion, documento.trabajadorId);
       if (trabajador.estado === 'CESADO') {
-        throw new BadRequestException('El trabajador está cesado: registra el contrato como Reingreso');
+        throw new BadRequestException('El trabajador está cesado: confirma el reingreso desde el detalle del documento');
       }
-      await this.vincularIngreso(transaccion, documento, trabajador, this.vinculoActual(trabajador), datos, sesion, cliente);
+      await this.registrarVinculo(transaccion, documento, null, sesion, cliente);
       await this.vencimientos.vencer(transaccion, trabajador.id, actor(sesion, cliente));
     });
     return aDocumentoDto(await this.cargar(id, sesion), sesion);
@@ -211,8 +247,8 @@ export class LaborService {
         throw new BadRequestException('El período elegido no pertenece a este trabajador');
       }
       await this.enlazar(transaccion, documento, vinculo, sesion, cliente, { origen: 'historial' });
-      const reingresoPendiente =
-        texto(leerDatosGuardados(documento.datos)['tipoIncorporacion']) === INCORPORACION.REINGRESO && documento.confirmadoEn === null;
+      const inicio = texto(leerDatosGuardados(documento.datos)['inicio']);
+      const reingresoPendiente = documento.confirmadoEn === null && inicio !== null && inicio === aTexto(vinculo.fechaInicio);
       if (reingresoPendiente && vinculo.actual && trabajador.estado === 'ACTIVO') {
         await this.marcarConfirmado(transaccion, documento, sesion, cliente);
       }
@@ -224,15 +260,16 @@ export class LaborService {
   async confirmarReingreso(id: string, sesion: SesionActiva, cliente: DatosCliente): Promise<DocumentDto> {
     const documento = await this.cargar(id, sesion);
     this.exigirDisponible(documento, 'VINCULO');
-    const datos = this.datosVinculo(documento);
-    if (datos.tipoIncorporacion !== INCORPORACION.REINGRESO) {
-      throw new BadRequestException('Registra el documento como Reingreso, con fecha de inicio y régimen');
-    }
-    if (datos.inicio > hoyEnLima()) {
-      throw new BadRequestException('El reingreso todavía no es efectivo. Confírmalo desde su fecha de inicio.');
-    }
     await this.prisma.$transaction(async (transaccion) => {
       const trabajador = await this.trabajador(transaccion, documento.trabajadorId);
+      const lectura = this.datosVinculo(documento, trabajador, this.vinculoActual(trabajador));
+      if (lectura.inicio === null) {
+        throw new BadRequestException('Completa el inicio del vínculo en el documento para confirmar el reingreso');
+      }
+      const datos: DatosVinculo = { ...lectura, inicio: lectura.inicio };
+      if (datos.inicio > hoyEnLima()) {
+        throw new BadRequestException('El reingreso todavía no es efectivo. Confírmalo desde su fecha de inicio.');
+      }
       const actual = trabajador.estado === 'ACTIVO' ? this.vinculoActual(trabajador) : null;
       if (actual !== null && aTexto(actual.fechaInicio) === datos.inicio) {
         await this.enlazar(transaccion, documento, actual, sesion, cliente, { origen: 'reingreso' });
@@ -513,21 +550,29 @@ export class LaborService {
     });
   }
 
-  private datosVinculo(documento: DocumentoCompleto): DatosVinculo {
+  private datosVinculo(documento: DocumentoCompleto, trabajador: TrabajadorConVinculos, actual: Vinculo): LecturaVinculo {
     const datos = leerDatosGuardados(documento.datos);
-    const tipoIncorporacion = texto(datos['tipoIncorporacion']);
-    const regimenId = numero(datos['regimen']);
     const inicio = texto(datos['inicio']);
-    if (tipoIncorporacion === null || regimenId === null || inicio === null) {
-      throw new BadRequestException(
-        'Para un contrato o resolución completa el tipo de incorporación, el régimen o modalidad y el inicio del vínculo',
-      );
-    }
     const fin = texto(datos['fin']);
-    if (fin !== null && fin < inicio) {
+    if (inicio !== null && fin !== null && fin < inicio) {
       throw new BadRequestException('La fecha de término no puede ser anterior a la fecha de inicio');
     }
-    return { tipoIncorporacion, regimenId, inicio, fin, areaId: numero(datos['dependencia']), cargoId: numero(datos['puesto']) };
+    const declarado = texto(datos['tipoIncorporacion']);
+    const tipoIncorporacion =
+      declarado ??
+      (trabajador.estado === 'CESADO'
+        ? INCORPORACION.REINGRESO
+        : inicio !== null && inicio > aTexto(actual.fechaInicio)
+          ? INCORPORACION.RENOVACION
+          : INCORPORACION.PRIMER_INGRESO);
+    return {
+      tipoIncorporacion,
+      regimenId: numero(datos['regimen']) ?? actual.regimenId,
+      inicio,
+      fin,
+      areaId: numero(datos['dependencia']),
+      cargoId: numero(datos['puesto']),
+    };
   }
 
   private exigirReingresoPosible(trabajador: TrabajadorConVinculos, inicio: string): Vinculo {
