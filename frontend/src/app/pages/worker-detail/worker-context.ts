@@ -71,4 +71,12 @@ export class WorkerContext {
     });
     this.legajo.reload();
   }
+
+  quitarDocumento(id: string): void {
+    this.legajo.update((actual) =>
+      actual === undefined ? actual : { ...actual, documentos: actual.documentos.filter((item) => item.id !== id) },
+    );
+    this.legajo.reload();
+    this.detalle.reload();
+  }
 }
