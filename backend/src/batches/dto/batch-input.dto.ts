@@ -95,3 +95,11 @@ export class DiscardItemDto {
   @Length(5, 300, { message: 'Indica el motivo (mínimo 5 caracteres)' })
   motivo: string;
 }
+
+export class DeleteItemDto {
+  @ApiProperty({ minLength: 10, maxLength: 300 })
+  @Transform(recortar)
+  @IsString({ message: 'Indica el motivo' })
+  @Length(10, 300, { message: 'Indica el motivo de la eliminación (mínimo 10 caracteres)' })
+  motivo: string;
+}
