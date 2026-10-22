@@ -17,71 +17,57 @@
     <p class="aviso info completo adicionales">Selecciona un tipo de documento para habilitar el formulario de carga.</p>
   }
 
-  @if (!esCurriculum()) {
+  @if (formulario().numero; as etiqueta) {
     <div class="campo">
-      <label [for]="id('numero')">
-        {{ seccion().numero === 7 ? 'Número de documento (resolución, memorando u otro)' : 'Número de documento' }}
-        @if (tipoElegido()?.requiereNumero === true) {
-          <span class="obligatorio" aria-hidden="true">*</span>
-        }
-      </label>
-      <input
-        [id]="id('numero')"
-        formControlName="numero"
-        maxlength="60"
-        autocomplete="off"
-        inputmode="text"
-        [attr.aria-invalid]="numeroInvalido()"
-      />
-      @if (tipoElegido()?.requiereNumero === true) {
-        <span class="ayuda">Este tipo siempre lleva número de resolución, memorando o contrato.</span>
+      <label [for]="id('numero')">{{ etiqueta }} <span class="opcional">opcional</span></label>
+      <input [id]="id('numero')" formControlName="numero" maxlength="60" autocomplete="off" inputmode="text" />
+    </div>
+  }
+
+  @if (formulario().fechaEmision; as etiqueta) {
+    <div class="campo">
+      <label [for]="id('emision')">{{ etiqueta }} <span class="opcional">opcional</span></label>
+      <input [id]="id('emision')" type="date" formControlName="fechaEmision" [max]="hoy" />
+    </div>
+  }
+
+  @if (formulario().emisor; as etiqueta) {
+    <div class="campo">
+      <label [for]="id('emisor')">{{ etiqueta }} <span class="opcional">opcional</span></label>
+      @if (formulario().emisorOpciones) {
+        <app-search-select [idCampo]="id('emisor')" formControlName="emisor" [opciones]="opcionesEmisor()" />
+      } @else {
+        <input [id]="id('emisor')" formControlName="emisor" maxlength="160" autocomplete="off" />
       }
     </div>
   }
 
-  <div class="campo">
-    <label [for]="id('emision')">{{ esCurriculum() ? 'Fecha del CV, si consta' : 'Fecha de emisión del documento' }}</label>
-    <input [id]="id('emision')" type="date" formControlName="fechaEmision" [max]="hoy" />
-  </div>
-
-  <div class="campo">
-    <label [for]="id('vencimiento')">
-      Fecha de vencimiento
-      @if (tipoElegido()?.tieneVencimiento !== true) {
-        <span class="opcional">si corresponde</span>
+  @if (formulario().fechaVencimiento; as etiqueta) {
+    <div class="campo">
+      <label [for]="id('vencimiento')">{{ etiqueta }} <span class="opcional">opcional</span></label>
+      <input [id]="id('vencimiento')" type="date" formControlName="fechaVencimiento" />
+      @if (tipoElegido()?.tieneVencimiento === true) {
+        <span class="ayuda">Con la fecha puesta aparece en las alertas de vencimiento.</span>
       }
-    </label>
-    <input [id]="id('vencimiento')" type="date" formControlName="fechaVencimiento" />
-    @if (tipoElegido()?.tieneVencimiento === true) {
-      <span class="ayuda">Con la fecha puesta aparece en las alertas de vencimiento.</span>
-    }
-  </div>
-
-  <div class="campo">
-    <label [for]="id('emisor')">Emitido por <span class="opcional">opcional</span></label>
-    <input [id]="id('emisor')" formControlName="emisor" maxlength="160" autocomplete="off" />
-  </div>
+    </div>
+  }
 
   <ng-container formGroupName="datos">
     @for (campo of seccion().campos; track campo.clave) {
       <ng-container [ngTemplateOutlet]="dato" [ngTemplateOutletContext]="{ $implicit: campo }" />
     }
-    @if (camposDelTipo().length > 0) {
-      <p class="aviso info completo adicionales">
-        <strong>Datos adicionales del tipo documental:</strong> completa solo lo que figure en el PDF. Los datos no sustituyen al documento
-        adjunto.
-      </p>
-      @for (campo of camposDelTipo(); track campo.clave) {
-        <ng-container [ngTemplateOutlet]="dato" [ngTemplateOutletContext]="{ $implicit: campo }" />
-      }
+    @for (campo of camposDelTipo(); track campo.clave) {
+      <ng-container [ngTemplateOutlet]="dato" [ngTemplateOutletContext]="{ $implicit: campo }" />
     }
 
     <ng-template #dato let-campo>
       <div class="campo" [class.completo]="campo.tipo === 'parrafo'">
         <label [for]="id('dato-' + campo.clave)">
           {{ campo.etiqueta }}
-          @if (obligatorio(campo)) {
+          @if (campo.obligatorio) {
             <span class="obligatorio" aria-hidden="true">*</span>
+          } @else {
+            <span class="opcional">opcional</span>
           }
         </label>
         @if (esSeleccion(campo)) {
@@ -90,6 +76,7 @@
             [formControlName]="campo.clave"
             [opciones]="opcionesDe(campo)"
             [invalido]="campoInvalido(campo)"
+            (cambio)="alCambiarDato(campo)"
           />
         } @else if (campo.tipo === 'parrafo') {
           <textarea
@@ -111,25 +98,13 @@
             [attr.aria-invalid]="campoInvalido(campo)"
           />
         }
-        @if (campo.clave === 'tipoIncorporacion') {
-          <span class="ayuda">
-            Reingreso: al registrar el PDF el trabajador pasa de CESADO a ACTIVO; con fecha de inicio futura se confirma desde el detalle.
-            Renovación o continuidad: si el contrato empieza después del período actual, abre un nuevo período con su régimen, área y cargo
-            sin cesar al trabajador; si empieza el mismo día, se suma al período actual.
-          </span>
-        }
       </div>
     </ng-template>
   </ng-container>
 
   <div class="campo completo">
-    <label [for]="id('observaciones')">Descripción y observaciones</label>
+    <label [for]="id('observaciones')">Descripción y observaciones <span class="opcional">opcional</span></label>
     <textarea [id]="id('observaciones')" formControlName="observaciones" maxlength="500" rows="2"></textarea>
-  </div>
-
-  <div class="campo">
-    <label [for]="id('ubicacion')">Ubicación del físico <span class="opcional">opcional</span></label>
-    <input [id]="id('ubicacion')" formControlName="ubicacionFisica" maxlength="120" autocomplete="off" />
   </div>
 
   @if (niveles().length > 1) {
