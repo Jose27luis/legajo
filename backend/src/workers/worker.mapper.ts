@@ -5,6 +5,7 @@ import type { SesionActiva } from '../common/session';
 import { filtroVisibilidad } from '../documents/document.mapper';
 import { finDeContrato } from '../labor/contract-expiry.service';
 import { UBIGEO_PERU } from '../ubigeo-catalog';
+import { GRADOS_INSTRUCCION } from '../education-catalog';
 import type {
   LinkDto,
   MovementDto,
@@ -109,6 +110,9 @@ export function aDetalleDto(trabajador: TrabajadorDetalle): WorkerDetailDto {
     distrito: trabajador.distrito,
     telefono: trabajador.telefono,
     correo: trabajador.correo,
+    gradoInstruccion: trabajador.gradoInstruccion,
+    profesion: trabajador.profesion,
+    condicionProfesion: trabajador.condicionProfesion,
     creadoEn: trabajador.creadoEn.toISOString(),
     vinculos: trabajador.vinculos.map(aVinculoDto),
     familiares: trabajador.familiares.map(aFamiliarDto),
@@ -136,6 +140,22 @@ export function validarDocumento(tipo: 'DNI' | 'CE', numero: string): void {
   }
   if (tipo === 'CE' && !/^[A-Z0-9]{9,12}$/.test(numero)) {
     throw new BadRequestException('El carné de extranjería debe tener de 9 a 12 caracteres');
+  }
+}
+
+export function validarFormacion(grado: string | null, profesion: string | null, condicion: string | null): void {
+  if (grado === null) {
+    if (profesion !== null || condicion !== null) {
+      throw new BadRequestException('Elige el grado de instrucción antes de la profesión y su condición');
+    }
+    return;
+  }
+  const elegido = GRADOS_INSTRUCCION.find((item) => item.nombre === grado);
+  if (elegido === undefined) {
+    throw new BadRequestException('El grado de instrucción no está en el catálogo');
+  }
+  if (condicion !== null && !elegido.condiciones.includes(condicion)) {
+    throw new BadRequestException(`La condición de la profesión no corresponde a «${grado}»`);
   }
 }
 
