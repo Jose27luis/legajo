@@ -7,6 +7,8 @@ import { crearCamposVinculo, leerCamposVinculo, reiniciarCamposVinculo } from '.
 import { SearchSelectComponent, type OpcionBuscable } from '../search-select/search-select.component';
 import { UbigeoFieldsComponent } from '../ubigeo-fields/ubigeo-fields.component';
 import { crearCamposUbigeo, leerCamposUbigeo } from '../ubigeo-fields/ubigeo-form';
+import { EducationFieldsComponent } from '../education-fields/education-fields.component';
+import { crearCamposFormacion, leerCamposFormacion } from '../education-fields/education-form';
 import { mensajeDeError } from '../../core/errors';
 import { TEXTO_ESTADO, hoy, nombreCompleto, puedeReingresar } from '../../core/labels';
 import type { TipoDocIdentidad, TrabajadorDetalle, TrabajadorResumen } from '../../core/models';
@@ -23,7 +25,15 @@ const OPCIONES_TIPO_DOCUMENTO: readonly OpcionBuscable[] = [
 
 @Component({
   selector: 'app-new-worker-dialog',
-  imports: [ReactiveFormsModule, RouterLink, DialogComponent, LinkFieldsComponent, SearchSelectComponent, UbigeoFieldsComponent],
+  imports: [
+    ReactiveFormsModule,
+    RouterLink,
+    DialogComponent,
+    LinkFieldsComponent,
+    SearchSelectComponent,
+    UbigeoFieldsComponent,
+    EducationFieldsComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './new-worker-dialog.component.html',
   styleUrl: './new-worker-dialog.component.css',
@@ -58,6 +68,7 @@ export class NewWorkerDialogComponent {
     correo: new FormControl('', { nonNullable: true, validators: [Validators.email, Validators.maxLength(120)] }),
     direccion: new FormControl('', { nonNullable: true, validators: [Validators.maxLength(200)] }),
     ubicacion: crearCamposUbigeo(),
+    formacion: crearCamposFormacion(),
     fechaIngreso: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
   });
 
@@ -75,6 +86,7 @@ export class NewWorkerDialogComponent {
       correo: '',
       direccion: '',
       ubicacion: { departamento: '', provincia: '', distrito: '' },
+      formacion: { gradoInstruccion: '', profesion: '', condicionProfesion: '' },
       fechaIngreso: hoy(),
     });
     reiniciarCamposVinculo(this.vinculo, null);
@@ -158,6 +170,7 @@ export class NewWorkerDialogComponent {
         correo: opcional(valores.correo),
         direccion: opcional(valores.direccion),
         ...leerCamposUbigeo(this.formulario.controls.ubicacion),
+        ...leerCamposFormacion(this.formulario.controls.formacion),
         fechaIngreso: valores.fechaIngreso,
       });
       this.creado.emit(creado);
