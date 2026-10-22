@@ -12,6 +12,7 @@ import {
 import type { Prisma } from '../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
+import { AuthService } from '../auth/auth.service';
 import { ENTORNO, type Entorno } from '../environment/environment';
 import type { DatosCliente } from '../common/client';
 import type { SesionActiva } from '../common/session';
@@ -97,6 +98,7 @@ export class BatchesService {
     private readonly auditoria: AuditService,
     private readonly documentos: DocumentsService,
     private readonly subidas: UploadServerService,
+    private readonly autenticacion: AuthService,
     @Inject(ENTORNO) private readonly entorno: Entorno,
   ) {}
 
@@ -409,7 +411,8 @@ export class BatchesService {
     cliente: DatosCliente,
   ): Promise<DeleteItemResultDto> {
     const item = await this.cargarItem(loteId, itemId);
-    const eliminable = (estado: string) => estado === 'PENDIENTE' || estado === 'SUBIENDO' || estado === 'ERROR';
+    await this.autenticacion.confirmarClave(sesion, datos.clave, cliente);
+    const eliminable =(estado: string) => estado === 'PENDIENTE' || estado === 'SUBIENDO' || estado === 'ERROR';
     if (!eliminable(item.estado)) {
       throw new BadRequestException('Este archivo ya está en el legajo: elimínalo desde la sección del trabajador');
     }
