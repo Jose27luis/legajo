@@ -3,6 +3,11 @@ import { ApiProperty } from '@nestjs/swagger';
 export const ESTADOS_LOTE = ['SUBIENDO', 'EN_BANDEJA', 'TERMINADO'] as const;
 export const ESTADOS_ITEM = ['SUBIENDO', 'PENDIENTE', 'CLASIFICADO', 'DIVIDIDO', 'ERROR'] as const;
 
+export class DeleteItemResultDto {
+  @ApiProperty({ description: 'El lote quedó vacío y también se eliminó' })
+  loteEliminado: boolean;
+}
+
 export class BatchWorkerDto {
   @ApiProperty({ format: 'uuid' })
   id: string;
