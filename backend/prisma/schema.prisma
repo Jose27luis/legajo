@@ -149,6 +149,9 @@ model Trabajador {
   distrito         String?             @db.VarChar(60)
   telefono         String?             @db.VarChar(20)
   correo           String?             @db.VarChar(120)
+  gradoInstruccion String?             @map("grado_instruccion") @db.VarChar(40)
+  profesion        String?             @db.VarChar(120)
+  condicionProfesion String?           @map("condicion_profesion") @db.VarChar(40)
   fechaIngreso     DateTime            @map("fecha_ingreso") @db.Date
   estado           EstadoTrabajador    @default(ACTIVO)
   movimientoActual Movimiento          @default(SIN_MOVIMIENTO) @map("movimiento_actual")
@@ -261,6 +264,7 @@ model TipoDocumento {
   orden            Int             @default(0)
   accion           AccionDocumento @default(NINGUNA)
   campos           Json            @default("[]")
+  formulario       Json            @default("{}")
   seccion          Seccion         @relation(fields: [seccionId], references: [id], onDelete: Restrict)
   requisitos       Requisito[]
   documentos       Documento[]
