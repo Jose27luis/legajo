@@ -82,7 +82,7 @@ flowchart LR
 - Los PDF los entrega nginx con X-Accel-Redirect, con soporte de Range para el visor. La API solo valida permisos.
 - El ZIP va en modo `store`: los PDF ya llegan optimizados desde la subida.
 - Los archivos se guardan por trabajador y documento. Reclasificar un documento no mueve el archivo.
-- Lo normal es anular un documento con motivo: queda guardado y se puede consultar. El Administrador puede además eliminarlo de forma definitiva, también con motivo. Se borran el documento, sus versiones y el PDF, y solo queda el registro en la auditoría. Las copias de respaldo conservan el PDF hasta que vence su retención.
+- Lo normal es anular un documento con motivo: queda guardado y se puede consultar. El Administrador puede además eliminarlo de forma definitiva, con motivo y volviendo a escribir su contraseña. Lo mismo se pide para eliminar un archivo de la carga masiva. Tras cinco contraseñas incorrectas, la eliminación se bloquea por 15 minutos. Se borran el documento, sus versiones y el PDF, y solo queda el registro en la auditoría. Las copias de respaldo conservan el PDF hasta que vence su retención.
 
 ## Despliegue
 
