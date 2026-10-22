@@ -196,11 +196,11 @@ Código de cuatro dígitos: sección y tipo. R = restringido, Nº = número obli
 |---|---|---|---|---|
 | 0201 | Resultado final del proceso de selección donde el servidor resultó ganador | | | |
 | 0202 | Informe de Recursos Humanos que verifica el cumplimiento de los requisitos del puesto, cuando corresponda | | | |
-| 0203 | Resolución administrativa de designación | | Sí | |
-| 0204 | Resolución administrativa de renovación | | Sí | |
-| 0205 | Resolución administrativa del servicio civil de carrera | | Sí | |
-| 0206 | Contrato | | Sí | |
-| 0207 | Adenda | | Sí | |
+| 0203 | Resolución administrativa de designación | | | |
+| 0204 | Resolución administrativa de renovación | | | |
+| 0205 | Resolución administrativa del servicio civil de carrera | | | |
+| 0206 | Contrato | | | |
+| 0207 | Adenda | | | |
 | 0208 | Registro de inducción general y específica | | | |
 | 0209 | Cargo de entrega del perfil del puesto y funciones | | | |
 | 0210 | Cargo de entrega del reglamento interno de servidores civiles | | | |
@@ -227,103 +227,72 @@ Las resoluciones 0203 a 0205, el contrato y la adenda crean o actualizan el vín
 
 | Código | Tipo | R | Nº | V |
 |---|---|---|---|---|
-| 0401 | Certificados de trabajo | | | |
-| 0402 | Constancias de trabajo | | | |
-| 0403 | Otros documentos que acrediten el tiempo de servicio | | | |
-| 0404 | Resoluciones que acrediten funciones desempeñadas | | | |
-| 0405 | Memorandos que acrediten asignación de funciones | | | |
-| 0406 | Otros documentos que acrediten funciones desempeñadas | | | |
+| 0401 | Documentos que acreditan tiempo de servicio | | | |
+| 0402 | Documentos que acreditan funciones desempeñadas | | | |
 
-**05 Movimientos del personal: vacaciones, licencias y permisos** (carpeta `05_Movimientos_del_Personal`)
+**05 Movimientos del personal** (carpeta `05_Movimientos_del_Personal`)
 
 | Código | Tipo | R | Nº | V |
 |---|---|---|---|---|
-| 0501 | Documento que aprueba una licencia o permiso | | | |
-| 0502 | Documento que sustenta el goce vacacional | | | |
-| 0503 | Documento de adelanto de vacaciones | | | |
-| 0504 | Documento de postergación de vacaciones | | | |
-| 0505 | Rol de vacaciones | | | |
-| 0506 | Licencia por maternidad | | | |
-| 0507 | Licencia por paternidad | | | |
-| 0508 | Licencia por lactancia | | | |
-| 0509 | Licencia por adopción | | | |
-| 0510 | Licencia sindical | | | |
-| 0511 | Licencia por enfermedad de familiar grave | | | |
-| 0512 | Licencia por participación en comité SST | | | |
-| 0513 | Licencia por asistencia médica a un familiar | | | |
-| 0514 | Licencia por servicio como bombero voluntario | | | |
-| 0515 | Otras licencias otorgadas | | | |
+| 0501 | Documento de aprobación de licencias y permisos | | | |
+| 0502 | Documentos de goce vacacional | | | |
+| 0503 | Documentos de adelanto o postergación de vacaciones | | | |
+| 0504 | Rol de vacaciones | | | |
+| 0505 | Licencias otorgadas | | | |
 
 **06 Compensaciones** (carpeta `06_Compensaciones`)
 
 | Código | Tipo | R | Nº | V |
 |---|---|---|---|---|
-| 0601 | Documento de reconocimiento de tiempo de servicios | | | |
-| 0602 | Documentación referente al pago de compensaciones económicas | | | |
-| 0603 | Documentación referente a compensaciones no económicas | | | |
-| 0604 | Certificado de retención de quinta categoría | | | |
-| 0605 | Certificado de retención de cuarta categoría | | | |
-| 0606 | Otros certificados de retención, cuando corresponda | | | |
-| 0607 | Liquidación de beneficios sociales | | | |
+| 0601 | Reconocimiento de tiempo de servicios | | | |
+| 0602 | Pago de compensaciones económicas y no económicas | | | |
+| 0603 | Certificados de retenciones tributarias | | | |
+| 0604 | Liquidación de beneficios sociales | | | |
 
 **07 Evaluación de desempeño, progresión en la carrera y desplazamiento** (carpeta `07_Desempeno_Carrera_y_Desplazamiento`)
 
 | Código | Tipo | R | Nº | V |
 |---|---|---|---|---|
 | 0701 | Formato para la gestión del rendimiento | | | |
-| 0702 | Registro de evidencias de evaluación | | | |
-| 0703 | Formato de reunión de seguimiento | | | |
-| 0704 | Notificación de evaluación obtenida | | | |
-| 0705 | Acta de retroalimentación de resultados | | | |
-| 0706 | Plan de mejora del desempeño | | | |
-| 0707 | Resolución de progresión en la carrera | | | |
-| 0708 | Documento de designación | | | |
-| 0709 | Documento de rotación | | | |
-| 0710 | Documento de destaque | | | |
-| 0711 | Documento de encargo de puestos o funciones | | | |
-| 0712 | Otros documentos de desplazamiento | | | |
+| 0702 | Actas de retroalimentación y plan de mejora | | | |
+| 0703 | Resolución de progresión en la carrera | | | |
+| 0704 | Designación | | | |
+| 0705 | Rotación | | | |
+| 0706 | Destaque | | | |
+| 0707 | Encargo de puestos o funciones | | | |
+| 0708 | Otros documentos de desplazamiento | | | |
 
-Los tipos 0708 a 0712 se confirman como movimiento laboral y actualizan el área de la ficha.
+Los tipos 0704 a 0708 se confirman como movimiento laboral y actualizan el área de la ficha. La designación ocupa formalmente un cargo; el encargo cubre un puesto de forma temporal y no es un ascenso.
 
 **08 Reconocimientos y sanciones disciplinarias** (carpeta `08_Reconocimientos_y_Sanciones`)
 
 | Código | Tipo | R | Nº | V |
 |---|---|---|---|---|
-| 0801 | Carta de felicitación | Sí | | |
-| 0802 | Oficio de felicitación | Sí | | |
-| 0803 | Memorando de felicitación | Sí | | |
-| 0804 | Condecoración | Sí | | |
-| 0805 | Diploma por reconocimiento de participación excepcional en proyectos o eventos | Sí | | |
-| 0806 | Certificado o constancia de reconocimiento excepcional por labor docente | Sí | | |
-| 0807 | Certificado o constancia de reconocimiento por tiempo de servicios | Sí | | |
-| 0808 | Documento de amonestación escrita | Sí | | |
-| 0809 | Documento de suspensión | Sí | | |
-| 0810 | Documento de destitución | Sí | | |
-| 0811 | Documento que declara fundado un recurso impugnatorio | Sí | | |
-| 0812 | Documento que declara infundado un recurso impugnatorio | Sí | | |
-| 0813 | Documento que declara improcedente un recurso impugnatorio | Sí | | |
+| 0801 | Reconocimientos por participación en proyectos o eventos | Sí | | |
+| 0802 | Reconocimientos por labor docente | Sí | | |
+| 0803 | Reconocimientos por tiempo de servicios | Sí | | |
+| 0804 | Documentos de sanciones disciplinarias | Sí | | |
+| 0805 | Documentos sobre recursos impugnatorios de sanciones | Sí | | |
 
 **09 Relaciones laborales individuales y colectivas** (carpeta `09_Relaciones_Laborales`)
 
 | Código | Tipo | R | Nº | V |
 |---|---|---|---|---|
-| 0901 | Documentación relacionada con controversias individuales | | | |
-| 0902 | Documentación relacionada con controversias colectivas | | | |
-| 0903 | Resolución que indique la afiliación sindical | | | |
-| 0904 | Acta que indique la afiliación sindical | | | |
-| 0905 | Otro documento que indique la afiliación sindical | | | |
+| 0901 | Documentos de controversias individuales | | | |
+| 0902 | Documentos de controversias colectivas | | | |
+| 0903 | Documentos de afiliación sindical | | | |
 
 **10 Seguridad y Salud en el Trabajo (SST) y bienestar social** (carpeta `10_SST_y_Bienestar_Social`)
 
 | Código | Tipo | R | Nº | V |
 |---|---|---|---|---|
-| 1001 | Cargo de entrega del Reglamento de Seguridad y Salud en el Trabajo | Sí | | |
-| 1002 | Registro de entrenamiento y simulacros de emergencia | Sí | | |
-| 1003 | Lista de asistencia a capacitaciones brindadas por la entidad pública | Sí | | |
-| 1004 | Documentos de trámites y gestiones de seguros | Sí | | |
-| 1005 | Documentos de trámites y gestiones de subsidios | Sí | | |
-| 1006 | Documentos de descansos médicos | Sí | | |
-| 1007 | Documentos de afiliación a Entidades Prestadoras de Salud (EPS) | Sí | | |
+| 1001 | Cargo de entrega del Reglamento de SST | Sí | | |
+| 1002 | Registro de entrenamientos y simulacros de emergencia | Sí | | |
+| 1003 | Lista de asistencia a capacitaciones de SST | Sí | | |
+| 1004 | Trámites y gestiones de seguros | Sí | | |
+| 1005 | Trámites y gestiones de subsidios | Sí | | |
+| 1006 | Descansos médicos | Sí | | |
+| 1007 | Afiliaciones a Entidades Prestadoras de Salud (EPS) | Sí | | |
 
 **11 Desvinculación** (carpeta `11_Desvinculacion`)
 
@@ -331,13 +300,13 @@ Los tipos 0708 a 0712 se confirman como movimiento laboral y actualizan el área
 |---|---|---|---|---|
 | 1101 | Resolución de término de designación | | | |
 | 1102 | Resolución de término del servicio civil de carrera | | | |
-| 1103 | Memorando de término de vínculo del servicio civil | | | |
+| 1103 | Memorando de término del vínculo laboral | | | |
 | 1104 | Informe de gestión | | | |
-| 1105 | Documento de entrega de cargo o puesto | | | |
+| 1105 | Entrega de cargo o puesto | | | |
 | 1106 | Liquidación de beneficios sociales y/o pensión | | | |
 | 1107 | Carta de no renovación de contrato a plazo determinado (D. Leg. N.º 1057) | | | |
 
-Los tipos 1101, 1102, 1103 y 1107 sustentan la confirmación del cese.
+Solo 1102, 1103 y 1107 sustentan la confirmación del cese. El término de designación no cesa: el servidor puede volver a su puesto de origen. El informe de gestión, la entrega de cargo y la liquidación tampoco cambian el estado laboral.
 
 **12 Otros que considere la entidad** (carpeta `12_Otros_que_Considere_la_Entidad`)
 
@@ -350,25 +319,48 @@ Los tipos 1101, 1102, 1103 y 1107 sustentan la confirmación del cese.
 | 1205 | Documentación de fiscalización posterior | | | |
 | 1206 | Otros documentos no clasificados | | | |
 
-### Campos propios por sección
+### Campos de cada formulario
 
-Además de tipo, número, fecha de emisión, vencimiento, emisor, observaciones y ubicación física, cada sección pide sus propios datos. Se guardan en `documento.datos`. Al subir un PDF el formulario queda bloqueado hasta elegir el tipo de documento; luego aparecen los campos de la sección y los del tipo elegido.
+Cada tipo de documento tiene su propio formulario, según el documento de contenido de las secciones. Al subir un PDF el formulario queda bloqueado hasta elegir el tipo. Todos los campos son opcionales salvo el tipo y el archivo. En todos se registran la descripción y observaciones, el nivel de acceso y el estado automático «Registrado».
 
-| Sección | Campos |
+El número, la fecha de emisión, el emisor y el vencimiento cambian de nombre según el tipo («Número de contrato», «Fecha de emisión o entrega», «Entidad o institución emisora»…) y solo aparecen donde el tipo los pide. El vencimiento solo se pide en la colegiatura, como fecha de vencimiento de habilitación. El detalle del documento muestra los mismos campos y nombres que su formulario.
+
+| Tipo | Campos propios |
 |---|---|
-| 02 | En resoluciones, contrato y adenda: tipo de incorporación, régimen, inicio, fin, dependencia y puesto |
-| 03 | Institución emisora, carrera o curso, fecha de culminación, colegio profesional, número de colegiatura |
-| 04 | Entidad donde trabajó, cargo desempeñado, inicio y fin del período |
-| 05 | Categoría (vacaciones, licencia, permiso u otro), fecha de inicio, fecha de término |
-| 06 | Concepto, período de referencia, fecha de efecto, referencia administrativa |
-| 07 | Período evaluado, cargo evaluado, resultado, área evaluadora; en desplazamientos, también tipo de movimiento, áreas de origen y destino y fecha efectiva |
-| 08 | Categoría (reconocimiento, sanción, actuación disciplinaria), autoridad emisora, fecha de efecto |
-| 09 | Materia, instancia participante, fecha de reunión, número de expediente |
-| 10 | Categoría SST, área responsable |
-| 11 | Motivo de cese, fecha efectiva, sustento, área que tramita |
-| 12 | Categoría propuesta, justificación (obligatoria), oficina emisora |
+| 0201, 0202 Selección | Concurso / convocatoria; el emisor se elige de una lista (comité de selección) |
+| 0203 Designación | Inicio y fin de designación, cargo designado, área de dependencia |
+| 0204 Renovación | Inicio y fin de la renovación, cargo, área de dependencia |
+| 0205 Servicio civil de carrera | Fecha de efecto, acción administrativa (nombramiento, ascenso, cambio de nivel, reasignación, otra), cargo |
+| 0206 Contrato | Régimen o modalidad, inicio y fin del vínculo, cargo, área de dependencia |
+| 0207 Adenda | Contrato relacionado, motivo de la adenda, inicio y fin del período modificado |
+| 0213 Período de prueba | Período desde y hasta, resultado (aprobado o no aprobado); el emisor es «Evaluado por» |
+| 0301 Estudios básicos | Nivel de estudios (primaria o secundaria), nombre del documento |
+| 0302 Títulos o grados | Tipo de grado o título, nombre del título o grado |
+| 0303 Colegiatura | Tipo de acreditación, colegio profesional, número de colegiatura |
+| 0304 a 0308 | Nombre del documento |
+| 0401, 0402 | Cargo desempeñado o función asignada, inicio y fin |
+| 0501 Licencias y permisos | Tipo de solicitud (licencia o permiso) y su motivo, inicio y fin |
+| 0502, 0503 Vacaciones | Período vacacional e inicio y fin; en 0503 también adelanto o postergación |
+| 0504 Rol de vacaciones | Año del rol, dependencia o área |
+| 0505 Licencias otorgadas | Tipo de licencia, inicio y fin |
+| 0601 | Tiempo de servicios reconocido, fecha de reconocimiento o efecto |
+| 0602 a 0604, 0701 a 0703 | Concepto o motivo, período de inicio y de fin |
+| 0704 a 0708 Desplazamiento | Dependencia de origen y de destino, cargo o función, fecha de inicio o efecto |
+| 0801 a 0803 Reconocimientos | Motivo y fecha del reconocimiento |
+| 0804 Sanciones | Tipo de sanción (amonestación escrita, suspensión, destitución), fecha de inicio o efecto |
+| 0805 Recursos | Resultado del recurso (fundado, infundado, improcedente), fecha de inicio o efecto |
+| 0901 a 0903 | Asunto o motivo, fecha de resolución |
+| 1001 a 1003 | Asunto o motivo, fecha de recepción o participación |
+| 1004 a 1007 | Asunto o motivo, fecha de inicio o efecto |
+| 1101, 1104 a 1106 | Asunto o motivo, fecha de término o efecto |
+| 1102, 1103, 1107 | Motivo de cese, asunto o motivo, fecha de término o efecto |
+| 1201 a 1206 | Nombre del documento, asunto o motivo |
 
-Cada tipo suma sus datos adicionales: concurso y resultado en la selección, grado y registro SUNEDU en títulos, colegio y vigencia en la colegiatura, horas y modalidad en cursos, documento que autoriza la ausencia en la 05, acto de sustento y monto en la 06, proceso y resultado en la 07, acto resolutivo en la 08, asunto y expediente en la 09, código SST y vigencia en la 10.
+En contratos y resoluciones el sistema decide si se trata de un primer ingreso, una renovación o un reingreso. Si el trabajador está CESADO, es un reingreso. Si el documento empieza después del período actual, abre un período nuevo. Si empieza el mismo día, se suma al período actual. Si una resolución no indica régimen, se toma el del vínculo actual. La adenda se suma al período de su contrato relacionado, y el fin del período modificado extiende el fin del contrato vigente.
+
+### Formación del trabajador
+
+La ficha registra el grado de instrucción, la profesión y la condición de la profesión. Las listas dependen del grado elegido: por ejemplo, «Superior completo» admite bachiller, constancia de egresado, título u otro documento. Es un dato distinto del cargo, que es el puesto institucional del vínculo. Al importar el padrón INFORHUS se leen «Grado Educativo / Sustento», «Profesión 1» y «Condición Profesión 1». A los trabajadores que ya están registrados solo se les completan estos datos cuando están vacíos.
 
 Nivel de acceso por documento: **Restringido** (Administrador y Operador) o **Muy restringido** (solo Administrador). Los tipos marcados con R nunca bajan de Restringido. En la sección 10 no se registran diagnósticos ni datos clínicos en campos abiertos.
 
@@ -688,7 +680,7 @@ Motivos de cese: `RENUNCIA`, `JUBILACION`, `FALLECIMIENTO`, `FIN_CONTRATO`, `DES
 - El reingreso exige una fecha posterior al último cese y no se permite si el motivo fue fallecimiento.
 - El movimiento actual (rotación, destaque, encargatura, reasignación) no es un estado laboral: un trabajador rotado sigue ACTIVO. Se actualiza con la fecha del movimiento y su sustento va en la sección 07.
 - Registrar un PDF de cese no cambia el estado: el cese se registra en la ficha con motivo y fecha.
-- «Renovación o continuidad» no exige cese. Si el contrato empieza después del período actual, cierra ese período el día anterior (por renovación, cambio de régimen o cambio de cargo o área, según lo que cambie) y abre uno nuevo con el régimen, área y cargo del contrato; el trabajador sigue ACTIVO y conserva su fecha de ingreso. Si empieza el mismo día, se suma al período actual.
+- Un contrato con el trabajador ACTIVO no exige cese. Si el contrato empieza después del período actual, cierra ese período el día anterior (por renovación, cambio de régimen o cambio de cargo o área, según lo que cambie) y abre uno nuevo con el régimen, área y cargo del contrato; el trabajador sigue ACTIVO y conserva su fecha de ingreso. Si empieza el mismo día, se suma al período actual.
 - Un reingreso cuyo contrato empieza al día siguiente del fin del anterior se registra como continuidad: el período previo queda cerrado por renovación, no por fin de contrato.
 - El contrato manda sobre el estado. Los contratos, adendas y resoluciones de la sección 02 llevan fecha de fin; la más lejana entre los enlazados al vínculo actual es el fin del contrato vigente y se muestra en la ficha. Cuando esa fecha ya pasó, el trabajador queda CESADO por `FIN_CONTRATO` en esa fecha: al registrar el contrato si ya venció, o en la revisión diaria del worker cuando vence después. Un contrato posterior se registra como reingreso y vuelve a activarlo.
 
