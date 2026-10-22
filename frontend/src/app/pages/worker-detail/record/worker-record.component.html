@@ -162,6 +162,22 @@
           </dd>
         </div>
       </dl>
+
+      <h4>Formación</h4>
+      <dl class="datos">
+        <div>
+          <dt>Grado de instrucción</dt>
+          <dd>{{ trabajador.gradoInstruccion ?? 'No registrado' }}</dd>
+        </div>
+        <div>
+          <dt>Profesión</dt>
+          <dd>{{ trabajador.profesion ?? 'No registrada' }}</dd>
+        </div>
+        <div>
+          <dt>Condición de la profesión</dt>
+          <dd>{{ trabajador.condicionProfesion ?? 'No registrada' }}</dd>
+        </div>
+      </dl>
     </section>
 
     <section class="tarjeta" aria-labelledby="titulo-vinculos">
@@ -396,6 +412,7 @@
       <input id="ficha-direccion" formControlName="direccion" autocomplete="off" />
     </div>
     <app-ubigeo-fields [grupo]="ficha.controls.ubicacion" prefijo="ficha" />
+    <app-education-fields [grupo]="ficha.controls.formacion" prefijo="ficha" />
     @if (errorFicha(); as mensaje) {
       <p class="aviso error completo" role="alert" animate.enter="aparece">{{ mensaje }}</p>
     }
