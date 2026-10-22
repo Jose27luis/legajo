@@ -2,14 +2,15 @@ import { ChangeDetectionStrategy, Component, computed, effect, inject, input } f
 import { NgTemplateOutlet } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import { NIVELES_ACCESO, TEXTO_NIVEL_ACCESO, hoy } from '../../core/labels';
-import type { CampoSeccion, NivelAcceso, SeccionLegajo, TipoDocumento } from '../../core/models';
+import type { CampoSeccion, FormularioTipo, NivelAcceso, SeccionLegajo, TipoDocumento } from '../../core/models';
 import { SessionService } from '../../core/session.service';
 import { LinkOptionsService } from '../../services/link-options.service';
 import { SearchSelectComponent, type OpcionBuscable } from '../search-select/search-select.component';
-import { campoObligatorio, esCurriculum, sincronizarCampos, type FormularioDocumento } from './document-form';
+import { opcionesDependientes, sincronizarCampos, type FormularioDocumento } from './document-form';
 
 const OPCION_VACIA: OpcionBuscable = { valor: '', etiqueta: 'Seleccionar...' };
 const SOLO_VACIA: readonly OpcionBuscable[] = [OPCION_VACIA];
+const FORMULARIO_BASE: FormularioTipo = { numero: 'Número de documento', fechaEmision: 'Fecha de emisión' };
 
 @Component({
   selector: 'app-document-fields',
@@ -27,8 +28,7 @@ export class DocumentFieldsComponent {
   readonly prefijo = input.required<string>();
   readonly compacto = input(false);
   readonly nuevo = input(false);
-  readonly conVinculo = input(false);
-  readonly incorporacionSugerida = input<string | null>(null);
+  readonly contratos = input<readonly OpcionBuscable[]>([]);
 
   protected readonly hoy = hoy();
 
@@ -62,18 +62,8 @@ export class DocumentFieldsComponent {
       regimen: [OPCION_VACIA, ...(opciones?.regimenes ?? []).map(aOpcion)],
       area: [OPCION_VACIA, ...(opciones?.areas ?? []).map(aOpcion)],
       cargo: [OPCION_VACIA, ...(opciones?.cargos ?? []).map(aOpcion)],
+      contrato: [OPCION_VACIA, ...this.contratos()],
     };
-  });
-
-  private readonly opcionesFijas = computed(() => {
-    const seccion = this.seccion();
-    const mapa = new Map<CampoSeccion, OpcionBuscable[]>();
-    for (const campo of [...seccion.campos, ...seccion.tipos.flatMap((tipo) => tipo.campos)]) {
-      if (campo.tipo === 'seleccion') {
-        mapa.set(campo, [OPCION_VACIA, ...(campo.opciones ?? []).map((opcion) => ({ valor: opcion, etiqueta: opcion }))]);
-      }
-    }
-    return mapa;
   });
 
   constructor() {
@@ -84,11 +74,6 @@ export class DocumentFieldsComponent {
       const suscripcion = grupo.controls.tipoDocumentoId.valueChanges.subscribe((id) => {
         const tipo = seccion.tipos.find((item) => item.id === id) ?? null;
         sincronizarCampos(grupo, seccion, tipo, {});
-        const control = grupo.controls.datos.controls['tipoIncorporacion'];
-        const sugerida = this.incorporacionSugerida();
-        if (control !== undefined && control.value === '' && sugerida !== null) {
-          control.setValue(sugerida);
-        }
       });
       alLimpiar(() => suscripcion.unsubscribe());
     });
@@ -99,36 +84,41 @@ export class DocumentFieldsComponent {
     return this.seccion().tipos.find((tipo) => tipo.id === id) ?? null;
   }
 
+  protected formulario(): FormularioTipo {
+    return this.tipoElegido()?.formulario ?? FORMULARIO_BASE;
+  }
+
+  protected opcionesEmisor(): readonly OpcionBuscable[] {
+    return [OPCION_VACIA, ...(this.formulario().emisorOpciones ?? []).map((opcion) => ({ valor: opcion, etiqueta: opcion }))];
+  }
+
   protected camposDelTipo(): CampoSeccion[] {
     return this.tipoElegido()?.campos ?? [];
   }
 
-  protected esCurriculum(): boolean {
-    return esCurriculum(this.tipoElegido());
-  }
-
   protected guia(): string | null {
     const tipo = this.tipoElegido();
-    if (tipo === null || this.seccion().numero !== 2) {
+    if (tipo === null || tipo.accion !== 'VINCULO') {
       return null;
     }
-    if (tipo.accion === 'VINCULO') {
-      return 'Documento de vínculo laboral: completa régimen, inicio, término y dependencia según el PDF.';
-    }
-    if (this.esCurriculum()) {
-      return 'Currículum vitae: registra los datos del CV. No se modifica el vínculo laboral.';
-    }
-    if (/declaraci[oó]n jurada/i.test(tipo.nombre)) {
-      return 'Declaración jurada: registra sus datos documentales, sin modificar el vínculo laboral.';
-    }
-    return 'Documento de incorporación: completa únicamente los datos que figuren en el PDF.';
+    return 'Documento de vínculo laboral: el sistema decide si es primer ingreso, renovación o reingreso según el estado del trabajador y la fecha de inicio.';
   }
 
   protected opcionesDe(campo: CampoSeccion): readonly OpcionBuscable[] {
-    if (campo.tipo === 'regimen' || campo.tipo === 'area' || campo.tipo === 'cargo') {
+    if (campo.tipo === 'regimen' || campo.tipo === 'area' || campo.tipo === 'cargo' || campo.tipo === 'contrato') {
       return this.catalogos()[campo.tipo];
     }
-    return this.opcionesFijas().get(campo) ?? SOLO_VACIA;
+    if (campo.tipo !== 'seleccion') {
+      return SOLO_VACIA;
+    }
+    const padre = campo.dependeDe === undefined ? '' : (this.grupo().controls.datos.controls[campo.dependeDe.clave]?.value ?? '');
+    return [OPCION_VACIA, ...opcionesDependientes(campo, padre).map((opcion) => ({ valor: opcion, etiqueta: opcion }))];
+  }
+
+  protected alCambiarDato(campo: CampoSeccion): void {
+    for (const hijo of this.camposDelTipo().filter((item) => item.dependeDe?.clave === campo.clave)) {
+      this.grupo().controls.datos.controls[hijo.clave]?.setValue('');
+    }
   }
 
   protected opcionesNivel(): readonly OpcionBuscable[] {
@@ -137,11 +127,9 @@ export class DocumentFieldsComponent {
   }
 
   protected esSeleccion(campo: CampoSeccion): boolean {
-    return campo.tipo === 'seleccion' || campo.tipo === 'regimen' || campo.tipo === 'area' || campo.tipo === 'cargo';
-  }
-
-  protected obligatorio(campo: CampoSeccion): boolean {
-    return campoObligatorio(campo, this.tipoElegido(), this.conVinculo());
+    return (
+      campo.tipo === 'seleccion' || campo.tipo === 'regimen' || campo.tipo === 'area' || campo.tipo === 'cargo' || campo.tipo === 'contrato'
+    );
   }
 
   protected id(nombre: string): string {
@@ -153,14 +141,9 @@ export class DocumentFieldsComponent {
     return control.touched && control.invalid;
   }
 
-  protected numeroInvalido(): boolean {
-    const control = this.grupo().controls.numero;
-    return control.touched && this.tipoElegido()?.requiereNumero === true && control.value.trim() === '';
-  }
-
   protected campoInvalido(campo: CampoSeccion): boolean {
     const control = this.grupo().controls.datos.controls[campo.clave];
-    return control !== undefined && control.touched && (control.invalid || (this.obligatorio(campo) && control.value.trim() === ''));
+    return control !== undefined && control.touched && (control.invalid || (campo.obligatorio && control.value.trim() === ''));
   }
 
   protected tipoEntrada(campo: CampoSeccion): string {
