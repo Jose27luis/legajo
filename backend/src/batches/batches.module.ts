@@ -1,10 +1,11 @@
 import { Module } from '@nestjs/common';
+import { AuthModule } from '../auth/auth.module';
 import { DocumentsModule } from '../documents/documents.module';
 import { BatchesController } from './batches.controller';
 import { BatchesService } from './batches.service';
 
 @Module({
-  imports: [DocumentsModule],
+  imports: [AuthModule, DocumentsModule],
   controllers: [BatchesController],
   providers: [BatchesService],
 })
