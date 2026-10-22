@@ -56,6 +56,10 @@ export class BatchesService {
     return firstValueFrom(this.http.post<ItemLote>(`${BASE}/${loteId}/items/${itemId}/discard`, { motivo }));
   }
 
+  eliminar(loteId: string, itemId: string, motivo: string): Promise<{ loteEliminado: boolean }> {
+    return firstValueFrom(this.http.delete<{ loteEliminado: boolean }>(`${BASE}/${loteId}/items/${itemId}`, { body: { motivo } }));
+  }
+
   enlaceArchivo(loteId: string, itemId: string): string {
     return `${BASE}/${loteId}/items/${itemId}/file`;
   }
