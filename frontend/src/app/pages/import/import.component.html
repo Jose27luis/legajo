@@ -125,6 +125,12 @@
               <dt><span class="punto" aria-hidden="true"></span> Listas para importar</dt>
               <dd>{{ datos.listos }}</dd>
             </div>
+            @if (datos.completar > 0) {
+              <div class="cifra exito">
+                <dt><span class="punto" aria-hidden="true"></span> Ya registrados: se completa su formación</dt>
+                <dd>{{ datos.completar }}</dd>
+              </div>
+            }
             <div class="cifra alerta">
               <dt><span class="punto" aria-hidden="true"></span> No se importarán</dt>
               <dd>{{ datos.observados }}</dd>
@@ -269,6 +275,10 @@
         <p>
           Se crearán <strong>{{ datos.listos }}</strong> legajos con su vínculo laboral. Los documentos PDF se agregan después en cada
           legajo.
+          @if (datos.completar > 0) {
+            A <strong>{{ datos.completar }}</strong> trabajadores ya registrados se les completará el grado de instrucción, la profesión y
+            su condición, solo donde estén vacíos.
+          }
         </p>
         <div class="botones">
           <button type="button" class="boton" (click)="reiniciar()" [disabled]="importando()">Cancelar</button>
@@ -276,7 +286,7 @@
             type="button"
             class="boton principal"
             (click)="importar()"
-            [disabled]="datos.listos === 0 || importando()"
+            [disabled]="(datos.listos === 0 && datos.completar === 0) || importando()"
             [attr.aria-busy]="importando()"
           >
             {{ importando() ? 'Registrando ' + datos.listos + ' trabajadores' : 'Confirmar importación' }}
@@ -296,6 +306,9 @@
         <h3>Importación completada</h3>
         <p>
           Se registraron <strong>{{ datos.importados }}</strong> trabajadores con su legajo de 12 secciones.
+          @if (datos.completados > 0) {
+            Se completó la formación de {{ datos.completados }} trabajadores ya registrados.
+          }
           @if (datos.catalogosCreados > 0) {
             Se agregaron {{ datos.catalogosCreados }} áreas o cargos nuevos a Catálogos.
           }
