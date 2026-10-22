@@ -103,6 +103,11 @@ export class DeleteDocumentDto {
   @IsString({ message: 'Indica el motivo' })
   @Length(10, 500, { message: 'Indica el motivo de la eliminación (mínimo 10 caracteres)' })
   motivo: string;
+
+  @ApiProperty({ minLength: 1, maxLength: 200, description: 'Contraseña del usuario que elimina' })
+  @IsString({ message: 'Ingresa tu contraseña' })
+  @Length(1, 200, { message: 'Ingresa tu contraseña' })
+  clave: string;
 }
 
 export class ReplaceDocumentDto extends VoidDocumentDto {
