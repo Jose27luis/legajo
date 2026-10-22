@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Post, Req, Res } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Post, Req, Res } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import type { Request, Response } from 'express';
 import { datosCliente } from '../common/client';
@@ -6,8 +6,16 @@ import { Requiere, SesionActual } from '../common/decorators';
 import type { SesionActiva } from '../common/session';
 import { LegajoSectionDto } from '../documents/dto/document.dto';
 import { BatchesService } from './batches.service';
-import { ClassifyItemDto, CreateBatchDto, DiscardItemDto, PreviewBatchDto, SplitItemDto, UploadedItemDto } from './dto/batch-input.dto';
-import { BatchDetailDto, BatchDto, BatchItemDto, PreviewItemDto } from './dto/batch.dto';
+import {
+  ClassifyItemDto,
+  CreateBatchDto,
+  DeleteItemDto,
+  DiscardItemDto,
+  PreviewBatchDto,
+  SplitItemDto,
+  UploadedItemDto,
+} from './dto/batch-input.dto';
+import { BatchDetailDto, BatchDto, BatchItemDto, DeleteItemResultDto, PreviewItemDto } from './dto/batch.dto';
 
 const ID = new ParseUUIDPipe({ version: '4' });
 
@@ -119,5 +127,21 @@ export class BatchesController {
     @Req() solicitud: Request,
   ): Promise<BatchItemDto> {
     return this.lotes.descartar(id, itemId, datos, sesion, datosCliente(solicitud));
+  }
+
+  @Delete(':id/items/:itemId')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Elimina de forma definitiva un archivo que no llegó al legajo; si era el último, elimina el lote',
+  })
+  @ApiResponse({ status: 200, type: DeleteItemResultDto })
+  async eliminar(
+    @Param('id', ID) id: string,
+    @Param('itemId', ID) itemId: string,
+    @Body() datos: DeleteItemDto,
+    @SesionActual() sesion: SesionActiva,
+    @Req() solicitud: Request,
+  ): Promise<DeleteItemResultDto> {
+    return this.lotes.eliminarItem(id, itemId, datos, sesion, datosCliente(solicitud));
   }
 }
