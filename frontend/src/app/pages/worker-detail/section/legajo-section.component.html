@@ -157,7 +157,7 @@
             prefijo="nuevo"
             [compacto]="true"
             [nuevo]="true"
-            [incorporacionSugerida]="incorporacionSugerida()"
+            [contratos]="contratos()"
           />
           @if (error(); as mensaje) {
             <p class="aviso error" role="alert" animate.enter="aparece">{{ mensaje }}</p>
@@ -181,6 +181,7 @@
     [documento]="seleccionado()"
     [seccion]="actual"
     [trabajador]="contexto.detalle.value() ?? null"
+    [documentos]="todos()"
     (cerrar)="seleccionadoId.set(null)"
     (actualizado)="contexto.actualizarDocumento($event)"
     (fichaActualizada)="contexto.detalle.reload()"
