@@ -31,6 +31,7 @@ const PERMISOS: ReadonlyArray<{ codigo: string; modulo: string; descripcion: str
   { codigo: 'documentos.subir', modulo: 'documentos', descripcion: 'Subir documentos' },
   { codigo: 'documentos.editar', modulo: 'documentos', descripcion: 'Editar datos y reemplazar documentos' },
   { codigo: 'documentos.anular', modulo: 'documentos', descripcion: 'Anular documentos' },
+  { codigo: 'documentos.eliminar', modulo: 'documentos', descripcion: 'Eliminar documentos de forma definitiva' },
   { codigo: 'documentos.descargar', modulo: 'documentos', descripcion: 'Descargar documentos y legajos' },
   { codigo: 'documentos.restringidos', modulo: 'documentos', descripcion: 'Ver documentos restringidos' },
   { codigo: 'documentos.muy_restringidos', modulo: 'documentos', descripcion: 'Ver documentos muy restringidos' },
