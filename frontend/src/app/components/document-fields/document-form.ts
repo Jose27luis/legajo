@@ -13,26 +13,29 @@ export type FormularioDocumento = FormGroup<{
   datos: FormRecord<FormControl<string>>;
 }>;
 
-export const INCORPORACION = {
-  primerIngreso: 'Primer ingreso',
-  reingreso: 'Reingreso',
-  renovacion: 'Renovación o continuidad',
-} as const;
-
 const CAMPOS_NUMERICOS = new Set(['regimen', 'area', 'cargo', 'numero']);
-const OBLIGATORIOS_DEL_VINCULO = new Set(['tipoIncorporacion', 'regimen', 'inicio']);
 
 const opcional = (valor: string): string | null => {
   const limpio = valor.trim().replace(/\s+/g, ' ');
   return limpio === '' ? null : limpio;
 };
 
-export function esCurriculum(tipo: TipoDocumento | null): boolean {
-  return tipo !== null && /curr[ií]culum|\bcv\b/i.test(tipo.nombre);
+export function opcionesDependientes(campo: CampoSeccion, valorPadre: string): readonly string[] {
+  return campo.dependeDe?.opciones[valorPadre] ?? campo.opciones ?? [];
 }
 
-export function campoObligatorio(campo: CampoSeccion, tipo: TipoDocumento | null, conVinculo: boolean): boolean {
-  return campo.obligatorio || (tipo?.accion === 'VINCULO' && !conVinculo && OBLIGATORIOS_DEL_VINCULO.has(campo.clave));
+export function opcionesContrato(documentos: readonly Documento[]): { valor: string; etiqueta: string; detalle: string | null }[] {
+  return documentos
+    .filter((documento) => documento.tipo.accion === 'VINCULO' && documento.estado !== 'ANULADO' && !esAdenda(documento))
+    .map((documento) => ({
+      valor: documento.id,
+      etiqueta: `${documento.tipo.nombre} N.º ${documento.numero ?? 'sin número'}`,
+      detalle: documento.fechaEmision,
+    }));
+}
+
+function esAdenda(documento: Documento): boolean {
+  return documento.tipo.campos.some((campo) => campo.tipo === 'contrato');
 }
 
 export function camposDelDocumento(seccion: SeccionLegajo, tipo: TipoDocumento | null): CampoSeccion[] {
@@ -123,11 +126,7 @@ export function prepararFormularioDocumento(formulario: FormularioDocumento, sec
   }
 }
 
-export function leerFormularioDocumento(
-  formulario: FormularioDocumento,
-  seccion: SeccionLegajo,
-  conVinculo = false,
-): DatosDocumento | string {
+export function leerFormularioDocumento(formulario: FormularioDocumento, seccion: SeccionLegajo): DatosDocumento | string {
   formulario.markAllAsTouched();
   const valores = formulario.getRawValue();
   const tipo = seccion.tipos.find((item) => item.id === valores.tipoDocumentoId);
@@ -146,8 +145,12 @@ export function leerFormularioDocumento(
   const datos: Record<string, ValorCampo> = {};
   for (const campo of camposDelDocumento(seccion, tipo)) {
     const valor = opcional(valores.datos[campo.clave] ?? '');
-    if (valor === null && campoObligatorio(campo, tipo, conVinculo)) {
+    if (valor === null && campo.obligatorio) {
       return `Completa el campo "${campo.etiqueta}".`;
+    }
+    const padre = campo.dependeDe === undefined ? null : opcional(valores.datos[campo.dependeDe.clave] ?? '');
+    if (valor !== null && padre !== null && !opcionesDependientes(campo, padre).includes(valor)) {
+      return `"${campo.etiqueta}" no corresponde a lo elegido antes.`;
     }
     datos[campo.clave] = valor !== null && CAMPOS_NUMERICOS.has(campo.tipo) ? Number(valor) : valor;
   }
@@ -158,7 +161,7 @@ export function leerFormularioDocumento(
   }
   return {
     tipoDocumentoId: tipo.id,
-    numero: esCurriculum(tipo) ? null : opcional(valores.numero),
+    numero: opcional(valores.numero),
     fechaEmision: opcional(valores.fechaEmision),
     fechaVencimiento: opcional(valores.fechaVencimiento),
     emisor: opcional(valores.emisor),
