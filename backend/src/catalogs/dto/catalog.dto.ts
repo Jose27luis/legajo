@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export const TIPOS_PERSONAL = ['ADMINISTRATIVO', 'ASISTENCIAL'] as const;
 export const APLICA_A = ['ACTIVO', 'CESADO', 'TODOS'] as const;
-export const TIPOS_CAMPO = ['texto', 'fecha', 'numero', 'seleccion', 'parrafo', 'regimen', 'area', 'cargo'] as const;
+export const TIPOS_CAMPO = ['texto', 'fecha', 'numero', 'seleccion', 'parrafo', 'regimen', 'area', 'cargo', 'contrato'] as const;
 export const ACCIONES_DOCUMENTO = ['NINGUNA', 'VINCULO', 'MOVIMIENTO', 'CESE'] as const;
 export type AccionDocumentoValor = (typeof ACCIONES_DOCUMENTO)[number];
 
@@ -22,8 +22,31 @@ export class SectionFieldDto {
   @ApiProperty({ type: [String], required: false })
   opciones?: string[];
 
+  @ApiProperty({
+    required: false,
+    description: 'Opciones que dependen del valor de otro campo: { clave del campo, opciones por valor }',
+  })
+  dependeDe?: { clave: string; opciones: Record<string, string[]> };
+
   @ApiProperty()
   obligatorio: boolean;
+}
+
+export class DocumentFormDto {
+  @ApiProperty({ required: false, description: 'Etiqueta del número; si falta, el formulario no lo pide' })
+  numero?: string;
+
+  @ApiProperty({ required: false, description: 'Etiqueta de la fecha de emisión; si falta, no se pide' })
+  fechaEmision?: string;
+
+  @ApiProperty({ required: false, description: 'Etiqueta del emisor; si falta, no se pide' })
+  emisor?: string;
+
+  @ApiProperty({ type: [String], required: false, description: 'Opciones del emisor cuando es una lista' })
+  emisorOpciones?: string[];
+
+  @ApiProperty({ required: false, description: 'Etiqueta de la fecha de vencimiento; si falta, no se pide' })
+  fechaVencimiento?: string;
 }
 
 export class DocumentTypeDto {
@@ -59,6 +82,9 @@ export class DocumentTypeDto {
 
   @ApiProperty({ type: [SectionFieldDto], description: 'Campos propios del tipo documental' })
   campos: SectionFieldDto[];
+
+  @ApiProperty({ type: DocumentFormDto, description: 'Campos comunes que pide el formulario de este tipo y sus etiquetas' })
+  formulario: DocumentFormDto;
 }
 
 export class SectionDto {
