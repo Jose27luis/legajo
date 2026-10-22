@@ -32,9 +32,11 @@ export class WorkerImportController {
 
   @Post()
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Registra los trabajadores validados con su vínculo laboral' })
+  @ApiOperation({
+    summary: 'Registra los trabajadores validados con su vínculo laboral y completa la formación de los ya registrados',
+  })
   @ApiResponse({ status: 200, type: ImportResultDto })
   async importar(@Body() datos: ImportCommitDto, @SesionActual() sesion: SesionActiva, @Req() solicitud: Request): Promise<ImportResultDto> {
-    return this.importacion.importar(datos.filas, sesion, datosCliente(solicitud));
+    return this.importacion.importar(datos.filas, datos.completar, sesion, datosCliente(solicitud));
   }
 }
