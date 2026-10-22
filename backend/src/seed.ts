@@ -90,7 +90,15 @@ async function sembrarCatalogos(transaccion: Prisma.TransactionClient): Promise<
     if (seccionId === undefined) {
       throw new Error(`El tipo ${tipo.codigo} no corresponde a ninguna sección`);
     }
-    const sistema = { accion: tipo.accion, campos: tipo.campos, orden: indice + 1 };
+    const sistema = {
+      nombre: tipo.nombre,
+      accion: tipo.accion,
+      campos: tipo.campos,
+      formulario: tipo.formulario,
+      requiereNumero: tipo.requiereNumero,
+      tieneVencimiento: tipo.tieneVencimiento,
+      orden: indice + 1,
+    };
     if (existentes.has(tipo.codigo)) {
       await transaccion.tipoDocumento.update({ where: { codigo: tipo.codigo }, data: sistema });
       continue;
@@ -98,10 +106,7 @@ async function sembrarCatalogos(transaccion: Prisma.TransactionClient): Promise<
     await transaccion.tipoDocumento.create({
       data: {
         codigo: tipo.codigo,
-        nombre: tipo.nombre,
         restringido: tipo.restringido,
-        requiereNumero: tipo.requiereNumero,
-        tieneVencimiento: tipo.tieneVencimiento,
         seccionId,
         ...sistema,
       },
