@@ -105,6 +105,7 @@ export class ImportComponent {
     return {
       total: vista.total,
       listos,
+      completar: vista.completar.length,
       observados,
       conAvisos,
       porcentaje: vista.total === 0 ? 0 : Math.round((listos / vista.total) * 1000) / 10,
@@ -244,16 +245,18 @@ export class ImportComponent {
 
   protected async importar(): Promise<void> {
     const vista = this.vista();
-    if (vista === null || vista.validos.length === 0 || this.importando()) {
+    if (vista === null || (vista.validos.length === 0 && vista.completar.length === 0) || this.importando()) {
       return;
     }
     this.importando.set(true);
     this.error.set(null);
     try {
-      const resultado = await this.servicio.importar(vista.validos);
+      const resultado = await this.servicio.importar(vista.validos, vista.completar);
       this.resultado.set(resultado);
       this.fase.set('terminado');
-      this.avisos.exito(`Se registraron ${resultado.importados} trabajadores.`);
+      this.avisos.exito(
+        `Se registraron ${resultado.importados} trabajadores y se completó la formación de ${resultado.completados} ya registrados.`,
+      );
     } catch (error: unknown) {
       this.error.set(mensajeDeError(error));
     } finally {
