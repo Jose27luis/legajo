@@ -1,12 +1,43 @@
-import type { CampoSeccion, SeccionLegajo, TipoDocumento } from '../../../src/app/core/models';
+import type { CampoSeccion, Documento, SeccionLegajo, TipoDocumento } from '../../../src/app/core/models';
 import {
-  INCORPORACION,
-  campoObligatorio,
   crearFormularioDocumento,
-  esCurriculum,
   leerFormularioDocumento,
+  opcionesContrato,
+  opcionesDependientes,
   sincronizarCampos,
 } from '../../../src/app/components/document-fields/document-form';
+
+function documento(cambios: Partial<Documento>): Documento {
+  return {
+    id: 'documento',
+    seccion: 2,
+    tipo: tipo({}),
+    numero: '970-2016',
+    fechaEmision: '2016-11-01',
+    fechaVencimiento: null,
+    emisor: null,
+    observaciones: null,
+    ubicacionFisica: null,
+    datos: {},
+    nivelAcceso: 'NORMAL',
+    estado: 'DISPONIBLE',
+    detalleError: null,
+    motivoAnulacion: null,
+    creadoPor: 'Administrador',
+    creadoEn: '2026-10-22T10:00:00.000Z',
+    modificadoPor: null,
+    modificadoEn: null,
+    motivoModificacion: null,
+    reintentable: false,
+    editable: true,
+    versiones: [],
+    vinculoId: null,
+    confirmadoPor: null,
+    confirmadoEn: null,
+    movimientoId: null,
+    ...cambios,
+  };
+}
 
 function tipo(cambios: Partial<TipoDocumento>): TipoDocumento {
   return {
@@ -21,22 +52,33 @@ function tipo(cambios: Partial<TipoDocumento>): TipoDocumento {
     orden: 1,
     accion: 'NINGUNA',
     campos: [],
+    formulario: { numero: 'Número de contrato', fechaEmision: 'Fecha de emisión' },
     ...cambios,
   };
 }
 
-const CAMPOS_VINCULO: CampoSeccion[] = [
-  {
-    clave: 'tipoIncorporacion',
-    etiqueta: 'Tipo de incorporación',
-    tipo: 'seleccion',
-    obligatorio: false,
-    opciones: Object.values(INCORPORACION),
-  },
-  { clave: 'regimen', etiqueta: 'Régimen', tipo: 'regimen', obligatorio: false },
-  { clave: 'inicio', etiqueta: 'Inicio', tipo: 'fecha', obligatorio: false },
-  { clave: 'fin', etiqueta: 'Fin', tipo: 'fecha', obligatorio: false },
+const CAMPOS_CONTRATO: CampoSeccion[] = [
+  { clave: 'regimen', etiqueta: 'Régimen o modalidad', tipo: 'regimen', obligatorio: false },
+  { clave: 'inicio', etiqueta: 'Inicio del vínculo', tipo: 'fecha', obligatorio: false },
+  { clave: 'fin', etiqueta: 'Fin del vínculo', tipo: 'fecha', obligatorio: false },
 ];
+
+const MOTIVO: CampoSeccion = {
+  clave: 'motivoSolicitud',
+  etiqueta: 'Motivo de licencia o permiso',
+  tipo: 'seleccion',
+  opciones: ['Licencia por Maternidad', 'Permiso por Lactancia materna'],
+  dependeDe: { clave: 'tipoSolicitud', opciones: { Licencia: ['Licencia por Maternidad'], Permiso: ['Permiso por Lactancia materna'] } },
+  obligatorio: false,
+};
+
+const SOLICITUD: CampoSeccion = {
+  clave: 'tipoSolicitud',
+  etiqueta: 'Tipo de solicitud',
+  tipo: 'seleccion',
+  opciones: ['Licencia', 'Permiso'],
+  obligatorio: false,
+};
 
 function seccion(tipos: TipoDocumento[], campos: CampoSeccion[] = []): SeccionLegajo {
   return { id: 2, numero: 2, nombre: 'Incorporación', descripcion: '', campos, tipos, total: 0, restringida: false };
@@ -49,26 +91,29 @@ function formulario(seccionActual: SeccionLegajo, tipoActual: TipoDocumento) {
   return form;
 }
 
-describe('esCurriculum', () => {
-  it('reconoce el currículum por su nombre', () => {
-    expect(esCurriculum(tipo({ nombre: 'Currículum vitae documentado' }))).toBe(true);
-    expect(esCurriculum(tipo({ nombre: 'CV' }))).toBe(true);
-    expect(esCurriculum(tipo({ nombre: 'Resolución' }))).toBe(false);
-    expect(esCurriculum(null)).toBe(false);
+describe('opcionesDependientes', () => {
+  it('limita las opciones según el campo del que depende', () => {
+    expect(opcionesDependientes(MOTIVO, 'Licencia')).toEqual(['Licencia por Maternidad']);
+    expect(opcionesDependientes(MOTIVO, 'Permiso')).toEqual(['Permiso por Lactancia materna']);
+    expect(opcionesDependientes(MOTIVO, '')).toEqual(MOTIVO.opciones);
   });
 });
 
-describe('campoObligatorio', () => {
-  const vinculo = tipo({ accion: 'VINCULO', campos: CAMPOS_VINCULO });
-
-  it('exige los datos del vínculo cuando el documento crea uno', () => {
-    expect(campoObligatorio(CAMPOS_VINCULO[0], vinculo, false)).toBe(true);
-    expect(campoObligatorio(CAMPOS_VINCULO[1], vinculo, false)).toBe(true);
-    expect(campoObligatorio(CAMPOS_VINCULO[3], vinculo, false)).toBe(false);
-  });
-
-  it('no los exige cuando el documento se adjunta a un vínculo existente', () => {
-    expect(campoObligatorio(CAMPOS_VINCULO[0], vinculo, true)).toBe(false);
+describe('opcionesContrato', () => {
+  it('lista los contratos vigentes del trabajador sin las adendas ni los anulados', () => {
+    const adenda = tipo({
+      id: 2,
+      accion: 'VINCULO',
+      nombre: 'Adenda',
+      campos: [{ clave: 'contratoRelacionado', etiqueta: 'Contrato relacionado', tipo: 'contrato', obligatorio: false }],
+    });
+    const documentos = [
+      documento({ id: 'a', tipo: tipo({ accion: 'VINCULO' }) }),
+      documento({ id: 'b', tipo: adenda }),
+      documento({ id: 'c', tipo: tipo({ accion: 'VINCULO' }), estado: 'ANULADO' }),
+      documento({ id: 'd', tipo: tipo({ accion: 'NINGUNA' }) }),
+    ];
+    expect(opcionesContrato(documentos)).toEqual([{ valor: 'a', etiqueta: 'Contrato N.º 970-2016', detalle: '2016-11-01' }]);
   });
 });
 
@@ -77,15 +122,15 @@ describe('sincronizarCampos', () => {
     const form = crearFormularioDocumento();
     form.controls.datos.addControl('sobrante', crearFormularioDocumento().controls.numero);
     const propio: CampoSeccion = { clave: 'emisorInterno', etiqueta: 'Emisor', tipo: 'texto', obligatorio: true };
-    sincronizarCampos(form, seccion([], [propio]), tipo({ campos: CAMPOS_VINCULO }), { inicio: '2026-01-01' });
-    expect(Object.keys(form.controls.datos.controls).sort()).toEqual(['emisorInterno', 'fin', 'inicio', 'regimen', 'tipoIncorporacion']);
+    sincronizarCampos(form, seccion([], [propio]), tipo({ campos: CAMPOS_CONTRATO }), { inicio: '2026-01-01' });
+    expect(Object.keys(form.controls.datos.controls).sort()).toEqual(['emisorInterno', 'fin', 'inicio', 'regimen']);
     expect(form.controls.datos.controls['inicio']?.value).toBe('2026-01-01');
     expect(form.controls.datos.controls['emisorInterno']?.hasError('required')).toBe(true);
   });
 
   it('bloquea el formulario hasta elegir el tipo y luego muestra los campos del tipo', () => {
     const form = crearFormularioDocumento();
-    const actual = tipo({ accion: 'VINCULO', campos: CAMPOS_VINCULO });
+    const actual = tipo({ accion: 'VINCULO', campos: CAMPOS_CONTRATO });
     sincronizarCampos(form, seccion([actual]), null, {});
     expect(form.controls.tipoDocumentoId.enabled).toBe(true);
     expect(form.controls.numero.disabled).toBe(true);
@@ -119,26 +164,29 @@ describe('leerFormularioDocumento', () => {
     expect(leerFormularioDocumento(form, seccion([actual]))).toBe('El vencimiento no puede ser anterior a la emisión.');
   });
 
-  it('exige los datos del vínculo y rechaza un término anterior al inicio', () => {
-    const actual = tipo({ accion: 'VINCULO', campos: CAMPOS_VINCULO });
+  it('acepta un contrato sin datos del vínculo y rechaza un término anterior al inicio', () => {
+    const actual = tipo({ accion: 'VINCULO', campos: CAMPOS_CONTRATO });
     const secc = seccion([actual]);
     const form = formulario(secc, actual);
-    expect(leerFormularioDocumento(form, secc)).toBe('Completa el campo "Tipo de incorporación".');
-    form.controls.datos.patchValue({
-      tipoIncorporacion: INCORPORACION.primerIngreso,
-      regimen: '3',
-      inicio: '2026-05-01',
-      fin: '2026-01-01',
-    });
+    expect(typeof leerFormularioDocumento(form, secc)).toBe('object');
+    form.controls.datos.patchValue({ regimen: '3', inicio: '2026-05-01', fin: '2026-01-01' });
     expect(leerFormularioDocumento(form, secc)).toBe('La fecha de término no puede ser anterior a la fecha de inicio.');
   });
 
+  it('rechaza un motivo que no corresponde al tipo de solicitud', () => {
+    const actual = tipo({ campos: [SOLICITUD, MOTIVO] });
+    const secc = seccion([actual]);
+    const form = formulario(secc, actual);
+    form.controls.datos.patchValue({ tipoSolicitud: 'Permiso', motivoSolicitud: 'Licencia por Maternidad' });
+    expect(leerFormularioDocumento(form, secc)).toBe('"Motivo de licencia o permiso" no corresponde a lo elegido antes.');
+  });
+
   it('devuelve los datos limpios, con catálogos numéricos', () => {
-    const actual = tipo({ accion: 'VINCULO', campos: CAMPOS_VINCULO });
+    const actual = tipo({ accion: 'VINCULO', campos: CAMPOS_CONTRATO });
     const secc = seccion([actual]);
     const form = formulario(secc, actual);
     form.patchValue({ numero: '  001-2026  ', emisor: '' });
-    form.controls.datos.patchValue({ tipoIncorporacion: INCORPORACION.renovacion, regimen: '3', inicio: '2026-01-01', fin: '' });
+    form.controls.datos.patchValue({ regimen: '3', inicio: '2026-01-01', fin: '' });
     const resultado = leerFormularioDocumento(form, secc);
     expect(resultado).toEqual({
       tipoDocumentoId: 1,
@@ -149,16 +197,8 @@ describe('leerFormularioDocumento', () => {
       observaciones: null,
       ubicacionFisica: null,
       nivelAcceso: 'NORMAL',
-      datos: { tipoIncorporacion: INCORPORACION.renovacion, regimen: 3, inicio: '2026-01-01', fin: null },
+      datos: { regimen: 3, inicio: '2026-01-01', fin: null },
     });
-  });
-
-  it('no guarda número para un currículum', () => {
-    const actual = tipo({ nombre: 'Currículum vitae' });
-    const form = formulario(seccion([actual]), actual);
-    form.patchValue({ numero: '123' });
-    const resultado = leerFormularioDocumento(form, seccion([actual]));
-    expect(typeof resultado === 'string' ? resultado : resultado.numero).toBeNull();
   });
 
   it('eleva a restringido un documento de tipo restringido', () => {
