@@ -192,6 +192,15 @@ export class WorkerDetailDto extends WorkerListItemDto {
   @ApiProperty({ type: String, nullable: true })
   correo: string | null;
 
+  @ApiProperty({ type: String, nullable: true })
+  gradoInstruccion: string | null;
+
+  @ApiProperty({ type: String, nullable: true })
+  profesion: string | null;
+
+  @ApiProperty({ type: String, nullable: true })
+  condicionProfesion: string | null;
+
   @ApiProperty({ format: 'date-time' })
   creadoEn: string;
 
