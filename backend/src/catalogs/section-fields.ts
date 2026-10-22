@@ -1,6 +1,6 @@
 import { BadRequestException } from '@nestjs/common';
 import { z } from 'zod';
-import { TIPOS_CAMPO, type SectionFieldDto } from './dto/catalog.dto';
+import { TIPOS_CAMPO, type DocumentFormDto, type SectionFieldDto } from './dto/catalog.dto';
 
 const esquemaCampos = z.array(
   z.object({
@@ -8,11 +8,26 @@ const esquemaCampos = z.array(
     etiqueta: z.string(),
     tipo: z.enum(TIPOS_CAMPO),
     opciones: z.array(z.string()).optional(),
+    dependeDe: z.object({ clave: z.string(), opciones: z.record(z.string(), z.array(z.string())) }).optional(),
     obligatorio: z.boolean(),
   }),
 );
 
+const esquemaFormulario = z.object({
+  numero: z.string().optional(),
+  fechaEmision: z.string().optional(),
+  emisor: z.string().optional(),
+  emisorOpciones: z.array(z.string()).optional(),
+  fechaVencimiento: z.string().optional(),
+});
+
 const FECHA = /^\d{4}-\d{2}-\d{2}$/;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export function leerFormulario(valor: unknown): DocumentFormDto {
+  const resultado = esquemaFormulario.safeParse(valor);
+  return resultado.success ? resultado.data : {};
+}
 
 export type ValorCampo = string | number | null;
 
@@ -46,6 +61,14 @@ export function validarDatos(campos: SectionFieldDto[], entrada: Record<string, 
       continue;
     }
     resultado[campo.clave] = convertir(campo, bruto);
+  }
+  for (const campo of campos) {
+    const valor = resultado[campo.clave];
+    const padre = campo.dependeDe === undefined ? undefined : resultado[campo.dependeDe.clave];
+    const permitidas = typeof padre === 'string' ? campo.dependeDe?.opciones[padre] : undefined;
+    if (typeof valor === 'string' && permitidas !== undefined && !permitidas.includes(valor)) {
+      throw new BadRequestException(`"${campo.etiqueta}": la opción no corresponde a lo elegido antes`);
+    }
   }
   return resultado;
 }
@@ -91,6 +114,12 @@ function convertir(campo: SectionFieldDto, valor: unknown): ValorCampo {
     case 'seleccion': {
       if (typeof valor !== 'string' || !(campo.opciones ?? []).includes(valor)) {
         throw error('elige una de las opciones');
+      }
+      return valor;
+    }
+    case 'contrato': {
+      if (typeof valor !== 'string' || !UUID.test(valor)) {
+        throw error('elige un contrato de la lista');
       }
       return valor;
     }
