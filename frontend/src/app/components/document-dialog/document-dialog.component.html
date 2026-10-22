@@ -266,6 +266,10 @@
               [attr.aria-invalid]="motivoInvalido()"
             ></textarea>
           </div>
+          <div class="campo">
+            <label for="eliminacion-clave">Tu contraseña <span class="obligatorio" aria-hidden="true">*</span></label>
+            <input id="eliminacion-clave" type="password" [formControl]="clave" maxlength="200" autocomplete="current-password" />
+          </div>
         </form>
       }
 
