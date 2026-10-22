@@ -15,9 +15,9 @@ import { RouterLink } from '@angular/router';
 import { DocumentDialogComponent } from '../../../components/document-dialog/document-dialog.component';
 import { DocumentFieldsComponent } from '../../../components/document-fields/document-fields.component';
 import {
-  INCORPORACION,
   crearFormularioDocumento,
   leerFormularioDocumento,
+  opcionesContrato,
   prepararFormularioDocumento,
 } from '../../../components/document-fields/document-form';
 import { PdfPickerComponent } from '../../../components/pdf-picker/pdf-picker.component';
@@ -44,13 +44,13 @@ const AVISOS: Record<number, { titulo: string | null; texto: string; sensible: b
   2: {
     titulo: 'Vinculación con la Sección 01:',
     texto:
-      'al registrar un contrato o resolución con PDF real, régimen y fecha de inicio, se vincula automáticamente con la ficha y el historial de la Sección 01. Puedes comprobarlo desde Ver detalle. Si el trabajador está CESADO y el contrato es un Reingreso vigente, pasa a ACTIVO al registrarlo; con fecha de inicio futura se confirma desde el detalle cuando llegue esa fecha.',
+      'al registrar una resolución, contrato o adenda, se vincula automáticamente con la ficha y el historial de la Sección 01. El sistema decide si es primer ingreso, renovación o reingreso: si el trabajador está CESADO, pasa a ACTIVO; si el contrato empieza después del período actual, abre uno nuevo. La adenda se suma al contrato relacionado y su fin extiende el contrato vigente.',
     sensible: false,
   },
   5: {
     titulo: 'Sección 05:',
     texto:
-      'documentación de vacaciones, licencias y permisos. Los desplazamientos como rotaciones, destaque y encargatura corresponden a la Sección 07.',
+      'licencias, permisos, goce, adelanto o postergación de vacaciones y rol de vacaciones. La designación, rotación, destaque y encargo corresponden a la Sección 07.',
     sensible: false,
   },
   7: {
@@ -68,13 +68,13 @@ const AVISOS: Record<number, { titulo: string | null; texto: string; sensible: b
   11: {
     titulo: 'Desvinculación:',
     texto:
-      'registrar un PDF de cese no cambia por sí solo el estado laboral. Abre Ver detalle del PDF sustentatorio y pulsa Confirmar cese laboral para validar motivo y fecha efectiva. La ficha de la Sección 01 se actualizará al confirmar.',
+      'solo el término del servicio civil de carrera, el memorando de término del vínculo y la carta de no renovación CAS sustentan un cese: abre Ver detalle y pulsa Confirmar cese laboral para validar motivo y fecha efectiva. El término de designación, el informe de gestión, la entrega de cargo y la liquidación no cambian el estado laboral.',
     sensible: false,
   },
   12: {
     titulo: null,
     texto:
-      'Usa «Otros documentos» únicamente cuando el archivo no corresponda a ninguna de las otras 12 secciones. Registra una justificación.',
+      'Usa esta sección únicamente cuando el archivo no corresponda a ninguna de las otras 11 secciones; indica el nombre del documento y su asunto.',
     sensible: false,
   },
 };
@@ -135,7 +135,7 @@ export class LegajoSectionComponent implements OnDestroy {
     computation: () => '',
   });
 
-  private readonly todos = computed(() => {
+  protected readonly todos = computed(() => {
     const numero = Number(this.numero());
     return this.contexto.legajo.hasValue()
       ? this.contexto.legajo.value().documentos.filter((documento) => documento.seccion === numero)
@@ -163,17 +163,9 @@ export class LegajoSectionComponent implements OnDestroy {
 
   protected readonly hayDisponibles = computed(() => this.todos().some((documento) => documento.estado === 'DISPONIBLE'));
 
-  protected readonly incorporacionSugerida = computed(() => {
-    const trabajador = this.contexto.detalle.value();
-    if (trabajador?.estado === 'CESADO') {
-      return INCORPORACION.reingreso;
-    }
-    const legajo = this.contexto.legajo.hasValue() ? this.contexto.legajo.value() : null;
-    const vinculados = (legajo?.documentos ?? []).some(
-      (documento) => documento.tipo.accion === 'VINCULO' && documento.vinculoId !== null && documento.estado !== 'ANULADO',
-    );
-    return vinculados ? INCORPORACION.renovacion : INCORPORACION.primerIngreso;
-  });
+  protected readonly contratos = computed(() =>
+    opcionesContrato(this.contexto.legajo.hasValue() ? this.contexto.legajo.value().documentos : []),
+  );
 
   protected etiquetasPropias(seccion: SeccionLegajo): string {
     return seccion.campos.map((campo) => campo.etiqueta).join(' · ');
@@ -298,10 +290,7 @@ export class LegajoSectionComponent implements OnDestroy {
             ? 'PDF registrado: reingreso aplicado, el trabajador está ACTIVO.'
             : 'PDF registrado y vinculado automáticamente con la Sección 01.',
         );
-      } else if (
-        documento.tipo.accion === 'CESE' ||
-        (documento.tipo.accion === 'VINCULO' && documento.datos['tipoIncorporacion'] === INCORPORACION.reingreso)
-      ) {
+      } else if (documento.tipo.accion === 'CESE' || documento.tipo.accion === 'VINCULO') {
         this.seleccionadoId.set(documento.id);
         this.avisos.exito('PDF registrado. Cuando termine de procesarse, confírmalo desde este detalle.');
       } else if (documento.tipo.accion === 'MOVIMIENTO') {
