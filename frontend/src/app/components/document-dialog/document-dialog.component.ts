@@ -36,10 +36,10 @@ import { LinkOptionsService } from '../../services/link-options.service';
 import { DialogComponent } from '../dialog/dialog.component';
 import { DocumentFieldsComponent } from '../document-fields/document-fields.component';
 import {
-  INCORPORACION,
   camposDelDocumento,
   crearFormularioDocumento,
   leerFormularioDocumento,
+  opcionesContrato,
   prepararFormularioDocumento,
 } from '../document-fields/document-form';
 import { PdfPickerComponent } from '../pdf-picker/pdf-picker.component';
@@ -96,6 +96,11 @@ export class DocumentDialogComponent implements OnDestroy {
   readonly documento = input<Documento | null>(null);
   readonly seccion = input<SeccionLegajo | null>(null);
   readonly trabajador = input<TrabajadorDetalle | null>(null);
+  readonly documentos = input<readonly Documento[]>([]);
+
+  protected readonly contratos = computed(() =>
+    opcionesContrato(this.documentos()).filter((opcion) => opcion.valor !== this.documento()?.id),
+  );
   readonly cerrar = output();
   readonly actualizado = output<Documento>();
   readonly fichaActualizada = output();
@@ -187,7 +192,6 @@ export class DocumentDialogComponent implements OnDestroy {
   });
 
   protected readonly puedeConfirmar = computed(() => this.sesion.tiene('personal.editar'));
-  protected readonly incorporacion = computed(() => texto(this.documento()?.datos['tipoIncorporacion']));
   protected readonly accionPendiente = computed<'vincular' | 'reingreso' | 'movimiento' | 'cese' | null>(() => {
     const documento = this.documento();
     if (documento === null || documento.estado === 'ANULADO' || !this.puedeConfirmar()) {
@@ -195,10 +199,10 @@ export class DocumentDialogComponent implements OnDestroy {
     }
     switch (documento.tipo.accion) {
       case 'VINCULO':
-        if (this.incorporacion() === INCORPORACION.reingreso) {
-          return documento.confirmadoEn === null ? 'reingreso' : null;
+        if (documento.vinculoId !== null || documento.confirmadoEn !== null) {
+          return null;
         }
-        return this.incorporacion() === INCORPORACION.primerIngreso && documento.vinculoId === null ? 'vincular' : null;
+        return this.trabajador()?.estado === 'CESADO' ? 'reingreso' : 'vincular';
       case 'MOVIMIENTO':
         return documento.movimientoId === null ? 'movimiento' : null;
       case 'CESE':
@@ -297,7 +301,7 @@ export class DocumentDialogComponent implements OnDestroy {
     if (documento === null || seccion === null) {
       return;
     }
-    const datos = leerFormularioDocumento(this.formulario, seccion, true);
+    const datos = leerFormularioDocumento(this.formulario, seccion);
     this.motivo.markAsTouched();
     if (typeof datos === 'string') {
       this.error.set(datos);
@@ -505,6 +509,9 @@ export class DocumentDialogComponent implements OnDestroy {
   private mostrar(campo: CampoSeccion, valor: ValorCampo): string {
     if (valor === null || valor === '') {
       return '—';
+    }
+    if (campo.tipo === 'contrato') {
+      return opcionesContrato(this.documentos()).find((opcion) => opcion.valor === valor)?.etiqueta ?? 'Contrato no disponible';
     }
     const opciones = this.opcionesVinculo.opciones();
     if (typeof valor === 'number' && opciones !== null) {
