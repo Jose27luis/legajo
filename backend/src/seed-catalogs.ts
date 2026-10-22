@@ -318,7 +318,7 @@ const CAMPOS_ADELANTO: CampoSeccion[] = [
   fecha('inicio', 'Nueva fecha de inicio'),
   fecha('fin', 'Nueva fecha de fin'),
 ];
-const CAMPOS_ROL: CampoSeccion[] = [texto('anioRol', 'Año del rol vacacional'), texto('dependenciaRol', 'Dependencia o área')];
+const CAMPOS_ROL: CampoSeccion[] = [texto('anioRol', 'Año del rol vacacional'), catalogo('dependenciaRol', 'Dependencia o área', 'area')];
 const CAMPOS_LICENCIA_OTORGADA: CampoSeccion[] = [
   seleccion('tipoLicencia', 'Tipo de licencia', TIPOS_LICENCIA),
   fecha('inicio', 'Fecha de inicio'),
