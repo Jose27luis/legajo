@@ -6,10 +6,14 @@ import { PrismaService } from '../prisma/prisma.service';
 import {
   COLA_DOCUMENTOS,
   FORMATO_SUBIDA,
+  TRABAJO_ELIMINAR,
   TRABAJO_LIMPIAR,
   TRABAJO_PROCESAR,
   conexionRedis,
+  esProcesar,
   rutaSubida,
+  type TrabajoDocumentos,
+  type TrabajoEliminar,
   type TrabajoProcesar,
 } from './document-queue';
 import { argumentosGhostscript, ejecutar, hashArchivo } from './pdf-tools';
@@ -18,13 +22,14 @@ import { bloquearLote, recalcularLote } from '../batches/batch-counters';
 const UMBRAL_OPTIMIZACION = 0.95;
 const VIGENCIA_SUBIDA_MS = 24 * 60 * 60 * 1000;
 const PREFIJO_COLAS = 'legajos-colas';
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 class FalloDefinitivo extends Error {}
 
 @Injectable()
 export class DocumentProcessorService implements OnModuleInit, OnModuleDestroy {
   private readonly bitacora = new Logger('Procesador');
-  private trabajador: Worker<TrabajoProcesar> | null = null;
+  private trabajador: Worker<TrabajoDocumentos> | null = null;
   private programador: Queue | null = null;
 
   constructor(
@@ -36,25 +41,32 @@ export class DocumentProcessorService implements OnModuleInit, OnModuleDestroy {
     const conexion = conexionRedis(this.entorno.REDIS_URL);
     this.programador = new Queue(COLA_DOCUMENTOS, { connection: conexion, prefix: PREFIJO_COLAS });
     await this.programador.upsertJobScheduler(TRABAJO_LIMPIAR, { every: 60 * 60 * 1000 }, { name: TRABAJO_LIMPIAR });
-    this.trabajador = new Worker<TrabajoProcesar>(
+    this.trabajador = new Worker<TrabajoDocumentos>(
       COLA_DOCUMENTOS,
-      async (trabajo: Job<TrabajoProcesar>) => {
+      async (trabajo: Job<TrabajoDocumentos>) => {
         if (trabajo.name === TRABAJO_LIMPIAR) {
           await this.limpiarSubidas();
           return;
         }
-        await this.procesar(trabajo.data);
+        if (esProcesar(trabajo.data)) {
+          await this.procesar(trabajo.data);
+          return;
+        }
+        if (trabajo.name === TRABAJO_ELIMINAR) {
+          await this.eliminarArchivos(trabajo.data);
+        }
       },
       { connection: conexion, prefix: PREFIJO_COLAS, concurrency: this.entorno.WORKER_CONCURRENCIA },
     );
     this.trabajador.on('failed', (trabajo, error) => {
-      if (trabajo === undefined || trabajo.name !== TRABAJO_PROCESAR) {
+      if (trabajo === undefined || trabajo.name !== TRABAJO_PROCESAR || !esProcesar(trabajo.data)) {
         return;
       }
+      const datos = trabajo.data;
       const intentos = trabajo.opts.attempts ?? 1;
-      this.bitacora.warn(`Documento ${trabajo.data.documentoId}: intento ${trabajo.attemptsMade} de ${intentos} falló`);
+      this.bitacora.warn(`Documento ${datos.documentoId}: intento ${trabajo.attemptsMade} de ${intentos} falló`);
       if (trabajo.attemptsMade >= intentos) {
-        void this.marcarFallo(trabajo.data, 'No se pudo procesar el PDF. Puedes reintentar.', false, error.message);
+        void this.marcarFallo(datos, 'No se pudo procesar el PDF. Puedes reintentar.', false, error.message);
       }
     });
   }
@@ -152,10 +164,13 @@ export class DocumentProcessorService implements OnModuleInit, OnModuleDestroy {
       await copyFile(final, `${destino}.tmp`);
       await rename(`${destino}.tmp`, destino);
 
-      await this.prisma.$transaction(async (transaccion) => {
+      const eliminado = await this.prisma.$transaction(async (transaccion) => {
         const vigente = await transaccion.documento.findUnique({ where: { id: documento.id }, select: { estado: true, subidaPendiente: true } });
-        if (vigente === null || vigente.estado === 'ANULADO' || vigente.subidaPendiente !== datos.subidaId) {
-          return;
+        if (vigente === null) {
+          return true;
+        }
+        if (vigente.estado === 'ANULADO' || vigente.subidaPendiente !== datos.subidaId) {
+          return false;
         }
         const archivo = await transaccion.documentoArchivo.create({
           data: {
@@ -176,7 +191,13 @@ export class DocumentProcessorService implements OnModuleInit, OnModuleDestroy {
           where: { id: documento.id },
           data: { archivoActualId: archivo.id, estado: 'DISPONIBLE', detalleError: null, subidaPendiente: null },
         });
+        return false;
       });
+      if (eliminado) {
+        await this.eliminarArchivos({ trabajadorId: documento.trabajadorId, documentoId: documento.id });
+        await this.borrarSubida(datos.subidaId);
+        return;
+      }
       await this.borrarSubida(datos.subidaId);
       this.bitacora.log(`Documento ${documento.id} disponible (v${version}, ${paginas} folios)`);
     } catch (error: unknown) {
@@ -211,6 +232,15 @@ export class DocumentProcessorService implements OnModuleInit, OnModuleDestroy {
     if (definitivo) {
       await this.borrarSubida(datos.subidaId);
     }
+  }
+
+  private async eliminarArchivos(datos: TrabajoEliminar): Promise<void> {
+    if (!UUID.test(datos.trabajadorId) || !UUID.test(datos.documentoId)) {
+      this.bitacora.warn(`Eliminación rechazada: identificadores no válidos (${datos.trabajadorId}/${datos.documentoId})`);
+      return;
+    }
+    await rm(`${this.entorno.DIR_ARCHIVOS}/${datos.trabajadorId}/${datos.documentoId}`, { recursive: true, force: true });
+    this.bitacora.log(`Archivos del documento ${datos.documentoId} eliminados`);
   }
 
   private async borrarSubida(subidaId: string): Promise<void> {
