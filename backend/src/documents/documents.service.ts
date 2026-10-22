@@ -19,7 +19,14 @@ import type { SesionActiva } from '../common/session';
 import { aFecha, aTextoOpcional, hoyEnLima } from '../common/dates';
 import { aTipoDto } from '../catalogs/document-types.service';
 import { leerCampos, referenciasACatalogo, validarDatos, type CatalogoReferido } from '../catalogs/section-fields';
-import type { CreateDocumentDto, DocumentFieldsDto, ReplaceDocumentDto, UpdateDocumentDto, VoidDocumentDto } from './dto/document-input.dto';
+import type {
+  CreateDocumentDto,
+  DeleteDocumentDto,
+  DocumentFieldsDto,
+  ReplaceDocumentDto,
+  UpdateDocumentDto,
+  VoidDocumentDto,
+} from './dto/document-input.dto';
 import type { DocumentDto, DocumentHistoryEntryDto, LegajoDto, LegajoSectionDto } from './dto/document.dto';
 import {
   aDocumentoDto,
@@ -281,6 +288,46 @@ export class DocumentsService {
       await this.subidas.almacen.remove(actual.subidaPendiente).catch(() => undefined);
     }
     return aDocumentoDto(anulado, sesion);
+  }
+
+  async eliminar(id: string, datos: DeleteDocumentDto, sesion: SesionActiva, cliente: DatosCliente): Promise<void> {
+    const actual = await this.cargarVisible(id, sesion);
+    const versionActual = actual.archivos.find((archivo) => archivo.id === actual.archivoActualId) ?? null;
+    await this.prisma.$transaction(async (transaccion) => {
+      await transaccion.$executeRaw`SELECT set_config('legajos.eliminar_documento', 'on', true)`;
+      await transaccion.documento.update({
+        where: { id },
+        data: { archivoActualId: null, estado: 'ANULADO', motivoAnulacion: datos.motivo, detalleError: null },
+      });
+      const movimientos = await transaccion.movimientoLaboral.updateMany({ where: { documentoId: id }, data: { documentoId: null } });
+      const archivos = await transaccion.documentoArchivo.deleteMany({ where: { documentoId: id } });
+      await transaccion.documento.delete({ where: { id } });
+      await this.auditoria.registrar(
+        {
+          accion: 'DOCUMENTO_ELIMINAR',
+          entidad: 'documento',
+          entidadId: id,
+          trabajadorId: actual.trabajadorId,
+          usuarioId: sesion.usuarioId,
+          cliente,
+          detalle: {
+            motivo: datos.motivo,
+            tipo: actual.tipoDocumento.codigo,
+            nombreTipo: actual.tipoDocumento.nombre,
+            numero: actual.numero,
+            nombreOriginal: versionActual?.nombreOriginal ?? null,
+            archivos: archivos.count,
+            vinculo: actual.vinculoId,
+            movimientoDesvinculado: movimientos.count > 0,
+          },
+        },
+        transaccion,
+      );
+    });
+    if (actual.subidaPendiente !== null) {
+      await this.subidas.almacen.remove(actual.subidaPendiente).catch(() => undefined);
+    }
+    await this.cola.eliminarArchivos({ trabajadorId: actual.trabajadorId, documentoId: id });
   }
 
   async reemplazar(id: string, datos: ReplaceDocumentDto, sesion: SesionActiva, cliente: DatosCliente): Promise<DocumentDto> {
