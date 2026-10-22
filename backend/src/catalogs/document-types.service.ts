@@ -7,7 +7,7 @@ import type { SesionActiva } from '../common/session';
 import { sinDuplicados } from '../common/unique-violation';
 import type { DocumentTypeDto, SectionDto } from './dto/catalog.dto';
 import type { CreateDocumentTypeDto, UpdateDocumentTypeDto } from './dto/catalog-input.dto';
-import { leerCampos } from './section-fields';
+import { leerCampos, leerFormulario } from './section-fields';
 
 const ULTIMO_CORRELATIVO = 98;
 
@@ -24,6 +24,7 @@ export function aTipoDto(tipo: TipoDocumento): DocumentTypeDto {
     orden: tipo.orden,
     accion: tipo.accion,
     campos: leerCampos(tipo.campos),
+    formulario: leerFormulario(tipo.formulario),
   };
 }
 
