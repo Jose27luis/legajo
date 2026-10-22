@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { ArrayMaxSize, ArrayMinSize, IsArray, IsIn, IsInt, IsISO8601, IsOptional, IsString, Length, Matches, Min, ValidateNested } from 'class-validator';
+import { ArrayMaxSize, IsArray, IsIn, IsInt, IsISO8601, IsOptional, IsString, Length, Matches, Min, ValidateNested } from 'class-validator';
 import { ESTADOS, MOTIVOS_CESE, TIPOS_PERSONAL, type EstadoValor, type MotivoCeseValor, type TipoPersonalValor } from './worker.dto';
 
 export const MAXIMO_IMPORTACION = 3000;
@@ -86,15 +86,63 @@ export class ImportRowDto {
   @IsISO8601({ strict: true })
   fechaCese: string | null;
 
+  @ApiProperty({ type: String, nullable: true, description: 'Grado de instrucción reconocido en el catálogo de formación' })
+  @IsOptional()
+  @IsString()
+  @Length(1, 40)
+  gradoInstruccion: string | null = null;
+
+  @ApiProperty({ type: String, nullable: true })
+  @IsOptional()
+  @IsString()
+  @Length(1, 120)
+  profesion: string | null = null;
+
+  @ApiProperty({ type: String, nullable: true })
+  @IsOptional()
+  @IsString()
+  @Length(1, 40)
+  condicionProfesion: string | null = null;
+
   @ApiProperty({ type: [String], description: 'Avisos que no impiden importar la fila' })
   @IsArray()
   @IsString({ each: true })
   avisos: string[];
 }
 
+export class FormationImportDto {
+  @ApiProperty({ enum: TIPOS_DOC_IMPORTACION })
+  @IsIn(TIPOS_DOC_IMPORTACION)
+  tipoDocIdentidad: TipoDocImportacion;
+
+  @ApiProperty()
+  @Matches(/^([0-9]{8}|[A-Z0-9]{9,12})$/, { message: 'El documento debe ser un DNI de 8 dígitos o un carné de 9 a 12 caracteres' })
+  numeroDoc: string;
+
+  @ApiProperty()
+  @IsString()
+  @Length(1, 40)
+  gradoInstruccion: string;
+
+  @ApiProperty({ type: String, nullable: true })
+  @IsOptional()
+  @IsString()
+  @Length(1, 120)
+  profesion: string | null = null;
+
+  @ApiProperty({ type: String, nullable: true })
+  @IsOptional()
+  @IsString()
+  @Length(1, 40)
+  condicionProfesion: string | null = null;
+}
+
 export class ImportPreviewDto {
   @ApiProperty({ type: [ImportRowDto] })
   validos: ImportRowDto[];
+
+  @ApiProperty({ type: [FormationImportDto], description: 'Trabajadores ya registrados a los que se completarán grado, profesión y condición' })
+  completar: FormationImportDto[];
 
   @ApiProperty({ type: [String] })
   observaciones: string[];
@@ -106,16 +154,26 @@ export class ImportPreviewDto {
 export class ImportCommitDto {
   @ApiProperty({ type: [ImportRowDto] })
   @IsArray()
-  @ArrayMinSize(1, { message: 'No hay trabajadores para importar' })
   @ArrayMaxSize(MAXIMO_IMPORTACION, { message: `Máximo ${MAXIMO_IMPORTACION} trabajadores por importación` })
   @ValidateNested({ each: true })
   @Type(() => ImportRowDto)
   filas: ImportRowDto[];
+
+  @ApiProperty({ type: [FormationImportDto], required: false })
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(MAXIMO_IMPORTACION, { message: `Máximo ${MAXIMO_IMPORTACION} trabajadores por importación` })
+  @ValidateNested({ each: true })
+  @Type(() => FormationImportDto)
+  completar: FormationImportDto[] = [];
 }
 
 export class ImportResultDto {
   @ApiProperty()
   importados: number;
+
+  @ApiProperty({ description: 'Trabajadores ya registrados a los que se completaron grado, profesión y condición' })
+  completados: number;
 
   @ApiProperty({ description: 'Áreas y cargos que se agregaron a los catálogos' })
   catalogosCreados: number;
