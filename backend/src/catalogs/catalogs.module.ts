@@ -6,9 +6,10 @@ import { RequirementsController } from './requirements.controller';
 import { RequirementsService } from './requirements.service';
 import { SectionsController } from './sections.controller';
 import { UbigeoController } from './ubigeo.controller';
+import { EducationController } from './education.controller';
 
 @Module({
-  controllers: [SectionsController, RequirementsController, OrganizationController, UbigeoController],
+  controllers: [SectionsController, RequirementsController, OrganizationController, UbigeoController, EducationController],
   providers: [DocumentTypesService, RequirementsService, OrganizationService],
   exports: [DocumentTypesService, OrganizationService],
 })
