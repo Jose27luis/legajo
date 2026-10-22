@@ -82,7 +82,7 @@ flowchart LR
 - Los PDF los entrega nginx con X-Accel-Redirect, con soporte de Range para el visor. La API solo valida permisos.
 - El ZIP va en modo `store`: los PDF ya llegan optimizados desde la subida.
 - Los archivos se guardan por trabajador y documento. Reclasificar un documento no mueve el archivo.
-- Los documentos no se borran: se anulan con motivo.
+- Lo normal es anular un documento con motivo: queda guardado y se puede consultar. El Administrador puede además eliminarlo de forma definitiva, también con motivo. Se borran el documento, sus versiones y el PDF, y solo queda el registro en la auditoría. Las copias de respaldo conservan el PDF hasta que vence su retención.
 
 ## Despliegue
 
@@ -650,7 +650,7 @@ Restricciones e índices que se crean con SQL en las migraciones:
 | `ix_auditoria_legajo` | B-tree sobre `(trabajador_id, fecha DESC)` | Historial de un legajo |
 | `ix_auditoria_usuario` | B-tree sobre `(usuario_id, fecha DESC)` | Actividad de un usuario |
 | `tg_auditoria_inmutable` | Trigger `BEFORE UPDATE OR DELETE` que lanza una excepción | La auditoría no se puede modificar ni borrar |
-| `tg_documento_archivo_inmutable` | Trigger `BEFORE UPDATE OR DELETE` | Las versiones de archivo no se modifican: se agrega una nueva |
+| `tg_documento_archivo_inmutable` | Trigger `BEFORE UPDATE OR DELETE` | Las versiones de archivo no se modifican: se agrega una nueva. Solo se borran al eliminar el documento, dentro de la transacción que activa `legajos.eliminar_documento` |
 
 ## Ciclos de vida
 
@@ -703,6 +703,7 @@ stateDiagram-v2
 
 - Mientras un reemplazo está en proceso, la versión anterior sigue visible.
 - Un documento anulado no aparece en el legajo ni en las descargas, pero lo pueden ver con un filtro los roles con permiso `documentos.anular`.
+- Con el permiso `documentos.eliminar` un documento se elimina en cualquier estado, sin anularlo antes. Si sustentaba un movimiento, un período o un cese, esos registros se mantienen sin el PDF. Si era el contrato de una adenda, la adenda muestra «Contrato no disponible».
 
 ## Flujos
 
@@ -1011,9 +1012,12 @@ flowchart TD
     R --> S["Un documento por rango<br/>ítem original DIVIDIDO"]
     S --> L
     O -->|"Descartar"| T["Ítem ERROR con motivo<br/>se borra la subida temporal"]
+    O -->|"Eliminar"| V["El ítem sale del lote<br/>si era el último, se elimina el lote"]
+    T -->|"Eliminar"| V
 
     M --> FIN{"¿Quedan ítems pendientes?"}
     T --> FIN
+    V --> FIN
     FIN -->|"no"| U(["Lote TERMINADO"])
     FIN -->|"sí"| BAN
 ```
@@ -1285,6 +1289,7 @@ Roles en Usuarios > Roles. La semilla crea estos tres; se pueden crear otros.
 | `documentos.subir` | Sí | Sí | No |
 | `documentos.editar` | Sí | Sí | No |
 | `documentos.anular` | Sí | Sí | No |
+| `documentos.eliminar` | Sí | No | No |
 | `documentos.descargar` | Sí | Sí | Sí |
 | `documentos.restringidos` | Sí | Sí | No |
 | `documentos.muy_restringidos` | Sí | No | No |
