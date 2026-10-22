@@ -81,8 +81,8 @@ export class DocumentsService {
     return firstValueFrom(this.http.post<Documento>(`/api/documents/${id}/void`, { motivo }));
   }
 
-  eliminar(id: string, motivo: string): Promise<void> {
-    return firstValueFrom(this.http.delete<void>(`/api/documents/${id}`, { body: { motivo } }));
+  eliminar(id: string, motivo: string, clave: string): Promise<void> {
+    return firstValueFrom(this.http.delete<void>(`/api/documents/${id}`, { body: { motivo, clave } }));
   }
 
   reemplazar(id: string, subidaId: string, motivo: string): Promise<Documento> {
