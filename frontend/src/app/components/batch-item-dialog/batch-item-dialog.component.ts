@@ -84,6 +84,7 @@ export class BatchItemDialogComponent {
     nonNullable: true,
     validators: [Validators.required, Validators.minLength(5), Validators.maxLength(300)],
   });
+  protected readonly clave = new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(200)] });
 
   protected readonly opcionesSeccion = computed<OpcionBuscable[]>(() =>
     this.secciones().map((seccion) => ({ valor: seccion.id, etiqueta: `${numeroSeccion(seccion.numero)} ${seccion.nombre}` })),
@@ -105,6 +106,7 @@ export class BatchItemDialogComponent {
   protected cambiarPestana(pestana: Pestana): void {
     this.error.set(null);
     this.motivo.reset('');
+    this.clave.reset('');
     if (pestana === 'dividir' && this.rangos().length === 0) {
       this.agregarRango();
     }
@@ -239,15 +241,20 @@ export class BatchItemDialogComponent {
       this.error.set(`Indica el motivo (mínimo ${MINIMO_MOTIVO_ELIMINAR} caracteres).`);
       return;
     }
+    if (this.clave.value === '') {
+      this.error.set('Ingresa tu contraseña para confirmar la eliminación.');
+      return;
+    }
     this.ocupado.set(true);
     this.error.set(null);
     try {
-      const resultado = await this.servicio.eliminar(this.loteId(), item.id, motivo);
+      const resultado = await this.servicio.eliminar(this.loteId(), item.id, motivo, this.clave.value);
       this.avisos.exito(resultado.loteEliminado ? 'Archivo eliminado. El lote quedó vacío y también se eliminó.' : 'Archivo eliminado');
       this.eliminado.emit({ itemId: item.id, loteEliminado: resultado.loteEliminado });
     } catch (error: unknown) {
       this.error.set(mensajeDeError(error));
     } finally {
+      this.clave.reset('');
       this.ocupado.set(false);
     }
   }
