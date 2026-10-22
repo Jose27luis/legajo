@@ -27,8 +27,15 @@ import { UploadServerService } from '../documents/upload-server.service';
 import { bloquearLote, recalcularLote } from './batch-counters';
 import { interpretarNombre, type NombreInterpretado } from './batch-names';
 import { CODIGO_FICHA_TEXTO } from '../seed-catalogs';
-import type { ClassifyItemDto, CreateBatchDto, DiscardItemDto, SplitItemDto, UploadedItemDto } from './dto/batch-input.dto';
-import type { BatchDetailDto, BatchDto, BatchItemDto, BatchWorkerDto, PreviewItemDto } from './dto/batch.dto';
+import type {
+  ClassifyItemDto,
+  CreateBatchDto,
+  DeleteItemDto,
+  DiscardItemDto,
+  SplitItemDto,
+  UploadedItemDto,
+} from './dto/batch-input.dto';
+import type { BatchDetailDto, BatchDto, BatchItemDto, BatchWorkerDto, DeleteItemResultDto, PreviewItemDto } from './dto/batch.dto';
 
 const LOTES_LISTADOS = 60;
 
@@ -392,6 +399,63 @@ export class BatchesService {
     });
     await this.borrarSubida(item.subidaId);
     return this.aItemDto(await this.cargarItem(loteId, itemId));
+  }
+
+  async eliminarItem(
+    loteId: string,
+    itemId: string,
+    datos: DeleteItemDto,
+    sesion: SesionActiva,
+    cliente: DatosCliente,
+  ): Promise<DeleteItemResultDto> {
+    const item = await this.cargarItem(loteId, itemId);
+    const eliminable = (estado: string) => estado === 'PENDIENTE' || estado === 'SUBIENDO' || estado === 'ERROR';
+    if (!eliminable(item.estado)) {
+      throw new BadRequestException('Este archivo ya está en el legajo: elimínalo desde la sección del trabajador');
+    }
+    const loteEliminado = await this.prisma.$transaction(async (transaccion) => {
+      await bloquearLote(transaccion, loteId);
+      const vigente = await transaccion.loteItem.findUniqueOrThrow({
+        where: { id: itemId },
+        select: { estado: true, _count: { select: { documentos: true } } },
+      });
+      if (!eliminable(vigente.estado) || vigente._count.documentos > 0) {
+        throw new ConflictException('Otro usuario ya clasificó este archivo');
+      }
+      await transaccion.loteItem.delete({ where: { id: itemId } });
+      await this.auditoria.registrar(
+        {
+          accion: 'LOTE_ITEM_ELIMINAR',
+          entidad: 'lote_item',
+          entidadId: itemId,
+          usuarioId: sesion.usuarioId,
+          cliente,
+          detalle: { lote: loteId, archivo: item.nombreArchivo, estado: vigente.estado, motivo: datos.motivo },
+        },
+        transaccion,
+      );
+      const restantes = await transaccion.loteItem.count({ where: { loteId } });
+      if (restantes === 0) {
+        await transaccion.loteCarga.delete({ where: { id: loteId } });
+        await this.auditoria.registrar(
+          {
+            accion: 'LOTE_ELIMINAR',
+            entidad: 'lote',
+            entidadId: loteId,
+            usuarioId: sesion.usuarioId,
+            cliente,
+            detalle: { motivo: 'Se eliminó su último archivo' },
+          },
+          transaccion,
+        );
+        return true;
+      }
+      await recalcularLote(transaccion, loteId);
+      await transaccion.loteCarga.update({ where: { id: loteId }, data: { total: restantes } });
+      return false;
+    });
+    await this.borrarSubida(item.subidaId);
+    return { loteEliminado };
   }
 
   private async diagnosticar(nombres: string[], sesion: SesionActiva): Promise<Diagnostico[]> {
