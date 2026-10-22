@@ -162,7 +162,7 @@ h3 {
   }
 }
 
-.principal,
+.documento .principal,
 .carga {
   display: grid;
   min-width: 0;
@@ -170,7 +170,7 @@ h3 {
   color: var(--tinta-suave);
 }
 
-.principal strong {
+.documento .principal strong {
   overflow: hidden;
   color: var(--tinta);
   font-size: 13.5px;
