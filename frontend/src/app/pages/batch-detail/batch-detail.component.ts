@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, linkedSignal, resource, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
-import { BatchItemDialogComponent } from '../../components/batch-item-dialog/batch-item-dialog.component';
+import { Router, RouterLink } from '@angular/router';
+import { BatchItemDialogComponent, type ItemEliminado } from '../../components/batch-item-dialog/batch-item-dialog.component';
 import { SearchSelectComponent, type OpcionBuscable, type ValorOpcion } from '../../components/search-select/search-select.component';
 import { SkeletonComponent } from '../../components/skeleton/skeleton.component';
 import { mensajeDeError } from '../../core/errors';
@@ -29,6 +29,7 @@ const INTERVALO_MS = 3000;
 })
 export class BatchDetailComponent {
   private readonly servicio = inject(BatchesService);
+  private readonly router = inject(Router);
 
   readonly id = input.required<string>();
 
@@ -121,6 +122,22 @@ export class BatchDetailComponent {
     if (item.estado === 'PENDIENTE') {
       this.seleccionadoId.set(item.id);
     }
+  }
+
+  protected eliminable(item: ItemLote): boolean {
+    return (item.estado === 'ERROR' || item.estado === 'SUBIENDO') && item.documentos.length === 0;
+  }
+
+  protected alEliminar(resultado: ItemEliminado): void {
+    this.seleccionadoId.set(null);
+    if (resultado.loteEliminado) {
+      void this.router.navigate(['/bulk-upload']);
+      return;
+    }
+    this.lote.update((actual) =>
+      actual === undefined ? actual : { ...actual, items: actual.items.filter((existente) => existente.id !== resultado.itemId) },
+    );
+    this.lote.reload();
   }
 
   protected alActualizar(item: ItemLote): void {
