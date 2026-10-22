@@ -100,4 +100,5 @@
   [trabajador]="contexto.detalle.value() ?? null"
   (cerrar)="seleccionadoId.set(null)"
   (actualizado)="contexto.actualizarDocumento($event)"
+  (eliminado)="seleccionadoId.set(null); contexto.quitarDocumento($event)"
 />
