@@ -45,7 +45,7 @@ import {
 import { PdfPickerComponent } from '../pdf-picker/pdf-picker.component';
 import { SearchSelectComponent, type OpcionBuscable } from '../search-select/search-select.component';
 
-type Modo = 'detalle' | 'editar' | 'reemplazar' | 'anular' | 'visor' | 'movimiento' | 'cese' | 'reingreso';
+type Modo = 'detalle' | 'editar' | 'reemplazar' | 'anular' | 'eliminar' | 'visor' | 'movimiento' | 'cese' | 'reingreso';
 type MovimientoReal = Exclude<Movimiento, 'SIN_MOVIMIENTO'>;
 
 const TITULOS: Record<Modo, string> = {
@@ -53,6 +53,7 @@ const TITULOS: Record<Modo, string> = {
   editar: 'Modificar datos del PDF',
   reemplazar: 'Reemplazar el mismo PDF',
   anular: 'Anular PDF',
+  eliminar: 'Eliminar documento definitivamente',
   visor: 'Visor de PDF',
   movimiento: 'Confirmar movimiento laboral · Sección 07',
   cese: 'Confirmar cese laboral · Sección 11',
@@ -103,6 +104,7 @@ export class DocumentDialogComponent implements OnDestroy {
   );
   readonly cerrar = output();
   readonly actualizado = output<Documento>();
+  readonly eliminado = output<string>();
   readonly fichaActualizada = output();
 
   protected readonly textoEstado = TEXTO_ESTADO_DOCUMENTO;
@@ -328,6 +330,41 @@ export class DocumentDialogComponent implements OnDestroy {
       return;
     }
     await this.ejecutar(() => this.servicio.anular(documento.id, this.motivo.value.trim()), 'Documento anulado y conservado en la lista.');
+  }
+
+  protected readonly efectosEliminacion = computed(() => {
+    const documento = this.documento();
+    if (documento === null) {
+      return [];
+    }
+    return [
+      ...(documento.movimientoId !== null ? ['sustenta un movimiento confirmado, que quedará en el historial sin su documento'] : []),
+      ...(documento.vinculoId !== null ? ['sustenta un período laboral del historial, que quedará sin este PDF'] : []),
+      ...(documento.confirmadoEn !== null ? ['sustenta una confirmación de la Sección 01 (cese o reingreso), que no se revierte'] : []),
+    ];
+  });
+
+  protected async eliminar(): Promise<void> {
+    const documento = this.documento();
+    this.motivo.markAsTouched();
+    if (documento === null) {
+      return;
+    }
+    if (this.motivo.value.trim().length < MINIMO_MOTIVO) {
+      this.error.set(`Ingresa un motivo de al menos ${MINIMO_MOTIVO} caracteres.`);
+      return;
+    }
+    this.ocupado.set(true);
+    this.error.set(null);
+    try {
+      await this.servicio.eliminar(documento.id, this.motivo.value.trim());
+      this.eliminado.emit(documento.id);
+      this.avisos.exito('Documento eliminado definitivamente. Quedó registrado en la auditoría.');
+    } catch (error: unknown) {
+      this.error.set(mensajeDeError(error));
+    } finally {
+      this.ocupado.set(false);
+    }
   }
 
   protected async reintentar(): Promise<void> {
