@@ -16,7 +16,14 @@ import {
 import { SearchSelectComponent, type OpcionBuscable, type ValorOpcion } from '../search-select/search-select.component';
 import { WorkerPickerComponent } from '../worker-picker/worker-picker.component';
 
-type Pestana = 'clasificar' | 'dividir' | 'descartar';
+type Pestana = 'clasificar' | 'dividir' | 'descartar' | 'eliminar';
+
+export interface ItemEliminado {
+  itemId: string;
+  loteEliminado: boolean;
+}
+
+const MINIMO_MOTIVO_ELIMINAR = 10;
 
 interface Rango {
   clave: number;
@@ -43,12 +50,16 @@ export class BatchItemDialogComponent {
   readonly secciones = input.required<SeccionLegajo[]>();
   readonly cerrar = output();
   readonly actualizado = output<ItemLote>();
+  readonly eliminado = output<ItemEliminado>();
 
   protected readonly tamanoLegible = tamanoLegible;
+  protected readonly minimoMotivoEliminar = MINIMO_MOTIVO_ELIMINAR;
+
+  protected readonly pendiente = computed(() => this.item()?.estado === 'PENDIENTE');
 
   protected readonly pestana = linkedSignal<string | undefined, Pestana>({
     source: () => this.item()?.id,
-    computation: () => 'clasificar',
+    computation: () => (this.item()?.estado === 'PENDIENTE' ? 'clasificar' : 'eliminar'),
   });
   protected readonly ocupado = signal(false);
   protected readonly error = signal<string | null>(null);
@@ -215,6 +226,30 @@ export class BatchItemDialogComponent {
       return;
     }
     await this.ejecutar(() => this.servicio.descartar(this.loteId(), item.id, this.motivo.value.trim()), 'Archivo descartado');
+  }
+
+  protected async eliminar(): Promise<void> {
+    const item = this.item();
+    this.motivo.markAsTouched();
+    if (item === null || this.ocupado()) {
+      return;
+    }
+    const motivo = this.motivo.value.trim();
+    if (motivo.length < MINIMO_MOTIVO_ELIMINAR) {
+      this.error.set(`Indica el motivo (mínimo ${MINIMO_MOTIVO_ELIMINAR} caracteres).`);
+      return;
+    }
+    this.ocupado.set(true);
+    this.error.set(null);
+    try {
+      const resultado = await this.servicio.eliminar(this.loteId(), item.id, motivo);
+      this.avisos.exito(resultado.loteEliminado ? 'Archivo eliminado. El lote quedó vacío y también se eliminó.' : 'Archivo eliminado');
+      this.eliminado.emit({ itemId: item.id, loteEliminado: resultado.loteEliminado });
+    } catch (error: unknown) {
+      this.error.set(mensajeDeError(error));
+    } finally {
+      this.ocupado.set(false);
+    }
   }
 
   protected motivoInvalido(): boolean {
