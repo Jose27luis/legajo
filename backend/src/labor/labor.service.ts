@@ -107,7 +107,7 @@ export class LaborService {
   ): Promise<void> {
     const vigente = await transaccion.documento.findUnique({ where: { id: documentoId }, select: { vinculoId: true } });
     if (vigente?.vinculoId != null) {
-      await this.vencimientos.extender(transaccion, vigente.vinculoId, actor(sesion, cliente), documentoId);
+      await this.vencimientos.ajustarFin(transaccion, vigente.vinculoId, actor(sesion, cliente), documentoId);
     }
   }
 
