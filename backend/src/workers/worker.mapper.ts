@@ -100,7 +100,7 @@ export function aDetalleDto(trabajador: TrabajadorDetalle): WorkerDetailDto {
   const actual = trabajador.vinculos.find((vinculo) => vinculo.actual);
   return {
     ...base(trabajador, actual),
-    finContrato: actual === undefined || actual.fechaFin !== null ? null : finDeContrato(actual.documentos),
+    finContrato: actual === undefined ? null : finDeContrato(actual.documentos),
     fechaNacimiento: aTextoOpcional(trabajador.fechaNacimiento),
     sexo: trabajador.sexo,
     estadoCivil: trabajador.estadoCivil,
