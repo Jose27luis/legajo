@@ -703,7 +703,8 @@ stateDiagram-v2
 
 - Mientras un reemplazo está en proceso, la versión anterior sigue visible.
 - Un documento anulado no aparece en el legajo ni en las descargas, pero lo pueden ver con un filtro los roles con permiso `documentos.anular`.
-- Con el permiso `documentos.eliminar` un documento se elimina en cualquier estado, sin anularlo antes. Si sustentaba un movimiento, un período o un cese, esos registros se mantienen sin el PDF. Si era el contrato de una adenda, la adenda muestra «Contrato no disponible».
+- Con el permiso `documentos.eliminar` un documento se elimina en cualquier estado, sin anularlo antes. Si sustentaba un movimiento o un cese, esos registros se mantienen sin el PDF. Si era el contrato de una adenda, la adenda muestra «Contrato no disponible».
+- Si el documento eliminado es el contrato, la adenda o la resolución de un período del historial y ningún otro lo sustenta, el período también se elimina, aunque sea el único. Los datos del período quedan en la auditoría (`VINCULO_ELIMINAR`). Si era el período vigente, el anterior vuelve a serlo: se reabre si se había cerrado por renovación, cambio de régimen o cambio de cargo o área, y se mantiene cerrado si terminó en un cese. Si no queda ningún período, el trabajador pasa a cesado sin régimen, cargo ni área, y para darle uno nuevo se registra su reingreso desde la ficha.
 
 ## Flujos
 
