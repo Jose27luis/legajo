@@ -341,7 +341,13 @@ export class DocumentDialogComponent implements OnDestroy {
     }
     return [
       ...(documento.movimientoId !== null ? ['sustenta un movimiento confirmado, que quedará en el historial sin su documento'] : []),
-      ...(documento.vinculoId !== null ? ['sustenta un período laboral del historial, que quedará sin este PDF'] : []),
+      ...(documento.vinculoId !== null && documento.tipo.accion === 'VINCULO'
+        ? [
+            'es el contrato de un período del historial laboral: el período también se eliminará, salvo que otro contrato o adenda lo sustente',
+          ]
+        : documento.vinculoId !== null
+          ? ['sustenta un período laboral del historial, que quedará sin este PDF']
+          : []),
       ...(documento.confirmadoEn !== null ? ['sustenta una confirmación de la Sección 01 (cese o reingreso), que no se revierte'] : []),
     ];
   });
