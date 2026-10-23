@@ -249,6 +249,7 @@ export class DocumentsService {
         },
         transaccion,
       );
+      await this.laboral.alEditar(transaccion, documento, sesion, cliente);
       return documento;
     });
     return aDocumentoDto(actualizado, sesion);
