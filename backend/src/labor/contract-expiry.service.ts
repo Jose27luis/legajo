@@ -79,7 +79,7 @@ export class ContractExpiryService {
     return true;
   }
 
-  async extender(
+  async ajustarFin(
     transaccion: Prisma.TransactionClient,
     vinculoId: string,
     actor: ActorVencimiento = SISTEMA,
@@ -102,8 +102,27 @@ export class ContractExpiryService {
     }
     const finActual = aTexto(vinculo.fechaFin);
     const fin = finDeContrato(vinculo.documentos);
-    if (fin === null || fin <= finActual) {
+    if (fin === null || fin === finActual) {
       return false;
+    }
+    if (fin < finActual) {
+      if (fin < aTexto(vinculo.fechaInicio)) {
+        return false;
+      }
+      await transaccion.vinculo.update({ where: { id: vinculo.id }, data: { fechaFin: aFecha(fin) } });
+      await this.auditoria.registrar(
+        {
+          accion: 'VINCULO_ACORTAR',
+          entidad: 'vinculo',
+          entidadId: vinculo.id,
+          trabajadorId: vinculo.trabajadorId,
+          usuarioId: actor.usuarioId,
+          cliente: actor.cliente ?? undefined,
+          detalle: { finAnterior: finActual, finNuevo: fin, documento: documentoId },
+        },
+        transaccion,
+      );
+      return true;
     }
     let nuevoFin: string | null = fin;
     if (vinculo.actual) {
@@ -149,26 +168,26 @@ export class ContractExpiryService {
     return true;
   }
 
-  async extenderTodos(): Promise<number> {
+  async ajustarTodos(): Promise<number> {
     const candidatos = await this.prisma.vinculo.findMany({
       where: { motivoFin: 'FIN_CONTRATO', fechaFin: { not: null }, documentos: { some: SUSTENTOS_VIGENTES } },
       select: { id: true, fechaFin: true, documentos: { where: SUSTENTOS_VIGENTES, select: { datos: true } } },
     });
-    let extendidos = 0;
+    let ajustados = 0;
     for (const candidato of candidatos) {
       const fin = finDeContrato(candidato.documentos);
-      if (fin === null || candidato.fechaFin === null || fin <= aTexto(candidato.fechaFin)) {
+      if (fin === null || candidato.fechaFin === null || fin === aTexto(candidato.fechaFin)) {
         continue;
       }
-      const aplicado = await this.prisma.$transaction((transaccion) => this.extender(transaccion, candidato.id));
+      const aplicado = await this.prisma.$transaction((transaccion) => this.ajustarFin(transaccion, candidato.id));
       if (aplicado) {
-        extendidos += 1;
+        ajustados += 1;
       }
     }
-    if (extendidos > 0) {
-      this.bitacora.log(`${extendidos} período(s) extendidos por adendas`);
+    if (ajustados > 0) {
+      this.bitacora.log(`${ajustados} período(s) con el fin ajustado a su contrato y adendas`);
     }
-    return extendidos;
+    return ajustados;
   }
 
   async vencerTodos(): Promise<number> {
