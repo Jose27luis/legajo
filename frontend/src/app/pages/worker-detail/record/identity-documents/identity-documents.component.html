@@ -6,7 +6,7 @@
   <p class="aviso sensible">La copia del DNI contiene datos personales. Solo debe ser consultada y descargada por usuarios autorizados.</p>
 
   <div class="tabla-contenedor">
-    <table class="tabla">
+    <table class="tabla apilable">
       <thead>
         <tr>
           <th scope="col">Tipo / archivo</th>
@@ -22,10 +22,10 @@
               <strong>{{ documento.tipo.nombre }}</strong>
               <span class="secundario">{{ nombreArchivo(documento) }}</span>
             </td>
-            <td>
+            <td data-etiqueta="Estado">
               <span class="pastilla" [class]="claseEstado[documento.estado]">{{ textoEstado[documento.estado] }}</span>
             </td>
-            <td class="fecha">{{ fechaHora(documento.creadoEn) }}</td>
+            <td class="fecha" data-etiqueta="Cargado el">{{ fechaHora(documento.creadoEn) }}</td>
             <td>
               <div class="fila-acciones">
                 <button type="button" class="boton chico" (click)="seleccionadoId.set(documento.id)">Ver detalle</button>
