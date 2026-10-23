@@ -497,6 +497,7 @@ export const TIPOS_DOCUMENTO: readonly TipoSemilla[] = [
 
   tipo('0401', 'Documentos que acreditan tiempo de servicio', FORMULARIO_ENTIDAD, CAMPOS_TIEMPO_SERVICIO),
   tipo('0402', 'Documentos que acreditan funciones desempeñadas', FORMULARIO_ENTIDAD, CAMPOS_FUNCIONES),
+  tipo('0403', 'Otros documentos que acrediten el tiempo de servicio', FORMULARIO_ENTIDAD, CAMPOS_FUNCIONES),
 
   tipo(
     '0501',
