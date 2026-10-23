@@ -295,7 +295,7 @@ export class DocumentsService {
   async eliminar(id: string, datos: DeleteDocumentDto, sesion: SesionActiva, cliente: DatosCliente): Promise<void> {
     const actual = await this.cargarVisible(id, sesion);
     await this.autenticacion.confirmarClave(sesion, datos.clave, cliente);
-    const versionActual =actual.archivos.find((archivo) => archivo.id === actual.archivoActualId) ?? null;
+    const versionActual = actual.archivos.find((archivo) => archivo.id === actual.archivoActualId) ?? null;
     await this.prisma.$transaction(async (transaccion) => {
       await transaccion.$executeRaw`SELECT set_config('legajos.eliminar_documento', 'on', true)`;
       await transaccion.documento.update({
@@ -305,6 +305,7 @@ export class DocumentsService {
       const movimientos = await transaccion.movimientoLaboral.updateMany({ where: { documentoId: id }, data: { documentoId: null } });
       const archivos = await transaccion.documentoArchivo.deleteMany({ where: { documentoId: id } });
       await transaccion.documento.delete({ where: { id } });
+      const periodoEliminado = await this.laboral.alEliminar(transaccion, actual, sesion, cliente);
       await this.auditoria.registrar(
         {
           accion: 'DOCUMENTO_ELIMINAR',
@@ -322,6 +323,7 @@ export class DocumentsService {
             archivos: archivos.count,
             vinculo: actual.vinculoId,
             movimientoDesvinculado: movimientos.count > 0,
+            periodoEliminado,
           },
         },
         transaccion,
