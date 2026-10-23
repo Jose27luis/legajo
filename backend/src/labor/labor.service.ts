@@ -87,7 +87,28 @@ export class LaborService {
       return;
     }
     await this.registrarVinculo(transaccion, documento, vinculoElegido, sesion, cliente);
+    await this.extenderPeriodo(transaccion, documento.id, sesion, cliente);
     await this.vencimientos.vencer(transaccion, documento.trabajadorId, actor(sesion, cliente));
+  }
+
+  async alEditar(transaccion: Prisma.TransactionClient, documento: DocumentoCompleto, sesion: SesionActiva, cliente: DatosCliente): Promise<void> {
+    if (documento.tipoDocumento.accion !== 'VINCULO' || documento.vinculoId === null) {
+      return;
+    }
+    await this.extenderPeriodo(transaccion, documento.id, sesion, cliente);
+    await this.vencimientos.vencer(transaccion, documento.trabajadorId, actor(sesion, cliente));
+  }
+
+  private async extenderPeriodo(
+    transaccion: Prisma.TransactionClient,
+    documentoId: string,
+    sesion: SesionActiva,
+    cliente: DatosCliente,
+  ): Promise<void> {
+    const vigente = await transaccion.documento.findUnique({ where: { id: documentoId }, select: { vinculoId: true } });
+    if (vigente?.vinculoId != null) {
+      await this.vencimientos.extender(transaccion, vigente.vinculoId, actor(sesion, cliente), documentoId);
+    }
   }
 
   async alEliminar(
@@ -296,6 +317,7 @@ export class LaborService {
         throw new BadRequestException('El trabajador está cesado: confirma el reingreso desde el detalle del documento');
       }
       await this.registrarVinculo(transaccion, documento, null, sesion, cliente);
+      await this.extenderPeriodo(transaccion, documento.id, sesion, cliente);
       await this.vencimientos.vencer(transaccion, trabajador.id, actor(sesion, cliente));
     });
     return aDocumentoDto(await this.cargar(id, sesion), sesion);
@@ -324,6 +346,7 @@ export class LaborService {
       if (reingresoPendiente && vinculo.actual && trabajador.estado === 'ACTIVO') {
         await this.marcarConfirmado(transaccion, documento, sesion, cliente);
       }
+      await this.extenderPeriodo(transaccion, documento.id, sesion, cliente);
       await this.vencimientos.vencer(transaccion, trabajador.id, actor(sesion, cliente));
     });
     return aDocumentoDto(await this.cargar(id, sesion), sesion);
