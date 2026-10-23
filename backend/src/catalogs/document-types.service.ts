@@ -61,7 +61,10 @@ export class DocumentTypesService {
       where: { seccionId: seccion.id },
       select: { codigo: true },
     });
-    const correlativos = usados.map((tipo) => Number(tipo.codigo.slice(2))).filter((valor) => valor <= ULTIMO_CORRELATIVO);
+    const correlativos = usados
+      .filter((tipo) => tipo.codigo.startsWith(prefijo))
+      .map((tipo) => Number(tipo.codigo.slice(2)))
+      .filter((valor) => valor <= ULTIMO_CORRELATIVO);
     const siguiente = (correlativos.length === 0 ? 0 : Math.max(...correlativos)) + 1;
     if (siguiente > ULTIMO_CORRELATIVO) {
       throw new BadRequestException('La sección ya no tiene códigos disponibles');
