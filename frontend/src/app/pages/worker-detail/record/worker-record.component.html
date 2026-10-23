@@ -232,7 +232,7 @@
       <p class="nota">No hay familiares registrados.</p>
     } @else {
       <div class="tabla-contenedor">
-        <table class="tabla">
+        <table class="tabla apilable">
           <thead>
             <tr>
               <th scope="col">Parentesco</th>
@@ -245,10 +245,10 @@
           <tbody>
             @for (familiar of trabajador.familiares; track familiar.id) {
               <tr>
-                <td>{{ familiar.parentesco }}</td>
-                <td>{{ familiar.nombresApellidos }}</td>
-                <td>{{ familiar.numeroDoc ?? '' }}</td>
-                <td>{{ familiar.fechaNacimiento ? fechaCorta(familiar.fechaNacimiento) : '' }}</td>
+                <td data-etiqueta="Parentesco">{{ familiar.parentesco }}</td>
+                <td data-etiqueta="Nombres y apellidos">{{ familiar.nombresApellidos }}</td>
+                <td data-etiqueta="Documento">{{ familiar.numeroDoc ?? '' }}</td>
+                <td data-etiqueta="Nacimiento">{{ familiar.fechaNacimiento ? fechaCorta(familiar.fechaNacimiento) : '' }}</td>
                 <td>
                   @if (sesion.tiene('personal.editar')) {
                     <div class="fila-acciones">
