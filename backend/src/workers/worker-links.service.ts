@@ -94,11 +94,11 @@ export class WorkerLinksService {
     if (trabajador.estado !== 'CESADO') {
       throw new BadRequestException('Solo se registra reingreso de un trabajador cesado');
     }
-    const ultimo = this.vinculoActual(trabajador);
-    if (ultimo.motivoFin === 'FALLECIMIENTO') {
+    const ultimo = trabajador.vinculos.find((item) => item.actual) ?? null;
+    if (ultimo?.motivoFin === 'FALLECIMIENTO') {
       throw new BadRequestException('No se puede registrar reingreso: el cese fue por fallecimiento');
     }
-    if (ultimo.fechaFin !== null && datos.fechaIngreso <= aTexto(ultimo.fechaFin)) {
+    if (ultimo?.fechaFin != null && datos.fechaIngreso <= aTexto(ultimo.fechaFin)) {
       throw new BadRequestException('La fecha de reingreso debe ser posterior al último cese');
     }
     if (datos.fechaIngreso > hoyEnLima()) {
@@ -107,7 +107,9 @@ export class WorkerLinksService {
     await exigirCatalogosActivos(this.prisma, datos);
 
     await this.prisma.$transaction(async (transaccion) => {
-      await transaccion.vinculo.update({ where: { id: ultimo.id }, data: { actual: false } });
+      if (ultimo !== null) {
+        await transaccion.vinculo.update({ where: { id: ultimo.id }, data: { actual: false } });
+      }
       const nuevo = await transaccion.vinculo.create({
         data: {
           trabajadorId: id,
