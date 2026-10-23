@@ -81,7 +81,7 @@
           <dd>{{ fechaCorta(trabajador.fechaIngreso) }}</dd>
         </div>
         <div>
-          <dt>Fin del contrato vigente</dt>
+          <dt>{{ trabajador.estado === 'ACTIVO' ? 'Fin del contrato vigente' : 'Fin del último contrato' }}</dt>
           <dd>
             {{
               trabajador.finContrato
