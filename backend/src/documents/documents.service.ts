@@ -18,7 +18,8 @@ import type { DatosCliente } from '../common/client';
 import type { SesionActiva } from '../common/session';
 import { aFecha, aTextoOpcional, hoyEnLima } from '../common/dates';
 import { aTipoDto } from '../catalogs/document-types.service';
-import { leerCampos, referenciasACatalogo, validarDatos, type CatalogoReferido } from '../catalogs/section-fields';
+import { leerCampos, referenciasACatalogo, validarDatos, type CatalogoReferido, type ValorCampo } from '../catalogs/section-fields';
+import type { SectionFieldDto } from '../catalogs/dto/catalog.dto';
 import type {
   CreateDocumentDto,
   DeleteDocumentDto,
@@ -64,8 +65,29 @@ const CAMPOS_HISTORIAL: Readonly<Record<string, string>> = {
   observaciones: 'Descripción',
   ubicacionFisica: 'Ubicación física',
   nivelAcceso: 'Nivel de acceso',
-  datos: 'Datos propios',
 };
+
+const FECHAS_HISTORIAL = new Set(['fechaEmision', 'fechaVencimiento']);
+const FECHA_ISO = /^\d{4}-\d{2}-\d{2}$/;
+const datosHistorial = z.record(z.string(), z.union([z.string(), z.number(), z.null()]));
+
+function leerDatosHistorial(texto: string | null | undefined): Record<string, ValorCampo> {
+  if (texto === null || texto === undefined || texto === '') {
+    return {};
+  }
+  try {
+    const crudo: unknown = JSON.parse(texto);
+    const resultado = datosHistorial.safeParse(crudo);
+    return resultado.success ? resultado.data : {};
+  } catch {
+    return {};
+  }
+}
+
+function fechaLegible(texto: string): string {
+  const [anio, mes, dia] = texto.split('-');
+  return `${dia}/${mes}/${anio}`;
+}
 
 const valoresHistorial = z.record(z.string(), z.union([z.string(), z.null()]));
 const esquemaDetalle = z.object({
@@ -591,28 +613,97 @@ export class DocumentsService {
   }
 
   async historial(id: string, sesion: SesionActiva): Promise<DocumentHistoryEntryDto[]> {
-    await this.cargarVisible(id, sesion);
-    const registros = await this.prisma.auditoria.findMany({
-      where: { entidad: 'documento', entidadId: id, accion: { in: Object.keys(EVENTOS_DOCUMENTO) } },
-      include: { usuario: { select: { nombreCompleto: true } } },
-      orderBy: [{ fecha: 'asc' }, { id: 'asc' }],
-    });
-    return registros.map((registro) => {
+    const documento = await this.cargarVisible(id, sesion);
+    const [seccion, registros] = await Promise.all([
+      this.prisma.seccion.findUnique({ where: { id: documento.tipoDocumento.seccionId }, select: { campos: true } }),
+      this.prisma.auditoria.findMany({
+        where: { entidad: 'documento', entidadId: id, accion: { in: Object.keys(EVENTOS_DOCUMENTO) } },
+        include: { usuario: { select: { nombreCompleto: true } } },
+        orderBy: [{ fecha: 'asc' }, { id: 'asc' }],
+      }),
+    ]);
+    const campos = [...leerCampos(seccion?.campos ?? []), ...leerCampos(documento.tipoDocumento.campos)];
+    const lecturas = registros.map((registro) => {
       const detalle = esquemaDetalle.safeParse(registro.detalle);
       const datos = detalle.success ? detalle.data : {};
       const antes = datos.antes ?? {};
       const despues = datos.despues ?? {};
-      const cambios = Object.entries(CAMPOS_HISTORIAL)
+      return { registro, datos, antes, despues, datosAntes: leerDatosHistorial(antes['datos']), datosDespues: leerDatosHistorial(despues['datos']) };
+    });
+    const nombres = await this.nombresHistorial(
+      campos,
+      lecturas.flatMap((lectura) => [lectura.datosAntes, lectura.datosDespues]),
+    );
+    const mostrar = (campo: SectionFieldDto | undefined, valor: ValorCampo | undefined): string | null => {
+      if (valor === undefined || valor === null || valor === '') {
+        return null;
+      }
+      if (campo?.tipo === 'fecha' && typeof valor === 'string' && FECHA_ISO.test(valor)) {
+        return fechaLegible(valor);
+      }
+      if ((campo?.tipo === 'regimen' || campo?.tipo === 'area' || campo?.tipo === 'cargo') && typeof valor === 'number') {
+        return nombres[campo.tipo].get(valor) ?? String(valor);
+      }
+      if (campo?.tipo === 'contrato' && typeof valor === 'string') {
+        return nombres.contrato.get(valor) ?? 'Contrato no disponible';
+      }
+      return String(valor);
+    };
+    return lecturas.map(({ registro, datos, antes, despues, datosAntes, datosDespues }) => {
+      const generales = Object.entries(CAMPOS_HISTORIAL)
         .filter(([clave]) => (antes[clave] ?? null) !== (despues[clave] ?? null))
-        .map(([clave, campo]) => ({ campo, antes: antes[clave] ?? null, despues: despues[clave] ?? null }));
+        .map(([clave, campo]) => {
+          const formatear = (valor: string | null) => (valor !== null && FECHAS_HISTORIAL.has(clave) && FECHA_ISO.test(valor) ? fechaLegible(valor) : valor);
+          return { campo, antes: formatear(antes[clave] ?? null), despues: formatear(despues[clave] ?? null) };
+        });
+      const claves = [
+        ...campos.map((campo) => campo.clave),
+        ...[...Object.keys(datosAntes), ...Object.keys(datosDespues)].filter((clave) => !campos.some((campo) => campo.clave === clave)),
+      ].filter((clave, indice, lista) => lista.indexOf(clave) === indice);
+      const propios = claves
+        .filter((clave) => (datosAntes[clave] ?? null) !== (datosDespues[clave] ?? null))
+        .map((clave) => {
+          const campo = campos.find((item) => item.clave === clave);
+          return { campo: campo?.etiqueta ?? clave, antes: mostrar(campo, datosAntes[clave]), despues: mostrar(campo, datosDespues[clave]) };
+        });
       return {
         fecha: registro.fecha.toISOString(),
         evento: EVENTOS_DOCUMENTO[registro.accion] ?? registro.accion,
         usuario: registro.usuario?.nombreCompleto ?? null,
         motivo: datos.motivo ?? null,
-        cambios,
+        cambios: [...generales, ...propios],
       };
     });
+  }
+
+  private async nombresHistorial(
+    campos: SectionFieldDto[],
+    valores: Record<string, ValorCampo>[],
+  ): Promise<Record<CatalogoReferido | 'contrato', Map<number | string, string>>> {
+    const ids = (tipo: SectionFieldDto['tipo']) =>
+      campos
+        .filter((campo) => campo.tipo === tipo)
+        .flatMap((campo) => valores.map((datos) => datos[campo.clave]))
+        .filter((valor): valor is number => typeof valor === 'number');
+    const contratos = campos
+      .filter((campo) => campo.tipo === 'contrato')
+      .flatMap((campo) => valores.map((datos) => datos[campo.clave]))
+      .filter((valor): valor is string => typeof valor === 'string' && valor !== '');
+    const [regimenes, areas, cargos, documentos] = await Promise.all([
+      this.prisma.regimen.findMany({ where: { id: { in: ids('regimen') } }, select: { id: true, nombre: true } }),
+      this.prisma.area.findMany({ where: { id: { in: ids('area') } }, select: { id: true, nombre: true } }),
+      this.prisma.cargo.findMany({ where: { id: { in: ids('cargo') } }, select: { id: true, nombre: true } }),
+      this.prisma.documento.findMany({
+        where: { id: { in: contratos } },
+        select: { id: true, numero: true, tipoDocumento: { select: { nombre: true } } },
+      }),
+    ]);
+    return {
+      regimen: new Map(regimenes.map((item) => [item.id, item.nombre])),
+      area: new Map(areas.map((item) => [item.id, item.nombre])),
+      cargo: new Map(cargos.map((item) => [item.id, item.nombre])),
+      contrato: new Map(documentos.map((item) => [item.id, `${item.tipoDocumento.nombre} N.º ${item.numero ?? 'sin número'}`])),
+    };
   }
 
   private async exigirReferencias(referencias: Record<CatalogoReferido, number[]>): Promise<void> {
