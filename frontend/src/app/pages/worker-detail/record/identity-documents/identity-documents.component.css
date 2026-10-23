@@ -5,6 +5,7 @@
 .cabecera-tarjeta {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 12px;
@@ -17,10 +18,6 @@
 
 .aviso {
   margin-bottom: 12px;
-}
-
-.tabla {
-  min-width: 560px;
 }
 
 .fecha {
