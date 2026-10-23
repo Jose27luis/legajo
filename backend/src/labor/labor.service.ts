@@ -59,6 +59,8 @@ function referencia(documento: DocumentoCompleto): string {
   return `${documento.tipoDocumento.nombre} N.º ${documento.numero ?? 'sin número'}`.slice(0, 160);
 }
 
+const MOTIVOS_TRANSICION: ReadonlySet<string> = new Set(['CAMBIO_REGIMEN', 'CAMBIO_CARGO_O_AREA', 'RENOVACION']);
+
 function actor(sesion: SesionActiva, cliente: DatosCliente): ActorVencimiento {
   return { usuarioId: sesion.usuarioId, cliente };
 }
@@ -88,6 +90,73 @@ export class LaborService {
     await this.vencimientos.vencer(transaccion, documento.trabajadorId, actor(sesion, cliente));
   }
 
+  async alEliminar(
+    transaccion: Prisma.TransactionClient,
+    documento: DocumentoCompleto,
+    sesion: SesionActiva,
+    cliente: DatosCliente,
+  ): Promise<boolean> {
+    if (documento.tipoDocumento.accion !== 'VINCULO' || documento.vinculoId === null) {
+      return false;
+    }
+    const vinculoId = documento.vinculoId;
+    const otrosSustentos = await transaccion.documento.count({
+      where: { id: { not: documento.id }, vinculoId, estado: { not: 'ANULADO' }, tipoDocumento: { accion: 'VINCULO' } },
+    });
+    if (otrosSustentos > 0) {
+      return false;
+    }
+    const trabajador = await this.trabajador(transaccion, documento.trabajadorId);
+    const eliminado = trabajador.vinculos.find((vinculo) => vinculo.id === vinculoId);
+    if (eliminado === undefined) {
+      return false;
+    }
+    await transaccion.documento.updateMany({ where: { vinculoId }, data: { vinculoId: null } });
+    await transaccion.vinculo.delete({ where: { id: vinculoId } });
+    await this.anotar(transaccion, 'VINCULO_ELIMINAR', 'vinculo', vinculoId, trabajador.id, sesion, cliente, {
+      documento: documento.id,
+      fechaInicio: aTexto(eliminado.fechaInicio),
+      fechaFin: eliminado.fechaFin === null ? null : aTexto(eliminado.fechaFin),
+      motivoFin: eliminado.motivoFin,
+      regimen: eliminado.regimenId,
+      cargo: eliminado.cargoId,
+      area: eliminado.areaId,
+      tipoPersonal: eliminado.tipoPersonal,
+      referencia: eliminado.referencia,
+      actual: eliminado.actual,
+    });
+    if (!eliminado.actual) {
+      return true;
+    }
+    const siguiente = trabajador.vinculos.find((vinculo) => vinculo.id !== vinculoId);
+    if (siguiente === undefined) {
+      await transaccion.trabajador.update({
+        where: { id: trabajador.id },
+        data: { estado: 'CESADO', movimientoActual: 'SIN_MOVIMIENTO', movimientoFecha: null },
+      });
+      return true;
+    }
+    const reabrir = siguiente.motivoFin !== null && MOTIVOS_TRANSICION.has(siguiente.motivoFin);
+    await transaccion.vinculo.update({
+      where: { id: siguiente.id },
+      data: reabrir ? { actual: true, fechaFin: null, motivoFin: null } : { actual: true },
+    });
+    await transaccion.trabajador.update({
+      where: { id: trabajador.id },
+      data: {
+        estado: reabrir || siguiente.fechaFin === null ? 'ACTIVO' : 'CESADO',
+        movimientoActual: 'SIN_MOVIMIENTO',
+        movimientoFecha: null,
+      },
+    });
+    await this.anotar(transaccion, 'VINCULO_RESTAURAR', 'vinculo', siguiente.id, trabajador.id, sesion, cliente, {
+      reabierto: reabrir,
+      vinculoEliminado: vinculoId,
+    });
+    await this.vencimientos.vencer(transaccion, trabajador.id, actor(sesion, cliente));
+    return true;
+  }
+
   private async registrarVinculo(
     transaccion: Prisma.TransactionClient,
     documento: DocumentoCompleto,
@@ -96,6 +165,9 @@ export class LaborService {
     cliente: DatosCliente,
   ): Promise<void> {
     const trabajador = await this.trabajador(transaccion, documento.trabajadorId);
+    if (trabajador.vinculos.length === 0) {
+      return;
+    }
     if (vinculoElegido !== null) {
       const vinculo = trabajador.vinculos.find((item) => item.id === vinculoElegido);
       if (vinculo === undefined) {
@@ -262,6 +334,11 @@ export class LaborService {
     this.exigirDisponible(documento, 'VINCULO');
     await this.prisma.$transaction(async (transaccion) => {
       const trabajador = await this.trabajador(transaccion, documento.trabajadorId);
+      if (trabajador.vinculos.length === 0) {
+        throw new BadRequestException(
+          'El trabajador no tiene períodos en su historial: registra el reingreso desde la ficha y luego enlaza este contrato.',
+        );
+      }
       const lectura = this.datosVinculo(documento, trabajador, this.vinculoActual(trabajador));
       if (lectura.inicio === null) {
         throw new BadRequestException('Completa el inicio del vínculo en el documento para confirmar el reingreso');
