@@ -582,6 +582,7 @@ export const TIPOS_DOCUMENTO: readonly TipoSemilla[] = [
   tipo('1105', 'Entrega de cargo o puesto', FORMULARIO_ENTIDAD, CAMPOS_TERMINO),
   tipo('1106', 'Liquidación de beneficios sociales y/o pensión', FORMULARIO_ENTIDAD, CAMPOS_TERMINO),
   tipo('1107', 'Carta de no renovación de contrato a plazo determinado (D. Leg. N.º 1057)', FORMULARIO_ENTIDAD, CAMPOS_CESE, cese),
+  tipo('1108', 'Resolución de término del vínculo laboral', FORMULARIO_ENTIDAD, CAMPOS_CESE, cese),
 
   tipo('1201', 'Otros documentos administrativos del trabajador', FORMULARIO_ENTIDAD, CAMPOS_OTROS),
   tipo('1202', 'Comunicaciones administrativas relevantes', FORMULARIO_ENTIDAD, CAMPOS_OTROS),
