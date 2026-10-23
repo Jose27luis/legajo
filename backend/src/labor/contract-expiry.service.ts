@@ -4,7 +4,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import { leerDatosGuardados } from '../catalogs/section-fields';
 import type { DatosCliente } from '../common/client';
-import { aFecha, aTexto, hoyEnLima } from '../common/dates';
+import { aFecha, aTexto, diaAnterior, hoyEnLima } from '../common/dates';
 
 export interface ActorVencimiento {
   usuarioId: string | null;
@@ -77,6 +77,98 @@ export class ContractExpiryService {
       transaccion,
     );
     return true;
+  }
+
+  async extender(
+    transaccion: Prisma.TransactionClient,
+    vinculoId: string,
+    actor: ActorVencimiento = SISTEMA,
+    documentoId: string | null = null,
+  ): Promise<boolean> {
+    const vinculo = await transaccion.vinculo.findUnique({
+      where: { id: vinculoId },
+      select: {
+        id: true,
+        trabajadorId: true,
+        fechaInicio: true,
+        fechaFin: true,
+        motivoFin: true,
+        actual: true,
+        documentos: { where: SUSTENTOS_VIGENTES, select: { datos: true } },
+      },
+    });
+    if (vinculo === null || vinculo.motivoFin !== 'FIN_CONTRATO' || vinculo.fechaFin === null) {
+      return false;
+    }
+    const finActual = aTexto(vinculo.fechaFin);
+    const fin = finDeContrato(vinculo.documentos);
+    if (fin === null || fin <= finActual) {
+      return false;
+    }
+    let nuevoFin: string | null = fin;
+    if (vinculo.actual) {
+      if (fin >= hoyEnLima()) {
+        nuevoFin = null;
+      }
+    } else {
+      const siguiente = await transaccion.vinculo.findFirst({
+        where: { trabajadorId: vinculo.trabajadorId, id: { not: vinculo.id }, fechaInicio: { gt: vinculo.fechaInicio } },
+        orderBy: { fechaInicio: 'asc' },
+        select: { fechaInicio: true },
+      });
+      const limite = siguiente === null ? null : diaAnterior(aTexto(siguiente.fechaInicio));
+      if (limite !== null && fin > limite) {
+        nuevoFin = limite;
+      }
+      if (nuevoFin !== null && nuevoFin <= finActual) {
+        return false;
+      }
+    }
+    await transaccion.vinculo.update({
+      where: { id: vinculo.id },
+      data: nuevoFin === null ? { fechaFin: null, motivoFin: null } : { fechaFin: aFecha(nuevoFin) },
+    });
+    if (nuevoFin === null) {
+      await transaccion.trabajador.update({
+        where: { id: vinculo.trabajadorId },
+        data: { estado: 'ACTIVO', movimientoActual: 'SIN_MOVIMIENTO', movimientoFecha: null },
+      });
+    }
+    await this.auditoria.registrar(
+      {
+        accion: 'VINCULO_EXTENDER',
+        entidad: 'vinculo',
+        entidadId: vinculo.id,
+        trabajadorId: vinculo.trabajadorId,
+        usuarioId: actor.usuarioId,
+        cliente: actor.cliente ?? undefined,
+        detalle: { finAnterior: finActual, finNuevo: nuevoFin, finContrato: fin, reabierto: nuevoFin === null, documento: documentoId },
+      },
+      transaccion,
+    );
+    return true;
+  }
+
+  async extenderTodos(): Promise<number> {
+    const candidatos = await this.prisma.vinculo.findMany({
+      where: { motivoFin: 'FIN_CONTRATO', fechaFin: { not: null }, documentos: { some: SUSTENTOS_VIGENTES } },
+      select: { id: true, fechaFin: true, documentos: { where: SUSTENTOS_VIGENTES, select: { datos: true } } },
+    });
+    let extendidos = 0;
+    for (const candidato of candidatos) {
+      const fin = finDeContrato(candidato.documentos);
+      if (fin === null || candidato.fechaFin === null || fin <= aTexto(candidato.fechaFin)) {
+        continue;
+      }
+      const aplicado = await this.prisma.$transaction((transaccion) => this.extender(transaccion, candidato.id));
+      if (aplicado) {
+        extendidos += 1;
+      }
+    }
+    if (extendidos > 0) {
+      this.bitacora.log(`${extendidos} período(s) extendidos por adendas`);
+    }
+    return extendidos;
   }
 
   async vencerTodos(): Promise<number> {
