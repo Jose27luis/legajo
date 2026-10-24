@@ -5,6 +5,7 @@ import { NIVELES_ACCESO, TEXTO_NIVEL_ACCESO, hoy } from '../../core/labels';
 import type { CampoSeccion, FormularioTipo, NivelAcceso, SeccionLegajo, TipoDocumento } from '../../core/models';
 import { SessionService } from '../../core/session.service';
 import { LinkOptionsService } from '../../services/link-options.service';
+import { DatePickerComponent } from '../date-picker/date-picker.component';
 import { SearchSelectComponent, type OpcionBuscable } from '../search-select/search-select.component';
 import { opcionesDependientes, sincronizarCampos, type FormularioDocumento } from './document-form';
 
@@ -14,7 +15,7 @@ const FORMULARIO_BASE: FormularioTipo = { numero: 'Número de documento', fechaE
 
 @Component({
   selector: 'app-document-fields',
-  imports: [ReactiveFormsModule, NgTemplateOutlet, SearchSelectComponent],
+  imports: [ReactiveFormsModule, NgTemplateOutlet, SearchSelectComponent, DatePickerComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './document-fields.component.html',
   styleUrl: './document-fields.component.css',
@@ -147,6 +148,6 @@ export class DocumentFieldsComponent {
   }
 
   protected tipoEntrada(campo: CampoSeccion): string {
-    return campo.tipo === 'fecha' ? 'date' : campo.tipo === 'numero' ? 'number' : 'text';
+    return campo.tipo === 'numero' ? 'number' : 'text';
   }
 }
