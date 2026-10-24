@@ -10,12 +10,11 @@
     <form id="formulario-reingreso" (submit)="$event.preventDefault(); guardar()" novalidate>
       <div class="campo fecha">
         <label for="reingreso-fecha">Fecha del nuevo ingreso</label>
-        <input
-          id="reingreso-fecha"
-          type="date"
+        <app-date-picker
+          idCampo="reingreso-fecha"
           [formControl]="fechaIngreso"
           [max]="hoy"
-          [attr.aria-invalid]="fechaIngreso.touched && fechaIngreso.invalid"
+          [invalido]="fechaIngreso.touched && fechaIngreso.invalid"
         />
       </div>
       <app-link-fields [grupo]="vinculo" etiquetaReferencia="Documento del nuevo ingreso" />
