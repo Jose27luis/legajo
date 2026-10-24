@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, OnDestroy, computed, effect, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { DatePickerComponent } from '../../../../components/date-picker/date-picker.component';
 import { DocumentDialogComponent } from '../../../../components/document-dialog/document-dialog.component';
 import { PdfPickerComponent } from '../../../../components/pdf-picker/pdf-picker.component';
 import { SearchSelectComponent, type OpcionBuscable } from '../../../../components/search-select/search-select.component';
@@ -16,7 +17,7 @@ const CODIGO_DNI = '0102';
 
 @Component({
   selector: 'app-identity-documents',
-  imports: [ReactiveFormsModule, PdfPickerComponent, DocumentDialogComponent, SearchSelectComponent],
+  imports: [ReactiveFormsModule, PdfPickerComponent, DocumentDialogComponent, SearchSelectComponent, DatePickerComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './identity-documents.component.html',
   styleUrl: './identity-documents.component.css',
