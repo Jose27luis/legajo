@@ -118,7 +118,7 @@
             </div>
             <div class="campo">
               <label for="periodo-emision">Fecha de emisión</label>
-              <input id="periodo-emision" type="date" formControlName="fechaEmision" [max]="hoy" />
+              <app-date-picker idCampo="periodo-emision" formControlName="fechaEmision" [max]="hoy" />
             </div>
             <div class="campo completo">
               <app-pdf-picker
