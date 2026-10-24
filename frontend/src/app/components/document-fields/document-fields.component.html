@@ -27,7 +27,7 @@
   @if (formulario().fechaEmision; as etiqueta) {
     <div class="campo">
       <label [for]="id('emision')">{{ etiqueta }} <span class="opcional">opcional</span></label>
-      <input [id]="id('emision')" type="date" formControlName="fechaEmision" [max]="hoy" />
+      <app-date-picker [idCampo]="id('emision')" formControlName="fechaEmision" [max]="hoy" />
     </div>
   }
 
@@ -45,7 +45,7 @@
   @if (formulario().fechaVencimiento; as etiqueta) {
     <div class="campo">
       <label [for]="id('vencimiento')">{{ etiqueta }} <span class="opcional">opcional</span></label>
-      <input [id]="id('vencimiento')" type="date" formControlName="fechaVencimiento" />
+      <app-date-picker [idCampo]="id('vencimiento')" formControlName="fechaVencimiento" />
       @if (tipoElegido()?.tieneVencimiento === true) {
         <span class="ayuda">Con la fecha puesta aparece en las alertas de vencimiento.</span>
       }
@@ -78,6 +78,8 @@
             [invalido]="campoInvalido(campo)"
             (cambio)="alCambiarDato(campo)"
           />
+        } @else if (campo.tipo === 'fecha') {
+          <app-date-picker [idCampo]="id('dato-' + campo.clave)" [formControlName]="campo.clave" [invalido]="campoInvalido(campo)" />
         } @else if (campo.tipo === 'parrafo') {
           <textarea
             [id]="id('dato-' + campo.clave)"
