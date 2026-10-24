@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, linkedSignal, resource, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { DatePickerComponent } from '../../components/date-picker/date-picker.component';
 import { SearchSelectComponent, type OpcionBuscable, type ValorOpcion } from '../../components/search-select/search-select.component';
 import { SkeletonComponent } from '../../components/skeleton/skeleton.component';
 import { WorkerPickerComponent } from '../../components/worker-picker/worker-picker.component';
@@ -49,7 +50,7 @@ const OPCIONES_ESTADO: readonly OpcionBuscable[] = [
 
 @Component({
   selector: 'app-search',
-  imports: [RouterLink, WorkerPickerComponent, SkeletonComponent, SearchSelectComponent],
+  imports: [RouterLink, WorkerPickerComponent, SkeletonComponent, SearchSelectComponent, DatePickerComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './search.component.html',
   styleUrl: './search.component.css',
@@ -231,12 +232,12 @@ export class SearchComponent {
     this.filtros.update((actual) => ({ ...actual, trabajadorId: trabajador?.id ?? null }));
   }
 
-  protected cambiarDesde(evento: Event): void {
-    this.filtros.update((actual) => ({ ...actual, desde: this.leer(evento) }));
+  protected cambiarDesde(valor: string): void {
+    this.filtros.update((actual) => ({ ...actual, desde: valor }));
   }
 
-  protected cambiarHasta(evento: Event): void {
-    this.filtros.update((actual) => ({ ...actual, hasta: this.leer(evento) }));
+  protected cambiarHasta(valor: string): void {
+    this.filtros.update((actual) => ({ ...actual, hasta: valor }));
   }
 
   protected limpiar(): void {
@@ -287,12 +288,5 @@ export class SearchComponent {
     } finally {
       this.descargando.set(false);
     }
-  }
-
-  private leer(evento: Event): string {
-    if (evento.target instanceof HTMLInputElement) {
-      return evento.target.value;
-    }
-    return '';
   }
 }
