@@ -15,13 +15,14 @@ import type { Documento, SeccionLegajo, TrabajadorDetalle, Vinculo } from '../..
 import { SessionService } from '../../core/session.service';
 import { ToastService } from '../../core/toast.service';
 import { DocumentsService, mensajeDeSubida, type SubidaEnCurso } from '../../services/documents.service';
+import { DatePickerComponent } from '../date-picker/date-picker.component';
 import { DialogComponent } from '../dialog/dialog.component';
 import { PdfPickerComponent } from '../pdf-picker/pdf-picker.component';
 import { SearchSelectComponent, type OpcionBuscable } from '../search-select/search-select.component';
 
 @Component({
   selector: 'app-period-dialog',
-  imports: [ReactiveFormsModule, DialogComponent, PdfPickerComponent, SearchSelectComponent],
+  imports: [ReactiveFormsModule, DialogComponent, PdfPickerComponent, SearchSelectComponent, DatePickerComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './period-dialog.component.html',
   styleUrl: './period-dialog.component.css',
