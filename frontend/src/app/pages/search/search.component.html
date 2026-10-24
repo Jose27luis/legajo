@@ -55,12 +55,12 @@
 
     <div class="campo">
       <label for="filtro-desde">Emitido desde</label>
-      <input id="filtro-desde" type="date" [value]="filtros().desde" (change)="cambiarDesde($event)" />
+      <app-date-picker idCampo="filtro-desde" [fecha]="filtros().desde" [max]="filtros().hasta" (cambio)="cambiarDesde($event)" />
     </div>
 
     <div class="campo">
       <label for="filtro-hasta">Emitido hasta</label>
-      <input id="filtro-hasta" type="date" [value]="filtros().hasta" (change)="cambiarHasta($event)" />
+      <app-date-picker idCampo="filtro-hasta" [fecha]="filtros().hasta" [min]="filtros().desde" (cambio)="cambiarHasta($event)" />
     </div>
   </div>
 
