@@ -6,15 +6,16 @@ import { valorDe } from '../../core/inputs';
 import type { FiltrosAuditoria } from '../../core/models';
 import { SessionService } from '../../core/session.service';
 import { AuditService } from '../../services/audit.service';
+import { DatePickerComponent } from '../date-picker/date-picker.component';
 import { SearchSelectComponent, type OpcionBuscable, type ValorOpcion } from '../search-select/search-select.component';
 import { SkeletonComponent } from '../skeleton/skeleton.component';
 
-type CampoFiltro = 'numeroDoc' | 'desde' | 'hasta';
+type CampoFiltro = 'numeroDoc';
 type CampoElegible = 'usuarioId' | 'accion';
 
 @Component({
   selector: 'app-audit-log',
-  imports: [RouterLink, SkeletonComponent, SearchSelectComponent],
+  imports: [RouterLink, SkeletonComponent, SearchSelectComponent, DatePickerComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './audit-log.component.html',
   styleUrl: './audit-log.component.css',
@@ -67,6 +68,10 @@ export class AuditLogComponent {
 
   protected cambiar(campo: CampoFiltro, evento: Event): void {
     const valor = valorDe(evento).trim();
+    this.filtros.update((actual) => ({ ...actual, [campo]: valor }));
+  }
+
+  protected cambiarFecha(campo: 'desde' | 'hasta', valor: string): void {
     this.filtros.update((actual) => ({ ...actual, [campo]: valor }));
   }
 
