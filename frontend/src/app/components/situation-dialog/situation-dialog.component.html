@@ -22,7 +22,7 @@
             <label for="situacion-fecha-movimiento">
               Fecha del último movimiento <span class="obligatorio" aria-hidden="true">*</span>
             </label>
-            <input id="situacion-fecha-movimiento" type="date" formControlName="movimientoFecha" [max]="hoy" />
+            <app-date-picker idCampo="situacion-fecha-movimiento" formControlName="movimientoFecha" [max]="hoy" />
           </div>
           <div class="campo">
             <label for="situacion-origen">Área o puesto de origen <span class="obligatorio" aria-hidden="true">*</span></label>
@@ -50,7 +50,7 @@
         </div>
         <div class="campo">
           <label for="situacion-fecha-cese">Fecha de cese <span class="obligatorio" aria-hidden="true">*</span></label>
-          <input id="situacion-fecha-cese" type="date" formControlName="fechaCese" [max]="hoy" />
+          <app-date-picker idCampo="situacion-fecha-cese" formControlName="fechaCese" [max]="hoy" />
         </div>
       }
 
