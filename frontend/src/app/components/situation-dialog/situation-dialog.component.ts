@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, input, output, si
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { DatePickerComponent } from '../date-picker/date-picker.component';
 import { DialogComponent } from '../dialog/dialog.component';
 import { mensajeDeError } from '../../core/errors';
 import { MOTIVOS_CESE, MOVIMIENTOS, TEXTO_MOTIVO_CESE, TEXTO_MOVIMIENTO, hoy, nombreCompleto } from '../../core/labels';
@@ -27,7 +28,7 @@ const OPCIONES_MOTIVO_CESE: readonly OpcionBuscable[] = MOTIVOS_CESE.map((motivo
 
 @Component({
   selector: 'app-situation-dialog',
-  imports: [ReactiveFormsModule, DialogComponent, SearchSelectComponent],
+  imports: [ReactiveFormsModule, DialogComponent, SearchSelectComponent, DatePickerComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './situation-dialog.component.html',
   styleUrl: './situation-dialog.component.css',
