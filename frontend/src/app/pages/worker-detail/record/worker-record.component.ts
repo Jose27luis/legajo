@@ -1,8 +1,10 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, linkedSignal, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, signal, viewChild } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { DatePickerComponent } from '../../../components/date-picker/date-picker.component';
 import { DialogComponent } from '../../../components/dialog/dialog.component';
+import { PagerComponent } from '../../../components/pager/pager.component';
+import { paginar } from '../../../core/pagination';
 import { LinkFieldsComponent } from '../../../components/link-fields/link-fields.component';
 import { crearCamposVinculo, leerCamposVinculo, reiniciarCamposVinculo } from '../../../components/link-fields/link-form';
 import { PeriodDialogComponent } from '../../../components/period-dialog/period-dialog.component';
@@ -88,6 +90,7 @@ const OPCIONES_MOTIVO_CAMBIO: readonly OpcionBuscable[] = MOTIVOS_CAMBIO.map((mo
     UbigeoFieldsComponent,
     EducationFieldsComponent,
     DatePickerComponent,
+    PagerComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './worker-record.component.html',
@@ -126,21 +129,11 @@ export class WorkerRecordComponent {
   protected readonly documentosLegajo = computed(() => (this.contexto.legajo.hasValue() ? this.contexto.legajo.value().documentos : []));
   protected readonly seccionesLegajo = computed(() => (this.contexto.legajo.hasValue() ? this.contexto.legajo.value().secciones : []));
 
-  private readonly vinculos = computed(() => (this.contexto.detalle.hasValue() ? this.contexto.detalle.value().vinculos : []));
-  protected readonly paginasVinculos = computed(() => Math.max(1, Math.ceil(this.vinculos().length / VINCULOS_POR_PAGINA)));
-  protected readonly paginaVinculos = linkedSignal<string | undefined, number>({
-    source: () => (this.contexto.detalle.hasValue() ? this.contexto.detalle.value().id : undefined),
-    computation: () => 0,
-  });
-  protected readonly paginaVinculosVigente = computed(() => Math.min(this.paginaVinculos(), this.paginasVinculos() - 1));
-  protected readonly vinculosVisibles = computed(() => {
-    const inicio = this.paginaVinculosVigente() * VINCULOS_POR_PAGINA;
-    return this.vinculos().slice(inicio, inicio + VINCULOS_POR_PAGINA);
-  });
-
-  protected cambiarPaginaVinculos(desplazamiento: number): void {
-    this.paginaVinculos.set(Math.min(Math.max(this.paginaVinculosVigente() + desplazamiento, 0), this.paginasVinculos() - 1));
-  }
+  protected readonly vinculos = paginar(
+    () => (this.contexto.detalle.hasValue() ? this.contexto.detalle.value().vinculos : []),
+    VINCULOS_POR_PAGINA,
+    () => (this.contexto.detalle.hasValue() ? this.contexto.detalle.value().id : undefined),
+  );
 
   protected ultimoMovimiento(trabajador: TrabajadorDetalle): MovimientoLaboral | null {
     if (trabajador.movimientoActual === 'SIN_MOVIMIENTO') {
