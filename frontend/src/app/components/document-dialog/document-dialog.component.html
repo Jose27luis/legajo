@@ -287,7 +287,7 @@
           </div>
           <div class="campo">
             <label for="confirmar-fecha">Fecha efectiva del movimiento <span class="obligatorio" aria-hidden="true">*</span></label>
-            <input id="confirmar-fecha" type="date" formControlName="fecha" [max]="hoy" />
+            <app-date-picker idCampo="confirmar-fecha" formControlName="fecha" [max]="hoy" />
           </div>
           <div class="campo">
             <label for="confirmar-origen">Área o dependencia de origen <span class="obligatorio" aria-hidden="true">*</span></label>
@@ -317,7 +317,7 @@
           </div>
           <div class="campo">
             <label for="cese-fecha">Fecha efectiva del cese <span class="obligatorio" aria-hidden="true">*</span></label>
-            <input id="cese-fecha" type="date" formControlName="fecha" [max]="hoy" />
+            <app-date-picker idCampo="cese-fecha" formControlName="fecha" [max]="hoy" />
           </div>
           <div class="campo completo">
             <label for="cese-observacion">Observación de confirmación (opcional)</label>
