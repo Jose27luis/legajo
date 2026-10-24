@@ -315,7 +315,7 @@
     </div>
     <div class="campo">
       <label for="familiar-nacimiento">Fecha de nacimiento (opcional)</label>
-      <input id="familiar-nacimiento" type="date" formControlName="fechaNacimiento" [max]="hoy" />
+      <app-date-picker idCampo="familiar-nacimiento" formControlName="fechaNacimiento" [max]="hoy" />
     </div>
     @if (errorFamiliar(); as mensaje) {
       <p class="aviso error" role="alert" animate.enter="aparece">{{ mensaje }}</p>
@@ -402,17 +402,11 @@
     </div>
     <div class="campo">
       <label for="ficha-nacimiento">Fecha de nacimiento</label>
-      <input id="ficha-nacimiento" type="date" formControlName="fechaNacimiento" [max]="hoy" />
+      <app-date-picker idCampo="ficha-nacimiento" formControlName="fechaNacimiento" [max]="hoy" />
     </div>
     <div class="campo">
       <label for="ficha-ingreso">Fecha de ingreso actual</label>
-      <input
-        id="ficha-ingreso"
-        type="date"
-        formControlName="fechaIngreso"
-        [max]="hoy"
-        [attr.aria-invalid]="campoInvalido('fechaIngreso')"
-      />
+      <app-date-picker idCampo="ficha-ingreso" formControlName="fechaIngreso" [max]="hoy" [invalido]="campoInvalido('fechaIngreso')" />
     </div>
     <div class="campo">
       <label for="ficha-sexo">Sexo</label>
@@ -458,7 +452,7 @@
       </div>
       <div class="campo">
         <label for="cambio-fecha">Inicio del nuevo vínculo</label>
-        <input id="cambio-fecha" type="date" [formControl]="fechaCambio" [max]="hoy" />
+        <app-date-picker idCampo="cambio-fecha" [formControl]="fechaCambio" [max]="hoy" />
       </div>
     </div>
     <app-link-fields [grupo]="vinculoCambio" />
