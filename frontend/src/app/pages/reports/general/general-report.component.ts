@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, resource, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { DatePickerComponent } from '../../../components/date-picker/date-picker.component';
 import { DossierDialogComponent, type TrabajadorExpediente } from '../../../components/dossier-dialog/dossier-dialog.component';
 import { SearchSelectComponent, type OpcionBuscable, type ValorOpcion } from '../../../components/search-select/search-select.component';
 import { SkeletonComponent } from '../../../components/skeleton/skeleton.component';
@@ -53,7 +54,7 @@ const escapar = (valor: string | number | null): string =>
 
 @Component({
   selector: 'app-general-report',
-  imports: [RouterLink, WorkerPickerComponent, DossierDialogComponent, SkeletonComponent, SearchSelectComponent],
+  imports: [RouterLink, WorkerPickerComponent, DossierDialogComponent, SkeletonComponent, SearchSelectComponent, DatePickerComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './general-report.component.html',
   styleUrl: './general-report.component.css',
@@ -98,8 +99,7 @@ export class GeneralReportComponent {
   private elegidoDesdeBusqueda = false;
   private temporizador: ReturnType<typeof setTimeout> | undefined;
 
-  protected cambiar(campo: 'ingresoDesde' | 'ingresoHasta', evento: Event): void {
-    const valor = valorDe(evento).trim();
+  protected cambiar(campo: 'ingresoDesde' | 'ingresoHasta', valor: string): void {
     this.filtros.update((actual) => ({ ...actual, [campo]: valor }));
   }
 
