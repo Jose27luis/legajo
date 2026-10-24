@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, input, output, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { DatePickerComponent } from '../date-picker/date-picker.component';
 import { DialogComponent } from '../dialog/dialog.component';
 import { LinkFieldsComponent } from '../link-fields/link-fields.component';
 import { crearCamposVinculo, leerCamposVinculo, reiniciarCamposVinculo } from '../link-fields/link-form';
@@ -33,6 +34,7 @@ const OPCIONES_TIPO_DOCUMENTO: readonly OpcionBuscable[] = [
     SearchSelectComponent,
     UbigeoFieldsComponent,
     EducationFieldsComponent,
+    DatePickerComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './new-worker-dialog.component.html',
