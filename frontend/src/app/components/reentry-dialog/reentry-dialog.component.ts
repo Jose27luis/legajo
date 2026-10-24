@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, input, output, signal } from '@angular/core';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+import { DatePickerComponent } from '../date-picker/date-picker.component';
 import { DialogComponent } from '../dialog/dialog.component';
 import { LinkFieldsComponent } from '../link-fields/link-fields.component';
 import { crearCamposVinculo, leerCamposVinculo, reiniciarCamposVinculo } from '../link-fields/link-form';
@@ -10,7 +11,7 @@ import { WorkersService } from '../../services/workers.service';
 
 @Component({
   selector: 'app-reentry-dialog',
-  imports: [ReactiveFormsModule, DialogComponent, LinkFieldsComponent],
+  imports: [ReactiveFormsModule, DialogComponent, LinkFieldsComponent, DatePickerComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './reentry-dialog.component.html',
   styleUrl: './reentry-dialog.component.css',
