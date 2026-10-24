@@ -45,11 +45,21 @@
     }
     <div class="campo">
       <label for="auditoria-desde">Desde</label>
-      <input id="auditoria-desde" type="date" [value]="filtros().desde" (change)="cambiar('desde', $event)" />
+      <app-date-picker
+        idCampo="auditoria-desde"
+        [fecha]="filtros().desde"
+        [max]="filtros().hasta"
+        (cambio)="cambiarFecha('desde', $event)"
+      />
     </div>
     <div class="campo">
       <label for="auditoria-hasta">Hasta</label>
-      <input id="auditoria-hasta" type="date" [value]="filtros().hasta" (change)="cambiar('hasta', $event)" />
+      <app-date-picker
+        idCampo="auditoria-hasta"
+        [fecha]="filtros().hasta"
+        [min]="filtros().desde"
+        (cambio)="cambiarFecha('hasta', $event)"
+      />
     </div>
     <div class="campo limpiar">
       <button type="button" class="boton chico" (click)="limpiar()">Limpiar filtros</button>
