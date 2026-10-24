@@ -14,6 +14,7 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { DomSanitizer, type SafeResourceUrl } from '@angular/platform-browser';
 import { mensajeDeError } from '../../core/errors';
 import { fechaHora } from '../../core/format';
+import { paginar } from '../../core/pagination';
 import {
   CLASE_ESTADO_DOCUMENTO,
   MOTIVOS_CESE,
@@ -43,6 +44,7 @@ import {
   opcionesContrato,
   prepararFormularioDocumento,
 } from '../document-fields/document-form';
+import { PagerComponent } from '../pager/pager.component';
 import { PdfPickerComponent } from '../pdf-picker/pdf-picker.component';
 import { SearchSelectComponent, type OpcionBuscable } from '../search-select/search-select.component';
 
@@ -62,6 +64,7 @@ const TITULOS: Record<Modo, string> = {
 };
 
 const MINIMO_MOTIVO = 10;
+const CAMBIOS_POR_PAGINA = 5;
 
 const OPCIONES_MOVIMIENTO: readonly OpcionBuscable[] = MOVIMIENTOS_REALES.map((movimiento) => ({
   valor: movimiento,
@@ -83,7 +86,15 @@ function numero(valor: ValorCampo | undefined): number | null {
 
 @Component({
   selector: 'app-document-dialog',
-  imports: [ReactiveFormsModule, DialogComponent, DocumentFieldsComponent, PdfPickerComponent, SearchSelectComponent, DatePickerComponent],
+  imports: [
+    ReactiveFormsModule,
+    DialogComponent,
+    DocumentFieldsComponent,
+    PdfPickerComponent,
+    SearchSelectComponent,
+    DatePickerComponent,
+    PagerComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './document-dialog.component.html',
   styleUrl: './document-dialog.component.css',
@@ -171,7 +182,17 @@ export class DocumentDialogComponent implements OnDestroy {
     loader: ({ params }) => this.servicio.historial(params.id),
   });
   protected readonly cambios = computed(() =>
-    this.historial.hasValue() ? this.historial.value().filter((entrada) => entrada.evento !== 'Registrado') : [],
+    this.historial.hasValue()
+      ? this.historial
+          .value()
+          .filter((entrada) => entrada.evento !== 'Registrado')
+          .reverse()
+      : [],
+  );
+  protected readonly paginaCambios = paginar(
+    () => this.cambios(),
+    CAMBIOS_POR_PAGINA,
+    () => this.documento()?.id,
   );
 
   protected readonly versionActual = computed(() => this.documento()?.versiones.find((version) => version.actual) ?? null);
