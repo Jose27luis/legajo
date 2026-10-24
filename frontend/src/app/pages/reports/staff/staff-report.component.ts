@@ -1,9 +1,9 @@
 import { ChangeDetectionStrategy, Component, computed, inject, linkedSignal, resource, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { DatePickerComponent } from '../../../components/date-picker/date-picker.component';
 import { SearchSelectComponent, type OpcionBuscable, type ValorOpcion } from '../../../components/search-select/search-select.component';
 import { SkeletonComponent } from '../../../components/skeleton/skeleton.component';
 import { mensajeDeError } from '../../../core/errors';
-import { valorDe } from '../../../core/inputs';
 import { TEXTO_ESTADO, TEXTO_TIPO_PERSONAL, fechaCorta } from '../../../core/labels';
 import type { FiltrosReportePersonal, TipoPersonal } from '../../../core/models';
 import { SessionService } from '../../../core/session.service';
@@ -36,7 +36,7 @@ const OPCIONES_ESTADO: readonly OpcionBuscable[] = [
 
 @Component({
   selector: 'app-staff-report',
-  imports: [RouterLink, SkeletonComponent, SearchSelectComponent],
+  imports: [RouterLink, SkeletonComponent, SearchSelectComponent, DatePickerComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './staff-report.component.html',
   styleUrl: './staff-report.component.css',
@@ -91,8 +91,7 @@ export class StaffReportComponent {
     ...(this.opciones.hasValue() ? this.opciones.value().cargos : []).map((cargo) => ({ valor: cargo.id, etiqueta: cargo.nombre })),
   ]);
 
-  protected cambiar(campo: 'ingresoDesde' | 'ingresoHasta', evento: Event): void {
-    const valor = valorDe(evento);
+  protected cambiar(campo: 'ingresoDesde' | 'ingresoHasta', valor: string): void {
     this.filtros.update((actual) => ({ ...actual, [campo]: valor }));
   }
 
