@@ -71,18 +71,19 @@ export class AuditLogService {
 
   async listar(consulta: AuditQueryDto): Promise<AuditPageDto> {
     const pagina = consulta.pagina ?? 1;
+    const porPagina = consulta.porPagina ?? POR_PAGINA;
     const donde = this.condiciones(consulta);
     const [filas, total] = await Promise.all([
       this.prisma.auditoria.findMany({
         where: donde,
         select: SELECCION,
         orderBy: [{ fecha: 'desc' }, { id: 'desc' }],
-        take: POR_PAGINA,
-        skip: (pagina - 1) * POR_PAGINA,
+        take: porPagina,
+        skip: (pagina - 1) * porPagina,
       }),
       this.prisma.auditoria.count({ where: donde }),
     ]);
-    return { items: filas.map(aEntradaDto), total, pagina, porPagina: POR_PAGINA };
+    return { items: filas.map(aEntradaDto), total, pagina, porPagina };
   }
 
   async opciones(): Promise<AuditOptionsDto> {
