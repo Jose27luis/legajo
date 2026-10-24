@@ -58,11 +58,21 @@
     </div>
     <div class="campo">
       <label for="reporte-desde">Fecha de ingreso desde</label>
-      <input id="reporte-desde" type="date" [value]="filtros().ingresoDesde" (change)="cambiar('ingresoDesde', $event)" />
+      <app-date-picker
+        idCampo="reporte-desde"
+        [fecha]="filtros().ingresoDesde"
+        [max]="filtros().ingresoHasta"
+        (cambio)="cambiar('ingresoDesde', $event)"
+      />
     </div>
     <div class="campo">
       <label for="reporte-hasta">Fecha de ingreso hasta</label>
-      <input id="reporte-hasta" type="date" [value]="filtros().ingresoHasta" (change)="cambiar('ingresoHasta', $event)" />
+      <app-date-picker
+        idCampo="reporte-hasta"
+        [fecha]="filtros().ingresoHasta"
+        [min]="filtros().ingresoDesde"
+        (cambio)="cambiar('ingresoHasta', $event)"
+      />
     </div>
   </div>
   <div class="acciones">
