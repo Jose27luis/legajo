@@ -1,0 +1,21 @@
+:host {
+  display: block;
+}
+
+.paginador {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.estado {
+  color: var(--tinta-suave);
+  font-size: 12.5px;
+  text-align: center;
+}
+
+.total {
+  white-space: nowrap;
+}
