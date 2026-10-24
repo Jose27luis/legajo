@@ -60,11 +60,21 @@
     </div>
     <div class="campo">
       <label for="personal-desde">Ingreso desde</label>
-      <input id="personal-desde" type="date" [value]="filtros().ingresoDesde" (change)="cambiar('ingresoDesde', $event)" />
+      <app-date-picker
+        idCampo="personal-desde"
+        [fecha]="filtros().ingresoDesde"
+        [max]="filtros().ingresoHasta"
+        (cambio)="cambiar('ingresoDesde', $event)"
+      />
     </div>
     <div class="campo">
       <label for="personal-hasta">Ingreso hasta</label>
-      <input id="personal-hasta" type="date" [value]="filtros().ingresoHasta" (change)="cambiar('ingresoHasta', $event)" />
+      <app-date-picker
+        idCampo="personal-hasta"
+        [fecha]="filtros().ingresoHasta"
+        [min]="filtros().ingresoDesde"
+        (cambio)="cambiar('ingresoHasta', $event)"
+      />
     </div>
   </div>
 
