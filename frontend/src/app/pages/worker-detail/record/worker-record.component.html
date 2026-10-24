@@ -188,7 +188,7 @@
         }
       </div>
       <ol class="linea">
-        @for (vinculo of vinculosVisibles(); track vinculo.id) {
+        @for (vinculo of vinculos.visibles(); track vinculo.id) {
           <li [class.vigente]="vinculo.fechaFin === null" [class.cese]="esCese(vinculo)">
             <button type="button" class="periodo" (click)="abrirPeriodo(vinculo)">
               <strong>
@@ -212,22 +212,13 @@
           <li class="sin-periodos">Sin períodos registrados.</li>
         }
       </ol>
-      @if (paginasVinculos() > 1) {
-        <nav class="paginacion" aria-label="Páginas del historial de vínculos">
-          <button type="button" class="boton chico" (click)="cambiarPaginaVinculos(-1)" [disabled]="paginaVinculosVigente() === 0">
-            Anterior
-          </button>
-          <span aria-live="polite">Página {{ paginaVinculosVigente() + 1 }} de {{ paginasVinculos() }}</span>
-          <button
-            type="button"
-            class="boton chico"
-            (click)="cambiarPaginaVinculos(1)"
-            [disabled]="paginaVinculosVigente() === paginasVinculos() - 1"
-          >
-            Siguiente
-          </button>
-        </nav>
-      }
+      <app-pager
+        class="paginacion"
+        etiqueta="Páginas del historial de vínculos"
+        [pagina]="vinculos.pagina()"
+        [paginas]="vinculos.paginas()"
+        (cambio)="vinculos.ir($event)"
+      />
       <p class="aviso info">
         Al reingresar, el trabajador conserva su <strong>mismo legajo</strong>. Se agrega un nuevo período laboral; no se crean legajos
         duplicados.
