@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
-import { IsInt, IsISO8601, IsOptional, IsUUID, Matches, Min } from 'class-validator';
+import { IsInt, IsISO8601, IsOptional, IsUUID, Matches, Max, Min } from 'class-validator';
 
 const vacioANulo = ({ value }: { value: unknown }) => {
   if (typeof value !== 'string') {
@@ -56,4 +56,12 @@ export class AuditQueryDto extends AuditFiltersDto {
   @IsInt()
   @Min(1)
   pagina?: number;
+
+  @ApiPropertyOptional({ default: 50, minimum: 5, maximum: 100 })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(5)
+  @Max(100)
+  porPagina?: number;
 }
