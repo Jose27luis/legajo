@@ -1,0 +1,12 @@
+@if (paginas() > 1) {
+  <nav class="paginador" [attr.aria-label]="etiqueta()">
+    <button type="button" class="boton chico" [disabled]="pagina() <= 1" (click)="ir(pagina() - 1)">Anterior</button>
+    <span class="estado" aria-live="polite">
+      Página {{ pagina() }} de {{ paginas() }}
+      @if (resumen(); as texto) {
+        <span class="total">· {{ texto }}</span>
+      }
+    </span>
+    <button type="button" class="boton chico" [disabled]="pagina() >= paginas()" (click)="ir(pagina() + 1)">Siguiente</button>
+  </nav>
+}
