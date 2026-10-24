@@ -1,0 +1,149 @@
+<div
+  #contenedor
+  class="selector"
+  [class.abierto]="abierto()"
+  [class.invalido]="invalido() || textoIncompleto()"
+  [class.deshabilitado]="deshabilitado()"
+  (focusout)="alSalir($event)"
+>
+  <input
+    #entrada
+    [id]="idCampo()"
+    type="text"
+    inputmode="numeric"
+    autocomplete="off"
+    maxlength="10"
+    placeholder="dd/mm/aaaa"
+    aria-haspopup="dialog"
+    [attr.aria-expanded]="abierto()"
+    [attr.aria-controls]="idCampo() + '-calendario'"
+    [attr.aria-invalid]="invalido() || textoIncompleto()"
+    [attr.aria-describedby]="descripcion()"
+    [disabled]="deshabilitado()"
+    [value]="textoVisible()"
+    (input)="escribir($event)"
+    (keydown)="tecladoEntrada($event)"
+  />
+  <button
+    type="button"
+    class="abrir"
+    [attr.aria-label]="abierto() ? 'Cerrar calendario' : 'Abrir calendario'"
+    [disabled]="deshabilitado()"
+    (click)="alternar()"
+  >
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="3.5" y="5" width="17" height="15.5" rx="2.5" />
+      <path d="M3.5 10h17M8 3v4M16 3v4" />
+    </svg>
+  </button>
+
+  @if (abierto() && posicion(); as lugar) {
+    <div
+      [id]="idCampo() + '-calendario'"
+      class="panel"
+      role="dialog"
+      aria-label="Elegir fecha"
+      [style.left.px]="lugar.izquierda"
+      [style.top.px]="lugar.arriba"
+      [style.bottom.px]="lugar.abajo"
+      (mousedown)="retenerFoco($event)"
+    >
+      <div class="cabecera">
+        <button type="button" class="paso" aria-label="Anterior" (click)="mover(-1)">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m10 4-4 4 4 4" /></svg>
+        </button>
+        @switch (vista()) {
+          @case ('dias') {
+            <button type="button" class="titulo" (click)="cambiarVista('meses')">{{ tituloMes() }}</button>
+          }
+          @case ('meses') {
+            <button type="button" class="titulo" (click)="cambiarVista('anios')">{{ mesVisible().anio }}</button>
+          }
+          @case ('anios') {
+            <span class="titulo fijo">{{ tituloAnios() }}</span>
+          }
+        }
+        <button type="button" class="paso" aria-label="Siguiente" (click)="mover(1)">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 4 4 4-4 4" /></svg>
+        </button>
+      </div>
+
+      @switch (vista()) {
+        @case ('dias') {
+          <table class="dias" role="grid" [attr.aria-label]="tituloMes()">
+            <thead>
+              <tr>
+                @for (dia of diasSemana; track dia) {
+                  <th scope="col" [attr.abbr]="dia">{{ dia.slice(0, 2) }}</th>
+                }
+              </tr>
+            </thead>
+            <tbody>
+              @for (semana of semanas(); track $index) {
+                <tr>
+                  @for (dia of semana; track dia.iso) {
+                    <td [attr.aria-selected]="dia.elegido">
+                      <button
+                        type="button"
+                        [id]="idCampo() + '-dia-' + dia.iso"
+                        class="dia"
+                        [class.otro-mes]="!dia.delMes"
+                        [class.hoy]="dia.esHoy"
+                        [class.elegido]="dia.elegido"
+                        [tabindex]="tabulable(dia)"
+                        [disabled]="dia.fuera"
+                        [attr.aria-label]="dia.etiqueta"
+                        [attr.aria-current]="dia.esHoy ? 'date' : null"
+                        (click)="elegirDia(dia)"
+                        (keydown)="tecladoDias($event)"
+                      >
+                        {{ dia.numero }}
+                      </button>
+                    </td>
+                  }
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+        @case ('meses') {
+          <div class="rejilla">
+            @for (celda of meses(); track celda.valor) {
+              <button
+                type="button"
+                class="celda"
+                [class.actual]="celda.actual"
+                [class.elegido]="celda.elegido"
+                [disabled]="celda.fuera"
+                (click)="elegirMes(celda)"
+              >
+                {{ celda.texto }}
+              </button>
+            }
+          </div>
+        }
+        @case ('anios') {
+          <div class="rejilla">
+            @for (celda of anios(); track celda.valor) {
+              <button
+                type="button"
+                class="celda"
+                [class.actual]="celda.actual"
+                [class.elegido]="celda.elegido"
+                [disabled]="celda.fuera"
+                (click)="elegirAnio(celda)"
+              >
+                {{ celda.texto }}
+              </button>
+            }
+          </div>
+        }
+      }
+
+      <div class="pie">
+        <button type="button" class="enlace" [disabled]="valor() === ''" (click)="limpiar()">Limpiar</button>
+        <button type="button" class="enlace fuerte" [disabled]="!hoyPermitido()" (click)="elegirHoy()">Hoy</button>
+      </div>
+    </div>
+  }
+</div>
