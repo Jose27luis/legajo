@@ -20,11 +20,13 @@ import {
   opcionesContrato,
   prepararFormularioDocumento,
 } from '../../../components/document-fields/document-form';
+import { PagerComponent } from '../../../components/pager/pager.component';
 import { PdfPickerComponent } from '../../../components/pdf-picker/pdf-picker.component';
 import { SearchSelectComponent, type OpcionBuscable, type ValorOpcion } from '../../../components/search-select/search-select.component';
 import { SkeletonComponent } from '../../../components/skeleton/skeleton.component';
 import { mensajeDeError } from '../../../core/errors';
 import { fechaHora, normalizarTexto } from '../../../core/format';
+import { paginar } from '../../../core/pagination';
 import {
   CLASE_ESTADO_DOCUMENTO,
   ESTADOS_DOCUMENTO,
@@ -86,6 +88,8 @@ const AVISO_GENERAL = {
   sensible: false,
 };
 
+const DOCUMENTOS_POR_PAGINA = 10;
+
 const OPCIONES_ESTADO: readonly OpcionBuscable[] = [
   { valor: null, etiqueta: 'Todos los estados' },
   ...ESTADOS_DOCUMENTO.map((estado) => ({ valor: estado, etiqueta: TEXTO_ESTADO_DOCUMENTO[estado] })),
@@ -93,7 +97,15 @@ const OPCIONES_ESTADO: readonly OpcionBuscable[] = [
 
 @Component({
   selector: 'app-legajo-section',
-  imports: [RouterLink, DocumentFieldsComponent, PdfPickerComponent, DocumentDialogComponent, SkeletonComponent, SearchSelectComponent],
+  imports: [
+    RouterLink,
+    DocumentFieldsComponent,
+    PdfPickerComponent,
+    DocumentDialogComponent,
+    SkeletonComponent,
+    SearchSelectComponent,
+    PagerComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './legajo-section.component.html',
   styleUrl: './legajo-section.component.css',
@@ -160,6 +172,12 @@ export class LegajoSectionComponent implements OnDestroy {
           ).includes(termino)),
     );
   });
+
+  protected readonly paginacion = paginar(
+    () => this.documentos(),
+    DOCUMENTOS_POR_PAGINA,
+    () => [this.idSeccion(), this.busqueda(), this.filtroEstado()],
+  );
 
   protected readonly hayDisponibles = computed(() => this.todos().some((documento) => documento.estado === 'DISPONIBLE'));
 
