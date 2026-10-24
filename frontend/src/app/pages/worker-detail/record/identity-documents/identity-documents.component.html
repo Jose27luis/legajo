@@ -55,7 +55,7 @@
       </div>
       <div class="campo">
         <label for="identidad-emision">Fecha de emisión (opcional)</label>
-        <input id="identidad-emision" type="date" formControlName="fechaEmision" [max]="hoy" />
+        <app-date-picker idCampo="identidad-emision" formControlName="fechaEmision" [max]="hoy" />
       </div>
       <div class="campo completo">
         <app-pdf-picker
