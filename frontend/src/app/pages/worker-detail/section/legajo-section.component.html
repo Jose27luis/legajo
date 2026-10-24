@@ -87,7 +87,7 @@
           }
         </ul>
         <ul class="documentos">
-          @for (documento of documentos(); track documento.id) {
+          @for (documento of paginacion.visibles(); track documento.id) {
             <li animate.enter="aparece">
               <button
                 type="button"
@@ -123,6 +123,14 @@
             </li>
           }
         </ul>
+        <app-pager
+          etiqueta="Páginas de documentos de la sección"
+          [pagina]="paginacion.pagina()"
+          [paginas]="paginacion.paginas()"
+          [total]="paginacion.total()"
+          [unidad]="['documento', 'documentos']"
+          (cambio)="paginacion.ir($event)"
+        />
       }
     </section>
 
