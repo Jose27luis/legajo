@@ -33,6 +33,7 @@ import { SessionService } from '../../core/session.service';
 import { ToastService } from '../../core/toast.service';
 import { DocumentsService, mensajeDeSubida, type SubidaEnCurso } from '../../services/documents.service';
 import { LinkOptionsService } from '../../services/link-options.service';
+import { DatePickerComponent } from '../date-picker/date-picker.component';
 import { DialogComponent } from '../dialog/dialog.component';
 import { DocumentFieldsComponent } from '../document-fields/document-fields.component';
 import {
@@ -82,7 +83,7 @@ function numero(valor: ValorCampo | undefined): number | null {
 
 @Component({
   selector: 'app-document-dialog',
-  imports: [ReactiveFormsModule, DialogComponent, DocumentFieldsComponent, PdfPickerComponent, SearchSelectComponent],
+  imports: [ReactiveFormsModule, DialogComponent, DocumentFieldsComponent, PdfPickerComponent, SearchSelectComponent, DatePickerComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './document-dialog.component.html',
   styleUrl: './document-dialog.component.css',
