@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, linkedSignal, signal, viewChild } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { DialogComponent } from '../../../components/dialog/dialog.component';
@@ -44,6 +44,8 @@ import { WorkersService } from '../../../services/workers.service';
 import { WorkerContext } from '../worker-context';
 
 const opcional = (valor: string): string | null => (valor.trim() === '' ? null : valor.trim());
+
+const VINCULOS_POR_PAGINA = 5;
 
 const OPCIONES_PARENTESCO: readonly OpcionBuscable[] = ['Cónyuge', 'Conviviente', 'Hijo(a)', 'Padre', 'Madre', 'Hermano(a)', 'Otro'].map(
   (parentesco) => ({ valor: parentesco, etiqueta: parentesco }),
@@ -121,6 +123,22 @@ export class WorkerRecordComponent {
   protected readonly periodo = signal<Vinculo | null>(null);
   protected readonly documentosLegajo = computed(() => (this.contexto.legajo.hasValue() ? this.contexto.legajo.value().documentos : []));
   protected readonly seccionesLegajo = computed(() => (this.contexto.legajo.hasValue() ? this.contexto.legajo.value().secciones : []));
+
+  private readonly vinculos = computed(() => (this.contexto.detalle.hasValue() ? this.contexto.detalle.value().vinculos : []));
+  protected readonly paginasVinculos = computed(() => Math.max(1, Math.ceil(this.vinculos().length / VINCULOS_POR_PAGINA)));
+  protected readonly paginaVinculos = linkedSignal<string | undefined, number>({
+    source: () => (this.contexto.detalle.hasValue() ? this.contexto.detalle.value().id : undefined),
+    computation: () => 0,
+  });
+  protected readonly paginaVinculosVigente = computed(() => Math.min(this.paginaVinculos(), this.paginasVinculos() - 1));
+  protected readonly vinculosVisibles = computed(() => {
+    const inicio = this.paginaVinculosVigente() * VINCULOS_POR_PAGINA;
+    return this.vinculos().slice(inicio, inicio + VINCULOS_POR_PAGINA);
+  });
+
+  protected cambiarPaginaVinculos(desplazamiento: number): void {
+    this.paginaVinculos.set(Math.min(Math.max(this.paginaVinculosVigente() + desplazamiento, 0), this.paginasVinculos() - 1));
+  }
 
   protected ultimoMovimiento(trabajador: TrabajadorDetalle): MovimientoLaboral | null {
     if (trabajador.movimientoActual === 'SIN_MOVIMIENTO') {
