@@ -21,11 +21,11 @@
     </div>
     <div class="campo">
       <label for="digital-desde">Desde</label>
-      <input id="digital-desde" type="date" [value]="filtros().desde" (change)="cambiarDesde($event)" />
+      <app-date-picker idCampo="digital-desde" [fecha]="filtros().desde" [max]="filtros().hasta" (cambio)="cambiarDesde($event)" />
     </div>
     <div class="campo">
       <label for="digital-hasta">Hasta</label>
-      <input id="digital-hasta" type="date" [value]="filtros().hasta" (change)="cambiarHasta($event)" />
+      <app-date-picker idCampo="digital-hasta" [fecha]="filtros().hasta" [min]="filtros().desde" (cambio)="cambiarHasta($event)" />
     </div>
   </div>
 
