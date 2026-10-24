@@ -147,9 +147,9 @@
         }
 
         @if (cambios().length > 0) {
-          <h3>Historial de cambios (conservado)</h3>
+          <h3>Historial de cambios (conservado) · del más reciente al más antiguo</h3>
           <ol class="historial">
-            @for (entrada of cambios(); track entrada.fecha + entrada.evento) {
+            @for (entrada of paginaCambios.visibles(); track entrada.fecha + entrada.evento) {
               <li>
                 <strong>{{ entrada.evento }} · {{ fechaHora(entrada.fecha) }}</strong>
                 <span class="quien">{{ entrada.usuario ?? 'Sistema' }} · Motivo: {{ entrada.motivo ?? 'No informado' }}</span>
@@ -168,6 +168,14 @@
               </li>
             }
           </ol>
+          <app-pager
+            etiqueta="Páginas del historial de cambios"
+            [pagina]="paginaCambios.pagina()"
+            [paginas]="paginaCambios.paginas()"
+            [total]="paginaCambios.total()"
+            [unidad]="['cambio', 'cambios']"
+            (cambio)="paginaCambios.ir($event)"
+          />
         }
 
         <p class="nota">
