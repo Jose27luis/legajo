@@ -1,8 +1,8 @@
 import { ChangeDetectionStrategy, Component, computed, inject, resource, signal } from '@angular/core';
+import { DatePickerComponent } from '../../../components/date-picker/date-picker.component';
 import { SearchSelectComponent, type OpcionBuscable, type ValorOpcion } from '../../../components/search-select/search-select.component';
 import { SkeletonComponent } from '../../../components/skeleton/skeleton.component';
 import { mensajeDeError } from '../../../core/errors';
-import { valorDe } from '../../../core/inputs';
 import { fechaCorta, tamanoLegible } from '../../../core/labels';
 import type { FiltrosDigitalizacion } from '../../../core/models';
 import { SessionService } from '../../../core/session.service';
@@ -10,7 +10,7 @@ import { ReportsService } from '../../../services/reports.service';
 
 @Component({
   selector: 'app-digitization-report',
-  imports: [SkeletonComponent, SearchSelectComponent],
+  imports: [SkeletonComponent, SearchSelectComponent, DatePickerComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './digitization-report.component.html',
   styleUrl: './digitization-report.component.css',
@@ -45,11 +45,11 @@ export class DigitizationReportComponent {
     this.filtros.update((actual) => ({ ...actual, usuarioId: typeof valor === 'string' && valor !== '' ? valor : null }));
   }
 
-  protected cambiarDesde(evento: Event): void {
-    this.filtros.update((actual) => ({ ...actual, desde: valorDe(evento) }));
+  protected cambiarDesde(valor: string): void {
+    this.filtros.update((actual) => ({ ...actual, desde: valor }));
   }
 
-  protected cambiarHasta(evento: Event): void {
-    this.filtros.update((actual) => ({ ...actual, hasta: valorDe(evento) }));
+  protected cambiarHasta(valor: string): void {
+    this.filtros.update((actual) => ({ ...actual, hasta: valor }));
   }
 }
