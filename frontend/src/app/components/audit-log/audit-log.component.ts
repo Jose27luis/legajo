@@ -7,6 +7,7 @@ import type { FiltrosAuditoria } from '../../core/models';
 import { SessionService } from '../../core/session.service';
 import { AuditService } from '../../services/audit.service';
 import { DatePickerComponent } from '../date-picker/date-picker.component';
+import { PagerComponent } from '../pager/pager.component';
 import { SearchSelectComponent, type OpcionBuscable, type ValorOpcion } from '../search-select/search-select.component';
 import { SkeletonComponent } from '../skeleton/skeleton.component';
 
@@ -15,7 +16,7 @@ type CampoElegible = 'usuarioId' | 'accion';
 
 @Component({
   selector: 'app-audit-log',
-  imports: [RouterLink, SkeletonComponent, SearchSelectComponent, DatePickerComponent],
+  imports: [RouterLink, SkeletonComponent, SearchSelectComponent, DatePickerComponent, PagerComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './audit-log.component.html',
   styleUrl: './audit-log.component.css',
@@ -26,6 +27,7 @@ export class AuditLogComponent {
 
   readonly trabajadorId = input('');
   readonly titulo = input('Historial de acciones');
+  readonly porPagina = input<number | null>(null);
 
   protected readonly fechaHora = fechaHora;
 
@@ -37,8 +39,8 @@ export class AuditLogComponent {
 
   protected readonly opciones = resource({ loader: () => this.servicio.opciones() });
   protected readonly registros = resource({
-    params: () => ({ filtros: this.filtros(), pagina: this.pagina() }),
-    loader: ({ params }) => this.servicio.listar(params.filtros, params.pagina),
+    params: () => ({ filtros: this.filtros(), pagina: this.pagina(), porPagina: this.porPagina() }),
+    loader: ({ params }) => this.servicio.listar(params.filtros, params.pagina, params.porPagina),
   });
 
   protected readonly opcionesUsuario = computed<OpcionBuscable[]>(() => [
