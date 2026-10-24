@@ -19,8 +19,11 @@ function consulta(filtros: Record<keyof FiltrosAuditoria, string>): HttpParams {
 export class AuditService {
   private readonly http = inject(HttpClient);
 
-  listar(filtros: FiltrosAuditoria, pagina: number): Promise<PaginaAuditoria> {
-    return firstValueFrom(this.http.get<PaginaAuditoria>(BASE, { params: consulta(filtros).set('pagina', pagina) }));
+  listar(filtros: FiltrosAuditoria, pagina: number, porPagina: number | null = null): Promise<PaginaAuditoria> {
+    const params = consulta(filtros).set('pagina', pagina);
+    return firstValueFrom(
+      this.http.get<PaginaAuditoria>(BASE, { params: porPagina === null ? params : params.set('porPagina', porPagina) }),
+    );
   }
 
   opciones(): Promise<OpcionesAuditoria> {
