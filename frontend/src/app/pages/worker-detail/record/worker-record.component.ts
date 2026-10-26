@@ -10,7 +10,6 @@ import { crearCamposVinculo, leerCamposVinculo, reiniciarCamposVinculo } from '.
 import { PeriodDialogComponent } from '../../../components/period-dialog/period-dialog.component';
 import { ReentryDialogComponent } from '../../../components/reentry-dialog/reentry-dialog.component';
 import { SearchSelectComponent, type OpcionBuscable } from '../../../components/search-select/search-select.component';
-import { SituationDialogComponent } from '../../../components/situation-dialog/situation-dialog.component';
 import { UbigeoFieldsComponent } from '../../../components/ubigeo-fields/ubigeo-fields.component';
 import { crearCamposUbigeo, leerCamposUbigeo, ubicarEnLista } from '../../../components/ubigeo-fields/ubigeo-form';
 import { EducationFieldsComponent } from '../../../components/education-fields/education-fields.component';
@@ -82,7 +81,6 @@ const OPCIONES_MOTIVO_CAMBIO: readonly OpcionBuscable[] = MOTIVOS_CAMBIO.map((mo
     RouterLink,
     DialogComponent,
     LinkFieldsComponent,
-    SituationDialogComponent,
     ReentryDialogComponent,
     PeriodDialogComponent,
     IdentityDocumentsComponent,
@@ -103,7 +101,6 @@ export class WorkerRecordComponent {
   protected readonly contexto = inject(WorkerContext);
   protected readonly sesion = inject(SessionService);
 
-  private readonly situacion = viewChild.required(SituationDialogComponent);
   private readonly reingreso = viewChild.required(ReentryDialogComponent);
 
   protected readonly textoEstado = TEXTO_ESTADO;
@@ -123,11 +120,9 @@ export class WorkerRecordComponent {
   readonly nuevo = input<string>();
 
   protected readonly tono = tonoSeccion(1);
-  protected readonly paraSituacion = signal<TrabajadorDetalle | null>(null);
   protected readonly paraReingreso = signal<TrabajadorDetalle | null>(null);
   protected readonly periodo = signal<Vinculo | null>(null);
   protected readonly documentosLegajo = computed(() => (this.contexto.legajo.hasValue() ? this.contexto.legajo.value().documentos : []));
-  protected readonly seccionesLegajo = computed(() => (this.contexto.legajo.hasValue() ? this.contexto.legajo.value().secciones : []));
 
   protected readonly vinculos = paginar(
     () => (this.contexto.detalle.hasValue() ? this.contexto.detalle.value().vinculos : []),
@@ -156,7 +151,7 @@ export class WorkerRecordComponent {
       return 'Ver sustento del cese · Sección 11';
     }
     const vinculados = this.documentosLegajo().some((documento) => documento.vinculoId === vinculo.id && documento.seccion === 2);
-    return vinculados ? 'Ver o actualizar documento sustentatorio · Sección 02' : 'Pulsa aquí para adjuntar documento · Sección 02';
+    return vinculados ? 'Ver documento sustentatorio · Sección 02' : 'Sin documento sustentatorio · Sección 02';
   }
 
   protected abrirPeriodo(vinculo: Vinculo): void {
@@ -203,18 +198,12 @@ export class WorkerRecordComponent {
   protected readonly fechaCambio = new FormControl('', { nonNullable: true, validators: [Validators.required] });
   protected readonly motivoCambio = new FormControl<MotivoCambio>('CAMBIO_CARGO_O_AREA', { nonNullable: true });
 
-  protected abrirSituacion(trabajador: TrabajadorDetalle): void {
-    this.situacion().reiniciar(trabajador);
-    this.paraSituacion.set(trabajador);
-  }
-
   protected abrirReingreso(trabajador: TrabajadorDetalle): void {
     this.reingreso().reiniciar(trabajador);
     this.paraReingreso.set(trabajador);
   }
 
   protected alActualizar(detalle: TrabajadorDetalle, mensaje: string): void {
-    this.paraSituacion.set(null);
     this.paraReingreso.set(null);
     this.contexto.detalle.set(detalle);
     this.avisos.exito(mensaje);
