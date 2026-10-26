@@ -4,7 +4,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import { leerDatosGuardados } from '../catalogs/section-fields';
 import type { DatosCliente } from '../common/client';
-import { aFecha, aTexto, diaAnterior, hoyEnLima } from '../common/dates';
+import { aFecha, aTexto, diaAnterior, fechaEnLima, hoyEnLima } from '../common/dates';
 
 export interface ActorVencimiento {
   usuarioId: string | null;
@@ -17,6 +17,10 @@ const SUSTENTOS_VIGENTES = {
   estado: { not: 'ANULADO' },
   tipoDocumento: { accion: 'VINCULO' },
 } as const satisfies Prisma.DocumentoWhereInput;
+
+export function esHistorico(fin: string, registradoEn: Date): boolean {
+  return fin < fechaEnLima(registradoEn);
+}
 
 export function finDeContrato(documentos: readonly { datos: Prisma.JsonValue }[]): string | null {
   let ultimo: string | null = null;
@@ -44,6 +48,7 @@ export class ContractExpiryService {
       select: {
         id: true,
         estado: true,
+        creadoEn: true,
         vinculos: {
           where: { actual: true },
           take: 1,
@@ -56,7 +61,7 @@ export class ContractExpiryService {
       return false;
     }
     const fin = finDeContrato(vinculo.documentos);
-    if (fin === null || fin >= hoyEnLima() || fin < aTexto(vinculo.fechaInicio)) {
+    if (fin === null || fin >= hoyEnLima() || fin < aTexto(vinculo.fechaInicio) || esHistorico(fin, trabajador.creadoEn)) {
       return false;
     }
     await transaccion.vinculo.update({ where: { id: vinculo.id }, data: { fechaFin: aFecha(fin), motivoFin: 'FIN_CONTRATO' } });
@@ -168,6 +173,48 @@ export class ContractExpiryService {
     return true;
   }
 
+  async reabrirHistoricos(): Promise<number> {
+    const candidatos = await this.prisma.vinculo.findMany({
+      where: {
+        actual: true,
+        motivoFin: 'FIN_CONTRATO',
+        fechaFin: { not: null },
+        trabajador: { estado: 'CESADO' },
+        documentos: { none: { estado: { not: 'ANULADO' }, tipoDocumento: { accion: 'CESE' } } },
+      },
+      select: { id: true, trabajadorId: true, fechaFin: true, trabajador: { select: { creadoEn: true } } },
+    });
+    let reabiertos = 0;
+    for (const candidato of candidatos) {
+      if (candidato.fechaFin === null || !esHistorico(aTexto(candidato.fechaFin), candidato.trabajador.creadoEn)) {
+        continue;
+      }
+      await this.prisma.$transaction(async (transaccion) => {
+        await transaccion.vinculo.update({ where: { id: candidato.id }, data: { fechaFin: null, motivoFin: null } });
+        await transaccion.trabajador.update({
+          where: { id: candidato.trabajadorId },
+          data: { estado: 'ACTIVO', movimientoActual: 'SIN_MOVIMIENTO', movimientoFecha: null },
+        });
+        await this.auditoria.registrar(
+          {
+            accion: 'VINCULO_REABRIR',
+            entidad: 'vinculo',
+            entidadId: candidato.id,
+            trabajadorId: candidato.trabajadorId,
+            usuarioId: null,
+            detalle: { origen: 'contrato_historico', finAnterior: aTexto(candidato.fechaFin ?? new Date()) },
+          },
+          transaccion,
+        );
+      });
+      reabiertos += 1;
+    }
+    if (reabiertos > 0) {
+      this.bitacora.log(`${reabiertos} trabajador(es) reactivados: su contrato venció antes de registrarse en el sistema`);
+    }
+    return reabiertos;
+  }
+
   async ajustarTodos(): Promise<number> {
     const candidatos = await this.prisma.vinculo.findMany({
       where: { motivoFin: 'FIN_CONTRATO', fechaFin: { not: null }, documentos: { some: SUSTENTOS_VIGENTES } },
@@ -194,12 +241,16 @@ export class ContractExpiryService {
     const hoy = hoyEnLima();
     const candidatos = await this.prisma.vinculo.findMany({
       where: { actual: true, fechaFin: null, trabajador: { estado: 'ACTIVO' }, documentos: { some: SUSTENTOS_VIGENTES } },
-      select: { trabajadorId: true, documentos: { where: SUSTENTOS_VIGENTES, select: { datos: true } } },
+      select: {
+        trabajadorId: true,
+        trabajador: { select: { creadoEn: true } },
+        documentos: { where: SUSTENTOS_VIGENTES, select: { datos: true } },
+      },
     });
     let cesados = 0;
     for (const candidato of candidatos) {
       const fin = finDeContrato(candidato.documentos);
-      if (fin === null || fin >= hoy) {
+      if (fin === null || fin >= hoy || esHistorico(fin, candidato.trabajador.creadoEn)) {
         continue;
       }
       const aplicado = await this.prisma.$transaction((transaccion) => this.vencer(transaccion, candidato.trabajadorId));
