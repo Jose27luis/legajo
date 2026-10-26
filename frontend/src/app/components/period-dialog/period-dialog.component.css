@@ -27,7 +27,7 @@
 }
 
 .bloque > .nota,
-.bloque > form,
+.bloque > .aviso,
 .vinculados {
   margin: 0;
   padding: 12px 14px;
@@ -71,11 +71,4 @@
 
 .vinculados a {
   text-decoration: none;
-}
-
-.acciones {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  flex-wrap: wrap;
 }
