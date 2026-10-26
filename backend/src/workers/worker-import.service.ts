@@ -17,6 +17,7 @@ import type {
 } from './dto/worker-import.dto';
 import type { MotivoCeseValor, TipoPersonalValor } from './dto/worker.dto';
 import { leerArchivo, type FilaLeida } from './import-parser';
+import { REFERENCIA_IMPORTACION } from '../labor/period-origin';
 
 const SIN_AREA = 'No especificada';
 const SIN_CARGO = 'No especificado';
@@ -429,7 +430,7 @@ export class WorkerImportService {
                       fechaInicio: aFecha(fila.fechaIngreso),
                       fechaFin: cesado && fila.fechaCese !== null ? aFecha(fila.fechaCese) : null,
                       motivoFin: cesado ? (fila.motivoCese ?? 'OTRA_CAUSA') : null,
-                      referencia: 'Importación de personal',
+                      referencia: REFERENCIA_IMPORTACION,
                     },
                   },
                 },
