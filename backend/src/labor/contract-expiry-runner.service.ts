@@ -33,6 +33,7 @@ export class ContractExpiryRunnerService implements OnModuleInit, OnModuleDestro
       concurrency: 1,
     });
     this.trabajador.on('failed', (_trabajo, error) => this.bitacora.error(`Revisión de contratos vencidos falló: ${error.message}`));
+    await this.vencimientos.reabrirHistoricos();
     await this.vencimientos.ajustarTodos();
     await this.vencimientos.vencerTodos();
   }
