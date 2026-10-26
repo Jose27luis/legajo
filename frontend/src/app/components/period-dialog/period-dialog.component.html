@@ -19,7 +19,7 @@
 
     <section class="bloque">
       <header>
-        <h3>1. Consultar documento vinculado</h3>
+        <h3>Documento vinculado</h3>
         <span class="pastilla azul">Solo lectura</span>
       </header>
       @if (vinculados().length === 0) {
@@ -27,7 +27,7 @@
           {{
             esSalida()
               ? 'Este evento de cese no tiene un PDF enlazado. Puedes registrar el documento en la Sección 11 – Desvinculación.'
-              : 'Este vínculo todavía no cuenta con PDF de sustento. Puedes registrarlo aquí sin crear otro legajo.'
+              : 'Este vínculo todavía no cuenta con PDF de sustento. Puedes registrarlo en la Sección 02 – Incorporación.'
           }}
         </p>
       } @else {
@@ -84,71 +84,14 @@
             </li>
           }
         </ul>
-        @if (!registrando() && error(); as mensaje) {
+        @if (error(); as mensaje) {
           <p class="aviso error" role="alert" animate.enter="aparece">{{ mensaje }}</p>
         }
       </section>
     }
-
-    @if (!esSalida()) {
-      <section class="bloque">
-        <header>
-          <h3>2. Registrar o cambiar sustento</h3>
-          @if (puedeRegistrar() && !registrando()) {
-            <button type="button" class="boton chico principal" (click)="registrando.set(true)">
-              {{ vinculados().length === 0 ? 'Registrar PDF' : 'Adjuntar otro PDF' }}
-            </button>
-          } @else if (!puedeRegistrar()) {
-            <span class="pastilla gris">Solo consulta</span>
-          }
-        </header>
-        <p class="nota">
-          Esta parte es independiente de la consulta anterior. Al guardar otro PDF se vinculará al período seleccionado; el archivo previo
-          permanece en la Sección 02.
-        </p>
-        @if (registrando()) {
-          <form id="formulario-periodo" class="campos" [formGroup]="formulario" (ngSubmit)="guardar()" novalidate animate.enter="aparece">
-            <div class="campo completo">
-              <label for="periodo-tipo">Tipo de documento <span class="obligatorio" aria-hidden="true">*</span></label>
-              <app-search-select idCampo="periodo-tipo" formControlName="tipoDocumentoId" [opciones]="opcionesTipo()" />
-            </div>
-            <div class="campo">
-              <label for="periodo-numero">Número del documento</label>
-              <input id="periodo-numero" formControlName="numero" maxlength="60" autocomplete="off" />
-            </div>
-            <div class="campo">
-              <label for="periodo-emision">Fecha de emisión</label>
-              <app-date-picker idCampo="periodo-emision" formControlName="fechaEmision" [max]="hoy" />
-            </div>
-            <div class="campo completo">
-              <app-pdf-picker
-                idCampo="periodo-archivo"
-                [(archivo)]="archivo"
-                [progreso]="progreso()"
-                [deshabilitado]="ocupado()"
-                [invalido]="archivoFaltante() && archivo() === null"
-              />
-            </div>
-            @if (error(); as mensaje) {
-              <p class="aviso error completo" role="alert" animate.enter="aparece">{{ mensaje }}</p>
-            }
-            <div class="acciones completo">
-              <button type="button" class="boton" (click)="cancelarRegistro()" [disabled]="ocupado()">Cancelar</button>
-              <button type="submit" class="boton principal" [disabled]="ocupado()" [attr.aria-busy]="ocupado()">
-                {{
-                  progreso() !== null ? 'Subiendo ' + progreso() + ' %' : ocupado() ? 'Guardando' : 'Guardar PDF en Sección 02 y vincular'
-                }}
-              </button>
-            </div>
-          </form>
-        }
-      </section>
-    }
-
-    <p class="nota">Adjuntar un documento aquí no cambia por sí solo el estado ACTIVO/CESADO.</p>
   }
   <ng-container pie>
     <button type="button" class="boton" (click)="irASeccion()">Ir a la Sección {{ esSalida() ? '11' : '02' }}</button>
-    <button type="button" class="boton" (click)="alCerrar()" [disabled]="ocupado()">Cerrar</button>
+    <button type="button" class="boton" (click)="alCerrar()" [disabled]="enlazando() !== null">Cerrar</button>
   </ng-container>
 </app-dialog>
