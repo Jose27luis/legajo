@@ -1,5 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnDestroy, computed, inject, input, output, signal } from '@angular/core';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ChangeDetectionStrategy, Component, computed, inject, input, linkedSignal, output, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { mensajeDeError } from '../../core/errors';
 import {
@@ -8,26 +7,22 @@ import {
   TEXTO_MOTIVO_FIN,
   esSalidaDocumentada,
   fechaCorta,
-  hoy,
   nombreCompleto,
 } from '../../core/labels';
-import type { Documento, SeccionLegajo, TrabajadorDetalle, Vinculo } from '../../core/models';
+import type { Documento, TrabajadorDetalle, Vinculo } from '../../core/models';
 import { SessionService } from '../../core/session.service';
 import { ToastService } from '../../core/toast.service';
-import { DocumentsService, mensajeDeSubida, type SubidaEnCurso } from '../../services/documents.service';
-import { DatePickerComponent } from '../date-picker/date-picker.component';
+import { DocumentsService } from '../../services/documents.service';
 import { DialogComponent } from '../dialog/dialog.component';
-import { PdfPickerComponent } from '../pdf-picker/pdf-picker.component';
-import { SearchSelectComponent, type OpcionBuscable } from '../search-select/search-select.component';
 
 @Component({
   selector: 'app-period-dialog',
-  imports: [ReactiveFormsModule, DialogComponent, PdfPickerComponent, SearchSelectComponent, DatePickerComponent],
+  imports: [DialogComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './period-dialog.component.html',
   styleUrl: './period-dialog.component.css',
 })
-export class PeriodDialogComponent implements OnDestroy {
+export class PeriodDialogComponent {
   private readonly servicio = inject(DocumentsService);
   private readonly avisos = inject(ToastService);
   private readonly router = inject(Router);
@@ -36,7 +31,6 @@ export class PeriodDialogComponent implements OnDestroy {
   readonly vinculo = input<Vinculo | null>(null);
   readonly trabajador = input<TrabajadorDetalle | null>(null);
   readonly documentos = input<Documento[]>([]);
-  readonly secciones = input<SeccionLegajo[]>([]);
   readonly cerrar = output();
   readonly registrado = output<Documento>();
 
@@ -45,7 +39,6 @@ export class PeriodDialogComponent implements OnDestroy {
   protected readonly textoMotivoFin = TEXTO_MOTIVO_FIN;
   protected readonly fechaCorta = fechaCorta;
   protected readonly nombreCompleto = nombreCompleto;
-  protected readonly hoy = hoy();
 
   protected readonly esSalida = computed(() => {
     const vinculo = this.vinculo();
@@ -58,15 +51,6 @@ export class PeriodDialogComponent implements OnDestroy {
       ? []
       : this.documentos().filter((documento) => documento.vinculoId === vinculo.id && documento.seccion === this.numeroSeccion());
   });
-  protected readonly tiposVinculo = computed(
-    () =>
-      this.secciones()
-        .find((seccion) => seccion.numero === 2)
-        ?.tipos.filter((tipo) => tipo.accion === 'VINCULO') ?? [],
-  );
-  protected readonly opcionesTipo = computed<OpcionBuscable[]>(() =>
-    this.tiposVinculo().map((tipo) => ({ valor: tipo.id, etiqueta: tipo.nombre })),
-  );
   protected readonly sinEnlazar = computed(() =>
     this.esSalida()
       ? []
@@ -80,35 +64,10 @@ export class PeriodDialogComponent implements OnDestroy {
   );
   protected readonly puedeEnlazar = computed(() => this.sesion.tiene('personal.editar'));
   protected readonly enlazando = signal<string | null>(null);
-  protected readonly puedeRegistrar = computed(
-    () => !this.esSalida() && this.sesion.tiene('documentos.subir') && this.tiposVinculo().length > 0,
-  );
-
-  protected readonly registrando = signal(false);
-  protected readonly ocupado = signal(false);
-  protected readonly progreso = signal<number | null>(null);
-  protected readonly archivo = signal<File | null>(null);
-  protected readonly archivoFaltante = signal(false);
-  protected readonly error = signal<string | null>(null);
-  protected readonly formulario = new FormGroup({
-    tipoDocumentoId: new FormControl<number | null>(null, { validators: [Validators.required] }),
-    numero: new FormControl('', { nonNullable: true, validators: [Validators.maxLength(60)] }),
-    fechaEmision: new FormControl('', { nonNullable: true }),
+  protected readonly error = linkedSignal<string | undefined, string | null>({
+    source: () => this.vinculo()?.id,
+    computation: () => null,
   });
-
-  private subida: SubidaEnCurso | null = null;
-
-  ngOnDestroy(): void {
-    this.subida?.cancelar();
-  }
-
-  reiniciar(): void {
-    this.registrando.set(false);
-    this.error.set(null);
-    this.archivo.set(null);
-    this.archivoFaltante.set(false);
-    this.formulario.reset({ tipoDocumentoId: this.tiposVinculo().at(0)?.id ?? null, numero: '', fechaEmision: '' });
-  }
 
   protected enlace(documento: Documento): string {
     return this.servicio.enlaceArchivo(documento.id, false);
@@ -127,7 +86,7 @@ export class PeriodDialogComponent implements OnDestroy {
   }
 
   protected alCerrar(): void {
-    if (!this.ocupado()) {
+    if (this.enlazando() === null) {
       this.cerrar.emit();
     }
   }
@@ -147,75 +106,6 @@ export class PeriodDialogComponent implements OnDestroy {
       this.error.set(mensajeDeError(error));
     } finally {
       this.enlazando.set(null);
-    }
-  }
-
-  protected cancelarRegistro(): void {
-    if (!this.ocupado()) {
-      this.reiniciar();
-    }
-  }
-
-  protected async guardar(): Promise<void> {
-    const trabajador = this.trabajador();
-    const vinculo = this.vinculo();
-    const archivo = this.archivo();
-    const valores = this.formulario.getRawValue();
-    this.archivoFaltante.set(archivo === null);
-    if (trabajador === null || vinculo === null) {
-      return;
-    }
-    if (valores.tipoDocumentoId === null) {
-      this.error.set('Selecciona el tipo de documento.');
-      return;
-    }
-    const tipo = this.tiposVinculo().find((item) => item.id === valores.tipoDocumentoId);
-    if (tipo?.requiereNumero === true && valores.numero.trim() === '') {
-      this.error.set('Este tipo de documento exige su número.');
-      return;
-    }
-    if (archivo === null) {
-      this.error.set('Debes seleccionar un archivo PDF válido.');
-      return;
-    }
-    this.ocupado.set(true);
-    this.error.set(null);
-    this.progreso.set(0);
-    try {
-      let subidaId: string;
-      try {
-        this.subida = this.servicio.subir(archivo, (avance) => this.progreso.set(avance));
-        subidaId = await this.subida.terminada;
-      } catch (error: unknown) {
-        this.error.set(mensajeDeSubida(error));
-        return;
-      } finally {
-        this.subida = null;
-        this.progreso.set(null);
-      }
-      const documento = await this.servicio.registrar(
-        trabajador.id,
-        subidaId,
-        {
-          tipoDocumentoId: valores.tipoDocumentoId,
-          numero: valores.numero.trim() === '' ? null : valores.numero.trim(),
-          fechaEmision: valores.fechaEmision === '' ? null : valores.fechaEmision,
-          fechaVencimiento: null,
-          emisor: null,
-          observaciones: `Sustento documental del vínculo desde ${fechaCorta(vinculo.fechaInicio)}`,
-          ubicacionFisica: null,
-          nivelAcceso: 'NORMAL',
-          datos: {},
-        },
-        vinculo.id,
-      );
-      this.registrado.emit(documento);
-      this.avisos.exito('PDF guardado en la Sección 02 y vinculado al período laboral.');
-      this.reiniciar();
-    } catch (error: unknown) {
-      this.error.set(mensajeDeError(error));
-    } finally {
-      this.ocupado.set(false);
     }
   }
 }
