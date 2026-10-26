@@ -4,7 +4,8 @@ import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import { leerDatosGuardados } from '../catalogs/section-fields';
 import type { DatosCliente } from '../common/client';
-import { aFecha, aTexto, diaAnterior, fechaEnLima, hoyEnLima } from '../common/dates';
+import { aFecha, aTexto, diaAnterior, diaSiguiente, fechaEnLima, hoyEnLima } from '../common/dates';
+import { REFERENCIA_IMPORTACION } from './period-origin';
 
 export interface ActorVencimiento {
   usuarioId: string | null;
@@ -138,11 +139,27 @@ export class ContractExpiryService {
       const siguiente = await transaccion.vinculo.findFirst({
         where: { trabajadorId: vinculo.trabajadorId, id: { not: vinculo.id }, fechaInicio: { gt: vinculo.fechaInicio } },
         orderBy: { fechaInicio: 'asc' },
-        select: { fechaInicio: true },
+        select: { id: true, fechaInicio: true, fechaFin: true, referencia: true },
       });
       const limite = siguiente === null ? null : diaAnterior(aTexto(siguiente.fechaInicio));
-      if (limite !== null && fin > limite) {
-        nuevoFin = limite;
+      if (siguiente !== null && limite !== null && fin > limite) {
+        if (siguiente.fechaFin === null && siguiente.referencia === REFERENCIA_IMPORTACION) {
+          await transaccion.vinculo.update({ where: { id: siguiente.id }, data: { fechaInicio: aFecha(diaSiguiente(fin)) } });
+          await this.auditoria.registrar(
+            {
+              accion: 'VINCULO_DESPLAZAR',
+              entidad: 'vinculo',
+              entidadId: siguiente.id,
+              trabajadorId: vinculo.trabajadorId,
+              usuarioId: actor.usuarioId,
+              cliente: actor.cliente ?? undefined,
+              detalle: { inicioAnterior: aTexto(siguiente.fechaInicio), inicioNuevo: diaSiguiente(fin), documento: documentoId },
+            },
+            transaccion,
+          );
+        } else {
+          nuevoFin = limite;
+        }
       }
       if (nuevoFin !== null && nuevoFin <= finActual) {
         return false;
