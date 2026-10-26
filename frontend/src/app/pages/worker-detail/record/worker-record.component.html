@@ -11,7 +11,6 @@
     <div class="acciones-cabecera">
       <a routerLink=".." class="boton chico">Ver 12 secciones</a>
       @if (sesion.tiene('personal.editar')) {
-        <button type="button" class="boton chico" (click)="abrirSituacion(trabajador)">Estado y movimiento</button>
         @if (trabajador.estado === 'ACTIVO') {
           <button type="button" class="boton chico" (click)="abrirCambio(trabajador)">Cambio de vínculo</button>
         } @else if (puedeReingresar(trabajador)) {
@@ -343,14 +342,8 @@
   [vinculo]="periodo()"
   [trabajador]="contexto.detalle.value() ?? null"
   [documentos]="documentosLegajo()"
-  [secciones]="seccionesLegajo()"
   (cerrar)="periodo.set(null)"
   (registrado)="alRegistrarSustento($event)"
-/>
-<app-situation-dialog
-  [trabajador]="paraSituacion()"
-  (cerrar)="paraSituacion.set(null)"
-  (actualizado)="alActualizar($event, 'Situación actualizada')"
 />
 <app-reentry-dialog
   [trabajador]="paraReingreso()"
