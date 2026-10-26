@@ -12,7 +12,8 @@ import { exigirCatalogosActivos } from '../workers/catalog-guard';
 import { TEXTO_MOTIVO_CESE, TEXTO_MOVIMIENTO } from '../workers/labels';
 import type { MotivoCambioValor as MotivoCambio } from '../workers/dto/worker.dto';
 import type { CeseInputDto, MovementInputDto } from './dto/labor-input.dto';
-import { ContractExpiryService, type ActorVencimiento } from './contract-expiry.service';
+import { ContractExpiryService, esHistorico, type ActorVencimiento } from './contract-expiry.service';
+import { REFERENCIA_IMPORTACION } from './period-origin';
 
 export const INCORPORACION = {
   PRIMER_INGRESO: 'Primer ingreso',
@@ -204,6 +205,10 @@ export class LaborService {
       return;
     }
     const lectura = this.datosVinculo(documento, trabajador, actual);
+    if (lectura.inicio !== null && lectura.fin !== null && esHistorico(lectura.fin, trabajador.creadoEn)) {
+      await this.registrarHistorico(transaccion, documento, trabajador, { ...lectura, inicio: lectura.inicio, fin: lectura.fin }, sesion, cliente);
+      return;
+    }
     if (lectura.inicio === null) {
       if (trabajador.estado === 'CESADO') {
         throw new BadRequestException('El trabajador está cesado: indica el inicio del vínculo para registrar su reingreso.');
@@ -231,6 +236,64 @@ export class LaborService {
       return;
     }
     await this.vincularIngreso(transaccion, documento, trabajador, actual, datos, sesion, cliente);
+  }
+
+  private async registrarHistorico(
+    transaccion: Prisma.TransactionClient,
+    documento: DocumentoCompleto,
+    trabajador: TrabajadorConVinculos,
+    datos: DatosVinculo & { fin: string },
+    sesion: SesionActiva,
+    cliente: DatosCliente,
+  ): Promise<void> {
+    const actual = this.vinculoActual(trabajador);
+    const cruzado = trabajador.vinculos.find(
+      (vinculo) => vinculo.fechaFin !== null && aTexto(vinculo.fechaFin) >= datos.inicio && aTexto(vinculo.fechaInicio) <= datos.fin,
+    );
+    if (cruzado !== undefined) {
+      throw new BadRequestException(
+        `El contrato (${datos.inicio} al ${datos.fin}) se cruza con el período del ${aTexto(cruzado.fechaInicio)} al ${aTexto(cruzado.fechaFin ?? cruzado.fechaInicio)} del historial.`,
+      );
+    }
+    const nuevo = { regimenId: datos.regimenId, cargoId: datos.cargoId ?? actual.cargoId, areaId: datos.areaId ?? actual.areaId };
+    await exigirCatalogosActivos(this.prisma, nuevo);
+    if (actual.fechaFin === null && aTexto(actual.fechaInicio) <= datos.fin) {
+      if (actual.referencia !== REFERENCIA_IMPORTACION) {
+        throw new BadRequestException(
+          `El contrato (${datos.inicio} al ${datos.fin}) se cruza con el período vigente, que empieza el ${aTexto(actual.fechaInicio)}.`,
+        );
+      }
+      const inicioNuevo = diaSiguiente(datos.fin);
+      await transaccion.vinculo.update({ where: { id: actual.id }, data: { fechaInicio: aFecha(inicioNuevo) } });
+      await this.anotar(transaccion, 'VINCULO_DESPLAZAR', 'vinculo', actual.id, trabajador.id, sesion, cliente, {
+        inicioAnterior: aTexto(actual.fechaInicio),
+        inicioNuevo,
+        documento: documento.id,
+      });
+    }
+    const esUltimo = actual.fechaFin !== null && datos.inicio > aTexto(actual.fechaInicio);
+    if (esUltimo) {
+      await transaccion.vinculo.update({ where: { id: actual.id }, data: { actual: false } });
+    }
+    const vinculo = await transaccion.vinculo.create({
+      data: {
+        trabajadorId: trabajador.id,
+        ...nuevo,
+        tipoPersonal: actual.tipoPersonal,
+        fechaInicio: aFecha(datos.inicio),
+        fechaFin: aFecha(datos.fin),
+        motivoFin: 'FIN_CONTRATO',
+        referencia: referencia(documento),
+        actual: esUltimo,
+      },
+    });
+    await transaccion.documento.update({ where: { id: documento.id }, data: { vinculoId: vinculo.id } });
+    await this.anotar(transaccion, 'VINCULO_CREAR', 'vinculo', vinculo.id, trabajador.id, sesion, cliente, {
+      origen: 'contrato_historico',
+      fechaInicio: datos.inicio,
+      fechaFin: datos.fin,
+      documento: documento.id,
+    });
   }
 
   private async vinculoDelContrato(
