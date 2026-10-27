@@ -55,6 +55,12 @@
               <dd>{{ doc.fechaEmision ? fechaCorta(doc.fechaEmision) : 'No registrada' }}</dd>
             </div>
           }
+          @if (doc.tipo.formulario.presentadoPor; as etiqueta) {
+            <div>
+              <dt>{{ etiqueta }}</dt>
+              <dd>{{ trabajador() ? nombreCompleto(trabajador()!) : 'El trabajador del legajo' }}</dd>
+            </div>
+          }
           @if (doc.tipo.formulario.fechaVencimiento || doc.fechaVencimiento !== null) {
             <div>
               <dt>{{ doc.tipo.formulario.fechaVencimiento ?? 'Fecha de vencimiento' }}</dt>
@@ -194,7 +200,13 @@
       @case ('editar') {
         @if (seccion(); as actual) {
           <form id="formulario-edicion" class="formulario" (submit)="$event.preventDefault(); guardarEdicion()" novalidate>
-            <app-document-fields [grupo]="formulario" [seccion]="actual" prefijo="edicion" [contratos]="contratos()" />
+            <app-document-fields
+              [grupo]="formulario"
+              [seccion]="actual"
+              prefijo="edicion"
+              [contratos]="contratos()"
+              [trabajador]="trabajador() ? nombreCompleto(trabajador()!) : null"
+            />
             <div class="campo">
               <label for="edicion-motivo">Motivo de la modificación <span class="obligatorio" aria-hidden="true">*</span></label>
               <textarea
