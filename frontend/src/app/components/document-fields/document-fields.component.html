@@ -31,6 +31,15 @@
     </div>
   }
 
+  @if (formulario().presentadoPor; as etiqueta) {
+    <div class="campo automatico">
+      <span class="etiqueta">{{ etiqueta }} (automático)</span>
+      <span class="valor">
+        <strong>{{ trabajador() ?? 'Se toma del trabajador asignado' }}</strong>
+      </span>
+    </div>
+  }
+
   @if (formulario().emisor; as etiqueta) {
     <div class="campo">
       <label [for]="id('emisor')">{{ etiqueta }} <span class="opcional">opcional</span></label>
