@@ -61,6 +61,7 @@ export interface FormularioTipo {
   emisor?: string;
   emisorOpciones?: string[];
   fechaVencimiento?: string;
+  presentadoPor?: string;
 }
 
 export interface TipoDocumento {
