@@ -47,6 +47,9 @@ export class DocumentFormDto {
 
   @ApiProperty({ required: false, description: 'Etiqueta de la fecha de vencimiento; si falta, no se pide' })
   fechaVencimiento?: string;
+
+  @ApiProperty({ required: false, description: 'Etiqueta del dato automático con el nombre del trabajador; si falta, no se muestra' })
+  presentadoPor?: string;
 }
 
 export class DocumentTypeDto {
