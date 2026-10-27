@@ -1,0 +1,207 @@
+@if (trabajador(); as actual) {
+  <div class="rejilla" [class.con-panel]="elegido() !== null">
+    <section class="historial" aria-labelledby="titulo-historial">
+      <div class="cabecera">
+        <h3 id="titulo-historial">Historial de vínculos laborales</h3>
+        @if (actual.vinculos.length > 0) {
+          <span class="pastilla azul">{{ actual.vinculos.length === 1 ? '1 período' : actual.vinculos.length + ' períodos' }}</span>
+        }
+      </div>
+
+      <ol class="linea">
+        @for (periodo of paginacion.visibles(); track periodo.vinculo.id) {
+          <li
+            class="periodo"
+            [class.cese]="periodo.cese"
+            [class.vigente]="periodo.vinculo.fechaFin === null"
+            [class.elegido]="periodo.vinculo.id === elegidoId()"
+          >
+            <button
+              type="button"
+              class="tarjeta-periodo"
+              [attr.aria-pressed]="periodo.vinculo.id === elegidoId()"
+              (click)="elegir(periodo.vinculo)"
+            >
+              <span class="datos">
+                <span class="rango">
+                  <strong>{{ fechaCorta(periodo.vinculo.fechaInicio) }} al {{ periodo.fechas[1].valor }}</strong>
+                  <span
+                    class="pastilla"
+                    [class.rojo]="periodo.cese"
+                    [class.verde]="periodo.estado === 'ACTIVO'"
+                    [class.gris]="periodo.estado === 'CONCLUIDO'"
+                  >
+                    {{ periodo.estado }}
+                  </span>
+                </span>
+                <span class="detalle">{{ periodo.vinculo.regimen.nombre }}</span>
+                <span class="detalle">{{ periodo.vinculo.cargo.nombre }} en {{ periodo.vinculo.area.nombre }}</span>
+                @if (periodo.evento; as evento) {
+                  <span class="detalle evento" [class.rojo]="periodo.cese">{{ evento }}</span>
+                }
+                @if (periodo.vinculo.referencia; as referencia) {
+                  <span class="detalle referencia">{{ referencia }}</span>
+                }
+                <span class="pista">{{ periodo.pista }}</span>
+              </span>
+              <span class="fechas">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <rect x="3" y="4" width="18" height="18" rx="2" />
+                  <path d="M16 2v4M8 2v4M3 10h18" />
+                </svg>
+                <span>
+                  @for (fecha of periodo.fechas; track fecha.etiqueta) {
+                    <span class="fecha">
+                      <span>{{ fecha.etiqueta }}</span>
+                      <b>{{ fecha.valor }}</b>
+                    </span>
+                  }
+                </span>
+              </span>
+            </button>
+          </li>
+        } @empty {
+          <li class="vacio">Sin períodos registrados.</li>
+        }
+      </ol>
+      <app-pager
+        class="paginacion"
+        etiqueta="Páginas del historial de vínculos"
+        [pagina]="paginacion.pagina()"
+        [paginas]="paginacion.paginas()"
+        (cambio)="paginacion.ir($event)"
+      />
+      <p class="nota">
+        Al reingresar, el trabajador conserva su mismo legajo: se agrega un nuevo período, no se crea otro legajo. Los eventos de salida
+        (renuncia, jubilación, fallecimiento, término de contrato u otro motivo) se sustentan con el documento de la Sección 11.
+      </p>
+    </section>
+
+    <aside class="panel" aria-live="polite">
+      @if (elegido(); as periodo) {
+        <header class="panel-cabecera">
+          <h3>{{ periodo.cese ? 'Sustento de desvinculación · Sección 11' : 'Documento sustentatorio del vínculo · Sección 02' }}</h3>
+          <button type="button" class="cerrar" aria-label="Cerrar panel" (click)="cerrar()">
+            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 4 8 8M12 4l-8 8" /></svg>
+          </button>
+        </header>
+
+        <div class="panel-cuerpo">
+          <dl class="resumen">
+            <div>
+              <dt>Trabajador</dt>
+              <dd>{{ nombreCompleto(actual) }} · DNI {{ actual.numeroDoc }}</dd>
+            </div>
+            <div>
+              <dt>Vínculo</dt>
+              <dd [class.marcado]="periodo.cese">
+                {{ fechaCorta(periodo.vinculo.fechaInicio) }} al {{ periodo.fechas[1].valor }} · {{ periodo.vinculo.regimen.nombre }}
+              </dd>
+            </div>
+            <div>
+              <dt>Evento</dt>
+              <dd>{{ periodo.evento ?? 'Vínculo vigente' }}</dd>
+            </div>
+            <div>
+              <dt>Sección documental</dt>
+              <dd>{{ periodo.cese ? '11 – Desvinculación' : '02 – Incorporación' }}</dd>
+            </div>
+            @if (principal(); as documento) {
+              <div>
+                <dt>Tipo de documento</dt>
+                <dd>{{ documento.tipo.codigo }} – {{ documento.tipo.nombre }}</dd>
+              </div>
+            }
+          </dl>
+
+          <section class="vinculados">
+            <div class="vinculados-cabecera">
+              <span>{{ periodo.ceses.length + periodo.contratos.length === 1 ? 'Documento vinculado' : 'Documentos vinculados' }}</span>
+              <span class="pastilla azul">Solo lectura</span>
+            </div>
+            @for (documento of periodo.ceses.concat(periodo.contratos); track documento.id) {
+              <div class="archivo">
+                <span class="hoja" aria-hidden="true">PDF</span>
+                <span class="archivo-datos">
+                  <strong>{{ documento.tipo.nombre }}</strong>
+                  <span
+                    >N.º {{ documento.numero ?? '—' }} · emisión
+                    {{ documento.fechaEmision ? fechaCorta(documento.fechaEmision) : '—' }}</span
+                  >
+                  <span class="nombre-archivo">{{ nombreArchivo(documento) }}</span>
+                </span>
+                <span class="archivo-acciones">
+                  <span class="pastilla" [class]="claseEstado[documento.estado]">{{ textoEstado[documento.estado] }}</span>
+                  @if (documento.estado === 'DISPONIBLE') {
+                    <a class="boton chico" [href]="enlace(documento)" target="_blank" rel="noopener">Ver PDF</a>
+                  }
+                </span>
+              </div>
+            } @empty {
+              <p class="nota">
+                {{
+                  periodo.cese
+                    ? 'Este evento de cese no tiene un PDF enlazado. Regístralo en la Sección 11 – Desvinculación.'
+                    : 'Este vínculo todavía no cuenta con PDF de sustento. Regístralo en la Sección 02 – Incorporación.'
+                }}
+              </p>
+            }
+          </section>
+
+          @for (bloque of bloques(); track bloque.documento.id) {
+            <section class="datos-documento" [class.cese]="bloque.cese">
+              <h4>{{ bloque.titulo }}</h4>
+              <dl>
+                @for (fila of bloque.filas; track fila.etiqueta) {
+                  <dt>{{ fila.etiqueta }}</dt>
+                  <dd>{{ fila.valor }}</dd>
+                }
+              </dl>
+            </section>
+          }
+
+          @if (sinEnlazar().length > 0 && puedeEnlazar()) {
+            <section class="vinculados">
+              <div class="vinculados-cabecera"><span>Contratos de la Sección 02 sin período</span></div>
+              <p class="nota">Estos PDF están en la Sección 02 pero no figuran en ningún período. Enlaza el que sustenta este vínculo.</p>
+              @for (documento of sinEnlazar(); track documento.id) {
+                <div class="archivo">
+                  <span class="hoja" aria-hidden="true">PDF</span>
+                  <span class="archivo-datos">
+                    <strong>{{ documento.tipo.nombre }}</strong>
+                    <span
+                      >N.º {{ documento.numero ?? '—' }} · emisión
+                      {{ documento.fechaEmision ? fechaCorta(documento.fechaEmision) : '—' }}</span
+                    >
+                    <span class="nombre-archivo">{{ nombreArchivo(documento) }}</span>
+                  </span>
+                  <span class="archivo-acciones">
+                    <button
+                      type="button"
+                      class="boton chico principal"
+                      (click)="enlazar(documento)"
+                      [disabled]="enlazando() !== null"
+                      [attr.aria-busy]="enlazando() === documento.id"
+                    >
+                      {{ enlazando() === documento.id ? 'Enlazando' : 'Enlazar a este período' }}
+                    </button>
+                  </span>
+                </div>
+              }
+              @if (error(); as mensaje) {
+                <p class="aviso error" role="alert" animate.enter="aparece">{{ mensaje }}</p>
+              }
+            </section>
+          }
+        </div>
+
+        <footer class="panel-pie">
+          <button type="button" class="boton" (click)="irASeccion()">Ir a la Sección {{ periodo.cese ? '11' : '02' }}</button>
+          <button type="button" class="boton" (click)="cerrar()" [disabled]="enlazando() !== null">Cerrar</button>
+        </footer>
+      } @else {
+        <p class="panel-vacio">Selecciona un período para ver su documento sustentatorio aquí.</p>
+      }
+    </aside>
+  </div>
+}
