@@ -19,6 +19,7 @@ const esquemaFormulario = z.object({
   emisor: z.string().optional(),
   emisorOpciones: z.array(z.string()).optional(),
   fechaVencimiento: z.string().optional(),
+  presentadoPor: z.string().optional(),
 });
 
 const FECHA = /^\d{4}-\d{2}-\d{2}$/;
