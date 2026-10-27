@@ -17,6 +17,7 @@ export type FormularioTipo = {
   emisor?: string;
   emisorOpciones?: string[];
   fechaVencimiento?: string;
+  presentadoPor?: string;
 };
 
 export interface SeccionSemilla {
@@ -363,6 +364,27 @@ const CAMPOS_CESE: CampoSeccion[] = [
   texto('asunto', 'Asunto o motivo'),
   fecha('fechaCese', 'Fecha de término o efecto'),
 ];
+const MOTIVOS_RENUNCIA = [
+  'Motivos personales',
+  'Motivos familiares',
+  'Motivos de salud',
+  'Nueva oportunidad laboral',
+  'Cambio de residencia',
+  'Continuación de estudios',
+  'Motivos económicos',
+  'Otros motivos',
+  'No especificado',
+];
+const CAMPOS_RENUNCIA: CampoSeccion[] = [
+  fecha('fechaPresentacion', 'Fecha de presentación'),
+  seleccion('motivoRenuncia', 'Motivo de renuncia', MOTIVOS_RENUNCIA),
+  fecha('fechaCese', 'Fecha de cese solicitada'),
+];
+const FORMULARIO_RENUNCIA: FormularioTipo = {
+  numero: 'Número o referencia del documento',
+  fechaEmision: 'Fecha de emisión',
+  presentadoPor: 'Presentado por',
+};
 const CAMPOS_OTROS: CampoSeccion[] = [texto('nombreDocumento', 'Nombre del documento'), texto('asunto', 'Asunto o motivo')];
 
 export interface TipoSemilla {
@@ -584,6 +606,7 @@ export const TIPOS_DOCUMENTO: readonly TipoSemilla[] = [
   tipo('1106', 'Liquidación de beneficios sociales y/o pensión', FORMULARIO_ENTIDAD, CAMPOS_TERMINO),
   tipo('1107', 'Carta de no renovación de contrato a plazo determinado (D. Leg. N.º 1057)', FORMULARIO_ENTIDAD, CAMPOS_CESE, cese),
   tipo('1108', 'Resolución de término del vínculo laboral', FORMULARIO_ENTIDAD, CAMPOS_CESE, cese),
+  tipo('1109', 'Carta de renuncia voluntaria', FORMULARIO_RENUNCIA, CAMPOS_RENUNCIA, cese),
 
   tipo('1201', 'Otros documentos administrativos del trabajador', FORMULARIO_ENTIDAD, CAMPOS_OTROS),
   tipo('1202', 'Comunicaciones administrativas relevantes', FORMULARIO_ENTIDAD, CAMPOS_OTROS),
