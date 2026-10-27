@@ -9,10 +9,6 @@ export function hoyEnLima(): string {
   return formatoLima.format(new Date());
 }
 
-export function fechaEnLima(fecha: Date): string {
-  return formatoLima.format(fecha);
-}
-
 export function aFecha(texto: string): Date {
   return new Date(`${texto}T00:00:00.000Z`);
 }
