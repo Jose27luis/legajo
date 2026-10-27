@@ -166,6 +166,7 @@
             [compacto]="true"
             [nuevo]="true"
             [contratos]="contratos()"
+            [trabajador]="contexto.detalle.hasValue() ? nombreCompleto(contexto.detalle.value()) : null"
           />
           @if (error(); as mensaje) {
             <p class="aviso error" role="alert" animate.enter="aparece">{{ mensaje }}</p>
