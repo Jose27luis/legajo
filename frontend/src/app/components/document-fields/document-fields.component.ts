@@ -30,6 +30,7 @@ export class DocumentFieldsComponent {
   readonly compacto = input(false);
   readonly nuevo = input(false);
   readonly contratos = input<readonly OpcionBuscable[]>([]);
+  readonly trabajador = input<string | null>(null);
 
   protected readonly hoy = hoy();
 
