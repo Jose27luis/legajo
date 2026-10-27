@@ -50,7 +50,13 @@
                 />
               </div>
               @if (seccion(); as elegida) {
-                <app-document-fields [grupo]="formulario" [seccion]="elegida" prefijo="clasificar" [compacto]="true" />
+                <app-document-fields
+                  [grupo]="formulario"
+                  [seccion]="elegida"
+                  prefijo="clasificar"
+                  [compacto]="true"
+                  [trabajador]="trabajador()?.nombre ?? null"
+                />
               }
             </form>
           }
