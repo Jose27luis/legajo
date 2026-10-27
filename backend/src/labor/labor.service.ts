@@ -12,8 +12,7 @@ import { exigirCatalogosActivos } from '../workers/catalog-guard';
 import { TEXTO_MOTIVO_CESE, TEXTO_MOVIMIENTO } from '../workers/labels';
 import type { MotivoCambioValor as MotivoCambio } from '../workers/dto/worker.dto';
 import type { CeseInputDto, MovementInputDto } from './dto/labor-input.dto';
-import { ContractExpiryService, esHistorico, type ActorVencimiento } from './contract-expiry.service';
-import { REFERENCIA_IMPORTACION } from './period-origin';
+import { ContractExpiryService, type ActorVencimiento } from './contract-expiry.service';
 
 export const INCORPORACION = {
   PRIMER_INGRESO: 'Primer ingreso',
@@ -205,8 +204,8 @@ export class LaborService {
       return;
     }
     const lectura = this.datosVinculo(documento, trabajador, actual);
-    if (lectura.inicio !== null && lectura.fin !== null && esHistorico(lectura.fin, trabajador.creadoEn)) {
-      await this.registrarHistorico(transaccion, documento, trabajador, { ...lectura, inicio: lectura.inicio, fin: lectura.fin }, sesion, cliente);
+    if (lectura.inicio !== null && lectura.fin !== null && lectura.inicio < aTexto(actual.fechaInicio)) {
+      await this.registrarAnterior(transaccion, documento, trabajador, { ...lectura, inicio: lectura.inicio, fin: lectura.fin }, sesion, cliente);
       return;
     }
     if (lectura.inicio === null) {
@@ -238,7 +237,7 @@ export class LaborService {
     await this.vincularIngreso(transaccion, documento, trabajador, actual, datos, sesion, cliente);
   }
 
-  private async registrarHistorico(
+  private async registrarAnterior(
     transaccion: Prisma.TransactionClient,
     documento: DocumentoCompleto,
     trabajador: TrabajadorConVinculos,
@@ -248,33 +247,16 @@ export class LaborService {
   ): Promise<void> {
     const actual = this.vinculoActual(trabajador);
     const cruzado = trabajador.vinculos.find(
-      (vinculo) => vinculo.fechaFin !== null && aTexto(vinculo.fechaFin) >= datos.inicio && aTexto(vinculo.fechaInicio) <= datos.fin,
+      (vinculo) => aTexto(vinculo.fechaInicio) <= datos.fin && (vinculo.fechaFin === null || aTexto(vinculo.fechaFin) >= datos.inicio),
     );
     if (cruzado !== undefined) {
+      const hasta = cruzado.fechaFin === null ? 'presente' : aTexto(cruzado.fechaFin);
       throw new BadRequestException(
-        `El contrato (${datos.inicio} al ${datos.fin}) se cruza con el período del ${aTexto(cruzado.fechaInicio)} al ${aTexto(cruzado.fechaFin ?? cruzado.fechaInicio)} del historial.`,
+        `El contrato (${datos.inicio} al ${datos.fin}) se cruza con el período del ${aTexto(cruzado.fechaInicio)} al ${hasta} del historial. Revisa las fechas o corrige ese período desde la ficha.`,
       );
     }
     const nuevo = { regimenId: datos.regimenId, cargoId: datos.cargoId ?? actual.cargoId, areaId: datos.areaId ?? actual.areaId };
     await exigirCatalogosActivos(this.prisma, nuevo);
-    if (actual.fechaFin === null && aTexto(actual.fechaInicio) <= datos.fin) {
-      if (actual.referencia !== REFERENCIA_IMPORTACION) {
-        throw new BadRequestException(
-          `El contrato (${datos.inicio} al ${datos.fin}) se cruza con el período vigente, que empieza el ${aTexto(actual.fechaInicio)}.`,
-        );
-      }
-      const inicioNuevo = diaSiguiente(datos.fin);
-      await transaccion.vinculo.update({ where: { id: actual.id }, data: { fechaInicio: aFecha(inicioNuevo) } });
-      await this.anotar(transaccion, 'VINCULO_DESPLAZAR', 'vinculo', actual.id, trabajador.id, sesion, cliente, {
-        inicioAnterior: aTexto(actual.fechaInicio),
-        inicioNuevo,
-        documento: documento.id,
-      });
-    }
-    const esUltimo = actual.fechaFin !== null && datos.inicio > aTexto(actual.fechaInicio);
-    if (esUltimo) {
-      await transaccion.vinculo.update({ where: { id: actual.id }, data: { actual: false } });
-    }
     const vinculo = await transaccion.vinculo.create({
       data: {
         trabajadorId: trabajador.id,
@@ -284,12 +266,12 @@ export class LaborService {
         fechaFin: aFecha(datos.fin),
         motivoFin: 'FIN_CONTRATO',
         referencia: referencia(documento),
-        actual: esUltimo,
+        actual: false,
       },
     });
     await transaccion.documento.update({ where: { id: documento.id }, data: { vinculoId: vinculo.id } });
     await this.anotar(transaccion, 'VINCULO_CREAR', 'vinculo', vinculo.id, trabajador.id, sesion, cliente, {
-      origen: 'contrato_historico',
+      origen: 'periodo_anterior',
       fechaInicio: datos.inicio,
       fechaFin: datos.fin,
       documento: documento.id,
