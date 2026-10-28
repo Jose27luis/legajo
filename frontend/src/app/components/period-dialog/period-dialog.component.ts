@@ -8,6 +8,8 @@ import {
   esSalidaDocumentada,
   fechaCorta,
   nombreCompleto,
+  renunciaDelPeriodo,
+  textoDato,
 } from '../../core/labels';
 import type { Documento, TrabajadorDetalle, Vinculo } from '../../core/models';
 import { SessionService } from '../../core/session.service';
@@ -47,9 +49,18 @@ export class PeriodDialogComponent {
   protected readonly numeroSeccion = computed(() => (this.esSalida() ? 11 : 2));
   protected readonly vinculados = computed(() => {
     const vinculo = this.vinculo();
-    return vinculo === null
-      ? []
-      : this.documentos().filter((documento) => documento.vinculoId === vinculo.id && documento.seccion === this.numeroSeccion());
+    return vinculo === null ? [] : this.documentos().filter((documento) => documento.vinculoId === vinculo.id && documento.seccion === 2);
+  });
+  protected readonly salidas = computed(() => {
+    const vinculo = this.vinculo();
+    if (vinculo === null) {
+      return [];
+    }
+    const renuncia = renunciaDelPeriodo(vinculo, this.documentos());
+    const propias = this.documentos().filter(
+      (documento) => documento.vinculoId === vinculo.id && documento.seccion === 11 && documento.id !== renuncia?.id,
+    );
+    return renuncia === null ? propias : [...propias, renuncia];
   });
   protected readonly sinEnlazar = computed(() =>
     this.esSalida()
@@ -71,6 +82,18 @@ export class PeriodDialogComponent {
 
   protected enlace(documento: Documento): string {
     return this.servicio.enlaceArchivo(documento.id, false);
+  }
+
+  protected detalleSalida(documento: Documento): string {
+    const presentacion = textoDato(documento, 'fechaPresentacion');
+    const cese = textoDato(documento, 'fechaCese');
+    return [
+      textoDato(documento, 'motivoRenuncia') ?? textoDato(documento, 'motivoCese'),
+      presentacion === null ? null : `presentada el ${fechaCorta(presentacion)}`,
+      cese === null ? null : `cese el ${fechaCorta(cese)}`,
+    ]
+      .filter((parte) => parte !== null)
+      .join(' · ');
   }
 
   protected nombreArchivo(documento: Documento): string {
