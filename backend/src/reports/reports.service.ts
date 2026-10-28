@@ -110,6 +110,7 @@ interface FilaVencimiento {
   documento_id: string;
   trabajador_id: string;
   numero_doc: string;
+  estado: EstadoValor;
   nombres: string;
   apellido_paterno: string;
   apellido_materno: string | null;
@@ -391,6 +392,7 @@ export class ReportsService {
     const columnas: ColumnaHoja[] = [
       { titulo: 'Documento', ancho: 14 },
       { titulo: 'Trabajador', ancho: 38 },
+      { titulo: 'Estado', ancho: 11 },
       { titulo: 'Área', ancho: 30 },
       { titulo: 'Sección', ancho: 9, tipo: 'numero' },
       { titulo: 'Código', ancho: 10 },
@@ -411,6 +413,7 @@ export class ReportsService {
         return [
           item.numeroDoc,
           item.trabajador,
+          TEXTO_ESTADO[item.estado],
           item.area,
           item.seccion,
           item.codigo,
@@ -627,7 +630,7 @@ export class ReportsService {
       condiciones.push(Prisma.sql`d.tipo_documento_id = ${consulta.tipoDocumentoId}`);
     }
     return this.prisma.$queryRaw<FilaVencimiento[]>(Prisma.sql`
-      SELECT d.id AS documento_id, t.id AS trabajador_id, t.numero_doc, t.nombres, t.apellido_paterno, t.apellido_materno,
+      SELECT d.id AS documento_id, t.id AS trabajador_id, t.numero_doc, t.estado, t.nombres, t.apellido_paterno, t.apellido_materno,
              a.nombre AS area, s.numero AS seccion, td.codigo, td.nombre AS tipo,
              d.numero, d.fecha_emision, d.fecha_vencimiento,
              (d.fecha_vencimiento - ${hoy}::date)::int AS dias
@@ -704,6 +707,7 @@ function aVencimientoDto(fila: FilaVencimiento): ExpiringRowDto {
     trabajadorId: fila.trabajador_id,
     numeroDoc: fila.numero_doc,
     trabajador: nombreDeFila(fila),
+    estado: fila.estado,
     area: fila.area,
     seccion: fila.seccion,
     codigo: fila.codigo,
