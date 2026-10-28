@@ -20,7 +20,6 @@ import {
   opcionesContrato,
   prepararFormularioDocumento,
 } from '../../../components/document-fields/document-form';
-import { LinkHistoryComponent } from '../../../components/link-history/link-history.component';
 import { PagerComponent } from '../../../components/pager/pager.component';
 import { PdfPickerComponent } from '../../../components/pdf-picker/pdf-picker.component';
 import { SearchSelectComponent, type OpcionBuscable, type ValorOpcion } from '../../../components/search-select/search-select.component';
@@ -106,7 +105,6 @@ const OPCIONES_ESTADO: readonly OpcionBuscable[] = [
     SkeletonComponent,
     SearchSelectComponent,
     PagerComponent,
-    LinkHistoryComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './legajo-section.component.html',
@@ -182,8 +180,6 @@ export class LegajoSectionComponent implements OnDestroy {
   );
 
   protected readonly hayDisponibles = computed(() => this.todos().some((documento) => documento.estado === 'DISPONIBLE'));
-
-  protected readonly documentosLegajo = computed(() => (this.contexto.legajo.hasValue() ? this.contexto.legajo.value().documentos : []));
 
   protected readonly contratos = computed(() =>
     opcionesContrato(this.contexto.legajo.hasValue() ? this.contexto.legajo.value().documentos : []),
