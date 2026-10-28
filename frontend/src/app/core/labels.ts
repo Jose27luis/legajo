@@ -82,6 +82,29 @@ export function esSalidaDocumentada(
   return documentos.some((documento) => documento.vinculoId === vinculo.id && documento.seccion === 11 && documento.estado !== 'ANULADO');
 }
 
+export const CODIGO_RENUNCIA = '1109';
+
+export function renunciaDelPeriodo(vinculo: Pick<Vinculo, 'id' | 'fechaFin'>, documentos: readonly Documento[]): Documento | null {
+  return (
+    documentos.find(
+      (documento) =>
+        documento.seccion === 11 &&
+        documento.tipo.codigo === CODIGO_RENUNCIA &&
+        documento.estado !== 'ANULADO' &&
+        (documento.vinculoId === vinculo.id || (documento.vinculoId === null && vinculo.fechaFin === null)),
+    ) ?? null
+  );
+}
+
+export function textoDato(documento: Pick<Documento, 'datos'>, clave: string): string | null {
+  const valor = documento.datos[clave];
+  return typeof valor === 'string' && valor.trim() !== '' ? valor : null;
+}
+
+export function fechaRenuncia(documento: Documento, vinculo: Pick<Vinculo, 'fechaFin'>): string | null {
+  return textoDato(documento, 'fechaCese') ?? vinculo.fechaFin ?? textoDato(documento, 'fechaPresentacion') ?? documento.fechaEmision;
+}
+
 export function nombreCompleto(trabajador: Pick<TrabajadorResumen, 'nombres' | 'apellidoPaterno' | 'apellidoMaterno'>): string {
   const apellidos = [trabajador.apellidoPaterno, trabajador.apellidoMaterno].filter((parte) => parte !== null && parte !== '');
   return `${apellidos.join(' ')}, ${trabajador.nombres}`;
