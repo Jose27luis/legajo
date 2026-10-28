@@ -7,7 +7,13 @@
 <ol class="linea">
   @for (vinculo of vinculos.visibles(); track vinculo.id) {
     @let salida = renuncia(vinculo);
-    <li [class.vigente]="vinculo.fechaFin === null && salida === null" [class.cese]="esCese(vinculo)" [class.renuncia]="salida !== null">
+    @let concluido = salida === null && esConcluido(vinculo);
+    <li
+      [class.vigente]="vinculo.fechaFin === null && salida === null"
+      [class.cese]="esCese(vinculo)"
+      [class.renuncia]="salida !== null"
+      [class.concluido]="concluido"
+    >
       <button type="button" class="periodo" (click)="periodo.set(vinculo)">
         <strong>
           {{ fechaCorta(vinculo.fechaInicio) }} al
@@ -17,6 +23,8 @@
           >{{ vinculo.regimen.nombre }} ·
           @if (salida !== null) {
             <b class="estado-renuncia">{{ salida }}</b>
+          } @else if (concluido) {
+            <b class="estado-concluido">{{ estado(vinculo) }}</b>
           } @else {
             {{ estado(vinculo) }}
           }
