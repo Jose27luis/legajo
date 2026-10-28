@@ -72,3 +72,24 @@
 .vinculados a {
   text-decoration: none;
 }
+
+.vinculados li.salida {
+  margin-top: 4px;
+  padding: 10px 12px;
+  border: 1px solid #efc6cc;
+  border-left: 4px solid var(--alerta);
+  border-radius: 9px;
+  background: var(--alerta-claro);
+}
+
+.salida .dato {
+  color: #8c3a45;
+}
+
+.salida .dato strong {
+  color: var(--alerta);
+}
+
+.salida .detalle {
+  font-weight: 650;
+}
