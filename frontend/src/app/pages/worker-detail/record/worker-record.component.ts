@@ -110,10 +110,18 @@ export class WorkerRecordComponent {
   protected readonly documentosLegajo = computed(() => (this.contexto.legajo.hasValue() ? this.contexto.legajo.value().documentos : []));
 
   protected ultimoMovimiento(trabajador: TrabajadorDetalle): MovimientoLaboral | null {
-    if (trabajador.movimientoActual === 'SIN_MOVIMIENTO') {
+    if (trabajador.movimientoActual !== 'SIN_MOVIMIENTO') {
+      return trabajador.movimientos.find((movimiento) => movimiento.tipo === trabajador.movimientoActual) ?? null;
+    }
+    const vinculo = trabajador.vinculo;
+    if (trabajador.estado !== 'CESADO' || vinculo === null) {
       return null;
     }
-    return trabajador.movimientos.find((movimiento) => movimiento.tipo === trabajador.movimientoActual) ?? null;
+    return (
+      trabajador.movimientos.find(
+        (movimiento) => movimiento.fecha >= vinculo.fechaInicio && (vinculo.fechaFin === null || movimiento.fecha <= vinculo.fechaFin),
+      ) ?? null
+    );
   }
 
   protected motivoCese(trabajador: TrabajadorDetalle): string {
