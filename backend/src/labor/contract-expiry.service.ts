@@ -5,6 +5,7 @@ import { AuditService } from '../audit/audit.service';
 import { leerDatosGuardados } from '../catalogs/section-fields';
 import type { DatosCliente } from '../common/client';
 import { aFecha, aTexto, diaAnterior, hoyEnLima } from '../common/dates';
+import { MOTIVOS_CAMBIO } from '../workers/dto/worker.dto';
 
 export interface ActorVencimiento {
   usuarioId: string | null;
@@ -97,7 +98,11 @@ export class ContractExpiryService {
         documentos: { where: SUSTENTOS_VIGENTES, select: { datos: true } },
       },
     });
-    if (vinculo === null || vinculo.motivoFin !== 'FIN_CONTRATO' || vinculo.fechaFin === null) {
+    if (vinculo === null || vinculo.motivoFin === null || vinculo.fechaFin === null) {
+      return false;
+    }
+    const porContinuidad = MOTIVOS_CAMBIO.some((motivo) => motivo === vinculo.motivoFin);
+    if (vinculo.motivoFin !== 'FIN_CONTRATO' && !porContinuidad) {
       return false;
     }
     const finActual = aTexto(vinculo.fechaFin);
@@ -109,7 +114,10 @@ export class ContractExpiryService {
       if (fin < aTexto(vinculo.fechaInicio)) {
         return false;
       }
-      await transaccion.vinculo.update({ where: { id: vinculo.id }, data: { fechaFin: aFecha(fin) } });
+      await transaccion.vinculo.update({
+        where: { id: vinculo.id },
+        data: porContinuidad ? { fechaFin: aFecha(fin), motivoFin: 'FIN_CONTRATO' } : { fechaFin: aFecha(fin) },
+      });
       await this.auditoria.registrar(
         {
           accion: 'VINCULO_ACORTAR',
@@ -118,11 +126,20 @@ export class ContractExpiryService {
           trabajadorId: vinculo.trabajadorId,
           usuarioId: actor.usuarioId,
           cliente: actor.cliente ?? undefined,
-          detalle: { finAnterior: finActual, finNuevo: fin, documento: documentoId },
+          detalle: {
+            finAnterior: finActual,
+            finNuevo: fin,
+            documento: documentoId,
+            motivoAnterior: vinculo.motivoFin,
+            motivoNuevo: 'FIN_CONTRATO',
+          },
         },
         transaccion,
       );
       return true;
+    }
+    if (porContinuidad) {
+      return false;
     }
     let nuevoFin: string | null = fin;
     if (vinculo.actual) {
