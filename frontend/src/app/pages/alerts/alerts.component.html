@@ -51,6 +51,7 @@
       <thead>
         <tr>
           <th scope="col">Trabajador</th>
+          <th scope="col">Estado</th>
           <th scope="col">Documento</th>
           <th scope="col">Sección</th>
           <th scope="col">Vence</th>
@@ -64,6 +65,11 @@
               <td>
                 <a class="enlace-nombre" [routerLink]="['/workers', fila.trabajadorId, 'sections', fila.seccion]">{{ fila.trabajador }}</a>
                 <span class="secundario">{{ fila.numeroDoc }}</span>
+              </td>
+              <td>
+                <span class="pastilla" [class.verde]="fila.estado === 'ACTIVO'" [class.gris]="fila.estado === 'CESADO'">{{
+                  textoEstado[fila.estado]
+                }}</span>
               </td>
               <td>
                 {{ fila.tipo }}
@@ -81,12 +87,12 @@
             </tr>
           } @empty {
             <tr>
-              <td colspan="5" class="celda-vacia">No hay vencimientos en el período elegido.</td>
+              <td colspan="6" class="celda-vacia">No hay vencimientos en el período elegido.</td>
             </tr>
           }
         } @else {
           <tr>
-            <td colspan="5" class="celda-esqueleto"><app-skeleton [columnas]="5" texto="Calculando las alertas" /></td>
+            <td colspan="6" class="celda-esqueleto"><app-skeleton [columnas]="6" texto="Calculando las alertas" /></td>
           </tr>
         }
       </tbody>
