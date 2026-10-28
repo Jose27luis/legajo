@@ -23,7 +23,7 @@
   border-left: 2px solid #d2e1ee;
 }
 
-.linea li {
+.linea > li {
   position: relative;
   display: grid;
   gap: 2px;
@@ -32,7 +32,7 @@
   color: var(--tinta-media);
 }
 
-.linea li::before {
+.linea > li::before {
   content: '';
   position: absolute;
   left: -22px;
@@ -44,17 +44,17 @@
   background: var(--hoja);
 }
 
-.linea li.vigente::before {
+.linea > li.vigente::before {
   border-color: var(--exito);
   background: var(--exito);
 }
 
-.linea li.cese::before {
+.linea > li.cese::before {
   border-color: var(--pizarra);
   background: var(--pizarra);
 }
 
-.linea li.renuncia::before {
+.linea > li.renuncia::before {
   border-color: var(--alerta);
   background: var(--alerta);
 }
@@ -83,7 +83,7 @@
   background: #eef6fd;
 }
 
-.linea li.sin-periodos::before {
+.linea > li.sin-periodos::before {
   display: none;
 }
 
@@ -92,9 +92,49 @@
   font-size: 13.5px;
 }
 
-.linea li.concluido::before {
+.linea > li.concluido::before {
   border-color: var(--violeta);
   background: var(--violeta);
+}
+
+.movimientos {
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 6px;
+}
+
+.movimientos li {
+  display: grid;
+  gap: 1px;
+  padding: 7px 10px;
+  border-left: 3px solid var(--turquesa);
+  border-radius: 7px;
+  background: var(--turquesa-claro);
+  font-size: 12.5px;
+  color: var(--tinta-media);
+}
+
+.movimientos b {
+  color: var(--turquesa);
+  font-size: 12px;
+  font-weight: 750;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.fuera {
+  margin-bottom: 14px;
+}
+
+.titulo-fuera {
+  margin: 0 0 6px;
+  color: var(--tinta-suave);
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .estado-renuncia {
