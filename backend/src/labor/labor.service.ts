@@ -603,16 +603,11 @@ export class LaborService {
     sesion: SesionActiva,
     cliente: DatosCliente,
   ): Promise<void> {
-    if (trabajador.estado !== 'ACTIVO') {
-      throw new BadRequestException('El trabajador está cesado: primero registra y confirma su reingreso');
-    }
-    const vinculo = this.vinculoActual(trabajador);
     if (datos.fecha > hoyEnLima()) {
       throw new BadRequestException('La fecha efectiva es futura. Confirma el movimiento cuando tenga efecto.');
     }
-    if (datos.fecha < aTexto(vinculo.fechaInicio)) {
-      throw new BadRequestException('La fecha del movimiento no puede ser anterior al ingreso actual');
-    }
+    const vinculo = trabajador.vinculos.find((item) => item.actual) ?? null;
+    const vigente = trabajador.estado === 'ACTIVO' && vinculo !== null && datos.fecha >= aTexto(vinculo.fechaInicio);
     const areas = await transaccion.area.findMany({
       where: { id: { in: [datos.areaOrigenId, datos.areaDestinoId] }, activo: true },
       select: { id: true },
@@ -632,8 +627,8 @@ export class LaborService {
         creadoPorId: sesion.usuarioId,
       },
     });
-    const masReciente = trabajador.movimientoFecha === null || datos.fecha >= aTexto(trabajador.movimientoFecha);
-    if (masReciente) {
+    const masReciente = vigente && (trabajador.movimientoFecha === null || datos.fecha >= aTexto(trabajador.movimientoFecha));
+    if (masReciente && vinculo !== null) {
       await transaccion.trabajador.update({
         where: { id: trabajador.id },
         data: { movimientoActual: datos.tipo, movimientoFecha: aFecha(datos.fecha) },
@@ -647,6 +642,7 @@ export class LaborService {
       areaDestino: datos.areaDestinoId,
       documento: datos.documentoId,
       actualizaFicha: masReciente,
+      historico: !vigente,
       observacion: datos.observacion,
     });
   }
