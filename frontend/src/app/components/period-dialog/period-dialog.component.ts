@@ -84,16 +84,22 @@ export class PeriodDialogComponent {
     return this.servicio.enlaceArchivo(documento.id, false);
   }
 
-  protected detalleSalida(documento: Documento): string {
+  protected referencia(documento: Documento): string {
+    const partes = [
+      documento.numero === null ? null : `N.º ${documento.numero}`,
+      documento.fechaEmision === null ? null : `Emitido el ${fechaCorta(documento.fechaEmision)}`,
+    ].filter((parte) => parte !== null);
+    return partes.length === 0 ? 'Sin número ni fecha de emisión' : partes.join(' · ');
+  }
+
+  protected detalleSalida(documento: Documento): string[] {
     const presentacion = textoDato(documento, 'fechaPresentacion');
     const cese = textoDato(documento, 'fechaCese');
     return [
       textoDato(documento, 'motivoRenuncia') ?? textoDato(documento, 'motivoCese'),
-      presentacion === null ? null : `presentada el ${fechaCorta(presentacion)}`,
-      cese === null ? null : `cese el ${fechaCorta(cese)}`,
-    ]
-      .filter((parte) => parte !== null)
-      .join(' · ');
+      presentacion === null ? null : `Presentada el ${fechaCorta(presentacion)}`,
+      cese === null ? null : `Cese el ${fechaCorta(cese)}`,
+    ].filter((parte) => parte !== null);
   }
 
   protected nombreArchivo(documento: Documento): string {
