@@ -526,21 +526,23 @@ export class LaborService {
     }
     await this.prisma.$transaction(async (transaccion) => {
       const trabajador = await this.trabajador(transaccion, documento.trabajadorId);
-      if (trabajador.estado === 'CESADO') {
-        throw new ConflictException('El trabajador ya está cesado');
+      const vinculo = await this.vinculoDelCese(transaccion, documento, trabajador, datos.fecha);
+      const cerrado = vinculo.fechaFin !== null;
+      if (cerrado) {
+        await transaccion.vinculo.update({ where: { id: vinculo.id }, data: { motivoFin: datos.motivo } });
+      } else {
+        if (datos.fecha < aTexto(vinculo.fechaInicio)) {
+          throw new BadRequestException('La fecha de cese no puede ser anterior al ingreso actual');
+        }
+        await transaccion.vinculo.update({
+          where: { id: vinculo.id },
+          data: { fechaFin: aFecha(datos.fecha), motivoFin: datos.motivo },
+        });
+        await transaccion.trabajador.update({
+          where: { id: trabajador.id },
+          data: { estado: 'CESADO', movimientoActual: 'SIN_MOVIMIENTO', movimientoFecha: null },
+        });
       }
-      const vinculo = this.vinculoActual(trabajador);
-      if (datos.fecha < aTexto(vinculo.fechaInicio)) {
-        throw new BadRequestException('La fecha de cese no puede ser anterior al ingreso actual');
-      }
-      await transaccion.vinculo.update({
-        where: { id: vinculo.id },
-        data: { fechaFin: aFecha(datos.fecha), motivoFin: datos.motivo },
-      });
-      await transaccion.trabajador.update({
-        where: { id: trabajador.id },
-        data: { estado: 'CESADO', movimientoActual: 'SIN_MOVIMIENTO', movimientoFecha: null },
-      });
       await transaccion.documento.update({
         where: { id: documento.id },
         data: {
@@ -550,17 +552,48 @@ export class LaborService {
           confirmadoEn: new Date(),
         },
       });
-      await this.anotar(transaccion, 'VINCULO_FINALIZAR', 'vinculo', vinculo.id, trabajador.id, sesion, cliente, {
-        motivo: datos.motivo,
-        fechaCese: datos.fecha,
-        documento: documento.id,
-        observacion: datos.observacion,
-      });
+      if (cerrado) {
+        await this.anotar(transaccion, 'VINCULO_MOTIVO', 'vinculo', vinculo.id, trabajador.id, sesion, cliente, {
+          motivoAnterior: vinculo.motivoFin,
+          motivo: datos.motivo,
+          documento: documento.id,
+          observacion: datos.observacion,
+        });
+      } else {
+        await this.anotar(transaccion, 'VINCULO_FINALIZAR', 'vinculo', vinculo.id, trabajador.id, sesion, cliente, {
+          motivo: datos.motivo,
+          fechaCese: datos.fecha,
+          documento: documento.id,
+          observacion: datos.observacion,
+        });
+      }
       await this.anotar(transaccion, 'DOCUMENTO_CONFIRMAR', 'documento', documento.id, trabajador.id, sesion, cliente, {
-        efecto: 'cese',
+        efecto: cerrado ? 'motivo' : 'cese',
       });
     });
     return aDocumentoDto(await this.cargar(id, sesion), sesion);
+  }
+
+  private async vinculoDelCese(
+    transaccion: Prisma.TransactionClient,
+    documento: DocumentoCompleto,
+    trabajador: TrabajadorConVinculos,
+    fecha: string,
+  ): Promise<Vinculo> {
+    const relacionado = await this.vinculoDelContrato(transaccion, documento, trabajador);
+    if (relacionado !== null) {
+      return relacionado;
+    }
+    const actual = this.vinculoActual(trabajador);
+    if (trabajador.estado !== 'CESADO') {
+      return actual;
+    }
+    const cerrados = trabajador.vinculos.filter((vinculo) => vinculo.fechaFin !== null);
+    return (
+      cerrados.find((vinculo) => vinculo.fechaFin !== null && aTexto(vinculo.fechaFin) === fecha) ??
+      cerrados.find((vinculo) => vinculo.fechaFin !== null && aTexto(vinculo.fechaInicio) <= fecha && fecha <= aTexto(vinculo.fechaFin)) ??
+      actual
+    );
   }
 
   async aplicarMovimiento(
