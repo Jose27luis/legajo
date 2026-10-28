@@ -3,9 +3,11 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { RouterLink } from '@angular/router';
 import { DatePickerComponent } from '../../../components/date-picker/date-picker.component';
 import { DialogComponent } from '../../../components/dialog/dialog.component';
-import { LinkTimelineComponent } from '../../../components/link-timeline/link-timeline.component';
+import { PagerComponent } from '../../../components/pager/pager.component';
+import { paginar } from '../../../core/pagination';
 import { LinkFieldsComponent } from '../../../components/link-fields/link-fields.component';
 import { crearCamposVinculo, leerCamposVinculo, reiniciarCamposVinculo } from '../../../components/link-fields/link-form';
+import { PeriodDialogComponent } from '../../../components/period-dialog/period-dialog.component';
 import { ReentryDialogComponent } from '../../../components/reentry-dialog/reentry-dialog.component';
 import { SearchSelectComponent, type OpcionBuscable } from '../../../components/search-select/search-select.component';
 import { UbigeoFieldsComponent } from '../../../components/ubigeo-fields/ubigeo-fields.component';
@@ -22,12 +24,21 @@ import {
   TEXTO_MOTIVO_FIN,
   TEXTO_MOVIMIENTO,
   TEXTO_TIPO_PERSONAL,
+  esSalidaDocumentada,
   fechaCorta,
   hoy,
   puedeReingresar,
   tonoSeccion,
 } from '../../../core/labels';
-import type { Documento, Familiar, MotivoCambio, MovimientoLaboral, TipoDocIdentidad, TrabajadorDetalle } from '../../../core/models';
+import type {
+  Documento,
+  Familiar,
+  MotivoCambio,
+  MovimientoLaboral,
+  TipoDocIdentidad,
+  TrabajadorDetalle,
+  Vinculo,
+} from '../../../core/models';
 import { SessionService } from '../../../core/session.service';
 import { ToastService } from '../../../core/toast.service';
 import { UbigeoService } from '../../../services/ubigeo.service';
@@ -35,6 +46,8 @@ import { WorkersService } from '../../../services/workers.service';
 import { WorkerContext } from '../worker-context';
 
 const opcional = (valor: string): string | null => (valor.trim() === '' ? null : valor.trim());
+
+const VINCULOS_POR_PAGINA = 5;
 
 const OPCIONES_PARENTESCO: readonly OpcionBuscable[] = ['Cónyuge', 'Conviviente', 'Hijo(a)', 'Padre', 'Madre', 'Hermano(a)', 'Otro'].map(
   (parentesco) => ({ valor: parentesco, etiqueta: parentesco }),
@@ -69,12 +82,13 @@ const OPCIONES_MOTIVO_CAMBIO: readonly OpcionBuscable[] = MOTIVOS_CAMBIO.map((mo
     DialogComponent,
     LinkFieldsComponent,
     ReentryDialogComponent,
+    PeriodDialogComponent,
     IdentityDocumentsComponent,
     SearchSelectComponent,
     UbigeoFieldsComponent,
     EducationFieldsComponent,
     DatePickerComponent,
-    LinkTimelineComponent,
+    PagerComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './worker-record.component.html',
@@ -107,8 +121,14 @@ export class WorkerRecordComponent {
 
   protected readonly tono = tonoSeccion(1);
   protected readonly paraReingreso = signal<TrabajadorDetalle | null>(null);
+  protected readonly periodo = signal<Vinculo | null>(null);
   protected readonly documentosLegajo = computed(() => (this.contexto.legajo.hasValue() ? this.contexto.legajo.value().documentos : []));
-  protected readonly seccionesLegajo = computed(() => (this.contexto.legajo.hasValue() ? this.contexto.legajo.value().secciones : []));
+
+  protected readonly vinculos = paginar(
+    () => (this.contexto.detalle.hasValue() ? this.contexto.detalle.value().vinculos : []),
+    VINCULOS_POR_PAGINA,
+    () => (this.contexto.detalle.hasValue() ? this.contexto.detalle.value().id : undefined),
+  );
 
   protected ultimoMovimiento(trabajador: TrabajadorDetalle): MovimientoLaboral | null {
     if (trabajador.movimientoActual === 'SIN_MOVIMIENTO') {
@@ -120,6 +140,22 @@ export class WorkerRecordComponent {
   protected motivoCese(trabajador: TrabajadorDetalle): string {
     const motivo = trabajador.vinculo?.motivoFin ?? null;
     return trabajador.estado === 'CESADO' && motivo !== null ? TEXTO_MOTIVO_FIN[motivo] : 'No corresponde';
+  }
+
+  protected esCese(vinculo: Vinculo): boolean {
+    return esSalidaDocumentada(vinculo, this.documentosLegajo());
+  }
+
+  protected pistaPeriodo(vinculo: Vinculo): string {
+    if (this.esCese(vinculo)) {
+      return 'Ver sustento del cese · Sección 11';
+    }
+    const vinculados = this.documentosLegajo().some((documento) => documento.vinculoId === vinculo.id && documento.seccion === 2);
+    return vinculados ? 'Ver documento sustentatorio · Sección 02' : 'Sin documento sustentatorio · Sección 02';
+  }
+
+  protected abrirPeriodo(vinculo: Vinculo): void {
+    this.periodo.set(vinculo);
   }
 
   protected alRegistrarSustento(documento: Documento): void {
