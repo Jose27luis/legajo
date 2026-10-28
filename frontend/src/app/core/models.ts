@@ -668,6 +668,7 @@ export interface FilaVencimiento {
   trabajadorId: string;
   numeroDoc: string;
   trabajador: string;
+  estado: EstadoTrabajador;
   area: string | null;
   seccion: number;
   codigo: string;
