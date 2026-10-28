@@ -1,0 +1,51 @@
+<div class="cabecera-tarjeta">
+  <h3 id="titulo-vinculos">Historial de vínculos laborales</h3>
+  @if (trabajador().vinculos.length > 0) {
+    <span class="pastilla azul">{{ trabajador().vinculos.length === 1 ? '1 período' : trabajador().vinculos.length + ' períodos' }}</span>
+  }
+</div>
+<ol class="linea">
+  @for (vinculo of vinculos.visibles(); track vinculo.id) {
+    @let salida = renuncia(vinculo);
+    <li [class.vigente]="vinculo.fechaFin === null && salida === null" [class.cese]="esCese(vinculo)" [class.renuncia]="salida !== null">
+      <button type="button" class="periodo" (click)="periodo.set(vinculo)">
+        <strong>
+          {{ fechaCorta(vinculo.fechaInicio) }} al
+          {{ vinculo.fechaFin === null ? 'presente' : fechaCorta(vinculo.fechaFin) }}
+        </strong>
+        <span
+          >{{ vinculo.regimen.nombre }} ·
+          @if (salida !== null) {
+            <b class="estado-renuncia">{{ salida }}</b>
+          } @else {
+            {{ estado(vinculo) }}
+          }
+        </span>
+        <span>{{ vinculo.cargo.nombre }} en {{ vinculo.area.nombre }}</span>
+        @if (vinculo.motivoFin; as motivo) {
+          <span class="motivo">Terminó por {{ textoMotivoFin[motivo].toLowerCase() }}</span>
+        }
+        @if (vinculo.referencia; as referencia) {
+          <span class="referencia">{{ referencia }}</span>
+        }
+        <span class="pista">{{ pistaPeriodo(vinculo) }}</span>
+      </button>
+    </li>
+  } @empty {
+    <li class="sin-periodos">Sin períodos registrados.</li>
+  }
+</ol>
+<app-pager
+  class="paginacion"
+  etiqueta="Páginas del historial de vínculos"
+  [pagina]="vinculos.pagina()"
+  [paginas]="vinculos.paginas()"
+  (cambio)="vinculos.ir($event)"
+/>
+<app-period-dialog
+  [vinculo]="periodo()"
+  [trabajador]="trabajador()"
+  [documentos]="documentos()"
+  (cerrar)="periodo.set(null)"
+  (registrado)="registrado.emit($event)"
+/>
