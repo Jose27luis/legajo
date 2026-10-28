@@ -33,9 +33,6 @@
         @if (motivoTermino(vinculo, salida); as motivo) {
           <span class="motivo" [class.motivo-renuncia]="salida !== null">{{ motivo }}</span>
         }
-        @if (sinSustento(vinculo)) {
-          <span class="sin-sustento">No hay documento de sustento</span>
-        }
         @if (vinculo.referencia; as referencia) {
           <span class="referencia">{{ referencia }}</span>
         }
