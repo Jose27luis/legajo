@@ -37,7 +37,11 @@ export class LinkHistoryComponent {
     if (vinculo.fechaFin === null) {
       return 'ACTIVO';
     }
-    return this.esCese(vinculo) ? 'CESADO' : 'CONCLUIDO';
+    return this.esCese(vinculo) ? 'CESADO' : `CONCLUIDO · ${fechaCorta(vinculo.fechaFin)}`;
+  }
+
+  protected esConcluido(vinculo: Vinculo): boolean {
+    return vinculo.fechaFin !== null && !this.esCese(vinculo);
   }
 
   protected renuncia(vinculo: Vinculo): string | null {
