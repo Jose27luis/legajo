@@ -38,11 +38,35 @@
         }
         <span class="pista">{{ pistaPeriodo(vinculo) }}</span>
       </button>
+      @let desplazamientos = movimientos(vinculo);
+      @if (desplazamientos.length > 0) {
+        <ul class="movimientos" aria-label="Movimientos del período">
+          @for (movimiento of desplazamientos; track movimiento.id) {
+            <li>
+              <b>{{ textoMovimiento[movimiento.tipo] }} · {{ fechaCorta(movimiento.fecha) }}</b>
+              <span>{{ movimiento.areaOrigen.nombre }} → {{ movimiento.areaDestino.nombre }}</span>
+            </li>
+          }
+        </ul>
+      }
     </li>
   } @empty {
     <li class="sin-periodos">Sin períodos registrados.</li>
   }
 </ol>
+@if (sinPeriodo().length > 0) {
+  <div class="fuera">
+    <p class="titulo-fuera">Movimientos sin período registrado</p>
+    <ul class="movimientos">
+      @for (movimiento of sinPeriodo(); track movimiento.id) {
+        <li>
+          <b>{{ textoMovimiento[movimiento.tipo] }} · {{ fechaCorta(movimiento.fecha) }}</b>
+          <span>{{ movimiento.areaOrigen.nombre }} → {{ movimiento.areaDestino.nombre }}</span>
+        </li>
+      }
+    </ul>
+  </div>
+}
 <app-pager
   class="paginacion"
   etiqueta="Páginas del historial de vínculos"
