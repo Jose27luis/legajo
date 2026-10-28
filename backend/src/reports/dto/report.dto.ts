@@ -193,6 +193,9 @@ export class ExpiringRowDto {
   @ApiProperty()
   trabajador: string;
 
+  @ApiProperty({ enum: ESTADOS })
+  estado: EstadoValor;
+
   @ApiProperty({ type: String, nullable: true })
   area: string | null;
 
