@@ -170,6 +170,32 @@
   color: #8c3a45;
 }
 
+.grupo.de-movimiento {
+  margin-top: 6px;
+  color: var(--turquesa);
+}
+
+.documento.movimiento {
+  border-color: #bfe3e1;
+  border-left-color: var(--turquesa);
+  background: var(--turquesa-claro);
+}
+
+.movimiento .hoja {
+  border-color: #bfe3e1;
+  background: var(--hoja);
+  color: var(--turquesa);
+}
+
+.movimiento .dato strong {
+  color: var(--turquesa);
+}
+
+.movimiento .chip {
+  border-color: #bfe3e1;
+  color: var(--turquesa);
+}
+
 .chips {
   display: flex;
   flex-wrap: wrap;
