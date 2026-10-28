@@ -340,6 +340,11 @@ const desplazamiento = (cargo: string, origen = 'Dependencia de origen', destino
   texto('cargoAsignado', cargo),
   fecha('fechaEfecto', 'Fecha de inicio o efecto'),
 ];
+const CAMPOS_ROTACION: CampoSeccion[] = [
+  ...desplazamiento('Cargo o función asignada'),
+  fecha('fechaFinRotacion', 'Fecha fin de rotación'),
+  catalogo('contratoRelacionado', 'Contrato relacionado', 'contrato'),
+];
 const CAMPOS_ENCARGO: CampoSeccion[] = [
   seleccion('modalidadEncargo', 'Modalidad de cargo', ['Encargo de funciones', 'Encargo de puesto']),
   catalogo('areaOrigen', 'Dependencia de origen', 'area'),
@@ -565,7 +570,7 @@ export const TIPOS_DOCUMENTO: readonly TipoSemilla[] = [
   tipo('0702', 'Actas de retroalimentación y plan de mejora', FORMULARIO_ENTIDAD, CAMPOS_CONCEPTO_PERIODO),
   tipo('0703', 'Resolución de progresión en la carrera', FORMULARIO_ENTIDAD, CAMPOS_CONCEPTO_PERIODO),
   tipo('0704', 'Designación', FORMULARIO_DESPLAZAMIENTO, desplazamiento('Cargo designado'), movimiento),
-  tipo('0705', 'Rotación', FORMULARIO_DESPLAZAMIENTO, desplazamiento('Cargo o función asignada'), movimiento),
+  tipo('0705', 'Rotación', FORMULARIO_DESPLAZAMIENTO, CAMPOS_ROTACION, movimiento),
   tipo(
     '0706',
     'Destaque',
