@@ -22,7 +22,7 @@
         <h3>Documentos vinculados</h3>
         <span class="pastilla azul">Solo lectura</span>
       </header>
-      @if (vinculados().length === 0 && salidas().length === 0) {
+      @if (vinculados().length === 0 && desplazamientos().length === 0 && salidas().length === 0) {
         <p class="nota">
           {{
             esSalida()
@@ -47,6 +47,34 @@
                     <span class="pastilla" [class]="claseEstado[documento.estado]">{{ textoEstado[documento.estado] }}</span>
                     @if (documento.estado === 'DISPONIBLE') {
                       <a class="boton chico" [href]="enlace(documento)" target="_blank" rel="noopener">Ver PDF</a>
+                    }
+                  </span>
+                </li>
+              }
+            </ul>
+          }
+          @if (desplazamientos().length > 0) {
+            <p class="grupo de-movimiento">Desplazamiento · Sección 07</p>
+            <ul class="documentos">
+              @for (item of desplazamientos(); track item.movimiento.id) {
+                <li class="documento movimiento">
+                  <span class="hoja" aria-hidden="true">PDF</span>
+                  <span class="dato">
+                    <strong>{{ item.documento?.tipo?.nombre ?? textoMovimiento[item.movimiento.tipo] }}</strong>
+                    <span class="meta">{{ item.documento === null ? 'Sin documento de sustento' : referencia(item.documento) }}</span>
+                    <span class="chips">
+                      <span class="chip">{{ textoMovimiento[item.movimiento.tipo] }} desde el {{ fechaCorta(item.movimiento.fecha) }}</span>
+                      <span class="chip">{{ item.movimiento.areaOrigen.nombre }} → {{ item.movimiento.areaDestino.nombre }}</span>
+                    </span>
+                    @if (item.documento; as documento) {
+                      <span class="archivo">{{ nombreArchivo(documento) }}</span>
+                    }
+                  </span>
+                  <span class="acciones">
+                    @if (item.documento; as documento) {
+                      @if (documento.estado === 'DISPONIBLE') {
+                        <a class="boton chico" [href]="enlace(documento)" target="_blank" rel="noopener">Ver PDF</a>
+                      }
                     }
                   </span>
                 </li>
