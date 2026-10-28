@@ -73,23 +73,127 @@
   text-decoration: none;
 }
 
-.vinculados li.salida {
-  margin-top: 4px;
+.grupos {
+  display: grid;
+  gap: 8px;
+  padding: 12px 14px 14px;
+}
+
+.grupo {
+  margin: 0;
+  color: var(--tinta-suave);
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.grupo.de-salida {
+  margin-top: 6px;
+  color: var(--alerta);
+}
+
+.documentos {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+}
+
+.documento {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
   padding: 10px 12px;
-  border: 1px solid #efc6cc;
-  border-left: 4px solid var(--alerta);
-  border-radius: 9px;
+  border: 1px solid var(--linea-suave);
+  border-left: 4px solid var(--primario);
+  border-radius: 10px;
+  background: #fbfdff;
+}
+
+.hoja {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 40px;
+  border: 1px solid #c9dced;
+  border-radius: 6px;
+  background: var(--primario-claro);
+  color: var(--primario);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.documento .dato {
+  gap: 2px;
+}
+
+.meta {
+  color: var(--tinta-media);
+}
+
+.documento .archivo {
+  color: var(--tinta-suave);
+  font-size: 12px;
+}
+
+.acciones {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.acciones a {
+  text-decoration: none;
+}
+
+.documento.salida {
+  border-color: #efc6cc;
+  border-left-color: var(--alerta);
   background: var(--alerta-claro);
 }
 
-.salida .dato {
-  color: #8c3a45;
+.salida .hoja {
+  border-color: #efc6cc;
+  background: var(--hoja);
+  color: var(--alerta);
 }
 
 .salida .dato strong {
   color: var(--alerta);
 }
 
-.salida .detalle {
+.salida .meta {
+  color: #8c3a45;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 4px 0 2px;
+}
+
+.chip {
+  padding: 2px 9px;
+  border: 1px solid #efc6cc;
+  border-radius: 999px;
+  background: var(--hoja);
+  color: var(--alerta);
+  font-size: 11.5px;
   font-weight: 650;
+}
+
+@media (max-width: 560px) {
+  .documento {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .acciones {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+  }
 }
