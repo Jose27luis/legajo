@@ -298,7 +298,8 @@
           <strong>Trabajador:</strong> {{ trabajador() ? nombreCompleto(trabajador()!) : '' }}<br />
           <strong>Documento:</strong> {{ doc.tipo.nombre }} · N.º {{ doc.numero ?? '—' }}<br />
           <strong>PDF:</strong> {{ versionActual()?.nombreOriginal }}<br />
-          Este registro actualizará la ficha de la Sección 01 y la cabecera. <strong>No modificará el estado ACTIVO/CESADO.</strong>
+          Si el movimiento es del período vigente, actualizará la ficha de la Sección 01; si es de un período anterior o el trabajador está
+          cesado, solo quedará en el historial. <strong>No modificará el estado ACTIVO/CESADO.</strong>
         </p>
         <form id="formulario-movimiento" class="campos" [formGroup]="confirmacionMovimiento" (ngSubmit)="confirmarMovimiento()" novalidate>
           <div class="campo">
