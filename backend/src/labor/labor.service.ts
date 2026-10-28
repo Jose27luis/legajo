@@ -630,12 +630,20 @@ export class LaborService {
         creadoPorId: sesion.usuarioId,
       },
     });
-    const masReciente = vigente && (trabajador.movimientoFecha === null || datos.fecha >= aTexto(trabajador.movimientoFecha));
+    const posteriores =
+      vigente && vinculo !== null
+        ? await transaccion.movimientoLaboral.count({
+            where: { trabajadorId: trabajador.id, id: { not: movimiento.id }, fecha: { gt: aFecha(datos.fecha), gte: vinculo.fechaInicio } },
+          })
+        : 0;
+    const masReciente = vigente && posteriores === 0;
     if (masReciente && vinculo !== null) {
-      await transaccion.trabajador.update({
-        where: { id: trabajador.id },
-        data: { movimientoActual: datos.tipo, movimientoFecha: aFecha(datos.fecha) },
-      });
+      if (trabajador.estado === 'ACTIVO') {
+        await transaccion.trabajador.update({
+          where: { id: trabajador.id },
+          data: { movimientoActual: datos.tipo, movimientoFecha: aFecha(datos.fecha) },
+        });
+      }
       await transaccion.vinculo.update({ where: { id: vinculo.id }, data: { areaId: datos.areaDestinoId } });
     }
     await this.anotar(transaccion, 'MOVIMIENTO_REGISTRAR', 'movimiento', movimiento.id, trabajador.id, sesion, cliente, {
