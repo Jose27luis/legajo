@@ -105,11 +105,11 @@
         </div>
         <div>
           <dt>Último movimiento</dt>
-          <dd>{{ textoMovimiento[trabajador.movimientoActual].toUpperCase() }}</dd>
+          <dd>{{ textoMovimiento[ultimoMovimiento(trabajador)?.tipo ?? trabajador.movimientoActual].toUpperCase() }}</dd>
         </div>
         <div>
           <dt>Fecha de movimiento</dt>
-          <dd>{{ fechaCorta(trabajador.movimientoFecha) }}</dd>
+          <dd>{{ fechaCorta(ultimoMovimiento(trabajador)?.fecha ?? trabajador.movimientoFecha) }}</dd>
         </div>
         <div>
           <dt>Origen del último movimiento</dt>
