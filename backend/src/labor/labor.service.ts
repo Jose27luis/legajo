@@ -607,7 +607,10 @@ export class LaborService {
       throw new BadRequestException('La fecha efectiva es futura. Confirma el movimiento cuando tenga efecto.');
     }
     const vinculo = trabajador.vinculos.find((item) => item.actual) ?? null;
-    const vigente = trabajador.estado === 'ACTIVO' && vinculo !== null && datos.fecha >= aTexto(vinculo.fechaInicio);
+    const vigente =
+      vinculo !== null &&
+      datos.fecha >= aTexto(vinculo.fechaInicio) &&
+      (vinculo.fechaFin === null || datos.fecha <= aTexto(vinculo.fechaFin));
     const areas = await transaccion.area.findMany({
       where: { id: { in: [datos.areaOrigenId, datos.areaDestinoId] }, activo: true },
       select: { id: true },
