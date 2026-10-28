@@ -9,7 +9,7 @@ import { aFecha, aTexto, hoyEnLima, normalizarBusqueda } from '../common/dates';
 import { sinDuplicados } from '../common/unique-violation';
 import { enviarLibro, type CeldaValor, type ColumnaHoja } from '../common/xlsx-stream';
 import type { CreateWorkerDto, LookupQueryDto, UpdateWorkerDto, WorkerQueryDto } from './dto/worker-input.dto';
-import type { WorkerDetailDto, WorkerLookupDto, WorkerPageDto, WorkerSummaryDto } from './dto/worker.dto';
+import type { MovimientoValor, WorkerDetailDto, WorkerLookupDto, WorkerPageDto, WorkerSummaryDto } from './dto/worker.dto';
 import { exigirCatalogosActivos } from './catalog-guard';
 import { TEXTO_MOVIMIENTO } from './labels';
 import { aDetalleDto, aDirectorioDto, aListadoDto, incluirDetalle, incluirDirectorio, incluirListado, validarDocumento, validarFormacion, validarUbigeo } from './worker.mapper';
@@ -40,7 +40,8 @@ export class WorkersService {
   async listar(consulta: WorkerQueryDto, sesion: SesionActiva): Promise<WorkerPageDto> {
     const pagina = consulta.pagina ?? 1;
     const porPagina = consulta.porPagina ?? 25;
-    const where = this.filtro(consulta);
+    const deCesados = await this.movimientosDeCesados();
+    const where = this.filtro(consulta, deCesados);
     const [total, trabajadores] = await this.prisma.$transaction([
       this.prisma.trabajador.count({ where }),
       this.prisma.trabajador.findMany({
@@ -51,11 +52,37 @@ export class WorkersService {
         take: porPagina,
       }),
     ]);
-    return { items: trabajadores.map(aDirectorioDto), total, pagina, porPagina };
+    return {
+      items: trabajadores.map((trabajador) => ({
+        ...aDirectorioDto(trabajador),
+        movimientoActual: deCesados.get(trabajador.id) ?? trabajador.movimientoActual,
+      })),
+      total,
+      pagina,
+      porPagina,
+    };
+  }
+
+  private async movimientosDeCesados(): Promise<Map<string, MovimientoValor>> {
+    const filas = await this.prisma.$queryRaw<{ id: string; tipo: MovimientoValor }[]>`
+      SELECT t.id, u.tipo::text AS tipo
+      FROM trabajador t
+      JOIN vinculo v ON v.trabajador_id = t.id AND v.actual
+      JOIN LATERAL (
+        SELECT m.tipo
+        FROM movimiento_laboral m
+        WHERE m.trabajador_id = t.id
+          AND m.fecha >= v.fecha_inicio
+          AND (v.fecha_fin IS NULL OR m.fecha <= v.fecha_fin)
+        ORDER BY m.fecha DESC, m.creado_en DESC
+        LIMIT 1
+      ) u ON true
+      WHERE t.estado = 'CESADO'`;
+    return new Map(filas.map((fila) => [fila.id, fila.tipo]));
   }
 
   async resumen(): Promise<WorkerSummaryDto> {
-    const [estados, movimientos, recientes] = await Promise.all([
+    const [estados, movimientos, recientes, deCesados] = await Promise.all([
       this.prisma.trabajador.groupBy({ by: ['estado'], _count: { _all: true } }),
       this.prisma.trabajador.groupBy({
         by: ['movimientoActual'],
@@ -68,10 +95,12 @@ export class WorkersService {
         orderBy: [{ fechaIngreso: 'desc' }, { creadoEn: 'desc' }],
         take: 5,
       }),
+      this.movimientosDeCesados(),
     ]);
     const contar = (estado: 'ACTIVO' | 'CESADO') => estados.find((fila) => fila.estado === estado)?._count._all ?? 0;
     const contarMovimiento = (movimiento: 'ROTACION' | 'DESTAQUE') =>
-      movimientos.find((fila) => fila.movimientoActual === movimiento)?._count._all ?? 0;
+      (movimientos.find((fila) => fila.movimientoActual === movimiento)?._count._all ?? 0) +
+      [...deCesados.values()].filter((tipo) => tipo === movimiento).length;
     const activos = contar('ACTIVO');
     const cesados = contar('CESADO');
     return {
@@ -85,8 +114,9 @@ export class WorkersService {
   }
 
   async exportar(consulta: WorkerQueryDto, respuesta: Response): Promise<void> {
+    const deCesados = await this.movimientosDeCesados();
     const trabajadores = await this.prisma.trabajador.findMany({
-      where: this.filtro(consulta),
+      where: this.filtro(consulta, deCesados),
       include: incluirListado,
       orderBy: [{ apellidoPaterno: 'asc' }, { apellidoMaterno: 'asc' }, { nombres: 'asc' }],
       take: LIMITE_EXPORTACION,
@@ -123,7 +153,7 @@ export class WorkersService {
         TEXTO_ESTADO[trabajador.estado],
         cesado && vinculo?.motivoFin ? TEXTO_MOTIVO[vinculo.motivoFin] : null,
         cesado && vinculo?.fechaFin ? aTexto(vinculo.fechaFin) : null,
-        TEXTO_MOVIMIENTO[trabajador.movimientoActual],
+        TEXTO_MOVIMIENTO[deCesados.get(trabajador.id) ?? trabajador.movimientoActual],
         aTexto(trabajador.fechaIngreso),
       ];
     });
@@ -297,13 +327,20 @@ export class WorkersService {
     return trabajador;
   }
 
-  private filtro(consulta: WorkerQueryDto): Prisma.TrabajadorWhereInput {
+  private filtro(consulta: WorkerQueryDto, deCesados: ReadonlyMap<string, MovimientoValor>): Prisma.TrabajadorWhereInput {
     const condiciones: Prisma.TrabajadorWhereInput[] = [];
     if (consulta.estado !== undefined) {
       condiciones.push({ estado: consulta.estado });
     }
-    if (consulta.movimiento !== undefined) {
-      condiciones.push({ movimientoActual: consulta.movimiento });
+    const movimiento = consulta.movimiento;
+    if (movimiento !== undefined) {
+      const cesadosConMovimiento = [...deCesados.keys()];
+      const cesadosDelTipo = [...deCesados.entries()].filter(([, tipo]) => tipo === movimiento).map(([id]) => id);
+      condiciones.push(
+        movimiento === 'SIN_MOVIMIENTO'
+          ? { movimientoActual: movimiento, id: { notIn: cesadosConMovimiento } }
+          : { OR: [{ movimientoActual: movimiento }, { id: { in: cesadosDelTipo } }] },
+      );
     }
     if (consulta.areaId !== undefined || consulta.regimenId !== undefined) {
       condiciones.push({
