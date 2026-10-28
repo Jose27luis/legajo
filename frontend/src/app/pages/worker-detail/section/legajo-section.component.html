@@ -30,17 +30,6 @@
     {{ aviso().texto }}
   </p>
 
-  @if (actual.numero === 11 && contexto.detalle.value(); as trabajador) {
-    <section class="tarjeta" aria-label="Historial de vínculos laborales">
-      <app-link-timeline
-        [trabajador]="trabajador"
-        [documentos]="todosLosDocumentos()"
-        [secciones]="secciones()"
-        (registrado)="contexto.actualizarDocumento($event)"
-      />
-    </section>
-  }
-
   <div class="rejilla" [class.sin-panel]="!sesion.tiene('documentos.subir')">
     <section class="tarjeta lista" aria-labelledby="titulo-documentos">
       <div class="cabecera-tarjeta">
