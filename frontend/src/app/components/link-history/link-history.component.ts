@@ -1,7 +1,15 @@
-import { ChangeDetectionStrategy, Component, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
 import { paginar } from '../../core/pagination';
-import { TEXTO_MOTIVO_FIN, esSalidaDocumentada, fechaCorta, fechaRenuncia, renunciaDelPeriodo } from '../../core/labels';
-import type { Documento, TrabajadorDetalle, Vinculo } from '../../core/models';
+import {
+  TEXTO_MOTIVO_FIN,
+  TEXTO_MOVIMIENTO,
+  esSalidaDocumentada,
+  fechaCorta,
+  fechaRenuncia,
+  periodoDelMovimiento,
+  renunciaDelPeriodo,
+} from '../../core/labels';
+import type { Documento, MovimientoLaboral, TrabajadorDetalle, Vinculo } from '../../core/models';
 import { PagerComponent } from '../pager/pager.component';
 import { PeriodDialogComponent } from '../period-dialog/period-dialog.component';
 
@@ -20,7 +28,24 @@ export class LinkHistoryComponent {
   readonly registrado = output<Documento>();
 
   protected readonly fechaCorta = fechaCorta;
+  protected readonly textoMovimiento = TEXTO_MOVIMIENTO;
   protected readonly periodo = signal<Vinculo | null>(null);
+
+  private readonly movimientosPorPeriodo = computed(() => {
+    const trabajador = this.trabajador();
+    const grupos = new Map<string | null, MovimientoLaboral[]>();
+    const ordenados = [...trabajador.movimientos].sort((a, b) => a.fecha.localeCompare(b.fecha));
+    for (const movimiento of ordenados) {
+      const periodo = periodoDelMovimiento(movimiento, trabajador.vinculos, this.documentos());
+      grupos.set(periodo, [...(grupos.get(periodo) ?? []), movimiento]);
+    }
+    return grupos;
+  });
+  protected readonly sinPeriodo = computed(() => this.movimientosPorPeriodo().get(null) ?? []);
+
+  protected movimientos(vinculo: Vinculo): MovimientoLaboral[] {
+    return this.movimientosPorPeriodo().get(vinculo.id) ?? [];
+  }
 
   protected readonly vinculos = paginar(
     () => this.trabajador().vinculos,
