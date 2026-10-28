@@ -8,6 +8,7 @@ import type {
   MotivoCese,
   MotivoFin,
   Movimiento,
+  MovimientoLaboral,
   NivelAcceso,
   SituacionCelda,
   TipoPersonal,
@@ -103,6 +104,24 @@ function periodoDeLaRenuncia(renuncia: Documento, documentos: readonly Documento
   const contratoId = textoDato(renuncia, 'contratoRelacionado');
   const periodoContrato = documentos.find((documento) => documento.id === contratoId)?.vinculoId ?? null;
   return periodoContrato === null ? vinculo.fechaFin === null : periodoContrato === vinculo.id;
+}
+
+export function periodoDelMovimiento(
+  movimiento: MovimientoLaboral,
+  vinculos: readonly Pick<Vinculo, 'id' | 'fechaInicio' | 'fechaFin'>[],
+  documentos: readonly Documento[],
+): string | null {
+  const sustento = documentos.find((documento) => documento.id === movimiento.documentoId);
+  const contratoId = sustento === undefined ? null : textoDato(sustento, 'contratoRelacionado');
+  const porContrato = documentos.find((documento) => documento.id === contratoId)?.vinculoId ?? null;
+  if (porContrato !== null && vinculos.some((vinculo) => vinculo.id === porContrato)) {
+    return porContrato;
+  }
+  return (
+    vinculos.find(
+      (vinculo) => vinculo.fechaInicio <= movimiento.fecha && (vinculo.fechaFin === null || movimiento.fecha <= vinculo.fechaFin),
+    )?.id ?? null
+  );
 }
 
 export function textoDato(documento: Pick<Documento, 'datos'>, clave: string): string | null {
