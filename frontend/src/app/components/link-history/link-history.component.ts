@@ -94,10 +94,14 @@ export class LinkHistoryComponent {
   }
 
   protected motivoTermino(vinculo: Vinculo, renuncia: string | null): string | null {
-    if (renuncia !== null) {
+    if (renuncia !== null && renunciaDelPeriodo(vinculo, this.documentos()) !== null) {
       return vinculo.fechaFin === null ? 'Renuncia voluntaria presentada' : 'Terminó por renuncia voluntaria';
     }
-    return vinculo.motivoFin === null ? null : `Terminó por ${TEXTO_MOTIVO_FIN[vinculo.motivoFin].toLowerCase()}`;
+    if (vinculo.motivoFin === null) {
+      return null;
+    }
+    const texto = `Terminó por ${TEXTO_MOTIVO_FIN[vinculo.motivoFin].toLowerCase()}`;
+    return this.sinSustento(vinculo) ? `${texto}, no hay documento de sustento` : texto;
   }
 
   protected sinSustento(vinculo: Vinculo): boolean {
