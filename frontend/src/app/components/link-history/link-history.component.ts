@@ -8,6 +8,7 @@ import {
   fechaRenuncia,
   periodoDelMovimiento,
   renunciaDelPeriodo,
+  textoDato,
 } from '../../core/labels';
 import type { Documento, MovimientoLaboral, TrabajadorDetalle, Vinculo } from '../../core/models';
 import { PagerComponent } from '../pager/pager.component';
@@ -45,6 +46,33 @@ export class LinkHistoryComponent {
 
   protected movimientos(vinculo: Vinculo): MovimientoLaboral[] {
     return this.movimientosPorPeriodo().get(vinculo.id) ?? [];
+  }
+
+  protected lineasMovimiento(movimiento: MovimientoLaboral): { texto: string; clase: string }[] {
+    const documento = this.documentos().find((item) => item.id === movimiento.documentoId) ?? null;
+    const desde = `${TEXTO_MOVIMIENTO[movimiento.tipo]} desde el ${fechaCorta(movimiento.fecha)}`;
+    if (documento === null) {
+      return [
+        { texto: TEXTO_MOVIMIENTO[movimiento.tipo], clase: 'titulo-movimiento' },
+        { texto: desde, clase: '' },
+        { texto: `${movimiento.areaOrigen.nombre} → ${movimiento.areaDestino.nombre}`, clase: '' },
+      ];
+    }
+    const referencia = [
+      documento.numero === null ? null : `N.º ${documento.numero}`,
+      documento.fechaEmision === null ? null : `Emitido el ${fechaCorta(documento.fechaEmision)}`,
+    ].filter((parte) => parte !== null);
+    const fin = textoDato(documento, 'fechaFinRotacion') ?? textoDato(documento, 'fechaTermino');
+    const cargo = textoDato(documento, 'cargoAsignado');
+    const archivo = documento.versiones.find((version) => version.actual)?.nombreOriginal ?? documento.tipo.nombre;
+    return [
+      { texto: documento.tipo.nombre, clase: 'titulo-movimiento' },
+      { texto: referencia.length === 0 ? 'Sin número ni fecha de emisión' : referencia.join(' · '), clase: 'meta-movimiento' },
+      { texto: fin === null ? desde : `${desde} hasta el ${fechaCorta(fin)}`, clase: '' },
+      { texto: `${movimiento.areaOrigen.nombre} → ${movimiento.areaDestino.nombre}`, clase: '' },
+      ...(cargo === null ? [] : [{ texto: `Cargo o función: ${cargo}`, clase: '' }]),
+      { texto: archivo, clase: 'archivo-movimiento' },
+    ];
   }
 
   protected readonly vinculos = paginar(
