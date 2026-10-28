@@ -13,7 +13,6 @@ import {
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { DocumentDialogComponent } from '../../../components/document-dialog/document-dialog.component';
-import { LinkTimelineComponent } from '../../../components/link-timeline/link-timeline.component';
 import { DocumentFieldsComponent } from '../../../components/document-fields/document-fields.component';
 import {
   crearFormularioDocumento,
@@ -106,7 +105,6 @@ const OPCIONES_ESTADO: readonly OpcionBuscable[] = [
     SkeletonComponent,
     SearchSelectComponent,
     PagerComponent,
-    LinkTimelineComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './legajo-section.component.html',
@@ -148,9 +146,6 @@ export class LegajoSectionComponent implements OnDestroy {
     source: this.idSeccion,
     computation: () => '',
   });
-
-  protected readonly todosLosDocumentos = computed(() => (this.contexto.legajo.hasValue() ? this.contexto.legajo.value().documentos : []));
-  protected readonly secciones = computed(() => (this.contexto.legajo.hasValue() ? this.contexto.legajo.value().secciones : []));
 
   protected readonly todos = computed(() => {
     const numero = Number(this.numero());
