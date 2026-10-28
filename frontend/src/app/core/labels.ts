@@ -91,9 +91,18 @@ export function renunciaDelPeriodo(vinculo: Pick<Vinculo, 'id' | 'fechaFin'>, do
         documento.seccion === 11 &&
         documento.tipo.codigo === CODIGO_RENUNCIA &&
         documento.estado !== 'ANULADO' &&
-        (documento.vinculoId === vinculo.id || (documento.vinculoId === null && vinculo.fechaFin === null)),
+        periodoDeLaRenuncia(documento, documentos, vinculo),
     ) ?? null
   );
+}
+
+function periodoDeLaRenuncia(renuncia: Documento, documentos: readonly Documento[], vinculo: Pick<Vinculo, 'id' | 'fechaFin'>): boolean {
+  if (renuncia.vinculoId !== null) {
+    return renuncia.vinculoId === vinculo.id;
+  }
+  const contratoId = textoDato(renuncia, 'contratoRelacionado');
+  const periodoContrato = documentos.find((documento) => documento.id === contratoId)?.vinculoId ?? null;
+  return periodoContrato === null ? vinculo.fechaFin === null : periodoContrato === vinculo.id;
 }
 
 export function textoDato(documento: Pick<Documento, 'datos'>, clave: string): string | null {
