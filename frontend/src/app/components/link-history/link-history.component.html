@@ -30,8 +30,8 @@
           }
         </span>
         <span>{{ vinculo.cargo.nombre }} en {{ vinculo.area.nombre }}</span>
-        @if (vinculo.motivoFin; as motivo) {
-          <span class="motivo">Terminó por {{ textoMotivoFin[motivo].toLowerCase() }}</span>
+        @if (motivoTermino(vinculo, salida); as motivo) {
+          <span class="motivo" [class.motivo-renuncia]="salida !== null">{{ motivo }}</span>
         }
         @if (vinculo.referencia; as referencia) {
           <span class="referencia">{{ referencia }}</span>
