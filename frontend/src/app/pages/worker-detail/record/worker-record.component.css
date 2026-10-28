@@ -57,83 +57,6 @@ dd {
   font-weight: 500;
 }
 
-.linea {
-  margin: 0;
-  padding: 0 0 0 16px;
-  list-style: none;
-  border-left: 2px solid #d2e1ee;
-}
-
-.linea li {
-  position: relative;
-  display: grid;
-  gap: 2px;
-  padding: 2px 0 16px;
-  font-size: 13px;
-  color: var(--tinta-media);
-}
-
-.linea li::before {
-  content: '';
-  position: absolute;
-  left: -22px;
-  top: 6px;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  border: 2px solid #9dbbd3;
-  background: var(--hoja);
-}
-
-.linea li.vigente::before {
-  border-color: var(--exito);
-  background: var(--exito);
-}
-
-.linea li.cese::before {
-  border-color: var(--pizarra);
-  background: var(--pizarra);
-}
-
-.periodo {
-  display: grid;
-  gap: 2px;
-  width: calc(100% + 10px);
-  margin: -6px 0 0 -10px;
-  padding: 8px 10px;
-  border: 1px solid transparent;
-  border-radius: 9px;
-  background: transparent;
-  color: inherit;
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-  transition:
-    background-color 140ms ease,
-    border-color 140ms ease;
-}
-
-.periodo:hover,
-.periodo:focus-visible {
-  border-color: #bcd8ee;
-  background: #eef6fd;
-}
-
-.linea li.sin-periodos::before {
-  display: none;
-}
-
-.paginacion {
-  margin-bottom: 14px;
-}
-
-.pista {
-  margin-top: 4px;
-  color: var(--primario);
-  font-size: 11.5px;
-  font-weight: 750;
-}
-
 .resultado {
   display: grid;
   gap: 8px;
@@ -147,20 +70,6 @@ dd {
 
 .acciones-cabecera a {
   text-decoration: none;
-}
-
-.linea strong {
-  color: var(--tinta);
-  font-size: 13.5px;
-}
-
-.motivo {
-  color: #8a5a12;
-}
-
-.referencia {
-  color: var(--tinta-suave);
-  font-size: 12.5px;
 }
 
 .nota,
