@@ -340,6 +340,19 @@ const desplazamiento = (cargo: string, origen = 'Dependencia de origen', destino
   texto('cargoAsignado', cargo),
   fecha('fechaEfecto', 'Fecha de inicio o efecto'),
 ];
+const CAMPOS_ENCARGO: CampoSeccion[] = [
+  seleccion('modalidadEncargo', 'Modalidad de cargo', ['Encargo de funciones', 'Encargo de puesto']),
+  catalogo('areaOrigen', 'Dependencia de origen', 'area'),
+  catalogo('areaDestino', 'Dependencia de destino', 'area'),
+  seleccion('cargoAsignado', 'Puesto o función encargada', [
+    'JEFE/A DE UNIDAD',
+    'JEFE/A DE OFICINA',
+    'DIRECTOR/A EJECUTIVO/A',
+    'DIRECTOR/A GENERAL',
+  ]),
+  fecha('fechaEfecto', 'Fecha de inicio o efecto'),
+  fecha('fechaTermino', 'Fecha de término'),
+];
 const CAMPOS_RECONOCIMIENTO: CampoSeccion[] = [
   texto('motivoReconocimiento', 'Motivo del reconocimiento'),
   fecha('fechaReconocimiento', 'Fecha del reconocimiento'),
@@ -560,7 +573,7 @@ export const TIPOS_DOCUMENTO: readonly TipoSemilla[] = [
     desplazamiento('Cargo o función asignada', 'Dependencia o entidad de origen', 'Dependencia o entidad de destino'),
     movimiento,
   ),
-  tipo('0707', 'Encargo de puestos o funciones', FORMULARIO_DESPLAZAMIENTO, desplazamiento('Puesto o función encargada'), movimiento),
+  tipo('0707', 'Encargo de puestos o funciones', FORMULARIO_DESPLAZAMIENTO, CAMPOS_ENCARGO, movimiento),
   tipo('0708', 'Otros documentos de desplazamiento', FORMULARIO_DESPLAZAMIENTO, desplazamiento('Cargo o función asignada'), movimiento),
 
   tipo('0801', 'Reconocimientos por participación en proyectos o eventos', FORMULARIO_ENTIDAD, CAMPOS_RECONOCIMIENTO, restringido),
