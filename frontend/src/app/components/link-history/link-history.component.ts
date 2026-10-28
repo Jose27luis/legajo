@@ -19,7 +19,6 @@ export class LinkHistoryComponent {
   readonly documentos = input<Documento[]>([]);
   readonly registrado = output<Documento>();
 
-  protected readonly textoMotivoFin = TEXTO_MOTIVO_FIN;
   protected readonly fechaCorta = fechaCorta;
   protected readonly periodo = signal<Vinculo | null>(null);
 
@@ -37,7 +36,14 @@ export class LinkHistoryComponent {
     if (vinculo.fechaFin === null) {
       return 'ACTIVO';
     }
-    return this.esCese(vinculo) ? 'CESADO' : `CONCLUIDO · ${fechaCorta(vinculo.fechaFin)}`;
+    return this.esCese(vinculo) ? 'CESADO' : 'CONCLUIDO';
+  }
+
+  protected motivoTermino(vinculo: Vinculo, renuncia: string | null): string | null {
+    if (renuncia !== null) {
+      return vinculo.fechaFin === null ? 'Renuncia voluntaria presentada' : 'Terminó por renuncia voluntaria';
+    }
+    return vinculo.motivoFin === null ? null : `Terminó por ${TEXTO_MOTIVO_FIN[vinculo.motivoFin].toLowerCase()}`;
   }
 
   protected esConcluido(vinculo: Vinculo): boolean {
