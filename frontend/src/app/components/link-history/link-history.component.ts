@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
 import { paginar } from '../../core/pagination';
 import {
+  MOTIVOS_CESE,
   TEXTO_MOTIVO_FIN,
   TEXTO_MOVIMIENTO,
   esSalidaDocumentada,
@@ -97,6 +98,17 @@ export class LinkHistoryComponent {
       return vinculo.fechaFin === null ? 'Renuncia voluntaria presentada' : 'Terminó por renuncia voluntaria';
     }
     return vinculo.motivoFin === null ? null : `Terminó por ${TEXTO_MOTIVO_FIN[vinculo.motivoFin].toLowerCase()}`;
+  }
+
+  protected sinSustento(vinculo: Vinculo): boolean {
+    const motivo = vinculo.motivoFin;
+    if (motivo === null || motivo === 'FIN_CONTRATO' || !MOTIVOS_CESE.some((cese) => cese === motivo)) {
+      return false;
+    }
+    const documentado = this.documentos().some(
+      (documento) => documento.vinculoId === vinculo.id && documento.seccion === 11 && documento.estado !== 'ANULADO',
+    );
+    return !documentado && renunciaDelPeriodo(vinculo, this.documentos()) === null;
   }
 
   protected esConcluido(vinculo: Vinculo): boolean {
