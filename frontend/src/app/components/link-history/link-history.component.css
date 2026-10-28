@@ -92,8 +92,18 @@
   font-size: 13.5px;
 }
 
+.linea li.concluido::before {
+  border-color: var(--violeta);
+  background: var(--violeta);
+}
+
 .estado-renuncia {
   color: var(--alerta);
+  font-weight: 750;
+}
+
+.estado-concluido {
+  color: var(--violeta);
   font-weight: 750;
 }
 
