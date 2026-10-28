@@ -3,7 +3,7 @@ import { RouterLink } from '@angular/router';
 import { SearchSelectComponent, type OpcionBuscable, type ValorOpcion } from '../../components/search-select/search-select.component';
 import { SkeletonComponent } from '../../components/skeleton/skeleton.component';
 import { mensajeDeError } from '../../core/errors';
-import { fechaCorta, numeroSeccion } from '../../core/labels';
+import { TEXTO_ESTADO, fechaCorta, numeroSeccion } from '../../core/labels';
 import { SessionService } from '../../core/session.service';
 import { ReportsService } from '../../services/reports.service';
 
@@ -23,6 +23,7 @@ export class AlertsComponent {
   protected readonly sesion = inject(SessionService);
 
   protected readonly opcionesPlazo = OPCIONES_PLAZO;
+  protected readonly textoEstado = TEXTO_ESTADO;
   protected readonly fechaCorta = fechaCorta;
   protected readonly numeroSeccion = numeroSeccion;
   protected readonly dias = signal(60);
