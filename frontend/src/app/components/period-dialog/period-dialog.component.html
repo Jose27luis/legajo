@@ -19,7 +19,7 @@
 
     <section class="bloque">
       <header>
-        <h3>Documento vinculado</h3>
+        <h3>Documentos vinculados</h3>
         <span class="pastilla azul">Solo lectura</span>
       </header>
       @if (vinculados().length === 0 && salidas().length === 0) {
@@ -31,41 +31,58 @@
           }}
         </p>
       } @else {
-        <ul class="vinculados">
-          @for (documento of vinculados(); track documento.id) {
-            <li>
-              <span class="dato">
-                <strong>{{ documento.tipo.nombre }}</strong>
-                <span
-                  >N.º {{ documento.numero ?? '—' }} · emisión {{ documento.fechaEmision ? fechaCorta(documento.fechaEmision) : '—' }}</span
-                >
-                <span class="archivo">{{ nombreArchivo(documento) }}</span>
-              </span>
-              <span class="pastilla" [class]="claseEstado[documento.estado]">{{ textoEstado[documento.estado] }}</span>
-              @if (documento.estado === 'DISPONIBLE') {
-                <a class="boton chico" [href]="enlace(documento)" target="_blank" rel="noopener">Ver PDF</a>
+        <div class="grupos">
+          @if (vinculados().length > 0) {
+            <p class="grupo">Incorporación · Sección 02</p>
+            <ul class="documentos">
+              @for (documento of vinculados(); track documento.id) {
+                <li class="documento">
+                  <span class="hoja" aria-hidden="true">PDF</span>
+                  <span class="dato">
+                    <strong>{{ documento.tipo.nombre }}</strong>
+                    <span class="meta">{{ referencia(documento) }}</span>
+                    <span class="archivo">{{ nombreArchivo(documento) }}</span>
+                  </span>
+                  <span class="acciones">
+                    <span class="pastilla" [class]="claseEstado[documento.estado]">{{ textoEstado[documento.estado] }}</span>
+                    @if (documento.estado === 'DISPONIBLE') {
+                      <a class="boton chico" [href]="enlace(documento)" target="_blank" rel="noopener">Ver PDF</a>
+                    }
+                  </span>
+                </li>
               }
-            </li>
+            </ul>
           }
-          @for (documento of salidas(); track documento.id) {
-            <li class="salida">
-              <span class="dato">
-                <strong>{{ documento.tipo.nombre }}</strong>
-                <span
-                  >N.º {{ documento.numero ?? '—' }} · emisión {{ documento.fechaEmision ? fechaCorta(documento.fechaEmision) : '—' }}</span
-                >
-                @if (detalleSalida(documento); as detalle) {
-                  <span class="detalle">{{ detalle }}</span>
-                }
-                <span class="archivo">{{ nombreArchivo(documento) }}</span>
-              </span>
-              <span class="pastilla roja">{{ documento.confirmadoEn === null ? 'Cese por confirmar' : 'Desvinculación' }}</span>
-              @if (documento.estado === 'DISPONIBLE') {
-                <a class="boton chico peligro" [href]="enlace(documento)" target="_blank" rel="noopener">Ver PDF</a>
+          @if (salidas().length > 0) {
+            <p class="grupo de-salida">Desvinculación · Sección 11</p>
+            <ul class="documentos">
+              @for (documento of salidas(); track documento.id) {
+                <li class="documento salida">
+                  <span class="hoja" aria-hidden="true">PDF</span>
+                  <span class="dato">
+                    <strong>{{ documento.tipo.nombre }}</strong>
+                    <span class="meta">{{ referencia(documento) }}</span>
+                    @let detalles = detalleSalida(documento);
+                    @if (detalles.length > 0) {
+                      <span class="chips">
+                        @for (detalle of detalles; track detalle) {
+                          <span class="chip">{{ detalle }}</span>
+                        }
+                      </span>
+                    }
+                    <span class="archivo">{{ nombreArchivo(documento) }}</span>
+                  </span>
+                  <span class="acciones">
+                    <span class="pastilla roja">{{ documento.confirmadoEn === null ? 'Cese por confirmar' : 'Desvinculación' }}</span>
+                    @if (documento.estado === 'DISPONIBLE') {
+                      <a class="boton chico peligro" [href]="enlace(documento)" target="_blank" rel="noopener">Ver PDF</a>
+                    }
+                  </span>
+                </li>
               }
-            </li>
+            </ul>
           }
-        </ul>
+        </div>
       }
     </section>
 
