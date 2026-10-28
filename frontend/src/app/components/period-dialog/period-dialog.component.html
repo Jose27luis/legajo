@@ -22,7 +22,7 @@
         <h3>Documento vinculado</h3>
         <span class="pastilla azul">Solo lectura</span>
       </header>
-      @if (vinculados().length === 0) {
+      @if (vinculados().length === 0 && salidas().length === 0) {
         <p class="nota">
           {{
             esSalida()
@@ -44,6 +44,24 @@
               <span class="pastilla" [class]="claseEstado[documento.estado]">{{ textoEstado[documento.estado] }}</span>
               @if (documento.estado === 'DISPONIBLE') {
                 <a class="boton chico" [href]="enlace(documento)" target="_blank" rel="noopener">Ver PDF</a>
+              }
+            </li>
+          }
+          @for (documento of salidas(); track documento.id) {
+            <li class="salida">
+              <span class="dato">
+                <strong>{{ documento.tipo.nombre }}</strong>
+                <span
+                  >N.º {{ documento.numero ?? '—' }} · emisión {{ documento.fechaEmision ? fechaCorta(documento.fechaEmision) : '—' }}</span
+                >
+                @if (detalleSalida(documento); as detalle) {
+                  <span class="detalle">{{ detalle }}</span>
+                }
+                <span class="archivo">{{ nombreArchivo(documento) }}</span>
+              </span>
+              <span class="pastilla roja">{{ documento.confirmadoEn === null ? 'Cese por confirmar' : 'Desvinculación' }}</span>
+              @if (documento.estado === 'DISPONIBLE') {
+                <a class="boton chico peligro" [href]="enlace(documento)" target="_blank" rel="noopener">Ver PDF</a>
               }
             </li>
           }
