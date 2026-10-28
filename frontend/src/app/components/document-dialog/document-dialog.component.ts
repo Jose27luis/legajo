@@ -493,7 +493,7 @@ export class DocumentDialogComponent implements OnDestroy {
     };
     await this.ejecutar(
       () => this.servicio.confirmarMovimiento(documento.id, datos),
-      'Movimiento confirmado. Se actualizaron la Sección 01 y el detalle de movimiento.',
+      'Movimiento confirmado y registrado en el historial.',
       true,
     );
   }
