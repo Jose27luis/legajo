@@ -376,6 +376,7 @@ const MOTIVOS_RENUNCIA = [
   'No especificado',
 ];
 const CAMPOS_RENUNCIA: CampoSeccion[] = [
+  catalogo('contratoRelacionado', 'Contrato relacionado', 'contrato'),
   fecha('fechaPresentacion', 'Fecha de presentación'),
   seleccion('motivoRenuncia', 'Motivo de renuncia', MOTIVOS_RENUNCIA),
   fecha('fechaCese', 'Fecha de cese solicitada'),
