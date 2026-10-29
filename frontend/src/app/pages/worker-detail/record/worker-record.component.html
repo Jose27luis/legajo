@@ -125,7 +125,7 @@
         </div>
         <div>
           <dt>Fecha de cese</dt>
-          <dd>{{ trabajador.estado === 'CESADO' ? fechaCorta(trabajador.vinculo?.fechaFin ?? null) : 'No corresponde' }}</dd>
+          <dd>{{ trabajador.estado === 'CESADO' ? fechaCorta(fechaCese(trabajador)) : 'No corresponde' }}</dd>
         </div>
       </dl>
 
