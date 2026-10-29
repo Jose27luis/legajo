@@ -527,14 +527,9 @@ export class LaborService {
     await this.prisma.$transaction(async (transaccion) => {
       const trabajador = await this.trabajador(transaccion, documento.trabajadorId);
       const vinculo = await this.vinculoDelCese(transaccion, documento, trabajador, datos.fecha);
-      const finAnterior = vinculo.fechaFin === null ? null : aTexto(vinculo.fechaFin);
-      const cerrado = finAnterior !== null;
-      const adelanta = finAnterior !== null && datos.fecha < finAnterior && datos.fecha >= aTexto(vinculo.fechaInicio);
+      const cerrado = vinculo.fechaFin !== null;
       if (cerrado) {
-        await transaccion.vinculo.update({
-          where: { id: vinculo.id },
-          data: adelanta ? { motivoFin: datos.motivo, fechaFin: aFecha(datos.fecha) } : { motivoFin: datos.motivo },
-        });
+        await transaccion.vinculo.update({ where: { id: vinculo.id }, data: { motivoFin: datos.motivo } });
       } else {
         if (datos.fecha < aTexto(vinculo.fechaInicio)) {
           throw new BadRequestException('La fecha de cese no puede ser anterior al ingreso actual');
@@ -563,8 +558,6 @@ export class LaborService {
           motivo: datos.motivo,
           documento: documento.id,
           observacion: datos.observacion,
-          finAnterior: adelanta ? finAnterior : null,
-          finNuevo: adelanta ? datos.fecha : null,
         });
       } else {
         await this.anotar(transaccion, 'VINCULO_FINALIZAR', 'vinculo', vinculo.id, trabajador.id, sesion, cliente, {
