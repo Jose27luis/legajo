@@ -346,17 +346,17 @@ const CAMPOS_ROTACION: CampoSeccion[] = [
   catalogo('contratoRelacionado', 'Contrato relacionado', 'contrato'),
 ];
 const CAMPOS_ENCARGO: CampoSeccion[] = [
-  seleccion('modalidadEncargo', 'Modalidad de cargo', ['Encargo de funciones', 'Encargo de puesto']),
-  catalogo('areaOrigen', 'Dependencia de origen', 'area'),
-  catalogo('areaDestino', 'Dependencia de destino', 'area'),
+  seleccion('modalidadEncargo', 'Modalidad de encargo', ['Encargo de funciones', 'Encargo de puesto']),
+  catalogo('areaDestino', 'Dependencia', 'area'),
   seleccion('cargoAsignado', 'Puesto o función encargada', [
     'JEFE/A DE UNIDAD',
     'JEFE/A DE OFICINA',
     'DIRECTOR/A EJECUTIVO/A',
     'DIRECTOR/A GENERAL',
   ]),
-  fecha('fechaEfecto', 'Fecha de inicio o efecto'),
-  fecha('fechaTermino', 'Fecha de término'),
+  fecha('fechaEfecto', 'Fecha de inicio'),
+  fecha('fechaTermino', 'Fecha fin'),
+  catalogo('contratoRelacionado', 'Contrato relacionado', 'contrato'),
 ];
 const CAMPOS_RECONOCIMIENTO: CampoSeccion[] = [
   texto('motivoReconocimiento', 'Motivo del reconocimiento'),
