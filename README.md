@@ -677,7 +677,7 @@ stateDiagram-v2
 
 Motivos de cese: `RENUNCIA`, `JUBILACION`, `FALLECIMIENTO`, `FIN_CONTRATO`, `DESTITUCION`, `OTRA_CAUSA`. Motivos de fin de vínculo sin cese: `RENOVACION`, `CAMBIO_REGIMEN`, `CAMBIO_CARGO_O_AREA`.
 
-- El reingreso exige una fecha posterior al último cese y no se permite si el motivo fue fallecimiento.
+- El reingreso exige una fecha posterior al último cese y no se permite si el motivo fue fallecimiento. El último cese es la fecha del documento de cese confirmado (por ejemplo, la carta de renuncia) cuando es anterior al fin del contrato; el período anterior conserva las fechas de su contrato.
 - El movimiento actual (rotación, destaque, encargatura, reasignación) no es un estado laboral: un trabajador rotado sigue ACTIVO. Se actualiza con la fecha del movimiento y su sustento va en la sección 07. Un movimiento se puede registrar aunque el trabajador esté cesado o sea de un período anterior; el movimiento cuya fecha cae dentro del período actual, aunque el trabajador ya esté cesado, actualiza el movimiento actual de la ficha y el área del período; los de períodos anteriores quedan solo en el historial.
 - Registrar un PDF de cese no cambia el estado: el cese se registra en la ficha con motivo y fecha.
 - Un contrato con el trabajador ACTIVO no exige cese. Si el contrato empieza después del período actual, cierra ese período el día anterior (por renovación, cambio de régimen o cambio de cargo o área, según lo que cambie) y abre uno nuevo con el régimen, área y cargo del contrato; el trabajador sigue ACTIVO y conserva su fecha de ingreso. Si empieza el mismo día, se suma al período actual.
