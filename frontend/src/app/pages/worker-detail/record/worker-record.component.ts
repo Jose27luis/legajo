@@ -25,6 +25,7 @@ import {
   fechaCorta,
   hoy,
   puedeReingresar,
+  textoDato,
   tonoSeccion,
 } from '../../../core/labels';
 import type { Documento, Familiar, MotivoCambio, MovimientoLaboral, TipoDocIdentidad, TrabajadorDetalle } from '../../../core/models';
@@ -122,6 +123,22 @@ export class WorkerRecordComponent {
         (movimiento) => movimiento.fecha >= vinculo.fechaInicio && (vinculo.fechaFin === null || movimiento.fecha <= vinculo.fechaFin),
       ) ?? null
     );
+  }
+
+  protected fechaCese(trabajador: TrabajadorDetalle): string | null {
+    const vinculo = trabajador.vinculo;
+    if (vinculo === null) {
+      return null;
+    }
+    const sustento = this.documentosLegajo().find(
+      (documento) =>
+        documento.vinculoId === vinculo.id &&
+        documento.seccion === 11 &&
+        documento.estado !== 'ANULADO' &&
+        documento.confirmadoEn !== null &&
+        textoDato(documento, 'fechaCese') !== null,
+    );
+    return (sustento === undefined ? null : textoDato(sustento, 'fechaCese')) ?? vinculo.fechaFin;
   }
 
   protected motivoCese(trabajador: TrabajadorDetalle): string {
