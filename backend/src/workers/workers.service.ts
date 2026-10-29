@@ -3,6 +3,7 @@ import type { Response } from 'express';
 import type { Prisma } from '../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
+import { leerDatosGuardados } from '../catalogs/section-fields';
 import type { DatosCliente } from '../common/client';
 import type { SesionActiva } from '../common/session';
 import { aFecha, aTexto, hoyEnLima, normalizarBusqueda } from '../common/dates';
@@ -121,6 +122,22 @@ export class WorkersService {
       orderBy: [{ apellidoPaterno: 'asc' }, { apellidoMaterno: 'asc' }, { nombres: 'asc' }],
       take: LIMITE_EXPORTACION,
     });
+    const sustentosCese = await this.prisma.documento.findMany({
+      where: {
+        vinculoId: { in: trabajadores.flatMap((trabajador) => trabajador.vinculos.map((vinculo) => vinculo.id)) },
+        estado: { not: 'ANULADO' },
+        confirmadoEn: { not: null },
+        tipoDocumento: { accion: 'CESE' },
+      },
+      select: { vinculoId: true, datos: true },
+    });
+    const fechasCese = new Map<string, string>();
+    for (const sustento of sustentosCese) {
+      const fecha = leerDatosGuardados(sustento.datos)['fechaCese'];
+      if (sustento.vinculoId !== null && typeof fecha === 'string' && fecha !== '') {
+        fechasCese.set(sustento.vinculoId, fecha);
+      }
+    }
     const columnas: ColumnaHoja[] = [
       { titulo: 'N.º', ancho: 6, tipo: 'numero' },
       { titulo: 'Documento', ancho: 14 },
@@ -152,7 +169,7 @@ export class WorkersService {
         vinculo === undefined ? null : vinculo.tipoPersonal === 'ADMINISTRATIVO' ? 'Administrativo' : 'Asistencial',
         TEXTO_ESTADO[trabajador.estado],
         cesado && vinculo?.motivoFin ? TEXTO_MOTIVO[vinculo.motivoFin] : null,
-        cesado && vinculo?.fechaFin ? aTexto(vinculo.fechaFin) : null,
+        cesado && vinculo?.fechaFin ? (fechasCese.get(vinculo.id) ?? aTexto(vinculo.fechaFin)) : null,
         TEXTO_MOVIMIENTO[deCesados.get(trabajador.id) ?? trabajador.movimientoActual],
         aTexto(trabajador.fechaIngreso),
       ];
