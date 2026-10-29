@@ -217,7 +217,7 @@ export class LaborService {
     }
     const datos: DatosVinculo = { ...lectura, inicio: lectura.inicio };
     if (datos.tipoIncorporacion === INCORPORACION.REINGRESO) {
-      this.exigirReingresoPosible(trabajador, datos.inicio);
+      await this.exigirReingresoPosible(transaccion, trabajador, datos.inicio);
       if (datos.inicio <= hoyEnLima()) {
         await this.aplicarReingreso(transaccion, documento, trabajador, datos, sesion, cliente);
       }
@@ -420,7 +420,7 @@ export class LaborService {
         await this.enlazar(transaccion, documento, actual, sesion, cliente, { origen: 'reingreso' });
         await this.marcarConfirmado(transaccion, documento, sesion, cliente);
       } else {
-        this.exigirReingresoPosible(trabajador, datos.inicio);
+        await this.exigirReingresoPosible(transaccion, trabajador, datos.inicio);
         await this.aplicarReingreso(transaccion, documento, trabajador, datos, sesion, cliente);
       }
       await this.vencimientos.vencer(transaccion, trabajador.id, actor(sesion, cliente));
@@ -443,8 +443,8 @@ export class LaborService {
       areaId: datos.areaId ?? anterior.areaId,
     };
     await exigirCatalogosActivos(this.prisma, nuevo);
-    const continuidad =
-      anterior.motivoFin === 'FIN_CONTRATO' && anterior.fechaFin !== null && datos.inicio === diaSiguiente(aTexto(anterior.fechaFin));
+    const ceseAnterior = await this.finEfectivo(transaccion, anterior);
+    const continuidad = anterior.motivoFin === 'FIN_CONTRATO' && ceseAnterior !== null && datos.inicio === diaSiguiente(ceseAnterior);
     await transaccion.vinculo.update({
       where: { id: anterior.id },
       data: continuidad ? { actual: false, motivoFin: 'RENOVACION' } : { actual: false },
@@ -760,7 +760,11 @@ export class LaborService {
     };
   }
 
-  private exigirReingresoPosible(trabajador: TrabajadorConVinculos, inicio: string): Vinculo {
+  private async exigirReingresoPosible(
+    transaccion: Prisma.TransactionClient,
+    trabajador: TrabajadorConVinculos,
+    inicio: string,
+  ): Promise<Vinculo> {
     if (trabajador.estado !== 'CESADO') {
       throw new BadRequestException(
         'Para registrar un reingreso el trabajador debe estar cesado. Si continúa activo, elige Renovación o continuidad: el contrato abre un nuevo período con su régimen, área y cargo sin cesar al trabajador.',
@@ -770,10 +774,25 @@ export class LaborService {
     if (ultimo.motivoFin === 'FALLECIMIENTO') {
       throw new BadRequestException('No se registra reingreso: el cese fue por fallecimiento');
     }
-    if (ultimo.fechaFin !== null && inicio <= aTexto(ultimo.fechaFin)) {
+    const cese = await this.finEfectivo(transaccion, ultimo);
+    if (cese !== null && inicio <= cese) {
       throw new BadRequestException('La fecha del reingreso debe ser posterior a la fecha del último cese');
     }
     return ultimo;
+  }
+
+  async finEfectivo(transaccion: Prisma.TransactionClient, vinculo: Pick<Vinculo, 'id' | 'fechaFin'>): Promise<string | null> {
+    if (vinculo.fechaFin === null) {
+      return null;
+    }
+    const fin = aTexto(vinculo.fechaFin);
+    const sustentos = await transaccion.documento.findMany({
+      where: { vinculoId: vinculo.id, estado: { not: 'ANULADO' }, confirmadoEn: { not: null }, tipoDocumento: { accion: 'CESE' } },
+      select: { datos: true },
+    });
+    return sustentos
+      .map((sustento) => texto(leerDatosGuardados(sustento.datos)['fechaCese']))
+      .reduce<string>((menor, fecha) => (fecha !== null && fecha < menor ? fecha : menor), fin);
   }
 
   private exigirDisponible(documento: DocumentoCompleto, accion: 'VINCULO' | 'MOVIMIENTO' | 'CESE'): void {
