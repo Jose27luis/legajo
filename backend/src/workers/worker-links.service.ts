@@ -98,7 +98,8 @@ export class WorkerLinksService {
     if (ultimo?.motivoFin === 'FALLECIMIENTO') {
       throw new BadRequestException('No se puede registrar reingreso: el cese fue por fallecimiento');
     }
-    if (ultimo?.fechaFin != null && datos.fechaIngreso <= aTexto(ultimo.fechaFin)) {
+    const cese = ultimo === null ? null : await this.laboral.finEfectivo(this.prisma, ultimo);
+    if (cese !== null && datos.fechaIngreso <= cese) {
       throw new BadRequestException('La fecha de reingreso debe ser posterior al último cese');
     }
     if (datos.fechaIngreso > hoyEnLima()) {
