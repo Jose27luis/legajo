@@ -16,7 +16,7 @@
         </tr>
       </thead>
       <tbody>
-        @for (documento of documentos(); track documento.id) {
+        @for (documento of paginacion.visibles(); track documento.id) {
           <tr>
             <td>
               <strong>{{ documento.tipo.nombre }}</strong>
@@ -46,6 +46,14 @@
       </tbody>
     </table>
   </div>
+  <app-pager
+    etiqueta="Páginas de documentos de identidad"
+    [pagina]="paginacion.pagina()"
+    [paginas]="paginacion.paginas()"
+    [total]="paginacion.total()"
+    [unidad]="['documento', 'documentos']"
+    (cambio)="paginacion.ir($event)"
+  />
 
   @if (sesion.tiene('documentos.subir') && seccion(); as actual) {
     <form class="campos subida" [formGroup]="formulario" (ngSubmit)="registrar()" novalidate>
