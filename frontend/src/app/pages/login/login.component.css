@@ -74,6 +74,7 @@ h2 {
 }
 
 .emblema {
+  align-self: center;
   width: 128px;
   padding: 9px;
   border-radius: 18px;
