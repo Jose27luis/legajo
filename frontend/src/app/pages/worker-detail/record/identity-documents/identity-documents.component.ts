@@ -2,10 +2,12 @@ import { ChangeDetectionStrategy, Component, OnDestroy, computed, effect, inject
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DatePickerComponent } from '../../../../components/date-picker/date-picker.component';
 import { DocumentDialogComponent } from '../../../../components/document-dialog/document-dialog.component';
+import { PagerComponent } from '../../../../components/pager/pager.component';
 import { PdfPickerComponent } from '../../../../components/pdf-picker/pdf-picker.component';
 import { SearchSelectComponent, type OpcionBuscable } from '../../../../components/search-select/search-select.component';
 import { mensajeDeError } from '../../../../core/errors';
 import { fechaHora } from '../../../../core/format';
+import { paginar } from '../../../../core/pagination';
 import { CLASE_ESTADO_DOCUMENTO, TEXTO_ESTADO_DOCUMENTO, hoy } from '../../../../core/labels';
 import type { Documento } from '../../../../core/models';
 import { SessionService } from '../../../../core/session.service';
@@ -14,10 +16,11 @@ import { DocumentsService, mensajeDeSubida, type SubidaEnCurso } from '../../../
 import { WorkerContext } from '../../worker-context';
 
 const CODIGO_DNI = '0102';
+const DOCUMENTOS_POR_PAGINA = 10;
 
 @Component({
   selector: 'app-identity-documents',
-  imports: [ReactiveFormsModule, PdfPickerComponent, DocumentDialogComponent, SearchSelectComponent, DatePickerComponent],
+  imports: [ReactiveFormsModule, PdfPickerComponent, DocumentDialogComponent, SearchSelectComponent, DatePickerComponent, PagerComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './identity-documents.component.html',
   styleUrl: './identity-documents.component.css',
@@ -41,6 +44,11 @@ export class IdentityDocumentsComponent implements OnDestroy {
   );
   protected readonly documentos = computed(() =>
     this.contexto.legajo.hasValue() ? this.contexto.legajo.value().documentos.filter((documento) => documento.seccion === 1) : [],
+  );
+  protected readonly paginacion = paginar(
+    () => this.documentos(),
+    DOCUMENTOS_POR_PAGINA,
+    () => this.contexto.id(),
   );
   protected readonly registrados = computed(() => this.documentos().filter((documento) => documento.estado === 'DISPONIBLE').length);
   protected readonly seleccionadoId = signal<string | null>(null);
