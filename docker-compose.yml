@@ -50,6 +50,7 @@ services:
     volumes:
       - subidas:/data/subidas
       - archivos:/data/archivos:ro
+      - respaldos:/data/respaldos
     depends_on:
       postgres:
         condition: service_healthy
