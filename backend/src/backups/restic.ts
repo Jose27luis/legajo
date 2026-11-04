@@ -1,9 +1,12 @@
 import { spawn } from 'node:child_process';
+import type { Readable } from 'node:stream';
+import type { Entorno } from '../environment/environment';
 
 const TIEMPO_MAXIMO_MS = 6 * 60 * 60 * 1000;
 const LIMITE_SALIDA = 5 * 1024 * 1024;
 const LIMITE_ERRORES = 4000;
 export const CODIGO_SIN_REPOSITORIO = 10;
+export const NOMBRE_VOLCADO = 'legajos.dump';
 
 export interface ResultadoRestic {
   codigo: number;
@@ -16,7 +19,40 @@ export interface ResumenCopia {
   bytesAgregados: number;
 }
 
+export interface FlujoRestic {
+  salida: Readable;
+  terminado: Promise<ResultadoRestic>;
+  detener(): void;
+}
+
 export class FalloRestic extends Error {}
+
+export function variablesRestic(entorno: Entorno): Record<string, string> {
+  if (entorno.RESTIC_PASSWORD === undefined) {
+    throw new FalloRestic('Falta configurar la clave de las copias (RESTIC_PASSWORD) en el servidor');
+  }
+  return {
+    RESTIC_REPOSITORY: entorno.RESTIC_REPOSITORY,
+    RESTIC_PASSWORD: entorno.RESTIC_PASSWORD,
+    ...variablesBaseDeDatos(entorno.DATABASE_URL),
+  };
+}
+
+export function flujoRestic(argumentos: string[], variables: Record<string, string>): FlujoRestic {
+  const proceso = spawn('restic', argumentos, {
+    stdio: ['ignore', 'pipe', 'pipe'],
+    env: { ...process.env, ...variables },
+  });
+  let errores = '';
+  proceso.stderr.on('data', (parte: Buffer) => {
+    errores = (errores + parte.toString('utf8')).slice(-LIMITE_ERRORES);
+  });
+  const terminado = new Promise<ResultadoRestic>((resolver, rechazar) => {
+    proceso.on('error', rechazar);
+    proceso.on('close', (codigo) => resolver({ codigo: codigo ?? -1, salida: '', errores }));
+  });
+  return { salida: proceso.stdout, terminado, detener: () => proceso.kill('SIGKILL') };
+}
 
 export function variablesBaseDeDatos(url: string): Record<string, string> {
   const direccion = new URL(url);
