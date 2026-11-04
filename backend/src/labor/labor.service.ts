@@ -585,7 +585,7 @@ export class LaborService {
       return relacionado;
     }
     const actual = this.vinculoActual(trabajador);
-    if (trabajador.estado !== 'CESADO') {
+    if (actual.fechaFin === null && aTexto(actual.fechaInicio) <= fecha) {
       return actual;
     }
     const cerrados = trabajador.vinculos.filter((vinculo) => vinculo.fechaFin !== null);
