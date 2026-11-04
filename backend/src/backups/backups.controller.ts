@@ -1,11 +1,11 @@
-import { Controller, Get, HttpCode, HttpStatus, Post, Query, Req } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import type { Request } from 'express';
+import { Controller, Get, HttpCode, HttpStatus, Post, Query, Req, Res } from '@nestjs/common';
+import { ApiOperation, ApiProduces, ApiResponse, ApiTags } from '@nestjs/swagger';
+import type { Request, Response } from 'express';
 import { datosCliente } from '../common/client';
 import { Requiere, SesionActual } from '../common/decorators';
 import type { SesionActiva } from '../common/session';
 import { BackupsService } from './backups.service';
-import { BackupPanelDto, BackupQueryDto, BackupStatusDto } from './dto/backup.dto';
+import { BackupDownloadDto, BackupPanelDto, BackupQueryDto, BackupStatusDto } from './dto/backup.dto';
 
 @ApiTags('Copias de seguridad')
 @Requiere('backup.gestionar')
@@ -25,6 +25,20 @@ export class BackupsController {
   @ApiResponse({ status: 200, type: BackupStatusDto })
   async estado(): Promise<BackupStatusDto> {
     return this.respaldos.estado();
+  }
+
+  @Get('download.zip')
+  @ApiProduces('application/zip')
+  @ApiOperation({ summary: 'Descarga en un .zip todas las copias guardadas de un rango de fechas' })
+  @ApiResponse({ status: 200, description: 'Archivo .zip con una carpeta por copia' })
+  @ApiResponse({ status: 404, description: 'No hay copias guardadas en ese rango' })
+  async descargar(
+    @Query() consulta: BackupDownloadDto,
+    @SesionActual() sesion: SesionActiva,
+    @Req() solicitud: Request,
+    @Res() respuesta: Response,
+  ): Promise<void> {
+    await this.respaldos.descargar(consulta, sesion, datosCliente(solicitud), respuesta);
   }
 
   @Post()
