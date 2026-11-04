@@ -1,8 +1,21 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  ElementRef,
+  afterRenderEffect,
+  computed,
+  effect,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { NavigationEnd, NavigationStart, Router, RouterLink, RouterOutlet } from '@angular/router';
+import { animate, type AnimationOptions } from 'motion';
 import { filter, map } from 'rxjs';
 import { CLASE_MOVIMIENTO, TEXTO_ESTADO, TEXTO_MOVIMIENTO, fechaCorta } from '../../core/labels';
+import { prefiereMenosMovimiento } from '../../core/motion';
 import { SessionService } from '../../core/session.service';
 import { SelectedWorkerService, type TrabajadorElegido } from '../../services/selected-worker.service';
 import { BrandComponent } from '../brand/brand.component';
@@ -24,6 +37,22 @@ interface EnlaceMenu {
 interface GrupoMenu {
   titulo: string;
   enlaces: EnlaceMenu[];
+}
+
+interface EnlaceVisible extends EnlaceMenu {
+  activo: boolean;
+}
+
+interface GrupoVisible {
+  titulo: string;
+  enlaces: EnlaceVisible[];
+  contieneActual: boolean;
+}
+
+interface Tooltip {
+  texto: string;
+  x: number;
+  y: number;
 }
 
 function enlace(
@@ -75,6 +104,15 @@ const MENU: readonly GrupoMenu[] = [
 
 const CLAVE_CONTRAIDO = 'legajos.menu-contraido';
 const CLAVE_GRUPOS = 'legajos.menu-grupos-cerrados';
+const MEDIA_ESCRITORIO = '(min-width: 768px)';
+const ANCHO_ABIERTO = 256;
+const ANCHO_CONTRAIDO = 80;
+const SEPARACION_TOOLTIP = 14;
+
+const RESORTE_ANCHO: AnimationOptions = { type: 'spring', stiffness: 300, damping: 32 };
+const RESORTE_RESALTADO: AnimationOptions = { type: 'spring', stiffness: 460, damping: 36 };
+const RESORTE_BARRA: AnimationOptions = { type: 'spring', stiffness: 380, damping: 30 };
+const INSTANTANEO: AnimationOptions = { duration: 0 };
 
 function leerContraido(): boolean {
   try {
@@ -101,12 +139,26 @@ function guardar(clave: string, valor: string): void {
   }
 }
 
+function esEscritorio(): boolean {
+  return window.matchMedia(MEDIA_ESCRITORIO).matches;
+}
+
+function movimiento(opciones: AnimationOptions): AnimationOptions {
+  return prefiereMenosMovimiento() ? INSTANTANEO : opciones;
+}
+
+function coincide(item: EnlaceMenu, ruta: string): boolean {
+  if (item.activoEn !== null && item.activoEn.test(ruta)) {
+    return true;
+  }
+  return item.exacto ? ruta === item.ruta : ruta === item.ruta || ruta.startsWith(`${item.ruta}/`);
+}
+
 @Component({
   selector: 'app-layout',
   imports: [
     RouterOutlet,
     RouterLink,
-    RouterLinkActive,
     BrandComponent,
     GlobalSearchComponent,
     IconComponent,
@@ -126,6 +178,10 @@ export class LayoutComponent {
   private readonly trabajadorElegido = inject(SelectedWorkerService);
   protected readonly sesion = inject(SessionService);
 
+  private readonly lateral = viewChild.required<ElementRef<HTMLElement>>('lateral');
+  private readonly navegacion = viewChild.required<ElementRef<HTMLElement>>('navegacion');
+  private readonly resaltado = viewChild.required<ElementRef<HTMLElement>>('resaltado');
+
   protected readonly textoEstado = TEXTO_ESTADO;
   protected readonly textoMovimiento = TEXTO_MOVIMIENTO;
   protected readonly claseMovimiento = CLASE_MOVIMIENTO;
@@ -135,6 +191,7 @@ export class LayoutComponent {
   protected readonly contraido = signal(leerContraido());
   protected readonly gruposCerrados = signal<readonly string[]>(leerGruposCerrados());
   protected readonly menuMovil = signal(false);
+  protected readonly tooltip = signal<Tooltip | null>(null);
   protected readonly paraExpediente = signal<TrabajadorElegido | null>(null);
   protected readonly paraMovimiento = signal<string | null>(null);
   protected readonly fechaHoy = new Intl.DateTimeFormat('es-PE', {
@@ -155,12 +212,15 @@ export class LayoutComponent {
   protected readonly elegido = this.trabajadorElegido.actual;
   protected readonly enLegajo = computed(() => RUTA_LEGAJO.test(this.ruta()) && this.elegido() !== null);
 
-  protected readonly grupos = computed<GrupoMenu[]>(() =>
-    MENU.map((grupo) => ({
-      titulo: grupo.titulo,
-      enlaces: grupo.enlaces.filter((item) => item.permiso === null || this.sesion.tiene(item.permiso)),
-    })).filter((grupo) => grupo.enlaces.length > 0),
-  );
+  protected readonly grupos = computed<GrupoVisible[]>(() => {
+    const ruta = this.ruta();
+    return MENU.map((grupo) => {
+      const enlaces = grupo.enlaces
+        .filter((item) => item.permiso === null || this.sesion.tiene(item.permiso))
+        .map((item) => ({ ...item, activo: coincide(item, ruta) }));
+      return { titulo: grupo.titulo, enlaces, contieneActual: enlaces.some((item) => item.activo) };
+    }).filter((grupo) => grupo.enlaces.length > 0);
+  });
 
   protected readonly iniciales = computed(() => {
     const nombre = this.sesion.usuario()?.nombreCompleto ?? '';
@@ -172,21 +232,49 @@ export class LayoutComponent {
       .join('');
   });
 
+  private barraAnterior: DOMRect | null = null;
+  private resaltadoVisible = false;
+
   constructor() {
+    this.router.events
+      .pipe(
+        filter((evento) => evento instanceof NavigationStart),
+        takeUntilDestroyed(),
+      )
+      .subscribe(() => {
+        this.barraAnterior = this.barraActual()?.getBoundingClientRect() ?? null;
+      });
     this.router.events
       .pipe(
         filter((evento) => evento instanceof NavigationEnd),
         takeUntilDestroyed(),
       )
       .subscribe(() => this.cerrarMenus());
-  }
 
-  protected activoPorRuta(item: EnlaceMenu): boolean {
-    return item.activoEn !== null && item.activoEn.test(this.ruta());
+    afterRenderEffect(() => {
+      this.grupos();
+      this.deslizarBarra();
+    });
+
+    effect(() => {
+      document.body.style.overflow = this.menuMovil() ? 'hidden' : '';
+    });
+    inject(DestroyRef).onDestroy(() => {
+      document.body.style.overflow = '';
+    });
   }
 
   protected alternarContraido(): void {
+    const lateral = this.lateral().nativeElement;
     const nuevo = !this.contraido();
+    this.ocultarTooltip();
+    this.ocultarResaltado();
+    if (esEscritorio()) {
+      lateral.style.width = `${lateral.offsetWidth}px`;
+      void animate(lateral, { width: `${nuevo ? ANCHO_CONTRAIDO : ANCHO_ABIERTO}px` }, movimiento(RESORTE_ANCHO)).then(() =>
+        lateral.style.removeProperty('width'),
+      );
+    }
     this.contraido.set(nuevo);
     guardar(CLAVE_CONTRAIDO, nuevo ? '1' : '0');
   }
@@ -198,12 +286,59 @@ export class LayoutComponent {
   protected alternarGrupo(titulo: string): void {
     const actuales = this.gruposCerrados();
     const nuevos = actuales.includes(titulo) ? actuales.filter((cerrado) => cerrado !== titulo) : [...actuales, titulo];
+    this.ocultarResaltado();
     this.gruposCerrados.set(nuevos);
     guardar(CLAVE_GRUPOS, JSON.stringify(nuevos));
   }
 
+  protected resaltar(evento: Event, etiqueta: string): void {
+    const destino = evento.currentTarget;
+    if (!(destino instanceof HTMLElement)) {
+      return;
+    }
+    const navegacion = this.navegacion().nativeElement;
+    const marco = navegacion.getBoundingClientRect();
+    const caja = destino.getBoundingClientRect();
+    const posicion = {
+      x: caja.left - marco.left,
+      y: caja.top - marco.top + navegacion.scrollTop,
+      width: `${caja.width}px`,
+      height: `${caja.height}px`,
+    };
+    const resaltado = this.resaltado().nativeElement;
+    if (this.resaltadoVisible) {
+      void animate(resaltado, { ...posicion, opacity: 1 }, movimiento(RESORTE_RESALTADO));
+    } else {
+      void animate(resaltado, posicion, INSTANTANEO);
+      void animate(resaltado, { opacity: 1 }, movimiento({ duration: 0.18 }));
+      this.resaltadoVisible = true;
+    }
+    this.mostrarTooltip(evento, etiqueta);
+  }
+
+  protected ocultarResaltado(): void {
+    if (this.resaltadoVisible) {
+      void animate(this.resaltado().nativeElement, { opacity: 0 }, movimiento({ duration: 0.18 }));
+      this.resaltadoVisible = false;
+    }
+  }
+
+  protected mostrarTooltip(evento: Event, texto: string): void {
+    const destino = evento.currentTarget;
+    if (!this.contraido() || !esEscritorio() || !(destino instanceof HTMLElement)) {
+      return;
+    }
+    const caja = destino.getBoundingClientRect();
+    this.tooltip.set({ texto, x: caja.right + SEPARACION_TOOLTIP, y: caja.top + caja.height / 2 });
+  }
+
+  protected ocultarTooltip(): void {
+    this.tooltip.set(null);
+  }
+
   protected cerrarMenus(): void {
     this.menuMovil.set(false);
+    this.ocultarTooltip();
   }
 
   protected cambiarTrabajador(): void {
@@ -219,6 +354,23 @@ export class LayoutComponent {
       this.trabajadorElegido.limpiar();
       this.saliendo.set(false);
       await this.router.navigateByUrl('/login');
+    }
+  }
+
+  private barraActual(): HTMLElement | null {
+    return this.navegacion().nativeElement.querySelector<HTMLElement>('.barra-actual');
+  }
+
+  private deslizarBarra(): void {
+    const anterior = this.barraAnterior;
+    this.barraAnterior = null;
+    const barra = this.barraActual();
+    if (anterior === null || barra === null) {
+      return;
+    }
+    const desplazamiento = anterior.top - barra.getBoundingClientRect().top;
+    if (desplazamiento !== 0) {
+      void animate(barra, { y: [desplazamiento, 0] }, movimiento(RESORTE_BARRA));
     }
   }
 }
