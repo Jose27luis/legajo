@@ -8,13 +8,18 @@ import {
   OnModuleDestroy,
   ServiceUnavailableException,
 } from '@nestjs/common';
+import { buffer } from 'node:stream/consumers';
+import type { Readable } from 'node:stream';
 import { ZipArchive } from 'archiver';
 import { Queue } from 'bullmq';
 import type { Response } from 'express';
+import { extract } from 'tar-stream';
 import { AuditService } from '../audit/audit.service';
 import type { DatosCliente } from '../common/client';
-import { diaSiguiente, hoyEnLima } from '../common/dates';
+import { aTextoOpcional, diaSiguiente, hoyEnLima } from '../common/dates';
+import { nombreTrabajador } from '../common/names';
 import type { SesionActiva } from '../common/session';
+import { carpetaTrabajador, nombreDescarga } from '../documents/document.mapper';
 import { conexionRedis } from '../documents/document-queue';
 import { ENTORNO, type Entorno } from '../environment/environment';
 import type { Prisma } from '../generated/prisma/client';
@@ -44,10 +49,55 @@ interface CopiaDescargable {
   snapshotArchivos: string;
 }
 
-interface ParteDescarga {
+interface ArchivoConocido {
   nombre: string;
-  paso: string;
-  argumentos: string[];
+  fila: string[];
+}
+
+const ENCABEZADO_INDICE = [
+  'Nombre en el zip',
+  'Ruta original',
+  'DNI',
+  'Trabajador',
+  'Sección',
+  'Tipo de documento',
+  'Número',
+  'Fecha de emisión',
+  'Versión',
+];
+const CARPETA_LEGAJOS = 'legajos';
+const CARPETA_SIN_REGISTRO = 'sin_registro';
+const BOM_UTF8 = Buffer.from([0xef, 0xbb, 0xbf]);
+
+function celdaCsv(valor: string): string {
+  return `"${valor.replace(/"/g, '""')}"`;
+}
+
+function indiceCsv(filas: string[][]): Buffer {
+  const lineas = [ENCABEZADO_INDICE, ...filas].map((fila) => fila.map(celdaCsv).join(';'));
+  return Buffer.concat([BOM_UTF8, Buffer.from(`${lineas.join('\r\n')}\r\n`, 'utf8')]);
+}
+
+function agregarAlZip(archivador: ZipArchive, respuesta: Response, contenido: Readable | Buffer, nombre: string): Promise<void> {
+  return new Promise((resolver, rechazar) => {
+    const limpiar = () => {
+      archivador.off('entry', listo);
+      archivador.off('error', fallo);
+      respuesta.off('close', listo);
+    };
+    const listo = () => {
+      limpiar();
+      resolver();
+    };
+    const fallo = (error: Error) => {
+      limpiar();
+      rechazar(error);
+    };
+    archivador.once('entry', listo);
+    archivador.once('error', fallo);
+    respuesta.once('close', listo);
+    archivador.append(contenido, { name: nombre, store: true });
+  });
 }
 
 function inicioDelDia(texto: string): Date {
@@ -203,6 +253,7 @@ export class BackupsService implements OnModuleDestroy {
     });
 
     const variables = variablesRestic(this.entorno);
+    const conocidos = await this.nombresDeArchivos();
     const nombre = `copias-legajos_${consulta.desde}_al_${consulta.hasta}.zip`;
     respuesta.setHeader('Content-Type', 'application/zip');
     respuesta.setHeader('Content-Disposition', `attachment; filename="${nombre}"`);
@@ -221,13 +272,24 @@ export class BackupsService implements OnModuleDestroy {
     archivador.on('error', () => respuesta.destroy());
     archivador.pipe(respuesta);
     try {
-      for (const parte of copias.flatMap((copia) => this.partes(copia))) {
+      for (const copia of copias) {
+        const carpeta = nombreCarpeta(copia.inicio);
         if (cancelado) {
           return;
         }
-        actual = flujoRestic(parte.argumentos, variables);
-        archivador.append(actual.salida, { name: parte.nombre, store: true });
-        exigirExito(await actual.terminado, parte.paso);
+        actual = flujoRestic(['dump', '--quiet', copia.snapshotBd, `/${NOMBRE_VOLCADO}`], variables);
+        await agregarAlZip(archivador, respuesta, actual.salida, `${carpeta}/${NOMBRE_VOLCADO}`);
+        exigirExito(await actual.terminado, `Base de datos de la copia ${carpeta}`);
+        if (cancelado) {
+          return;
+        }
+        actual = flujoRestic(['dump', '--quiet', '--archive', 'tar', copia.snapshotArchivos, this.entorno.DIR_ARCHIVOS], variables);
+        const filas = await this.agregarArchivos(archivador, respuesta, actual.salida, carpeta, conocidos, () => cancelado);
+        exigirExito(await actual.terminado, `Archivos de la copia ${carpeta}`);
+        if (cancelado) {
+          return;
+        }
+        await agregarAlZip(archivador, respuesta, indiceCsv(filas), `${carpeta}/indice.csv`);
       }
       await archivador.finalize();
     } catch (error: unknown) {
@@ -254,20 +316,82 @@ export class BackupsService implements OnModuleDestroy {
     );
   }
 
-  private partes(copia: CopiaDescargable): ParteDescarga[] {
-    const carpeta = nombreCarpeta(copia.inicio);
-    return [
-      {
-        nombre: `${carpeta}/${NOMBRE_VOLCADO}`,
-        paso: `Base de datos de la copia ${carpeta}`,
-        argumentos: ['dump', '--quiet', copia.snapshotBd, `/${NOMBRE_VOLCADO}`],
+  private async nombresDeArchivos(): Promise<Map<string, ArchivoConocido>> {
+    const archivos = await this.prisma.documentoArchivo.findMany({
+      select: {
+        id: true,
+        ruta: true,
+        version: true,
+        documento: {
+          select: {
+            archivoActualId: true,
+            numero: true,
+            fechaEmision: true,
+            tipoDocumento: { select: { codigo: true, nombre: true, seccion: { select: { carpeta: true } } } },
+            trabajador: { select: { numeroDoc: true, nombres: true, apellidoPaterno: true, apellidoMaterno: true } },
+          },
+        },
       },
-      {
-        nombre: `${carpeta}/archivos.zip`,
-        paso: `Archivos de la copia ${carpeta}`,
-        argumentos: ['dump', '--quiet', '--archive', 'zip', copia.snapshotArchivos, this.entorno.DIR_ARCHIVOS],
-      },
-    ];
+      orderBy: [{ creadoEn: 'asc' }, { version: 'asc' }],
+    });
+    const usados = new Map<string, number>();
+    const conocidos = new Map<string, ArchivoConocido>();
+    for (const archivo of archivos) {
+      const { documento } = archivo;
+      const base = nombreDescarga(documento);
+      const sufijo = archivo.id === documento.archivoActualId ? '' : `_v${archivo.version}`;
+      const propuesto = `${CARPETA_LEGAJOS}/${carpetaTrabajador(documento.trabajador)}/${documento.tipoDocumento.seccion.carpeta}/${base.replace(/\.pdf$/, `${sufijo}.pdf`)}`;
+      const repeticion = (usados.get(propuesto) ?? 0) + 1;
+      usados.set(propuesto, repeticion);
+      const nombre = repeticion === 1 ? propuesto : propuesto.replace(/\.pdf$/, `_${repeticion}.pdf`);
+      conocidos.set(archivo.ruta, {
+        nombre,
+        fila: [
+          nombre,
+          archivo.ruta,
+          documento.trabajador.numeroDoc,
+          nombreTrabajador(documento.trabajador),
+          documento.tipoDocumento.seccion.carpeta,
+          `${documento.tipoDocumento.codigo} ${documento.tipoDocumento.nombre}`,
+          documento.numero ?? '',
+          aTextoOpcional(documento.fechaEmision) ?? '',
+          String(archivo.version),
+        ],
+      });
+    }
+    return conocidos;
+  }
+
+  private async agregarArchivos(
+    archivador: ZipArchive,
+    respuesta: Response,
+    tar: Readable,
+    carpeta: string,
+    conocidos: Map<string, ArchivoConocido>,
+    cancelado: () => boolean,
+  ): Promise<string[][]> {
+    const prefijo = `${this.entorno.DIR_ARCHIVOS.replace(/^\/+/, '')}/`;
+    const extractor = extract();
+    tar.on('error', (error: Error) => extractor.destroy(error));
+    tar.pipe(extractor);
+    const filas: string[][] = [];
+    for await (const entrada of extractor) {
+      if (cancelado()) {
+        extractor.destroy();
+        break;
+      }
+      if (entrada.header.type !== 'file') {
+        entrada.resume();
+        continue;
+      }
+      const ruta = entrada.header.name.startsWith(prefijo) ? entrada.header.name.slice(prefijo.length) : entrada.header.name;
+      const conocido = conocidos.get(ruta);
+      const nombre = conocido?.nombre ?? `${CARPETA_SIN_REGISTRO}/${ruta.replace(/\/(v\d+\.pdf)$/, '_$1')}`;
+      const contenido = await buffer(entrada);
+      await agregarAlZip(archivador, respuesta, contenido, `${carpeta}/${nombre}`);
+      filas.push(conocido?.fila ?? [nombre, ruta, '', '', '', '', '', '', '']);
+    }
+    return filas;
   }
 
   private async pendiente(): Promise<boolean> {
