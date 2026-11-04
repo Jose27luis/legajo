@@ -20,12 +20,12 @@ import {
   leerEspacio,
   leerResumenCopia,
   leerSnapshots,
-  variablesBaseDeDatos,
+  NOMBRE_VOLCADO,
+  variablesRestic,
 } from './restic';
 
 const PREFIJO_COLAS = 'legajos-colas';
 const HOST_RESTIC = 'legajos';
-const NOMBRE_VOLCADO = 'legajos.dump';
 const MUESTRA_VERIFICACION = '5%';
 
 const diaEnLima = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Lima', weekday: 'short' });
@@ -90,7 +90,7 @@ export class BackupRunnerService implements OnModuleInit, OnModuleDestroy {
     }
 
     try {
-      const variables = this.variables();
+      const variables = variablesRestic(this.entorno);
       await this.asegurarRepositorio(variables);
       const etiqueta = `ejecucion-${ejecucionId}`;
       const base = leerResumenCopia(
@@ -197,17 +197,6 @@ export class BackupRunnerService implements OnModuleInit, OnModuleDestroy {
         });
       });
     }
-  }
-
-  private variables(): Record<string, string> {
-    if (this.entorno.RESTIC_PASSWORD === undefined) {
-      throw new Error('Falta configurar la clave de las copias (RESTIC_PASSWORD) en el servidor');
-    }
-    return {
-      RESTIC_REPOSITORY: this.entorno.RESTIC_REPOSITORY,
-      RESTIC_PASSWORD: this.entorno.RESTIC_PASSWORD,
-      ...variablesBaseDeDatos(this.entorno.DATABASE_URL),
-    };
   }
 
   private async asegurarRepositorio(variables: Record<string, string>): Promise<void> {
