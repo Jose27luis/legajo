@@ -1,7 +1,19 @@
-import { ConflictException, Inject, Injectable, OnModuleDestroy, ServiceUnavailableException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Inject,
+  Injectable,
+  Logger,
+  NotFoundException,
+  OnModuleDestroy,
+  ServiceUnavailableException,
+} from '@nestjs/common';
+import { ZipArchive } from 'archiver';
 import { Queue } from 'bullmq';
+import type { Response } from 'express';
 import { AuditService } from '../audit/audit.service';
 import type { DatosCliente } from '../common/client';
+import { diaSiguiente, hoyEnLima } from '../common/dates';
 import type { SesionActiva } from '../common/session';
 import { conexionRedis } from '../documents/document-queue';
 import { ENTORNO, type Entorno } from '../environment/environment';
@@ -9,10 +21,43 @@ import type { Prisma } from '../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { RedisService } from '../redis/redis.service';
 import { CLAVE_RESUMEN, COLA_RESPALDOS, TRABAJO_MANUAL, type ResumenRepositorio, type TrabajoRespaldo } from './backup-queue';
-import type { BackupPanelDto, BackupRunDto, BackupStatusDto, RepositoryDto, SnapshotDto } from './dto/backup.dto';
+import type { BackupDownloadDto, BackupPanelDto, BackupRunDto, BackupStatusDto, RepositoryDto, SnapshotDto } from './dto/backup.dto';
+import { NOMBRE_VOLCADO, exigirExito, flujoRestic, variablesRestic, type FlujoRestic } from './restic';
 
 const POR_PAGINA = 20;
 const ID_MANUAL = 'backup-manual';
+
+const formatoCarpeta = new Intl.DateTimeFormat('en-CA', {
+  timeZone: 'America/Lima',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+  hour: '2-digit',
+  minute: '2-digit',
+  hourCycle: 'h23',
+});
+
+interface CopiaDescargable {
+  id: string;
+  inicio: Date;
+  snapshotBd: string;
+  snapshotArchivos: string;
+}
+
+interface ParteDescarga {
+  nombre: string;
+  paso: string;
+  argumentos: string[];
+}
+
+function inicioDelDia(texto: string): Date {
+  return new Date(`${texto}T00:00:00.000-05:00`);
+}
+
+function nombreCarpeta(fecha: Date): string {
+  const partes = Object.fromEntries(formatoCarpeta.formatToParts(fecha).map((parte) => [parte.type, parte.value]));
+  return `${partes['year']}-${partes['month']}-${partes['day']}_${partes['hour']}${partes['minute']}`;
+}
 
 const SELECCION = {
   id: true,
@@ -70,6 +115,7 @@ function esResumen(valor: unknown): valor is ResumenRepositorio {
 @Injectable()
 export class BackupsService implements OnModuleDestroy {
   private readonly cola: Queue<TrabajoRespaldo>;
+  private readonly bitacora = new Logger('Respaldos');
 
   constructor(
     private readonly prisma: PrismaService,
@@ -132,6 +178,96 @@ export class BackupsService implements OnModuleDestroy {
       { jobId: ID_MANUAL, removeOnComplete: true, removeOnFail: true },
     );
     return this.estado();
+  }
+
+  async descargar(consulta: BackupDownloadDto, sesion: SesionActiva, cliente: DatosCliente, respuesta: Response): Promise<void> {
+    if (consulta.desde > consulta.hasta) {
+      throw new BadRequestException('La fecha inicial no puede ser posterior a la fecha final');
+    }
+    if (consulta.hasta > hoyEnLima()) {
+      throw new BadRequestException('La fecha final no puede ser futura');
+    }
+    if (this.entorno.RESTIC_PASSWORD === undefined) {
+      throw new ServiceUnavailableException('Las copias de seguridad no están configuradas en el servidor');
+    }
+    const copias = await this.copiasDelRango(consulta.desde, consulta.hasta);
+    if (copias.length === 0) {
+      throw new NotFoundException('No hay copias guardadas en ese rango de fechas');
+    }
+    await this.auditoria.registrar({
+      accion: 'BACKUP_DESCARGAR',
+      entidad: 'backup',
+      usuarioId: sesion.usuarioId,
+      cliente,
+      detalle: { desde: consulta.desde, hasta: consulta.hasta, ejecuciones: copias.map((copia) => copia.id) },
+    });
+
+    const variables = variablesRestic(this.entorno);
+    const nombre = `copias-legajos_${consulta.desde}_al_${consulta.hasta}.zip`;
+    respuesta.setHeader('Content-Type', 'application/zip');
+    respuesta.setHeader('Content-Disposition', `attachment; filename="${nombre}"`);
+    respuesta.setHeader('X-Accel-Buffering', 'no');
+
+    const archivador = new ZipArchive({ store: true, forceZip64: true });
+    let actual: FlujoRestic | null = null;
+    let cancelado = false;
+    respuesta.on('close', () => {
+      if (!respuesta.writableFinished) {
+        cancelado = true;
+        actual?.detener();
+        void archivador.abort();
+      }
+    });
+    archivador.on('error', () => respuesta.destroy());
+    archivador.pipe(respuesta);
+    try {
+      for (const parte of copias.flatMap((copia) => this.partes(copia))) {
+        if (cancelado) {
+          return;
+        }
+        actual = flujoRestic(parte.argumentos, variables);
+        archivador.append(actual.salida, { name: parte.nombre, store: true });
+        exigirExito(await actual.terminado, parte.paso);
+      }
+      await archivador.finalize();
+    } catch (error: unknown) {
+      this.bitacora.error(`Descarga de copias interrumpida: ${error instanceof Error ? error.message : 'error desconocido'}`);
+      void archivador.abort();
+      respuesta.destroy();
+    }
+  }
+
+  private async copiasDelRango(desde: string, hasta: string): Promise<CopiaDescargable[]> {
+    const [filas, repositorio] = await Promise.all([
+      this.prisma.backupEjecucion.findMany({
+        where: { estado: 'CORRECTO', inicio: { gte: inicioDelDia(desde), lt: inicioDelDia(diaSiguiente(hasta)) } },
+        select: { id: true, inicio: true, snapshotBd: true, snapshotArchivos: true },
+        orderBy: { inicio: 'asc' },
+      }),
+      this.repositorio(),
+    ]);
+    const guardados = new Set((repositorio?.snapshots ?? []).map((snapshot) => snapshot.id));
+    return filas.flatMap(({ id, inicio, snapshotBd, snapshotArchivos }) =>
+      snapshotBd !== null && snapshotArchivos !== null && guardados.has(snapshotBd) && guardados.has(snapshotArchivos)
+        ? [{ id, inicio, snapshotBd, snapshotArchivos }]
+        : [],
+    );
+  }
+
+  private partes(copia: CopiaDescargable): ParteDescarga[] {
+    const carpeta = nombreCarpeta(copia.inicio);
+    return [
+      {
+        nombre: `${carpeta}/${NOMBRE_VOLCADO}`,
+        paso: `Base de datos de la copia ${carpeta}`,
+        argumentos: ['dump', '--quiet', copia.snapshotBd, `/${NOMBRE_VOLCADO}`],
+      },
+      {
+        nombre: `${carpeta}/archivos.zip`,
+        paso: `Archivos de la copia ${carpeta}`,
+        argumentos: ['dump', '--quiet', '--archive', 'zip', copia.snapshotArchivos, this.entorno.DIR_ARCHIVOS],
+      },
+    ];
   }
 
   private async pendiente(): Promise<boolean> {
