@@ -101,7 +101,13 @@ export function carpetaTrabajador(trabajador: PartesNombre & { numeroDoc: string
   return slug(`${trabajador.numeroDoc}_${trabajador.apellidoPaterno}_${trabajador.apellidoMaterno ?? ''}_${trabajador.nombres}`, 90).toUpperCase();
 }
 
-export function nombreDescarga(documento: DocumentoCompleto): string {
+export interface DocumentoNombrable {
+  numero: string | null;
+  fechaEmision: Date | null;
+  tipoDocumento: { codigo: string; nombre: string };
+}
+
+export function nombreDescarga(documento: DocumentoNombrable): string {
   const partes = [documento.tipoDocumento.codigo, slug(documento.tipoDocumento.nombre, 60)];
   if (documento.numero !== null) {
     partes.push(slug(documento.numero, 30));
