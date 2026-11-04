@@ -21,9 +21,9 @@ COPY --from=compilacion --chown=legajos:legajos /app/prisma ./prisma
 COPY --from=compilacion --chown=legajos:legajos /app/prisma.config.ts ./prisma.config.ts
 COPY --from=compilacion --chown=legajos:legajos /app/package.json ./package.json
 COPY --chown=legajos:legajos docker-entrypoint.sh ./
-RUN apk add --no-cache qpdf \
+RUN apk add --no-cache qpdf restic \
     && chmod +x docker-entrypoint.sh \
-    && mkdir -p /data/subidas /data/archivos \
+    && mkdir -p /data/subidas /data/archivos /data/respaldos \
     && chown -R legajos:legajos /data
 USER legajos
 EXPOSE 3000
@@ -32,9 +32,7 @@ CMD ["node", "dist/main.js"]
 
 FROM ejecucion AS worker
 USER root
-RUN apk add --no-cache ghostscript restic postgresql17-client \
-    && mkdir -p /data/respaldos \
-    && chown legajos:legajos /data/respaldos
+RUN apk add --no-cache ghostscript postgresql17-client
 USER legajos
 ENTRYPOINT []
 CMD ["node", "dist/worker.js"]
