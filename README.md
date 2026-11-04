@@ -1260,7 +1260,7 @@ sequenceDiagram
 - `pg_dump` corre en caliente.
 - Copias cifradas.
 - Panel: última copia, historial, snapshots, espacio usado y copia manual. La restauración se hace por consola.
-- Descarga por rango de fechas: un solo .zip con una carpeta por copia, que trae `legajos.dump` (formato de `pg_dump`) y `archivos.zip` con los PDF. Cada copia pesa como el sistema completo. Solo la hace quien tiene el permiso de copias, y queda en la auditoría.
+- Descarga por rango de fechas: un solo .zip con una carpeta por copia, que trae `legajos.dump` (formato de `pg_dump`), la carpeta `legajos` con los PDF ordenados por DNI y nombre del trabajador y por sección (con los mismos nombres que la descarga del legajo; las versiones anteriores llevan `_vN`) e `indice.csv`, que relaciona cada nombre con su ruta original en el servidor. Los PDF de documentos que ya no existen van en `sin_registro`. En el servidor los archivos siguen guardados por identificador. Cada copia pesa como el sistema completo. Solo la hace quien tiene el permiso de copias, y queda en la auditoría.
 
 ### Restauración
 
