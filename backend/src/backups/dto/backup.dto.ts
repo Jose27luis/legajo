@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsInt, IsOptional, Min } from 'class-validator';
+import { IsISO8601, IsInt, IsOptional, Min } from 'class-validator';
 
 export const ORIGENES = ['PROGRAMADO', 'MANUAL'] as const;
 export const ESTADOS_BACKUP = ['EN_CURSO', 'CORRECTO', 'ERROR'] as const;
@@ -12,6 +12,16 @@ export class BackupQueryDto {
   @IsInt()
   @Min(1)
   pagina?: number;
+}
+
+export class BackupDownloadDto {
+  @ApiProperty({ format: 'date' })
+  @IsISO8601({ strict: true }, { message: 'Indica una fecha inicial válida' })
+  desde: string;
+
+  @ApiProperty({ format: 'date' })
+  @IsISO8601({ strict: true }, { message: 'Indica una fecha final válida' })
+  hasta: string;
 }
 
 export class BackupRunDto {
