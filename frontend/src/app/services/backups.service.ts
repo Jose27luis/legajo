@@ -17,6 +17,10 @@ export class BackupsService {
     return firstValueFrom(this.http.get<EstadoRespaldos>(`${BASE}/status`));
   }
 
+  enlaceDescarga(desde: string, hasta: string): string {
+    return `${BASE}/download.zip?${new URLSearchParams({ desde, hasta }).toString()}`;
+  }
+
   lanzar(): Promise<EstadoRespaldos> {
     return firstValueFrom(this.http.post<EstadoRespaldos>(BASE, {}));
   }
