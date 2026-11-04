@@ -125,7 +125,7 @@ flowchart TB
 ```
 
 - Solo nginx publica puertos. PostgreSQL y Redis quedan en la red interna de Compose.
-- La imagen del `worker` incluye `ghostscript`, `qpdf`, `restic` y `postgresql-client-17`. La imagen de la `api` no los necesita.
+- La imagen de la `api` incluye `qpdf` y `restic`, que usa para la descarga de copias. La del `worker` agrega `ghostscript` y `postgresql-client-17`.
 - La API monta el volumen de archivos en solo lectura. Solo el worker escribe ahí.
 
 ## Estructura del legajo
@@ -1260,6 +1260,7 @@ sequenceDiagram
 - `pg_dump` corre en caliente.
 - Copias cifradas.
 - Panel: última copia, historial, snapshots, espacio usado y copia manual. La restauración se hace por consola.
+- Descarga por rango de fechas: un solo .zip con una carpeta por copia, que trae `legajos.dump` (formato de `pg_dump`) y `archivos.zip` con los PDF. Cada copia pesa como el sistema completo. Solo la hace quien tiene el permiso de copias, y queda en la auditoría.
 
 ### Restauración
 
