@@ -47,6 +47,48 @@
     </div>
   </dl>
 
+  <section class="tarjeta" aria-labelledby="titulo-descarga">
+    <div class="barra-reporte">
+      <h3 id="titulo-descarga">Descargar copias</h3>
+    </div>
+    <div class="campos descarga">
+      <div class="campo">
+        <label for="descarga-desde">Desde</label>
+        <app-date-picker
+          idCampo="descarga-desde"
+          [fecha]="desde()"
+          [min]="copiaMasAntigua()"
+          [max]="hasta()"
+          (cambio)="desde.set($event)"
+        />
+      </div>
+      <div class="campo">
+        <label for="descarga-hasta">Hasta</label>
+        <app-date-picker idCampo="descarga-hasta" [fecha]="hasta()" [min]="desde()" [max]="hoy" (cambio)="hasta.set($event)" />
+      </div>
+      <div class="accion-descarga">
+        @if (rangoValido() && copiasEnRango() > 0) {
+          <a class="boton principal" [href]="enlaceDescarga()" download>Descargar</a>
+        } @else {
+          <button type="button" class="boton principal" disabled>Descargar</button>
+        }
+      </div>
+    </div>
+    <p class="nota">
+      @if (!rangoValido()) {
+        Elige un rango válido: la fecha inicial no puede ser posterior a la final ni la final, futura.
+      } @else if (copiasEnRango() === 0) {
+        No hay copias guardadas en ese rango.
+      } @else {
+        {{ copiasEnRango() === 1 ? '1 copia' : copiasEnRango() + ' copias' }} en el rango. El .zip trae una carpeta por copia con la base de
+        datos (legajos.dump) y todos los PDF (archivos.zip); cada copia pesa como el sistema completo.
+      }
+    </p>
+    <p class="aviso sensible">
+      Contiene todos los datos personales y los PDF del legajo. Guárdalo en un lugar seguro; la descarga queda en la auditoría.
+    </p>
+  </section>
+
   <section class="tarjeta">
     <div class="barra-reporte">
       <h3>Historial de ejecuciones</h3>
