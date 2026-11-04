@@ -1,6 +1,12 @@
 <div class="app" [class.contraido]="contraido()" [class.menu-abierto]="menuMovil()">
-  <aside class="lateral" id="menu-lateral">
-    <a class="marca-lateral" routerLink="/" [attr.aria-label]="contraido() ? 'Legajos Digitales, inicio' : null">
+  <aside class="lateral" id="menu-lateral" #lateral>
+    <a
+      class="marca-lateral"
+      routerLink="/"
+      [attr.aria-label]="contraido() ? 'Legajos Digitales, inicio' : null"
+      (mouseenter)="mostrarTooltip($event, 'Inicio')"
+      (mouseleave)="ocultarTooltip()"
+    >
       <app-brand [tamano]="40" [conFondo]="true" />
       <span class="texto-marca">
         <strong>Legajos Digitales</strong>
@@ -8,15 +14,20 @@
       </span>
     </a>
 
-    <nav class="navegacion" aria-label="Navegación principal">
+    <nav class="navegacion" #navegacion aria-label="Navegación principal" (mouseleave)="ocultarResaltado()" (scroll)="ocultarTooltip()">
+      <span class="resaltado" #resaltado aria-hidden="true"></span>
       @if (sesion.tiene('personal.editar')) {
         <a
           class="enlace nuevo"
           routerLink="/workers"
           [queryParams]="{ nuevo: 1 }"
-          [attr.title]="contraido() ? 'Registrar nuevo ingreso' : null"
+          [attr.aria-label]="contraido() ? 'Registrar nuevo ingreso' : null"
+          (mouseenter)="resaltar($event, 'Registrar nuevo ingreso')"
+          (focus)="resaltar($event, 'Registrar nuevo ingreso')"
+          (mouseleave)="ocultarTooltip()"
+          (blur)="ocultarTooltip()"
         >
-          <span class="numero" aria-hidden="true">+</span>
+          <span class="icono-enlace numero" aria-hidden="true">+</span>
           <span class="etiqueta">Registrar nuevo ingreso</span>
         </a>
       }
@@ -30,7 +41,12 @@
             [attr.tabindex]="contraido() ? -1 : null"
             (click)="alternarGrupo(grupo.titulo)"
           >
-            <span class="titulo-grupo">{{ grupo.titulo }}</span>
+            <span class="titulo-grupo">
+              {{ grupo.titulo }}
+              @if (grupoCerrado(grupo.titulo) && grupo.contieneActual) {
+                <span class="punto-actual" role="img" aria-label="Contiene la página actual"></span>
+              }
+            </span>
             <app-icon nombre="abajo" [tamano]="16" class="flecha-grupo" />
           </button>
           <div class="plegable" [id]="'grupo-menu-' + indice" [inert]="grupoCerrado(grupo.titulo)">
@@ -39,14 +55,19 @@
                 <li>
                   <a
                     class="enlace"
-                    [class.activo]="activoPorRuta(item)"
+                    [class.activo]="item.activo"
                     [routerLink]="item.ruta"
-                    routerLinkActive="activo"
-                    [routerLinkActiveOptions]="{ exact: item.exacto }"
-                    ariaCurrentWhenActive="page"
-                    [attr.title]="contraido() ? item.etiqueta : null"
+                    [attr.aria-current]="item.activo ? 'page' : null"
+                    [attr.aria-label]="contraido() ? item.etiqueta : null"
+                    (mouseenter)="resaltar($event, item.etiqueta)"
+                    (focus)="resaltar($event, item.etiqueta)"
+                    (mouseleave)="ocultarTooltip()"
+                    (blur)="ocultarTooltip()"
                   >
-                    <app-icon [nombre]="item.icono" [tamano]="19" />
+                    @if (item.activo) {
+                      <span class="barra-actual" aria-hidden="true"></span>
+                    }
+                    <app-icon class="icono-enlace" [nombre]="item.icono" [tamano]="19" />
                     <span class="etiqueta">{{ item.etiqueta }}</span>
                   </a>
                 </li>
@@ -57,20 +78,54 @@
       }
     </nav>
 
-    <p class="pie-lateral">Oficina de Personal · Área de Legajos</p>
+    @if (sesion.usuario(); as usuario) {
+      <div class="usuario">
+        <div class="ficha-usuario">
+          <a
+            class="avatar-usuario"
+            routerLink="/profile"
+            aria-label="Ver mi perfil"
+            (mouseenter)="mostrarTooltip($event, usuario.nombreCompleto)"
+            (mouseleave)="ocultarTooltip()"
+          >
+            <span>{{ iniciales() }}</span>
+          </a>
+          <span class="datos-usuario">
+            <strong>{{ usuario.nombreCompleto }}</strong>
+            <span class="rol"><span class="punto-estado" aria-hidden="true"></span>{{ usuario.rol }}</span>
+          </span>
+        </div>
+        <button
+          type="button"
+          class="cerrar-sesion"
+          (click)="cerrarSesion()"
+          [disabled]="saliendo()"
+          [attr.aria-busy]="saliendo()"
+          [attr.aria-label]="contraido() ? 'Cerrar sesión' : null"
+          (mouseenter)="mostrarTooltip($event, 'Cerrar sesión')"
+          (mouseleave)="ocultarTooltip()"
+        >
+          <span class="etiqueta">{{ saliendo() ? 'Saliendo' : 'Cerrar sesión' }}</span>
+          <app-icon nombre="salir" [tamano]="17" class="icono-salir" />
+        </button>
+      </div>
+    }
 
     <button
       type="button"
       class="contraer"
       (click)="alternarContraido()"
       [attr.aria-label]="contraido() ? 'Expandir menú' : 'Contraer menú'"
-      [attr.title]="contraido() ? 'Expandir menú' : 'Contraer menú'"
       [attr.aria-expanded]="!contraido()"
       aria-controls="menu-lateral"
     >
       <app-icon nombre="contraer" [tamano]="16" />
     </button>
   </aside>
+
+  @if (tooltip(); as consejo) {
+    <span class="tooltip" role="tooltip" [style.left.px]="consejo.x" [style.top.px]="consejo.y">{{ consejo.texto }}</span>
+  }
 
   <button type="button" class="velo" aria-label="Cerrar menú" tabindex="-1" (click)="menuMovil.set(false)"></button>
 
@@ -87,6 +142,11 @@
         <app-icon nombre="menu" [tamano]="22" />
       </button>
 
+      <a class="marca-movil" routerLink="/" aria-label="Legajos Digitales, inicio">
+        <app-brand [tamano]="32" [conFondo]="true" />
+        <strong>Legajos Digitales</strong>
+      </a>
+
       <div class="ubicacion">
         <span class="titulo">Sistema Web de Legajos Digitales</span>
         <span class="fecha">Oficina de Personal / Área de Legajos · {{ fechaHoy }}</span>
@@ -95,20 +155,6 @@
       @if (sesion.tiene('personal.ver')) {
         <app-global-search />
       }
-
-      <a class="chip" routerLink="/profile" aria-label="Ver mi perfil">
-        <span class="avatar" aria-hidden="true">{{ iniciales() }}</span>
-        @if (sesion.usuario(); as usuario) {
-          <span class="datos">
-            <strong>{{ usuario.usuario }}</strong>
-            <span>{{ usuario.rol }}</span>
-          </span>
-        }
-      </a>
-      <button type="button" class="boton chico salir" (click)="cerrarSesion()" [disabled]="saliendo()" [attr.aria-busy]="saliendo()">
-        <app-icon nombre="salir" [tamano]="17" />
-        <span>{{ saliendo() ? 'Saliendo' : 'Salir' }}</span>
-      </button>
     </header>
 
     <main class="contenido">
