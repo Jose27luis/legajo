@@ -55,3 +55,13 @@ code {
   font-size: 13px;
   line-height: 1.5;
 }
+
+.descarga {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 220px));
+  align-items: end;
+}
+
+.accion-descarga {
+  display: flex;
+  align-items: end;
+}
