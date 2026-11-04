@@ -74,20 +74,11 @@
         }
       </div>
     </div>
-    <p class="nota">
-      @if (!rangoValido()) {
-        Elige un rango válido: la fecha inicial no puede ser posterior a la final ni la final, futura.
-      } @else if (copiasEnRango() === 0) {
-        No hay copias guardadas en ese rango.
-      } @else {
-        {{ copiasEnRango() === 1 ? '1 copia' : copiasEnRango() + ' copias' }} en el rango. El .zip trae una carpeta por copia con la base de
-        datos (legajos.dump), los PDF ordenados por trabajador y sección, y un índice (indice.csv); cada copia pesa como el sistema
-        completo.
-      }
-    </p>
-    <p class="aviso sensible">
-      Contiene todos los datos personales y los PDF del legajo. Guárdalo en un lugar seguro; la descarga queda en la auditoría.
-    </p>
+    @if (!rangoValido()) {
+      <p class="nota">Elige un rango válido: la fecha inicial no puede ser posterior a la final ni la final, futura.</p>
+    } @else if (copiasEnRango() === 0) {
+      <p class="nota">No hay copias guardadas en ese rango.</p>
+    }
   </section>
 
   <section class="tarjeta">
