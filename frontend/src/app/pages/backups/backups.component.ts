@@ -1,13 +1,24 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, resource, signal } from '@angular/core';
+import { DatePickerComponent } from '../../components/date-picker/date-picker.component';
 import { SkeletonComponent } from '../../components/skeleton/skeleton.component';
 import { mensajeDeError } from '../../core/errors';
 import { fechaHora } from '../../core/format';
-import { tamanoLegible } from '../../core/labels';
+import { hoy, tamanoLegible } from '../../core/labels';
 import type { EjecucionRespaldo, EstadoRespaldo } from '../../core/models';
 import { ToastService } from '../../core/toast.service';
 import { BackupsService } from '../../services/backups.service';
 
 const INTERVALO_MS = 10000;
+const DIAS_POR_DEFECTO = 7;
+const FECHA_ISO = /^\d{4}-\d{2}-\d{2}$/;
+
+const formatoDia = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Lima' });
+
+function restarDias(fecha: string, dias: number): string {
+  const base = new Date(`${fecha}T00:00:00Z`);
+  base.setUTCDate(base.getUTCDate() - dias);
+  return base.toISOString().slice(0, 10);
+}
 
 export const TEXTO_ESTADO_RESPALDO: Record<EstadoRespaldo, string> = {
   EN_CURSO: 'En curso',
@@ -23,7 +34,7 @@ export const CLASE_ESTADO_RESPALDO: Record<EstadoRespaldo, string> = {
 
 @Component({
   selector: 'app-backups',
-  imports: [SkeletonComponent],
+  imports: [SkeletonComponent, DatePickerComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './backups.component.html',
   styleUrl: './backups.component.css',
@@ -57,6 +68,31 @@ export class BackupsComponent {
     const datos = this.panel.value();
     return Math.max(1, Math.ceil(datos.total / datos.porPagina));
   });
+
+  protected readonly hoy = hoy();
+  protected readonly desde = signal(restarDias(this.hoy, DIAS_POR_DEFECTO - 1));
+  protected readonly hasta = signal(this.hoy);
+  protected readonly rangoValido = computed(
+    () => FECHA_ISO.test(this.desde()) && FECHA_ISO.test(this.hasta()) && this.desde() <= this.hasta() && this.hasta() <= this.hoy,
+  );
+  protected readonly copiaMasAntigua = computed(() => {
+    const fechas = this.panel.hasValue() ? (this.panel.value().repositorio?.snapshots ?? []).map((copia) => copia.fecha) : [];
+    return fechas.length === 0 ? null : formatoDia.format(new Date(fechas.reduce((menor, fecha) => (fecha < menor ? fecha : menor))));
+  });
+  protected readonly copiasEnRango = computed(() => {
+    if (!this.rangoValido() || !this.panel.hasValue()) {
+      return 0;
+    }
+    const enRango = (this.panel.value().repositorio?.snapshots ?? []).filter((copia) => {
+      const dia = formatoDia.format(new Date(copia.fecha));
+      return copia.ejecucionId !== null && this.desde() <= dia && dia <= this.hasta();
+    });
+    const conBase = new Set(enRango.filter((copia) => copia.contenido === 'bd').map((copia) => copia.ejecucionId));
+    return new Set(
+      enRango.filter((copia) => copia.contenido === 'archivos' && conBase.has(copia.ejecucionId)).map((copia) => copia.ejecucionId),
+    ).size;
+  });
+  protected readonly enlaceDescarga = computed(() => this.servicio.enlaceDescarga(this.desde(), this.hasta()));
 
   constructor() {
     const temporizador = setInterval(() => {
