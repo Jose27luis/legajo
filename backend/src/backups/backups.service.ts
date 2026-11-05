@@ -19,7 +19,7 @@ import type { DatosCliente } from '../common/client';
 import { aTextoOpcional, diaSiguiente, hoyEnLima } from '../common/dates';
 import { nombreTrabajador } from '../common/names';
 import type { SesionActiva } from '../common/session';
-import { carpetaTrabajador, nombreDescarga } from '../documents/document.mapper';
+import { carpetaTrabajador, nombreDescarga, slug } from '../documents/document.mapper';
 import { conexionRedis } from '../documents/document-queue';
 import { ENTORNO, type Entorno } from '../environment/environment';
 import type { Prisma } from '../generated/prisma/client';
@@ -68,6 +68,19 @@ const ENCABEZADO_INDICE = [
 const CARPETA_LEGAJOS = 'legajos';
 const CARPETA_SIN_REGISTRO = 'sin_registro';
 const BOM_UTF8 = Buffer.from([0xef, 0xbb, 0xbf]);
+const LARGO_NOMBRE = 150;
+const CARACTERES_PROHIBIDOS = /[\\/:*?"<>|\p{Cc}]+/gu;
+
+function nombreOriginal(texto: string): string | null {
+  const limpio = texto
+    .replace(/\.pdf$/i, '')
+    .replace(CARACTERES_PROHIBIDOS, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, LARGO_NOMBRE)
+    .replace(/[. ]+$/, '');
+  return limpio === '' ? null : limpio;
+}
 
 function celdaCsv(valor: string): string {
   return `"${valor.replace(/"/g, '""')}"`;
@@ -322,6 +335,7 @@ export class BackupsService implements OnModuleDestroy {
         id: true,
         ruta: true,
         version: true,
+        nombreOriginal: true,
         documento: {
           select: {
             archivoActualId: true,
@@ -338,12 +352,19 @@ export class BackupsService implements OnModuleDestroy {
     const conocidos = new Map<string, ArchivoConocido>();
     for (const archivo of archivos) {
       const { documento } = archivo;
-      const base = nombreDescarga(documento);
-      const sufijo = archivo.id === documento.archivoActualId ? '' : `_v${archivo.version}`;
-      const propuesto = `${CARPETA_LEGAJOS}/${carpetaTrabajador(documento.trabajador)}/${documento.tipoDocumento.seccion.carpeta}/${base.replace(/\.pdf$/, `${sufijo}.pdf`)}`;
+      const { tipoDocumento } = documento;
+      const carpeta = [
+        CARPETA_LEGAJOS,
+        carpetaTrabajador(documento.trabajador),
+        tipoDocumento.seccion.carpeta,
+        `${tipoDocumento.codigo}_${slug(tipoDocumento.nombre, 60)}`,
+      ].join('/');
+      const base = nombreOriginal(archivo.nombreOriginal) ?? nombreDescarga(documento).replace(/\.pdf$/, '');
+      const sufijo = archivo.id === documento.archivoActualId ? '' : ` (v${archivo.version})`;
+      const propuesto = `${carpeta}/${base}${sufijo}`;
       const repeticion = (usados.get(propuesto) ?? 0) + 1;
       usados.set(propuesto, repeticion);
-      const nombre = repeticion === 1 ? propuesto : propuesto.replace(/\.pdf$/, `_${repeticion}.pdf`);
+      const nombre = `${propuesto}${repeticion === 1 ? '' : ` (${repeticion})`}.pdf`;
       conocidos.set(archivo.ruta, {
         nombre,
         fila: [
