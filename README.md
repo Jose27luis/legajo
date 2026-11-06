@@ -293,6 +293,7 @@ Los tipos 0704 a 0708 se confirman como movimiento laboral y actualizan el área
 | 1005 | Trámites y gestiones de subsidios | Sí | | |
 | 1006 | Descansos médicos | Sí | | |
 | 1007 | Afiliaciones a Entidades Prestadoras de Salud (EPS) | Sí | | |
+| 1008 | Certificados médicos y psicológicos | Sí | | |
 
 **11 Desvinculación** (carpeta `11_Desvinculacion`)
 
@@ -321,7 +322,7 @@ Solo 1102, 1103 y 1107 sustentan la confirmación del cese. El término de desig
 
 ### Campos de cada formulario
 
-Cada tipo de documento tiene su propio formulario, según el documento de contenido de las secciones. Al subir un PDF el formulario queda bloqueado hasta elegir el tipo. Todos los campos son opcionales salvo el tipo y el archivo. En todos se registran la descripción y observaciones, el nivel de acceso y el estado automático «Registrado».
+Cada tipo de documento tiene su propio formulario, según el documento de contenido de las secciones. Al subir un PDF el formulario queda bloqueado hasta elegir el tipo. Todos los campos son opcionales salvo el tipo, el archivo y el tipo de certificado del 1008. En todos se registran la descripción y observaciones, el nivel de acceso y el estado automático «Registrado».
 
 El número, la fecha de emisión, el emisor y el vencimiento cambian de nombre según el tipo («Número de contrato», «Fecha de emisión o entrega», «Entidad o institución emisora»…) y solo aparecen donde el tipo los pide. El vencimiento solo se pide en la colegiatura, como fecha de vencimiento de habilitación. El detalle del documento muestra los mismos campos y nombres que su formulario.
 
@@ -352,6 +353,7 @@ El número, la fecha de emisión, el emisor y el vencimiento cambian de nombre s
 | 0901 a 0903 | Asunto o motivo, fecha de resolución |
 | 1001 a 1003 | Asunto o motivo, fecha de recepción o participación |
 | 1004 a 1007 | Asunto o motivo, fecha de inicio o efecto |
+| 1008 | Tipo de certificado, obligatorio (médico de buena salud, psicológico, médico y psicológico, aptitud médica ocupacional, otros); número o referencia, fecha de emisión, emitido por y presentado por, que se toma del trabajador |
 | 1101, 1104 a 1106 | Asunto o motivo, fecha de término o efecto |
 | 1102, 1103, 1107 | Motivo de cese, asunto o motivo, fecha de término o efecto |
 | 1201 a 1206 | Nombre del documento, asunto o motivo |
