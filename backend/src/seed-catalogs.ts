@@ -376,6 +376,20 @@ const CAMPOS_SST_PARTICIPACION: CampoSeccion[] = [
   fecha('fechaParticipacion', 'Fecha de recepción o participación'),
 ];
 const CAMPOS_BIENESTAR: CampoSeccion[] = [texto('asunto', 'Asunto o motivo'), fecha('fechaEfecto', 'Fecha de inicio o efecto')];
+const TIPOS_CERTIFICADO_SALUD = [
+  'Certificado médico de buena salud',
+  'Certificado psicológico',
+  'Certificado médico y psicológico',
+  'Certificado de aptitud médica ocupacional',
+  'Otros certificados de salud',
+];
+const CAMPOS_CERTIFICADO_SALUD: CampoSeccion[] = [seleccion('tipoCertificado', 'Tipo de certificado', TIPOS_CERTIFICADO_SALUD, true)];
+const FORMULARIO_CERTIFICADO_SALUD: FormularioTipo = {
+  numero: 'Número o referencia del documento',
+  fechaEmision: 'Fecha de emisión',
+  presentadoPor: 'Presentado por',
+  emisor: 'Emitido por',
+};
 const CAMPOS_TERMINO: CampoSeccion[] = [texto('asunto', 'Asunto o motivo'), fecha('fechaTermino', 'Fecha de término o efecto')];
 const CAMPOS_CESE: CampoSeccion[] = [
   seleccion('motivoCese', 'Motivo de cese', MOTIVOS_CESE),
@@ -616,6 +630,7 @@ export const TIPOS_DOCUMENTO: readonly TipoSemilla[] = [
   tipo('1005', 'Trámites y gestiones de subsidios', FORMULARIO_ENTIDAD, CAMPOS_BIENESTAR, restringido),
   tipo('1006', 'Descansos médicos', FORMULARIO_ENTIDAD, CAMPOS_BIENESTAR, restringido),
   tipo('1007', 'Afiliaciones a Entidades Prestadoras de Salud (EPS)', FORMULARIO_ENTIDAD, CAMPOS_BIENESTAR, restringido),
+  tipo('1008', 'Certificados médicos y psicológicos', FORMULARIO_CERTIFICADO_SALUD, CAMPOS_CERTIFICADO_SALUD, restringido),
 
   tipo('1101', 'Resolución de término de designación', FORMULARIO_ENTIDAD, CAMPOS_TERMINO),
   tipo('1102', 'Resolución de término del servicio civil de carrera', FORMULARIO_ENTIDAD, CAMPOS_CESE, cese),
