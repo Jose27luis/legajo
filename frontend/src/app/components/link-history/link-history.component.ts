@@ -4,10 +4,14 @@ import {
   MOTIVOS_CESE,
   TEXTO_MOTIVO_FIN,
   TEXTO_MOVIMIENTO,
+  detalleMovimientoPersonal,
+  esMovimientoPersonal,
   esSalidaDocumentada,
   fechaCorta,
+  fechaMovimientoPersonal,
   fechaRenuncia,
   periodoDelMovimiento,
+  periodoDelMovimientoPersonal,
   renunciaDelPeriodo,
   textoDato,
 } from '../../core/labels';
@@ -16,7 +20,6 @@ import { PagerComponent } from '../pager/pager.component';
 import { PeriodDialogComponent } from '../period-dialog/period-dialog.component';
 
 const VINCULOS_POR_PAGINA = 5;
-const SECCION_MOVIMIENTOS_PERSONAL = 5;
 
 interface Linea {
   texto: string;
@@ -55,16 +58,10 @@ export class LinkHistoryComponent {
     const vinculos = this.trabajador().vinculos;
     const grupos = new Map<string | null, Documento[]>();
     const lista = this.documentos()
-      .filter((documento) => documento.seccion === SECCION_MOVIMIENTOS_PERSONAL && documento.estado !== 'ANULADO')
-      .map((documento) => ({ documento, fecha: textoDato(documento, 'inicio') ?? documento.fechaEmision }))
-      .sort((a, b) => (a.fecha ?? '').localeCompare(b.fecha ?? ''));
-    for (const { documento, fecha } of lista) {
-      const asignado = vinculos.find((vinculo) => vinculo.id === documento.vinculoId);
-      const porFecha =
-        fecha === null
-          ? undefined
-          : vinculos.find((vinculo) => vinculo.fechaInicio <= fecha && (vinculo.fechaFin === null || fecha <= vinculo.fechaFin));
-      const periodo = (asignado ?? porFecha)?.id ?? null;
+      .filter(esMovimientoPersonal)
+      .sort((a, b) => (fechaMovimientoPersonal(a) ?? '').localeCompare(fechaMovimientoPersonal(b) ?? ''));
+    for (const documento of lista) {
+      const periodo = periodoDelMovimientoPersonal(documento, vinculos);
       grupos.set(periodo, [...(grupos.get(periodo) ?? []), documento]);
     }
     return grupos;
@@ -80,24 +77,10 @@ export class LinkHistoryComponent {
   }
 
   protected lineasPersonal(documento: Documento): Linea[] {
-    const detalle = documento.tipo.campos
-      .filter((campo) => campo.tipo === 'seleccion' || campo.tipo === 'texto')
-      .flatMap((campo) => {
-        const valor = textoDato(documento, campo.clave);
-        if (valor === null) {
-          return [];
-        }
-        return [campo.tipo === 'texto' ? `${campo.etiqueta}: ${valor}` : valor];
-      });
-    const inicio = textoDato(documento, 'inicio');
-    const fin = textoDato(documento, 'fin');
-    const rango =
-      inicio === null ? null : fin === null ? `Desde el ${fechaCorta(inicio)}` : `Del ${fechaCorta(inicio)} al ${fechaCorta(fin)}`;
     return [
       { texto: documento.tipo.nombre, clase: 'titulo-movimiento' },
       { texto: this.referencia(documento), clase: 'meta-movimiento' },
-      ...(detalle.length === 0 ? [] : [{ texto: detalle.join(' · '), clase: '' }]),
-      ...(rango === null ? [] : [{ texto: rango, clase: '' }]),
+      ...detalleMovimientoPersonal(documento).map((texto) => ({ texto, clase: '' })),
       { texto: this.archivo(documento), clase: 'archivo-movimiento' },
     ];
   }
