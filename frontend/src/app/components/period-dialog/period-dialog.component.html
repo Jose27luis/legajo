@@ -22,7 +22,7 @@
         <h3>Documentos vinculados</h3>
         <span class="pastilla azul">Solo lectura</span>
       </header>
-      @if (vinculados().length === 0 && desplazamientos().length === 0 && salidas().length === 0) {
+      @if (vinculados().length === 0 && desplazamientos().length === 0 && personal().length === 0 && salidas().length === 0) {
         <p class="nota">
           {{
             esSalida()
@@ -75,6 +75,35 @@
                       @if (documento.estado === 'DISPONIBLE') {
                         <a class="boton chico" [href]="enlace(documento)" target="_blank" rel="noopener">Ver PDF</a>
                       }
+                    }
+                  </span>
+                </li>
+              }
+            </ul>
+          }
+          @if (personal().length > 0) {
+            <p class="grupo de-personal">Movimientos del personal · Sección 05</p>
+            <ul class="documentos">
+              @for (documento of personal(); track documento.id) {
+                <li class="documento personal">
+                  <span class="hoja" aria-hidden="true">PDF</span>
+                  <span class="dato">
+                    <strong>{{ documento.tipo.nombre }}</strong>
+                    <span class="meta">{{ referencia(documento) }}</span>
+                    @let detalles = detalleMovimientoPersonal(documento);
+                    @if (detalles.length > 0) {
+                      <span class="chips">
+                        @for (detalle of detalles; track detalle) {
+                          <span class="chip">{{ detalle }}</span>
+                        }
+                      </span>
+                    }
+                    <span class="archivo">{{ nombreArchivo(documento) }}</span>
+                  </span>
+                  <span class="acciones">
+                    <span class="pastilla" [class]="claseEstado[documento.estado]">{{ textoEstado[documento.estado] }}</span>
+                    @if (documento.estado === 'DISPONIBLE') {
+                      <a class="boton chico" [href]="enlace(documento)" target="_blank" rel="noopener">Ver PDF</a>
                     }
                   </span>
                 </li>
