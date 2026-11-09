@@ -142,6 +142,11 @@
   color: var(--violeta);
 }
 
+.movimientos .ver-pdf {
+  justify-self: start;
+  margin-top: 5px;
+}
+
 .fuera {
   margin-bottom: 14px;
 }
