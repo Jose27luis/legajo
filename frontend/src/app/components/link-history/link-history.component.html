@@ -58,6 +58,9 @@
               @for (linea of lineasPersonal(documento); track $index) {
                 <span [class]="linea.clase">{{ linea.texto }}</span>
               }
+              @if (documento.estado === 'DISPONIBLE') {
+                <a class="boton chico ver-pdf" [href]="enlace(documento)" target="_blank" rel="noopener">Ver PDF</a>
+              }
             </li>
           }
         </ul>
@@ -89,6 +92,9 @@
         <li>
           @for (linea of lineasPersonal(documento); track $index) {
             <span [class]="linea.clase">{{ linea.texto }}</span>
+          }
+          @if (documento.estado === 'DISPONIBLE') {
+            <a class="boton chico ver-pdf" [href]="enlace(documento)" target="_blank" rel="noopener">Ver PDF</a>
           }
         </li>
       }
