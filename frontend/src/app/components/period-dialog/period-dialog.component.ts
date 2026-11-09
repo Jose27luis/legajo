@@ -61,11 +61,20 @@ export class PeriodDialogComponent {
   protected readonly numeroSeccion = computed(() => (this.esSalida() ? 11 : 2));
   protected readonly vinculados = computed(() => {
     const vinculo = this.vinculo();
-    return vinculo === null
-      ? []
-      : this.documentos()
-          .filter((documento) => documento.vinculoId === vinculo.id && documento.seccion === 2)
-          .sort(masRecientePrimero);
+    if (vinculo === null) {
+      return [];
+    }
+    const propios = this.documentos()
+      .filter((documento) => documento.vinculoId === vinculo.id && documento.seccion === 2)
+      .sort(masRecientePrimero);
+    const esAdenda = (documento: Documento) => documento.tipo.campos.some((campo) => campo.tipo === 'contrato');
+    const principales = propios.filter((documento) => !esAdenda(documento));
+    const adendas = propios.filter(esAdenda);
+    const ordenados = principales.flatMap((principal) => [
+      principal,
+      ...adendas.filter((adenda) => textoDato(adenda, 'contratoRelacionado') === principal.id),
+    ]);
+    return [...ordenados, ...adendas.filter((adenda) => !ordenados.includes(adenda))];
   });
   protected readonly salidas = computed(() => {
     const vinculo = this.vinculo();
