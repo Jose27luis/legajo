@@ -6,10 +6,14 @@ import {
   TEXTO_ESTADO_DOCUMENTO,
   TEXTO_MOTIVO_FIN,
   TEXTO_MOVIMIENTO,
+  detalleMovimientoPersonal,
+  esMovimientoPersonal,
   esSalidaDocumentada,
   fechaCorta,
+  fechaMovimientoPersonal,
   nombreCompleto,
   periodoDelMovimiento,
+  periodoDelMovimientoPersonal,
   renunciaDelPeriodo,
   textoDato,
 } from '../../core/labels';
@@ -44,6 +48,7 @@ export class PeriodDialogComponent {
   protected readonly textoMovimiento = TEXTO_MOVIMIENTO;
   protected readonly fechaCorta = fechaCorta;
   protected readonly nombreCompleto = nombreCompleto;
+  protected readonly detalleMovimientoPersonal = detalleMovimientoPersonal;
 
   protected readonly esSalida = computed(() => {
     const vinculo = this.vinculo();
@@ -78,6 +83,16 @@ export class PeriodDialogComponent {
         movimiento,
         documento: this.documentos().find((documento) => documento.id === movimiento.documentoId) ?? null,
       }));
+  });
+  protected readonly personal = computed(() => {
+    const vinculo = this.vinculo();
+    const trabajador = this.trabajador();
+    if (vinculo === null || trabajador === null) {
+      return [];
+    }
+    return this.documentos()
+      .filter((documento) => esMovimientoPersonal(documento) && periodoDelMovimientoPersonal(documento, trabajador.vinculos) === vinculo.id)
+      .sort((a, b) => (fechaMovimientoPersonal(a) ?? '').localeCompare(fechaMovimientoPersonal(b) ?? ''));
   });
   protected readonly sinEnlazar = computed(() =>
     this.esSalida()
