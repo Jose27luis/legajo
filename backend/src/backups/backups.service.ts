@@ -284,8 +284,10 @@ export class BackupsService implements OnModuleDestroy {
     });
     archivador.on('error', () => respuesta.destroy());
     archivador.pipe(respuesta);
+    const agregados = new Set<string>();
+    const filas: string[][] = [];
     try {
-      for (const copia of copias) {
+      for (const copia of [...copias].reverse()) {
         const carpeta = nombreCarpeta(copia.inicio);
         if (cancelado) {
           return;
@@ -297,13 +299,13 @@ export class BackupsService implements OnModuleDestroy {
           return;
         }
         actual = flujoRestic(['dump', '--quiet', '--archive', 'tar', copia.snapshotArchivos, this.entorno.DIR_ARCHIVOS], variables);
-        const filas = await this.agregarArchivos(archivador, respuesta, actual.salida, carpeta, conocidos, () => cancelado);
+        filas.push(...(await this.agregarArchivos(archivador, respuesta, actual.salida, conocidos, agregados, () => cancelado)));
         exigirExito(await actual.terminado, `Archivos de la copia ${carpeta}`);
-        if (cancelado) {
-          return;
-        }
-        await agregarAlZip(archivador, respuesta, indiceCsv(filas), `${carpeta}/indice.csv`);
       }
+      if (cancelado) {
+        return;
+      }
+      await agregarAlZip(archivador, respuesta, indiceCsv(filas), 'indice.csv');
       await archivador.finalize();
     } catch (error: unknown) {
       this.bitacora.error(`Descarga de copias interrumpida: ${error instanceof Error ? error.message : 'error desconocido'}`);
@@ -387,8 +389,8 @@ export class BackupsService implements OnModuleDestroy {
     archivador: ZipArchive,
     respuesta: Response,
     tar: Readable,
-    carpeta: string,
     conocidos: Map<string, ArchivoConocido>,
+    agregados: Set<string>,
     cancelado: () => boolean,
   ): Promise<string[][]> {
     const prefijo = `${this.entorno.DIR_ARCHIVOS.replace(/^\/+/, '')}/`;
@@ -401,15 +403,16 @@ export class BackupsService implements OnModuleDestroy {
         extractor.destroy();
         break;
       }
-      if (entrada.header.type !== 'file') {
+      const ruta = entrada.header.name.startsWith(prefijo) ? entrada.header.name.slice(prefijo.length) : entrada.header.name;
+      if (entrada.header.type !== 'file' || agregados.has(ruta)) {
         entrada.resume();
         continue;
       }
-      const ruta = entrada.header.name.startsWith(prefijo) ? entrada.header.name.slice(prefijo.length) : entrada.header.name;
+      agregados.add(ruta);
       const conocido = conocidos.get(ruta);
       const nombre = conocido?.nombre ?? `${CARPETA_SIN_REGISTRO}/${ruta.replace(/\/(v\d+\.pdf)$/, '_$1')}`;
       const contenido = await buffer(entrada);
-      await agregarAlZip(archivador, respuesta, contenido, `${carpeta}/${nombre}`);
+      await agregarAlZip(archivador, respuesta, contenido, nombre);
       filas.push(conocido?.fila ?? [nombre, ruta, '', '', '', '', '', '', '']);
     }
     return filas;
