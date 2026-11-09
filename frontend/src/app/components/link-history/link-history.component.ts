@@ -16,6 +16,12 @@ import { PagerComponent } from '../pager/pager.component';
 import { PeriodDialogComponent } from '../period-dialog/period-dialog.component';
 
 const VINCULOS_POR_PAGINA = 5;
+const SECCION_MOVIMIENTOS_PERSONAL = 5;
+
+interface Linea {
+  texto: string;
+  clase: string;
+}
 
 @Component({
   selector: 'app-link-history',
@@ -45,11 +51,70 @@ export class LinkHistoryComponent {
   });
   protected readonly sinPeriodo = computed(() => this.movimientosPorPeriodo().get(null) ?? []);
 
+  private readonly personalPorPeriodo = computed(() => {
+    const vinculos = this.trabajador().vinculos;
+    const grupos = new Map<string | null, Documento[]>();
+    const lista = this.documentos()
+      .filter((documento) => documento.seccion === SECCION_MOVIMIENTOS_PERSONAL && documento.estado !== 'ANULADO')
+      .map((documento) => ({ documento, fecha: textoDato(documento, 'inicio') ?? documento.fechaEmision }))
+      .sort((a, b) => (a.fecha ?? '').localeCompare(b.fecha ?? ''));
+    for (const { documento, fecha } of lista) {
+      const asignado = vinculos.find((vinculo) => vinculo.id === documento.vinculoId);
+      const porFecha =
+        fecha === null
+          ? undefined
+          : vinculos.find((vinculo) => vinculo.fechaInicio <= fecha && (vinculo.fechaFin === null || fecha <= vinculo.fechaFin));
+      const periodo = (asignado ?? porFecha)?.id ?? null;
+      grupos.set(periodo, [...(grupos.get(periodo) ?? []), documento]);
+    }
+    return grupos;
+  });
+  protected readonly personalSinPeriodo = computed(() => this.personalPorPeriodo().get(null) ?? []);
+
   protected movimientos(vinculo: Vinculo): MovimientoLaboral[] {
     return this.movimientosPorPeriodo().get(vinculo.id) ?? [];
   }
 
-  protected lineasMovimiento(movimiento: MovimientoLaboral): { texto: string; clase: string }[] {
+  protected personal(vinculo: Vinculo): Documento[] {
+    return this.personalPorPeriodo().get(vinculo.id) ?? [];
+  }
+
+  protected lineasPersonal(documento: Documento): Linea[] {
+    const detalle = documento.tipo.campos
+      .filter((campo) => campo.tipo === 'seleccion' || campo.tipo === 'texto')
+      .flatMap((campo) => {
+        const valor = textoDato(documento, campo.clave);
+        if (valor === null) {
+          return [];
+        }
+        return [campo.tipo === 'texto' ? `${campo.etiqueta}: ${valor}` : valor];
+      });
+    const inicio = textoDato(documento, 'inicio');
+    const fin = textoDato(documento, 'fin');
+    const rango =
+      inicio === null ? null : fin === null ? `Desde el ${fechaCorta(inicio)}` : `Del ${fechaCorta(inicio)} al ${fechaCorta(fin)}`;
+    return [
+      { texto: documento.tipo.nombre, clase: 'titulo-movimiento' },
+      { texto: this.referencia(documento), clase: 'meta-movimiento' },
+      ...(detalle.length === 0 ? [] : [{ texto: detalle.join(' · '), clase: '' }]),
+      ...(rango === null ? [] : [{ texto: rango, clase: '' }]),
+      { texto: this.archivo(documento), clase: 'archivo-movimiento' },
+    ];
+  }
+
+  private referencia(documento: Documento): string {
+    const partes = [
+      documento.numero === null ? null : `N.º ${documento.numero}`,
+      documento.fechaEmision === null ? null : `Emitido el ${fechaCorta(documento.fechaEmision)}`,
+    ].filter((parte) => parte !== null);
+    return partes.length === 0 ? 'Sin número ni fecha de emisión' : partes.join(' · ');
+  }
+
+  private archivo(documento: Documento): string {
+    return documento.versiones.find((version) => version.actual)?.nombreOriginal ?? documento.tipo.nombre;
+  }
+
+  protected lineasMovimiento(movimiento: MovimientoLaboral): Linea[] {
     const documento = this.documentos().find((item) => item.id === movimiento.documentoId) ?? null;
     const desde = `${TEXTO_MOVIMIENTO[movimiento.tipo]} desde el ${fechaCorta(movimiento.fecha)}`;
     if (documento === null) {
@@ -59,20 +124,15 @@ export class LinkHistoryComponent {
         { texto: `${movimiento.areaOrigen.nombre} → ${movimiento.areaDestino.nombre}`, clase: '' },
       ];
     }
-    const referencia = [
-      documento.numero === null ? null : `N.º ${documento.numero}`,
-      documento.fechaEmision === null ? null : `Emitido el ${fechaCorta(documento.fechaEmision)}`,
-    ].filter((parte) => parte !== null);
     const fin = textoDato(documento, 'fechaFinRotacion') ?? textoDato(documento, 'fechaTermino');
     const cargo = textoDato(documento, 'cargoAsignado');
-    const archivo = documento.versiones.find((version) => version.actual)?.nombreOriginal ?? documento.tipo.nombre;
     return [
       { texto: documento.tipo.nombre, clase: 'titulo-movimiento' },
-      { texto: referencia.length === 0 ? 'Sin número ni fecha de emisión' : referencia.join(' · '), clase: 'meta-movimiento' },
+      { texto: this.referencia(documento), clase: 'meta-movimiento' },
       { texto: fin === null ? desde : `${desde} hasta el ${fechaCorta(fin)}`, clase: '' },
       { texto: `${movimiento.areaOrigen.nombre} → ${movimiento.areaDestino.nombre}`, clase: '' },
       ...(cargo === null ? [] : [{ texto: `Cargo o función: ${cargo}`, clase: '' }]),
-      { texto: archivo, clase: 'archivo-movimiento' },
+      { texto: this.archivo(documento), clase: 'archivo-movimiento' },
     ];
   }
 
