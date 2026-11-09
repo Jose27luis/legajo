@@ -129,6 +129,49 @@ export function textoDato(documento: Pick<Documento, 'datos'>, clave: string): s
   return typeof valor === 'string' && valor.trim() !== '' ? valor : null;
 }
 
+export const SECCION_MOVIMIENTOS_PERSONAL = 5;
+
+export function esMovimientoPersonal(documento: Documento): boolean {
+  return documento.seccion === SECCION_MOVIMIENTOS_PERSONAL && documento.estado !== 'ANULADO';
+}
+
+export function fechaMovimientoPersonal(documento: Documento): string | null {
+  return textoDato(documento, 'inicio') ?? documento.fechaEmision;
+}
+
+export function periodoDelMovimientoPersonal(
+  documento: Documento,
+  vinculos: readonly Pick<Vinculo, 'id' | 'fechaInicio' | 'fechaFin'>[],
+): string | null {
+  const asignado = vinculos.find((vinculo) => vinculo.id === documento.vinculoId);
+  if (asignado !== undefined) {
+    return asignado.id;
+  }
+  const fecha = fechaMovimientoPersonal(documento);
+  if (fecha === null) {
+    return null;
+  }
+  return vinculos.find((vinculo) => vinculo.fechaInicio <= fecha && (vinculo.fechaFin === null || fecha <= vinculo.fechaFin))?.id ?? null;
+}
+
+export function detalleMovimientoPersonal(documento: Documento): string[] {
+  const detalle = documento.tipo.campos
+    .filter((campo) => campo.tipo === 'seleccion' || campo.tipo === 'texto')
+    .flatMap((campo) => {
+      const valor = textoDato(documento, campo.clave);
+      if (valor === null) {
+        return [];
+      }
+      return [campo.tipo === 'texto' ? `${campo.etiqueta}: ${valor}` : valor];
+    });
+  const inicio = textoDato(documento, 'inicio');
+  const fin = textoDato(documento, 'fin');
+  if (inicio === null) {
+    return detalle;
+  }
+  return [...detalle, fin === null ? `Desde el ${fechaCorta(inicio)}` : `Del ${fechaCorta(inicio)} al ${fechaCorta(fin)}`];
+}
+
 export function fechaRenuncia(documento: Documento, vinculo: Pick<Vinculo, 'fechaFin'>): string | null {
   return textoDato(documento, 'fechaCese') ?? vinculo.fechaFin ?? textoDato(documento, 'fechaPresentacion') ?? documento.fechaEmision;
 }
