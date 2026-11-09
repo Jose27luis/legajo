@@ -196,6 +196,22 @@
   color: var(--turquesa);
 }
 
+.grupo.de-personal {
+  margin-top: 6px;
+  color: var(--violeta);
+}
+
+.documento.personal {
+  border-left-color: var(--violeta);
+  background: var(--violeta-claro);
+}
+
+.personal .hoja,
+.personal .dato strong,
+.personal .chip {
+  color: var(--violeta);
+}
+
 .chips {
   display: flex;
   flex-wrap: wrap;
