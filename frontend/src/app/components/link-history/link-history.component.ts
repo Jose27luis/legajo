@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
 import { paginar } from '../../core/pagination';
 import {
   MOTIVOS_CESE,
@@ -12,7 +12,6 @@ import {
   textoDato,
 } from '../../core/labels';
 import type { Documento, MovimientoLaboral, TrabajadorDetalle, Vinculo } from '../../core/models';
-import { DocumentsService } from '../../services/documents.service';
 import { PagerComponent } from '../pager/pager.component';
 import { PeriodDialogComponent } from '../period-dialog/period-dialog.component';
 
@@ -36,7 +35,6 @@ export class LinkHistoryComponent {
   readonly documentos = input<Documento[]>([]);
   readonly registrado = output<Documento>();
 
-  private readonly servicio = inject(DocumentsService);
   protected readonly fechaCorta = fechaCorta;
   protected readonly textoMovimiento = TEXTO_MOVIMIENTO;
   protected readonly periodo = signal<Vinculo | null>(null);
@@ -102,10 +100,6 @@ export class LinkHistoryComponent {
       ...(rango === null ? [] : [{ texto: rango, clase: '' }]),
       { texto: this.archivo(documento), clase: 'archivo-movimiento' },
     ];
-  }
-
-  protected enlace(documento: Documento): string {
-    return this.servicio.enlaceArchivo(documento.id, false);
   }
 
   private referencia(documento: Documento): string {
