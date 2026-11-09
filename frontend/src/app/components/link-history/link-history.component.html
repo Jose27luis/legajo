@@ -50,6 +50,18 @@
           }
         </ul>
       }
+      @let licencias = personal(vinculo);
+      @if (licencias.length > 0) {
+        <ul class="movimientos personal" aria-label="Licencias, permisos y vacaciones del período">
+          @for (documento of licencias; track documento.id) {
+            <li>
+              @for (linea of lineasPersonal(documento); track $index) {
+                <span [class]="linea.clase">{{ linea.texto }}</span>
+              }
+            </li>
+          }
+        </ul>
+      }
     </li>
   } @empty {
     <li class="sin-periodos">Sin períodos registrados.</li>
@@ -62,6 +74,20 @@
       @for (movimiento of sinPeriodo(); track movimiento.id) {
         <li>
           @for (linea of lineasMovimiento(movimiento); track $index) {
+            <span [class]="linea.clase">{{ linea.texto }}</span>
+          }
+        </li>
+      }
+    </ul>
+  </div>
+}
+@if (personalSinPeriodo().length > 0) {
+  <div class="fuera">
+    <p class="titulo-fuera">Licencias, permisos y vacaciones sin período registrado</p>
+    <ul class="movimientos personal">
+      @for (documento of personalSinPeriodo(); track documento.id) {
+        <li>
+          @for (linea of lineasPersonal(documento); track $index) {
             <span [class]="linea.clase">{{ linea.texto }}</span>
           }
         </li>
