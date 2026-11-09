@@ -133,6 +133,15 @@
   overflow-wrap: anywhere;
 }
 
+.movimientos.personal li {
+  border-left-color: var(--violeta);
+  background: var(--violeta-claro);
+}
+
+.movimientos.personal .titulo-movimiento {
+  color: var(--violeta);
+}
+
 .fuera {
   margin-bottom: 14px;
 }
