@@ -23,6 +23,10 @@ import { ToastService } from '../../core/toast.service';
 import { DocumentsService } from '../../services/documents.service';
 import { DialogComponent } from '../dialog/dialog.component';
 
+function masRecientePrimero(a: Documento, b: Documento): number {
+  return (b.fechaEmision ?? '').localeCompare(a.fechaEmision ?? '') || b.creadoEn.localeCompare(a.creadoEn);
+}
+
 @Component({
   selector: 'app-period-dialog',
   imports: [DialogComponent],
@@ -57,7 +61,11 @@ export class PeriodDialogComponent {
   protected readonly numeroSeccion = computed(() => (this.esSalida() ? 11 : 2));
   protected readonly vinculados = computed(() => {
     const vinculo = this.vinculo();
-    return vinculo === null ? [] : this.documentos().filter((documento) => documento.vinculoId === vinculo.id && documento.seccion === 2);
+    return vinculo === null
+      ? []
+      : this.documentos()
+          .filter((documento) => documento.vinculoId === vinculo.id && documento.seccion === 2)
+          .sort(masRecientePrimero);
   });
   protected readonly salidas = computed(() => {
     const vinculo = this.vinculo();
@@ -68,7 +76,7 @@ export class PeriodDialogComponent {
     const propias = this.documentos().filter(
       (documento) => documento.vinculoId === vinculo.id && documento.seccion === 11 && documento.id !== renuncia?.id,
     );
-    return renuncia === null ? propias : [...propias, renuncia];
+    return (renuncia === null ? propias : [...propias, renuncia]).sort(masRecientePrimero);
   });
   protected readonly desplazamientos = computed(() => {
     const vinculo = this.vinculo();
@@ -78,7 +86,7 @@ export class PeriodDialogComponent {
     }
     return [...trabajador.movimientos]
       .filter((movimiento) => periodoDelMovimiento(movimiento, trabajador.vinculos, this.documentos()) === vinculo.id)
-      .sort((a, b) => a.fecha.localeCompare(b.fecha))
+      .sort((a, b) => b.fecha.localeCompare(a.fecha))
       .map((movimiento) => ({
         movimiento,
         documento: this.documentos().find((documento) => documento.id === movimiento.documentoId) ?? null,
@@ -92,7 +100,7 @@ export class PeriodDialogComponent {
     }
     return this.documentos()
       .filter((documento) => esMovimientoPersonal(documento) && periodoDelMovimientoPersonal(documento, trabajador.vinculos) === vinculo.id)
-      .sort((a, b) => (fechaMovimientoPersonal(a) ?? '').localeCompare(fechaMovimientoPersonal(b) ?? ''));
+      .sort((a, b) => (fechaMovimientoPersonal(b) ?? '').localeCompare(fechaMovimientoPersonal(a) ?? '') || masRecientePrimero(a, b));
   });
   protected readonly sinEnlazar = computed(() =>
     this.esSalida()
