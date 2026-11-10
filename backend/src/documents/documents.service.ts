@@ -24,11 +24,13 @@ import type {
   CreateDocumentDto,
   DeleteDocumentDto,
   DocumentFieldsDto,
+  PreviewDocumentDto,
   ReplaceDocumentDto,
   UpdateDocumentDto,
   VoidDocumentDto,
 } from './dto/document-input.dto';
-import type { DocumentDto, DocumentHistoryEntryDto, LegajoDto, LegajoSectionDto } from './dto/document.dto';
+import type { DocumentDto, DocumentHistoryEntryDto, DocumentPreviewDto, LegajoDto, LegajoSectionDto } from './dto/document.dto';
+import { SimulacionLaboral, avisosDeCambio, incluirEstadoLaboral } from '../labor/labor-preview';
 import {
   aDocumentoDto,
   carpetaTrabajador,
@@ -206,6 +208,33 @@ export class DocumentsService {
     );
     await this.encolar(creado.id, datos.subidaId, nombreOriginal, sesion.usuarioId);
     return aDocumentoDto(creado, sesion);
+  }
+
+  async simular(trabajadorId: string, datos: PreviewDocumentDto, sesion: SesionActiva, cliente: DatosCliente): Promise<DocumentPreviewDto> {
+    await this.exigirTrabajador(trabajadorId);
+    const validados = await this.validar(datos, sesion, null);
+    const tipo = await this.prisma.tipoDocumento.findUniqueOrThrow({ where: { id: validados.tipoDocumentoId }, select: { accion: true } });
+    if (tipo.accion !== 'VINCULO') {
+      return { avisos: [] };
+    }
+    const antes = await this.prisma.trabajador.findUniqueOrThrow({ where: { id: trabajadorId }, include: incluirEstadoLaboral });
+    try {
+      await this.prisma.$transaction(async (transaccion) => {
+        const documento = await transaccion.documento.create({
+          data: { ...validados, trabajadorId, creadoPorId: sesion.usuarioId },
+          include: incluirDocumento,
+        });
+        await this.laboral.alRegistrar(transaccion, documento, datos.vinculoId, sesion, cliente);
+        const despues = await transaccion.trabajador.findUniqueOrThrow({ where: { id: trabajadorId }, include: incluirEstadoLaboral });
+        throw new SimulacionLaboral(despues);
+      });
+    } catch (error: unknown) {
+      if (error instanceof SimulacionLaboral) {
+        return { avisos: avisosDeCambio(antes, error.estado) };
+      }
+      throw error;
+    }
+    return { avisos: [] };
   }
 
   async crearDocumento(transaccion: Prisma.TransactionClient, nuevo: NuevoDocumento): Promise<DocumentoCompleto> {
