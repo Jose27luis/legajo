@@ -81,6 +81,14 @@ export class CreateDocumentDto extends DocumentFieldsDto {
   vinculoId: string | null = null;
 }
 
+export class PreviewDocumentDto extends DocumentFieldsDto {
+  @ApiPropertyOptional({ format: 'uuid', description: 'Vínculo del historial que sustentaría el documento' })
+  @Transform(vacioANulo)
+  @IsOptional()
+  @IsUUID('4', { message: 'El vínculo no es válido' })
+  vinculoId: string | null = null;
+}
+
 export class UpdateDocumentDto extends DocumentFieldsDto {
   @ApiProperty({ minLength: 5, maxLength: 500 })
   @Transform(recortar)

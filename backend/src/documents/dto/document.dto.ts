@@ -7,6 +7,11 @@ export const ESTADOS_DOCUMENTO = ['PROCESANDO', 'DISPONIBLE', 'ERROR', 'ANULADO'
 export type NivelAccesoValor = (typeof NIVELES_ACCESO)[number];
 export type EstadoDocumentoValor = (typeof ESTADOS_DOCUMENTO)[number];
 
+export class DocumentPreviewDto {
+  @ApiProperty({ type: [String], description: 'Cambios que el registro haría en el período vigente y en el estado del trabajador' })
+  avisos: string[];
+}
+
 export class FileVersionDto {
   @ApiProperty()
   version: number;
