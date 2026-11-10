@@ -186,6 +186,27 @@
     }
   </div>
 
+  <app-dialog
+    [abierto]="avisosVinculo() !== null"
+    [angosto]="true"
+    titulo="Este contrato cambiará la Sección 01"
+    (cerrar)="avisosVinculo.set(null)"
+  >
+    <p class="aviso sensible">Al registrarlo, el sistema hará estos cambios en el historial del trabajador:</p>
+    <ul class="avisos-vinculo">
+      @for (aviso of avisosVinculo() ?? []; track aviso) {
+        <li>{{ aviso }}</li>
+      }
+    </ul>
+    <p class="nota">
+      Si es un contrato de años anteriores, revisa las fechas de inicio y fin: un año mal digitado cambia el período vigente.
+    </p>
+    <ng-container pie>
+      <button type="button" class="boton" (click)="avisosVinculo.set(null)">Revisar datos</button>
+      <button type="button" class="boton principal" (click)="confirmarVinculo()">Confirmar y registrar</button>
+    </ng-container>
+  </app-dialog>
+
   <app-document-dialog
     [documento]="seleccionado()"
     [seccion]="actual"
