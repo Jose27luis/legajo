@@ -41,6 +41,13 @@ export class DocumentsService {
     return firstValueFrom(this.http.post<Documento>(`/api/workers/${trabajadorId}/documents`, { ...datos, subidaId, vinculoId }));
   }
 
+  async simular(trabajadorId: string, datos: DatosDocumento, vinculoId: string | null = null): Promise<string[]> {
+    const respuesta = await firstValueFrom(
+      this.http.post<{ avisos: string[] }>(`/api/workers/${trabajadorId}/documents/preview`, { ...datos, vinculoId }),
+    );
+    return respuesta.avisos;
+  }
+
   historial(id: string): Promise<EntradaHistorial[]> {
     return firstValueFrom(this.http.get<EntradaHistorial[]>(`/api/documents/${id}/history`));
   }
