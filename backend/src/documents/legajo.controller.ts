@@ -1,11 +1,11 @@
-import { BadRequestException, Body, Controller, Get, Param, ParseUUIDPipe, Post, Query, Req, Res } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Post, Query, Req, Res } from '@nestjs/common';
 import { ApiOperation, ApiProduces, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import type { Request, Response } from 'express';
 import { datosCliente } from '../common/client';
 import { Requiere, SesionActual } from '../common/decorators';
 import type { SesionActiva } from '../common/session';
-import { CreateDocumentDto } from './dto/document-input.dto';
-import { DocumentDto, LegajoDto } from './dto/document.dto';
+import { CreateDocumentDto, PreviewDocumentDto } from './dto/document-input.dto';
+import { DocumentDto, DocumentPreviewDto, LegajoDto } from './dto/document.dto';
 import { DocumentsService } from './documents.service';
 import { DossierService } from './dossier.service';
 
@@ -82,6 +82,20 @@ export class LegajoController {
     @Req() solicitud: Request,
   ): Promise<DocumentDto> {
     return this.documentos.registrar(id, datos, sesion, datosCliente(solicitud));
+  }
+
+  @Requiere('documentos.subir')
+  @Post('documents/preview')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Anticipa qué cambiaría en el período vigente y en el estado del trabajador al registrar el documento' })
+  @ApiResponse({ status: 200, type: DocumentPreviewDto })
+  async simular(
+    @Param('id', ID) id: string,
+    @Body() datos: PreviewDocumentDto,
+    @SesionActual() sesion: SesionActiva,
+    @Req() solicitud: Request,
+  ): Promise<DocumentPreviewDto> {
+    return this.documentos.simular(id, datos, sesion, datosCliente(solicitud));
   }
 
   @Requiere('documentos.descargar')
