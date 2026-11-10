@@ -12,6 +12,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { DialogComponent } from '../../../components/dialog/dialog.component';
 import { DocumentDialogComponent } from '../../../components/document-dialog/document-dialog.component';
 import { DocumentFieldsComponent } from '../../../components/document-fields/document-fields.component';
 import {
@@ -102,6 +103,7 @@ const OPCIONES_ESTADO: readonly OpcionBuscable[] = [
     DocumentFieldsComponent,
     PdfPickerComponent,
     DocumentDialogComponent,
+    DialogComponent,
     SkeletonComponent,
     SearchSelectComponent,
     PagerComponent,
@@ -202,6 +204,7 @@ export class LegajoSectionComponent implements OnDestroy {
   protected readonly progreso = signal<number | null>(null);
   protected readonly ocupado = signal(false);
   protected readonly error = signal<string | null>(null);
+  protected readonly avisosVinculo = signal<string[] | null>(null);
   protected readonly archivoFaltante = signal(false);
 
   private subida: SubidaEnCurso | null = null;
@@ -260,7 +263,12 @@ export class LegajoSectionComponent implements OnDestroy {
     this.subida?.cancelar();
   }
 
-  protected async registrar(): Promise<void> {
+  protected confirmarVinculo(): void {
+    this.avisosVinculo.set(null);
+    void this.registrar(true);
+  }
+
+  protected async registrar(confirmado = false): Promise<void> {
     const seccion = this.seccion();
     if (seccion === null || this.ocupado()) {
       return;
@@ -279,6 +287,14 @@ export class LegajoSectionComponent implements OnDestroy {
     this.ocupado.set(true);
     this.error.set(null);
     try {
+      const tipo = seccion.tipos.find((item) => item.id === datos.tipoDocumentoId);
+      if (!confirmado && tipo?.accion === 'VINCULO') {
+        const avisos = await this.servicio.simular(this.contexto.id(), datos);
+        if (avisos.length > 0) {
+          this.avisosVinculo.set(avisos);
+          return;
+        }
+      }
       let subidaId: string;
       if (this.subidaLista !== null && this.subidaLista.archivo === archivo) {
         subidaId = this.subidaLista.id;
