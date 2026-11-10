@@ -91,12 +91,44 @@ export class LaborService {
     await this.vencimientos.vencer(transaccion, documento.trabajadorId, actor(sesion, cliente));
   }
 
-  async alEditar(transaccion: Prisma.TransactionClient, documento: DocumentoCompleto, sesion: SesionActiva, cliente: DatosCliente): Promise<void> {
+  async alEditar(
+    transaccion: Prisma.TransactionClient,
+    documento: DocumentoCompleto,
+    datosAnteriores: Prisma.JsonValue,
+    sesion: SesionActiva,
+    cliente: DatosCliente,
+  ): Promise<void> {
     if (documento.tipoDocumento.accion !== 'VINCULO' || documento.vinculoId === null) {
       return;
     }
+    await this.exigirInicioDentroDelPeriodo(transaccion, documento, documento.vinculoId, datosAnteriores);
     await this.extenderPeriodo(transaccion, documento.id, sesion, cliente);
     await this.vencimientos.vencer(transaccion, documento.trabajadorId, actor(sesion, cliente));
+  }
+
+  private async exigirInicioDentroDelPeriodo(
+    transaccion: Prisma.TransactionClient,
+    documento: DocumentoCompleto,
+    vinculoId: string,
+    datosAnteriores: Prisma.JsonValue,
+  ): Promise<void> {
+    const datos = leerDatosGuardados(documento.datos);
+    const inicio = texto(datos['inicio']);
+    if (inicio === null || texto(datos['contratoRelacionado']) !== null || inicio === texto(leerDatosGuardados(datosAnteriores)['inicio'])) {
+      return;
+    }
+    const vinculo = await transaccion.vinculo.findUnique({ where: { id: vinculoId }, select: { fechaInicio: true, fechaFin: true } });
+    if (vinculo === null) {
+      return;
+    }
+    const desde = aTexto(vinculo.fechaInicio);
+    const hasta = vinculo.fechaFin === null ? null : aTexto(vinculo.fechaFin);
+    if (inicio >= desde && (hasta === null || inicio <= hasta)) {
+      return;
+    }
+    throw new BadRequestException(
+      `El nuevo inicio (${inicio}) queda fuera del período laboral que sustenta este documento (${desde} al ${hasta ?? 'presente'}). Elimina el documento y vuelve a subirlo con las fechas correctas para que el período se ubique de nuevo.`,
+    );
   }
 
   private async extenderPeriodo(
