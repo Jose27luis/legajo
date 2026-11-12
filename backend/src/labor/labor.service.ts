@@ -10,7 +10,7 @@ import { aDocumentoDto, filtroVisibilidad, incluirDocumento, type DocumentoCompl
 import type { DocumentDto } from '../documents/dto/document.dto';
 import { exigirCatalogosActivos } from '../workers/catalog-guard';
 import { TEXTO_MOTIVO_CESE, TEXTO_MOVIMIENTO } from '../workers/labels';
-import type { MotivoCambioValor as MotivoCambio } from '../workers/dto/worker.dto';
+import { MOTIVOS_CESE as MOTIVOS_CESE_VALORES, type MotivoCambioValor as MotivoCambio } from '../workers/dto/worker.dto';
 import type { CeseInputDto, MovementInputDto } from './dto/labor-input.dto';
 import { ContractExpiryService, type ActorVencimiento } from './contract-expiry.service';
 
@@ -98,12 +98,83 @@ export class LaborService {
     sesion: SesionActiva,
     cliente: DatosCliente,
   ): Promise<void> {
+    if (documento.tipoDocumento.accion === 'CESE') {
+      await this.reubicarCese(transaccion, documento, datosAnteriores, sesion, cliente);
+      return;
+    }
     if (documento.tipoDocumento.accion !== 'VINCULO' || documento.vinculoId === null) {
       return;
     }
     await this.exigirInicioDentroDelPeriodo(transaccion, documento, documento.vinculoId, datosAnteriores);
     await this.extenderPeriodo(transaccion, documento.id, sesion, cliente);
     await this.vencimientos.vencer(transaccion, documento.trabajadorId, actor(sesion, cliente));
+  }
+
+  private async reubicarCese(
+    transaccion: Prisma.TransactionClient,
+    documento: DocumentoCompleto,
+    datosAnteriores: Prisma.JsonValue,
+    sesion: SesionActiva,
+    cliente: DatosCliente,
+  ): Promise<void> {
+    const vinculoId = documento.vinculoId;
+    const datos = leerDatosGuardados(documento.datos);
+    const fecha = texto(datos['fechaCese']);
+    const anterior = texto(leerDatosGuardados(datosAnteriores)['fechaCese']);
+    if (documento.confirmadoEn === null || vinculoId === null || fecha === null || fecha === anterior) {
+      return;
+    }
+    if (fecha > hoyEnLima()) {
+      throw new BadRequestException('La fecha de cese no puede ser futura');
+    }
+    const trabajador = await this.trabajador(transaccion, documento.trabajadorId);
+    const enlazado = trabajador.vinculos.find((vinculo) => vinculo.id === vinculoId);
+    if (enlazado === undefined) {
+      return;
+    }
+    const confirmacion = await transaccion.auditoria.findFirst({
+      where: { accion: 'DOCUMENTO_CONFIRMAR', entidadId: documento.id },
+      orderBy: { fecha: 'desc' },
+      select: { detalle: true },
+    });
+    const detalle = confirmacion?.detalle;
+    const cerroElPeriodo = typeof detalle === 'object' && detalle !== null && !Array.isArray(detalle) && detalle['efecto'] === 'cese';
+    if (cerroElPeriodo) {
+      if (fecha < aTexto(enlazado.fechaInicio)) {
+        throw new BadRequestException(
+          `La nueva fecha de cese (${fecha}) es anterior al inicio del período que este documento cerró (${aTexto(enlazado.fechaInicio)}).`,
+        );
+      }
+      await transaccion.vinculo.update({ where: { id: enlazado.id }, data: { fechaFin: aFecha(fecha) } });
+      await this.anotar(transaccion, 'VINCULO_FECHA_CESE', 'vinculo', enlazado.id, trabajador.id, sesion, cliente, {
+        fechaAnterior: anterior,
+        fechaNueva: fecha,
+        documento: documento.id,
+      });
+      return;
+    }
+    const destino = trabajador.vinculos.find(
+      (vinculo) => vinculo.fechaFin !== null && aTexto(vinculo.fechaInicio) <= fecha && fecha <= aTexto(vinculo.fechaFin),
+    );
+    if (destino === undefined) {
+      throw new BadRequestException(
+        `Ningún período cerrado del historial contiene la nueva fecha de cese (${fecha}). Si el cese corresponde al período vigente, elimina este documento y vuelve a subirlo para confirmarlo.`,
+      );
+    }
+    if (destino.id === enlazado.id) {
+      return;
+    }
+    const motivo = MOTIVOS_CESE_VALORES.find((valor) => TEXTO_MOTIVO_CESE[valor] === texto(datos['motivoCese'])) ?? null;
+    await transaccion.documento.update({ where: { id: documento.id }, data: { vinculoId: destino.id } });
+    if (motivo !== null) {
+      await transaccion.vinculo.update({ where: { id: destino.id }, data: { motivoFin: motivo } });
+    }
+    await this.anotar(transaccion, 'DOCUMENTO_VINCULAR', 'documento', documento.id, trabajador.id, sesion, cliente, {
+      origen: 'edicion_cese',
+      vinculoAnterior: enlazado.id,
+      vinculo: destino.id,
+      fechaCese: fecha,
+    });
   }
 
   private async exigirInicioDentroDelPeriodo(
