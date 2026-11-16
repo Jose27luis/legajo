@@ -44,7 +44,7 @@ pre {
   margin: 6px 0 0;
   padding: 8px 10px;
   border-radius: 6px;
-  background: #f5f8fa;
+  background: var(--superficie-suave);
   font-size: 11.5px;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
