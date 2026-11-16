@@ -3,8 +3,8 @@
 }
 
 .cifras-reporte .roja {
-  border-color: #efc8cd;
-  background: #fff7f8;
+  border-color: var(--alerta-borde);
+  background: var(--alerta-tenue);
 }
 
 .cifras-reporte .roja dd {
@@ -12,12 +12,12 @@
 }
 
 .cifras-reporte .ambar {
-  border-color: #f0dcae;
-  background: #fffaef;
+  border-color: var(--ambar-borde);
+  background: var(--ambar-tenue);
 }
 
 .cifras-reporte .ambar dd {
-  color: #8a5a12;
+  color: var(--ambar-texto);
 }
 
 tr.vencida td:first-child {
