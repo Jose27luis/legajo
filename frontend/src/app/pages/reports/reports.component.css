@@ -44,7 +44,7 @@
 }
 
 .pestanas a:focus-visible {
-  border-radius: var(--radio-control);
+  border-radius: 7px;
   box-shadow: var(--foco);
   outline: none;
 }
