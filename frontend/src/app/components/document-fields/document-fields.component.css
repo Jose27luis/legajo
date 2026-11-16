@@ -52,9 +52,3 @@
   justify-items: start;
   margin-top: 6px;
 }
-
-.automatico .ayuda {
-  color: var(--tinta-suave);
-  font-size: 12.5px;
-  line-height: 1.45;
-}
