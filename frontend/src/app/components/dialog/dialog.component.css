@@ -6,7 +6,7 @@
   border-radius: 16px;
   background: var(--hoja);
   color: var(--tinta);
-  box-shadow: 0 24px 70px rgb(7 27 44 / 0.4);
+  box-shadow: var(--sombra-flotante);
   overflow: hidden;
 }
 
@@ -102,7 +102,7 @@ h2 {
   gap: 10px;
   padding: 14px 20px;
   border-top: 1px solid var(--linea);
-  background: #fafcfe;
+  background: var(--superficie-suave);
 }
 
 .pie:empty {
