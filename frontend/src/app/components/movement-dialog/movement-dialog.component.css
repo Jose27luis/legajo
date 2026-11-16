@@ -13,7 +13,7 @@
 .datos div {
   padding: 10px 12px;
   border: 1px solid var(--linea-suave);
-  border-radius: 8px;
+  border-radius: var(--radio-control);
   background: var(--superficie-suave);
 }
 
