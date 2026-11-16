@@ -12,7 +12,7 @@ input {
   padding: 0 46px 0 12px;
   border: 1px solid var(--linea);
   border-radius: var(--radio-control);
-  background: #fff;
+  background: var(--hoja);
   color: var(--tinta);
   font: inherit;
   font-variant-numeric: tabular-nums;
@@ -23,18 +23,18 @@ input {
 }
 
 input::placeholder {
-  color: #93a3b1;
+  color: var(--tinta-tenue);
   letter-spacing: 0.04em;
 }
 
 input:hover {
-  border-color: #b9cbdb;
+  border-color: var(--linea-fuerte);
 }
 
 .abierto input,
 input:focus-visible {
   border-color: var(--primario);
-  box-shadow: 0 0 0 4px rgb(28 101 160 / 0.13);
+  box-shadow: var(--anillo);
   outline: none;
 }
 
@@ -94,8 +94,8 @@ input:focus-visible {
   padding: 12px;
   border: 1px solid var(--linea);
   border-radius: 14px;
-  background: #fff;
-  box-shadow: 0 18px 44px rgb(16 40 63 / 0.2);
+  background: var(--hoja);
+  box-shadow: var(--sombra-menu);
   animation: abrir-panel 150ms ease-out;
 }
 
@@ -204,7 +204,7 @@ button.titulo:hover {
 }
 
 .dia.otro-mes {
-  color: #a9b6c2;
+  color: var(--tinta-tenue);
 }
 
 .dia.hoy {
@@ -215,15 +215,15 @@ button.titulo:hover {
 .dia.elegido,
 .dia.elegido:hover {
   border-color: var(--primario);
-  background: var(--primario);
-  color: #fff;
+  background: var(--primario-fondo);
+  color: var(--sobre-color);
   font-weight: 700;
 }
 
 .dia:disabled {
-  color: #c6d0d9;
+  color: var(--linea-fuerte);
   text-decoration: line-through;
-  text-decoration-color: rgb(198 208 217 / 0.8);
+  text-decoration-color: var(--linea-fuerte);
   cursor: not-allowed;
 }
 
@@ -247,7 +247,7 @@ button.titulo:hover {
   height: 46px;
   border: 1px solid transparent;
   border-radius: 10px;
-  background: #f5f8fa;
+  background: var(--superficie-suave);
   color: var(--tinta);
   font: inherit;
   font-size: 13.5px;
@@ -266,13 +266,13 @@ button.titulo:hover {
 
 .celda.elegido,
 .celda.elegido:hover {
-  background: var(--primario);
-  color: #fff;
+  background: var(--primario-fondo);
+  color: var(--sobre-color);
   font-weight: 700;
 }
 
 .celda:disabled {
-  color: #c6d0d9;
+  color: var(--linea-fuerte);
   cursor: not-allowed;
 }
 
@@ -305,7 +305,7 @@ button.titulo:hover {
 }
 
 .enlace:disabled {
-  color: #b7c3ce;
+  color: var(--tinta-tenue);
   cursor: not-allowed;
 }
 
