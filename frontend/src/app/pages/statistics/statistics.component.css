@@ -19,7 +19,7 @@ a.boton {
 
 h3 {
   margin: 0 0 12px;
-  color: var(--marino);
+  color: var(--titulo);
   font-size: 15px;
 }
 
@@ -60,7 +60,7 @@ h3 {
 }
 
 .relleno.regimen {
-  background: var(--marino);
+  background: var(--titulo);
 }
 
 .barras b {
