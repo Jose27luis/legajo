@@ -81,10 +81,10 @@ h2 {
   height: 22px;
   margin-right: 2px;
   padding: 0 6px;
-  border-radius: var(--radio-control);
+  border-radius: 6px;
   background: var(--primario-claro);
   color: var(--primario-oscuro);
-  font-weight: 700;
+  font-weight: 750;
 }
 
 .legajo.vacio .cantidad {
