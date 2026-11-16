@@ -31,7 +31,7 @@
   display: grid;
   overflow: hidden;
   border: 1px solid var(--linea);
-  border-radius: var(--radio-control);
+  border-radius: 12px;
   background: var(--hoja);
   box-shadow: var(--sombra-panel);
 }
@@ -53,7 +53,7 @@
 
 .seccion:hover,
 .seccion:focus-visible {
-  background: var(--superficie-hover);
+  background: color-mix(in srgb, var(--tono) 6%, var(--hoja));
 }
 
 .numero {
@@ -61,23 +61,23 @@
   place-items: center;
   width: 36px;
   height: 30px;
-  border-radius: var(--radio-control);
-  background: var(--primario-claro);
-  color: var(--primario);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--tono) 14%, var(--hoja));
+  color: var(--tono);
   font-size: 13.5px;
-  font-weight: 700;
+  font-weight: 800;
   font-variant-numeric: tabular-nums;
 }
 
 .titulo {
   font-size: 14.5px;
-  font-weight: 600;
+  font-weight: 650;
 }
 
 .cuenta {
-  color: var(--tinta-suave);
+  color: var(--tono);
   font-size: 12.5px;
-  font-weight: 600;
+  font-weight: 700;
   white-space: nowrap;
 }
 
