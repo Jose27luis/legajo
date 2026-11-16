@@ -28,7 +28,6 @@ export class DocumentFieldsComponent {
   readonly seccion = input.required<SeccionLegajo>();
   readonly prefijo = input.required<string>();
   readonly compacto = input(false);
-  readonly nuevo = input(false);
   readonly contratos = input<readonly OpcionBuscable[]>([]);
   readonly trabajador = input<string | null>(null);
 
