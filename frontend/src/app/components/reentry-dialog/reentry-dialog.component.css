@@ -1,10 +1,10 @@
 .intro {
   margin-bottom: 18px;
   padding: 12px 14px;
-  border: 1px solid #c3dfee;
+  border: 1px solid var(--primario-borde);
   border-radius: 9px;
-  background: #eaf5fc;
-  color: #25577a;
+  background: var(--primario-tenue);
+  color: var(--primario-texto);
   font-size: 13.5px;
   line-height: 1.6;
 }
