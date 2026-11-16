@@ -106,6 +106,7 @@ export class LaborService {
       return;
     }
     await this.exigirInicioDentroDelPeriodo(transaccion, documento, documento.vinculoId, datosAnteriores);
+    await this.sincronizarPeriodo(transaccion, documento, documento.vinculoId, datosAnteriores, sesion, cliente);
     await this.extenderPeriodo(transaccion, documento.id, sesion, cliente);
     await this.vencimientos.vencer(transaccion, documento.trabajadorId, actor(sesion, cliente));
   }
@@ -174,6 +175,71 @@ export class LaborService {
       vinculoAnterior: enlazado.id,
       vinculo: destino.id,
       fechaCese: fecha,
+    });
+  }
+
+  private async sincronizarPeriodo(
+    transaccion: Prisma.TransactionClient,
+    documento: DocumentoCompleto,
+    vinculoId: string,
+    datosAnteriores: Prisma.JsonValue,
+    sesion: SesionActiva,
+    cliente: DatosCliente,
+  ): Promise<void> {
+    const datos = leerDatosGuardados(documento.datos);
+    if (texto(datos['contratoRelacionado']) !== null) {
+      return;
+    }
+    const previos = leerDatosGuardados(datosAnteriores);
+    const regimenId = numero(datos['regimen']);
+    const cargoId = numero(datos['puesto']);
+    const areaId = numero(datos['dependencia']);
+    const cambios: Prisma.VinculoUncheckedUpdateInput = {};
+    if (regimenId !== null && regimenId !== numero(previos['regimen'])) {
+      cambios.regimenId = regimenId;
+    }
+    if (cargoId !== null && cargoId !== numero(previos['puesto'])) {
+      cambios.cargoId = cargoId;
+    }
+    if (areaId !== null && areaId !== numero(previos['dependencia'])) {
+      cambios.areaId = areaId;
+    }
+    if (Object.keys(cambios).length === 0) {
+      return;
+    }
+    const sustentos = await transaccion.documento.findMany({
+      where: { vinculoId, estado: { not: 'ANULADO' }, tipoDocumento: { accion: 'VINCULO' } },
+      select: { id: true, datos: true, creadoEn: true },
+    });
+    const principales = sustentos
+      .filter((sustento) => texto(leerDatosGuardados(sustento.datos)['contratoRelacionado']) === null)
+      .sort(
+        (a, b) =>
+          (texto(leerDatosGuardados(b.datos)['inicio']) ?? '').localeCompare(texto(leerDatosGuardados(a.datos)['inicio']) ?? '') ||
+          b.creadoEn.getTime() - a.creadoEn.getTime(),
+      );
+    if (principales[0]?.id !== documento.id) {
+      return;
+    }
+    const vinculo = await transaccion.vinculo.findUniqueOrThrow({
+      where: { id: vinculoId },
+      select: { regimenId: true, cargoId: true, areaId: true },
+    });
+    const nuevo = {
+      regimenId: regimenId ?? vinculo.regimenId,
+      cargoId: cargoId ?? vinculo.cargoId,
+      areaId: areaId ?? vinculo.areaId,
+    };
+    await exigirCatalogosActivos(this.prisma, nuevo);
+    await transaccion.vinculo.update({ where: { id: vinculoId }, data: cambios });
+    await this.anotar(transaccion, 'VINCULO_ACTUALIZAR', 'vinculo', vinculoId, documento.trabajadorId, sesion, cliente, {
+      documento: documento.id,
+      regimenAnterior: vinculo.regimenId,
+      regimen: nuevo.regimenId,
+      cargoAnterior: vinculo.cargoId,
+      cargo: nuevo.cargoId,
+      areaAnterior: vinculo.areaId,
+      area: nuevo.areaId,
     });
   }
 
