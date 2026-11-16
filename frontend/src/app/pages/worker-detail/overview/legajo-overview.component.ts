@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { SkeletonComponent } from '../../../components/skeleton/skeleton.component';
-import { numeroSeccion, tonoSeccion } from '../../../core/labels';
+import { numeroSeccion } from '../../../core/labels';
 import type { SeccionLegajo } from '../../../core/models';
 import { WorkerContext } from '../worker-context';
 
@@ -15,7 +15,6 @@ import { WorkerContext } from '../worker-context';
 export class LegajoOverviewComponent {
   protected readonly contexto = inject(WorkerContext);
   protected readonly numeroSeccion = numeroSeccion;
-  protected readonly tono = tonoSeccion;
 
   protected readonly resumen = computed(() => {
     if (!this.contexto.legajo.hasValue()) {
