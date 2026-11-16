@@ -4,6 +4,7 @@ import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } fro
 import { filter, map } from 'rxjs';
 import { CLASE_MOVIMIENTO, TEXTO_ESTADO, TEXTO_MOVIMIENTO, fechaCorta } from '../../core/labels';
 import { SessionService } from '../../core/session.service';
+import { ThemeService } from '../../core/theme.service';
 import { SelectedWorkerService, type TrabajadorElegido } from '../../services/selected-worker.service';
 import { BrandComponent } from '../brand/brand.component';
 import { DossierDialogComponent } from '../dossier-dialog/dossier-dialog.component';
@@ -125,6 +126,7 @@ export class LayoutComponent {
   private readonly router = inject(Router);
   private readonly trabajadorElegido = inject(SelectedWorkerService);
   protected readonly sesion = inject(SessionService);
+  protected readonly tema = inject(ThemeService);
 
   protected readonly textoEstado = TEXTO_ESTADO;
   protected readonly textoMovimiento = TEXTO_MOVIMIENTO;
