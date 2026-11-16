@@ -38,7 +38,7 @@ h1 {
 
 .pestana:hover {
   color: var(--tinta);
-  background: rgb(28 101 160 / 0.05);
+  background: var(--primario-claro);
 }
 
 .pestana.activa {
