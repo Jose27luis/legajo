@@ -1320,6 +1320,8 @@ Reglas:
 
 ## Pantallas
 
+El sistema tiene tema claro y tema oscuro. Se alternan con un botón de la barra superior y la elección queda guardada en el navegador. El menú lateral es azul marino en los dos temas; el inicio de sesión y el cambio de contraseña se muestran siempre en claro.
+
 ```mermaid
 flowchart LR
     LOGIN["Inicio de sesión"] --> CC["Cambiar clave<br/>primer ingreso"]
