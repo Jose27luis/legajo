@@ -16,7 +16,7 @@ form {
   margin: 0;
   padding: 12px 16px 16px;
   border: 1px solid var(--linea);
-  border-radius: 12px;
+  border-radius: var(--radio-control);
   background: var(--hoja);
 }
 
@@ -39,7 +39,7 @@ legend {
   background: var(--primario-fondo);
   color: var(--sobre-color);
   font-size: 12px;
-  font-weight: 750;
+  font-weight: 700;
 }
 
 .fechas {
@@ -48,7 +48,7 @@ legend {
 
 .libre {
   color: var(--exito);
-  font-weight: 650;
+  font-weight: 600;
 }
 
 input[readonly] {
@@ -63,7 +63,7 @@ input[readonly] {
   padding: 12px 14px;
   border: 1px solid var(--ambar-borde);
   border-left: 4px solid var(--ambar);
-  border-radius: 9px;
+  border-radius: var(--radio-control);
   background: var(--ambar-tenue);
   color: var(--ambar-texto);
   font-size: 13.5px;
