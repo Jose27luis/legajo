@@ -1,6 +1,8 @@
 <header class="cabecera-seccion">
   <div>
+    <p class="antetitulo">Reportes</p>
     <h2>Estadísticas del personal</h2>
+    <p>Indicadores calculados con los trabajadores y documentos registrados.</p>
   </div>
   @if (sesion.tiene('reportes.exportar')) {
     <a class="boton" [href]="enlace" download>Exportar Excel</a>
