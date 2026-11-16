@@ -37,7 +37,6 @@
         <a
           class="seccion"
           [class.restringida]="seccion.restringida"
-          [style.--tono]="tono(seccion.numero)"
           [routerLink]="ruta(seccion)"
           [attr.aria-label]="'Abrir sección ' + seccion.numero + ': ' + seccion.nombre"
         >
