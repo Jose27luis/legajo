@@ -36,14 +36,14 @@ details {
 
 summary {
   color: var(--primario);
-  font-weight: 600;
+  font-weight: 650;
   cursor: pointer;
 }
 
 pre {
   margin: 6px 0 0;
   padding: 8px 10px;
-  border-radius: var(--radio-control);
+  border-radius: 6px;
   background: var(--superficie-suave);
   font-size: 11.5px;
   white-space: pre-wrap;
