@@ -18,7 +18,7 @@
   gap: 11px;
   padding: 12px 14px;
   border: 1px solid var(--linea);
-  border-radius: var(--radio-control);
+  border-radius: 12px;
   background: var(--hoja);
   color: var(--tinta-suave);
 }
@@ -42,7 +42,7 @@
   border-radius: 50%;
   background: var(--papel);
   color: var(--tinta-suave);
-  font-weight: 700;
+  font-weight: 750;
 }
 
 .pasos li.actual {
@@ -70,7 +70,7 @@
   gap: 8px;
   padding: 42px 20px;
   border: 2px dashed var(--linea-fuerte);
-  border-radius: var(--radio-panel);
+  border-radius: 16px;
   background: linear-gradient(180deg, var(--superficie-hover), var(--primario-tenue));
   text-align: center;
   cursor: pointer;
@@ -99,7 +99,7 @@
   width: 56px;
   height: 56px;
   padding: 12px;
-  border-radius: var(--radio-panel);
+  border-radius: 16px;
   background: var(--hoja);
   box-shadow: var(--sombra-panel);
   fill: none;
@@ -155,7 +155,7 @@
 
 details {
   border: 1px solid var(--linea);
-  border-radius: var(--radio-control);
+  border-radius: 10px;
   background: var(--superficie-suave);
 }
 
@@ -163,7 +163,7 @@ summary {
   padding: 10px 12px;
   color: var(--tinta-media);
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 650;
   cursor: pointer;
 }
 
@@ -198,7 +198,7 @@ code {
   background: var(--exito-claro);
   color: var(--exito);
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: 0.04em;
 }
 
@@ -230,7 +230,7 @@ code {
   gap: 9px;
   margin-top: 6px;
   color: var(--titulo);
-  font-weight: 600;
+  font-weight: 650;
 }
 
 .estado-analisis .girador {
@@ -311,7 +311,7 @@ code {
 .anillo-cifra {
   color: var(--titulo);
   font-size: 30px;
-  font-weight: 700;
+  font-weight: 750;
   line-height: 1;
   font-variant-numeric: tabular-nums;
 }
@@ -339,7 +339,7 @@ code {
 .cifra {
   padding: 14px;
   border: 1px solid var(--linea);
-  border-radius: var(--radio-control);
+  border-radius: 12px;
   background: var(--superficie-suave);
 }
 
@@ -349,14 +349,14 @@ code {
   gap: 6px;
   color: var(--tinta-suave);
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 650;
 }
 
 .cifra dd {
   margin: 6px 0 0;
   color: var(--titulo);
   font-size: 26px;
-  font-weight: 700;
+  font-weight: 750;
   line-height: 1;
   font-variant-numeric: tabular-nums;
 }
@@ -484,7 +484,7 @@ code {
   height: 34px;
   padding: 0 11px;
   border: 1px solid var(--linea);
-  border-radius: var(--radio-control);
+  border-radius: 8px;
   background: var(--hoja);
 }
 
@@ -520,7 +520,7 @@ code {
   flex-wrap: wrap;
   padding: 14px 18px;
   border: 1px solid var(--primario-borde);
-  border-radius: var(--radio-panel);
+  border-radius: 14px;
   background: color-mix(in srgb, var(--hoja) 96%, transparent);
   box-shadow: var(--sombra-panel);
   backdrop-filter: blur(6px);
