@@ -81,7 +81,7 @@ h3 {
   height: 40px;
   border: 1px solid var(--linea);
   border-radius: var(--radio-control);
-  background: #fff;
+  background: var(--hoja);
   font-size: 13.5px;
 }
 
@@ -93,14 +93,14 @@ h3 {
 .sugerencia {
   position: absolute;
   left: 36px;
-  color: #93a3b1;
+  color: var(--tinta-tenue);
   font-size: 13.5px;
   pointer-events: none;
 }
 
 .buscador input:focus-visible {
   border-color: var(--primario);
-  box-shadow: 0 0 0 4px rgb(28 101 160 / 0.13);
+  box-shadow: var(--anillo);
 }
 
 .documentos {
@@ -120,7 +120,7 @@ h3 {
   padding: 10px 12px;
   border: 1px solid var(--linea);
   border-radius: 10px;
-  background: #fff;
+  background: var(--hoja);
   color: var(--tinta);
   font: inherit;
   text-align: left;
@@ -132,9 +132,9 @@ h3 {
 }
 
 .documento:hover {
-  border-color: #b3cde4;
-  background: #fbfdff;
-  box-shadow: 0 4px 14px rgb(26 64 87 / 0.06);
+  border-color: var(--primario-borde);
+  background: var(--superficie-suave);
+  box-shadow: var(--sombra-panel);
 }
 
 .documento:focus-visible {
@@ -142,13 +142,13 @@ h3 {
 }
 
 .documento.anulado {
-  background: #fafbfc;
+  background: var(--superficie-suave);
 }
 
 .documento.anulado .principal strong {
   color: var(--tinta-suave);
   text-decoration: line-through;
-  text-decoration-color: #b3bec8;
+  text-decoration-color: var(--tinta-tenue);
 }
 
 .hoja {
@@ -157,8 +157,8 @@ h3 {
   width: 32px;
   height: 38px;
   border-radius: 5px;
-  background: #fbe9eb;
-  color: #a3303d;
+  background: var(--alerta-claro);
+  color: var(--alerta-texto);
   font-size: 10px;
   font-weight: 800;
 }
@@ -238,7 +238,7 @@ h3 {
   padding: 9px 11px;
   border: 1px solid var(--linea);
   border-radius: var(--radio-control);
-  background: #f5f8fa;
+  background: var(--superficie-suave);
 }
 
 .asignado .etiqueta {
