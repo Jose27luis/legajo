@@ -24,11 +24,11 @@
 }
 
 thead .fija {
-  background: #f6f9fc;
+  background: var(--superficie-suave);
 }
 
 tbody tr:hover .fija {
-  background: #f8fbfd;
+  background: var(--superficie-suave);
 }
 
 .tipo {
@@ -49,19 +49,19 @@ tbody tr:hover .fija {
 }
 
 .marca.verde {
-  background: #35a06f;
+  background: var(--exito);
 }
 
 .marca.roja {
-  background: #cf4457;
+  background: var(--alerta);
 }
 
 .marca.ambar {
-  background: #d79a21;
+  background: var(--ambar);
 }
 
 .marca.gris {
-  background: #d6dce4;
+  background: var(--linea-fuerte);
 }
 
 .leyenda {
