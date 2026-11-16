@@ -57,7 +57,7 @@ iframe {
   padding: 4px;
   border: 1px solid var(--linea);
   border-radius: 10px;
-  background: #f5f8fb;
+  background: var(--superficie-suave);
 }
 
 .pestanas button {
@@ -83,7 +83,7 @@ iframe {
 .pestanas button[aria-selected='true'] {
   background: var(--hoja);
   color: var(--primario-oscuro);
-  box-shadow: 0 1px 4px rgb(26 64 87 / 0.1);
+  box-shadow: var(--sombra-panel);
 }
 
 .pestanas button:focus-visible {
@@ -101,7 +101,7 @@ iframe {
   padding: 14px;
   border: 1px solid var(--linea);
   border-radius: 10px;
-  background: #fbfdff;
+  background: var(--superficie-suave);
 }
 
 legend {
