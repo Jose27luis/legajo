@@ -64,7 +64,7 @@ input::-webkit-search-cancel-button {
   right: 10px;
   padding: 2px 7px;
   border: 1px solid var(--linea);
-  border-radius: var(--radio-control);
+  border-radius: 6px;
   background: var(--hoja);
   color: var(--tinta-suave);
   font-size: 11px;
@@ -112,7 +112,7 @@ input::-webkit-search-cancel-button {
   gap: 1px;
   padding: 8px 10px;
   border: 0;
-  border-radius: var(--radio-control);
+  border-radius: 8px;
   background: transparent;
   color: var(--tinta);
   font: inherit;
