@@ -3,7 +3,7 @@
   max-height: calc(100vh - 48px);
   padding: 0;
   border: 0;
-  border-radius: 16px;
+  border-radius: var(--radio-panel);
   background: var(--hoja);
   color: var(--tinta);
   box-shadow: var(--sombra-flotante);
@@ -61,7 +61,7 @@
 
 h2 {
   font-size: 17px;
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .cerrar {
@@ -70,7 +70,7 @@ h2 {
   display: grid;
   place-items: center;
   border: 0;
-  border-radius: 8px;
+  border-radius: var(--radio-control);
   background: var(--linea-suave);
   color: var(--tinta-media);
   cursor: pointer;
