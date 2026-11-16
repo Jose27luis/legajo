@@ -35,14 +35,60 @@ import {
   TEXTO_NIVEL_ACCESO,
   nombreCompleto,
   numeroSeccion,
+  tonoSeccion,
 } from '../../../core/labels';
-import type { Documento, EstadoDocumento } from '../../../core/models';
+import type { Documento, EstadoDocumento, SeccionLegajo } from '../../../core/models';
 import { SessionService } from '../../../core/session.service';
 import { ToastService } from '../../../core/toast.service';
 import { DocumentsService, mensajeDeSubida, type SubidaEnCurso } from '../../../services/documents.service';
 import { WorkerContext } from '../worker-context';
 
-const SECCION_SALUD = 10;
+const AVISOS: Record<number, { titulo: string | null; texto: string; sensible: boolean }> = {
+  2: {
+    titulo: 'Vinculación con la Sección 01:',
+    texto:
+      'al registrar una resolución, contrato o adenda, se vincula automáticamente con la ficha y el historial de la Sección 01. El sistema decide si es primer ingreso, renovación o reingreso: si el trabajador está CESADO, pasa a ACTIVO; si el contrato empieza después del período actual, abre uno nuevo. La adenda se suma al contrato relacionado y su fin extiende el contrato vigente.',
+    sensible: false,
+  },
+  5: {
+    titulo: 'Sección 05:',
+    texto:
+      'licencias, permisos, goce, adelanto o postergación de vacaciones y rol de vacaciones. La designación, rotación, destaque y encargo corresponden a la Sección 07.',
+    sensible: false,
+  },
+  7: {
+    titulo: 'Sección 07 → Sección 01:',
+    texto:
+      'registra la resolución o memorando y luego pulsa Ver detalle → Confirmar movimiento laboral. Al confirmar se actualizan el área de destino y el último movimiento. Una rotación no cambia ACTIVO/CESADO. Los PDF sin confirmar solo quedan archivados.',
+    sensible: false,
+  },
+  10: {
+    titulo: 'Acceso sensible:',
+    texto:
+      'los documentos de salud ocupacional requieren permisos especiales. No deben exponerse diagnósticos médicos ni datos clínicos en esta ficha.',
+    sensible: true,
+  },
+  11: {
+    titulo: 'Desvinculación:',
+    texto:
+      'solo el término del servicio civil de carrera, el memorando de término del vínculo y la carta de no renovación CAS sustentan un cese: abre Ver detalle y pulsa Confirmar cese laboral para validar motivo y fecha efectiva. El término de designación, el informe de gestión, la entrega de cargo y la liquidación no cambian el estado laboral.',
+    sensible: false,
+  },
+  12: {
+    titulo: null,
+    texto:
+      'Usa esta sección únicamente cuando el archivo no corresponda a ninguna de las otras 11 secciones; indica el nombre del documento y su asunto.',
+    sensible: false,
+  },
+};
+
+const AVISO_GENERAL = {
+  titulo: null,
+  texto:
+    'Los documentos de distintos años conservan su estado. Solo se reemplaza al corregir el mismo PDF. La fecha de carga se registra automáticamente.',
+  sensible: false,
+};
+
 const DOCUMENTOS_POR_PAGINA = 10;
 
 const OPCIONES_ESTADO: readonly OpcionBuscable[] = [
@@ -82,6 +128,7 @@ export class LegajoSectionComponent implements OnDestroy {
   protected readonly claseEstado = CLASE_ESTADO_DOCUMENTO;
   protected readonly textoNivel = TEXTO_NIVEL_ACCESO;
   protected readonly numeroSeccion = numeroSeccion;
+  protected readonly tono = tonoSeccion;
   protected readonly nombreCompleto = nombreCompleto;
   protected readonly fechaHora = fechaHora;
 
@@ -94,7 +141,7 @@ export class LegajoSectionComponent implements OnDestroy {
   });
   private readonly idSeccion = computed(() => this.seccion()?.id ?? null);
 
-  protected readonly esSalud = computed(() => Number(this.numero()) === SECCION_SALUD);
+  protected readonly aviso = computed(() => AVISOS[Number(this.numero())] ?? AVISO_GENERAL);
 
   protected readonly busqueda = linkedSignal({ source: this.idSeccion, computation: () => '' });
   protected readonly filtroEstado = linkedSignal<number | null, EstadoDocumento | ''>({
@@ -139,6 +186,10 @@ export class LegajoSectionComponent implements OnDestroy {
   protected readonly contratos = computed(() =>
     opcionesContrato(this.contexto.legajo.hasValue() ? this.contexto.legajo.value().documentos : []),
   );
+
+  protected etiquetasPropias(seccion: SeccionLegajo): string {
+    return seccion.campos.map((campo) => campo.etiqueta).join(' · ');
+  }
 
   protected readonly enlaceZip = computed(() => this.servicio.enlaceZip(this.contexto.id(), [Number(this.numero())]));
 
