@@ -1,7 +1,10 @@
 <header class="cabecera-seccion">
   <div>
+    <p class="antetitulo">Expediente digital</p>
     <h2>Secciones del legajo</h2>
+    <p>Selecciona una sección para consultar o registrar información.</p>
   </div>
+  <span class="pastilla azul">12 secciones</span>
 </header>
 
 @if (contexto.errorLegajo(); as mensaje) {
@@ -37,6 +40,7 @@
         <a
           class="seccion"
           [class.restringida]="seccion.restringida"
+          [style.--tono]="tono(seccion.numero)"
           [routerLink]="ruta(seccion)"
           [attr.aria-label]="'Abrir sección ' + seccion.numero + ': ' + seccion.nombre"
         >
