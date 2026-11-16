@@ -8,7 +8,7 @@
   </header>
   <p class="aviso sensible">Solicita autorización al administrador del sistema.</p>
 } @else if (seccion(); as actual) {
-  <header class="cabecera-seccion" [style.--tono]="tono(actual.numero)">
+  <header class="cabecera-seccion">
     <div>
       <p class="antetitulo">Sección {{ numeroSeccion(actual.numero) }} de 12</p>
       <h2>{{ actual.nombre }}</h2>
