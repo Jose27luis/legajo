@@ -208,6 +208,11 @@ export class LayoutComponent {
     this.menuMovil.set(false);
   }
 
+  protected alternarTema(boton: HTMLElement): void {
+    const marco = boton.getBoundingClientRect();
+    this.tema.alternar({ clientX: marco.left + marco.width / 2, clientY: marco.top + marco.height / 2 });
+  }
+
   protected cambiarTrabajador(): void {
     this.trabajadorElegido.limpiar();
     void this.router.navigateByUrl('/legajos');
