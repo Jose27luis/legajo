@@ -128,12 +128,11 @@
             descripcion="ingreso-fecha-ayuda"
             [invalido]="invalido('fechaIngreso')"
           />
-          <span id="ingreso-fecha-ayuda" class="ayuda">Día en que inició sus labores, no el día de digitalización.</span>
+          <span id="ingreso-fecha-ayuda" class="ayuda">Día en que inició sus labores.</span>
         </div>
         <div class="campo">
           <label for="ingreso-estado">Estado laboral inicial</label>
-          <input id="ingreso-estado" value="ACTIVO" readonly aria-describedby="ingreso-estado-ayuda" />
-          <span id="ingreso-estado-ayuda" class="ayuda">Automático para un trabajador que ya comenzó a laborar.</span>
+          <input id="ingreso-estado" value="ACTIVO" readonly />
         </div>
       </div>
     </fieldset>
