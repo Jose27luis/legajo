@@ -21,11 +21,11 @@
 .codigo {
   flex: none;
   padding: 7px 9px;
-  border-radius: var(--radio-control);
+  border-radius: 8px;
   background: var(--primario-claro);
   color: var(--primario-oscuro);
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 750;
   font-variant-numeric: tabular-nums;
 }
 
@@ -62,7 +62,7 @@
 .datos div {
   padding: 10px 12px;
   border: 1px solid var(--linea-suave);
-  border-radius: var(--radio-control);
+  border-radius: 8px;
   background: var(--superficie-suave);
 }
 
@@ -110,7 +110,7 @@ h3 {
   gap: 10px;
   padding: 9px 12px;
   border: 1px solid var(--linea);
-  border-radius: var(--radio-control);
+  border-radius: 9px;
   color: var(--tinta-suave);
 }
 
@@ -122,7 +122,7 @@ h3 {
 .versiones .numero {
   color: var(--tinta-media);
   font-size: 12.5px;
-  font-weight: 700;
+  font-weight: 750;
 }
 
 .archivo {
@@ -186,7 +186,7 @@ h3 {
   margin: 6px 0 0;
   padding: 8px 10px;
   list-style: none;
-  border-radius: var(--radio-control);
+  border-radius: 8px;
   background: var(--superficie-suave);
   display: grid;
   gap: 3px;
@@ -214,7 +214,7 @@ h3 {
   width: 100%;
   height: min(72vh, 820px);
   border: 1px solid var(--linea);
-  border-radius: var(--radio-control);
+  border-radius: 10px;
   background: var(--superficie-suave);
 }
 
