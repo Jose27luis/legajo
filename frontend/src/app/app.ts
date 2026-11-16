@@ -1,6 +1,7 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { NavigationProgressComponent } from './components/navigation-progress/navigation-progress.component';
+import { ThemeService } from './core/theme.service';
 
 @Component({
   selector: 'app-root',
@@ -9,4 +10,6 @@ import { NavigationProgressComponent } from './components/navigation-progress/na
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
-export class App {}
+export class App {
+  protected readonly tema = inject(ThemeService);
+}
