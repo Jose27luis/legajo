@@ -23,7 +23,7 @@
   gap: 10px;
   padding: 9px 10px;
   border: 0;
-  border-radius: var(--radio-control);
+  border-radius: 8px;
   background: transparent;
   color: var(--tinta-media);
   text-align: left;
