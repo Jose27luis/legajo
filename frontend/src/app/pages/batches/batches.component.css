@@ -58,9 +58,9 @@ h3 {
 
 code {
   padding: 3px 8px;
-  border: 1px solid #dce7f0;
+  border: 1px solid var(--linea);
   border-radius: 7px;
-  background: #f4f8fc;
+  background: var(--superficie-suave);
   color: var(--primario-oscuro);
   font-family: ui-monospace, 'Cascadia Mono', 'Source Code Pro', monospace;
   font-size: 12.5px;
@@ -76,9 +76,9 @@ code {
   justify-items: center;
   gap: 6px;
   padding: 34px 20px;
-  border: 1.5px dashed #b9cfe2;
+  border: 1.5px dashed var(--linea-fuerte);
   border-radius: var(--radio-panel);
-  background: #f7fbff;
+  background: var(--superficie-hover);
   text-align: center;
   transition:
     border-color 140ms ease,
@@ -136,8 +136,8 @@ code {
 }
 
 .cifras .verde {
-  border-color: #bfe4d0;
-  background: #f4fbf7;
+  border-color: var(--exito-borde);
+  background: var(--exito-tenue);
 }
 
 .cifras .verde dd {
@@ -145,17 +145,17 @@ code {
 }
 
 .cifras .ambar {
-  border-color: #f0dcae;
-  background: #fffaef;
+  border-color: var(--ambar-borde);
+  background: var(--ambar-tenue);
 }
 
 .cifras .ambar dd {
-  color: #8a5a12;
+  color: var(--ambar-texto);
 }
 
 .cifras .roja {
-  border-color: #efc8cd;
-  background: #fff7f8;
+  border-color: var(--alerta-borde);
+  background: var(--alerta-tenue);
 }
 
 .cifras .roja dd {
@@ -183,7 +183,7 @@ code {
   flex: 1;
   height: 8px;
   border-radius: 999px;
-  background: #e3edf6;
+  background: var(--linea-suave);
   overflow: hidden;
 }
 
@@ -222,13 +222,13 @@ code {
 }
 
 .archivos li.listo {
-  border-color: #c9e7d7;
-  background: #f6fcf9;
+  border-color: var(--exito-borde);
+  background: var(--exito-tenue);
 }
 
 .archivos li.fallo {
-  border-color: #efc8cd;
-  background: #fff7f8;
+  border-color: var(--alerta-borde);
+  background: var(--alerta-tenue);
 }
 
 .archivos .nombre {
