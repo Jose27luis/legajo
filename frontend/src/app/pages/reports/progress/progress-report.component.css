@@ -3,8 +3,8 @@
 }
 
 .cifras-reporte .verde {
-  border-color: #bfe4d0;
-  background: #f4fbf7;
+  border-color: var(--exito-borde);
+  background: var(--exito-tenue);
 }
 
 .cifras-reporte .verde dd {
@@ -12,17 +12,17 @@
 }
 
 .cifras-reporte .ambar {
-  border-color: #f0dcae;
-  background: #fffaef;
+  border-color: var(--ambar-borde);
+  background: var(--ambar-tenue);
 }
 
 .cifras-reporte .ambar dd {
-  color: #8a5a12;
+  color: var(--ambar-texto);
 }
 
 .cifras-reporte .roja {
-  border-color: #efc8cd;
-  background: #fff7f8;
+  border-color: var(--alerta-borde);
+  background: var(--alerta-tenue);
 }
 
 .cifras-reporte .roja dd {
@@ -30,7 +30,7 @@
 }
 
 tr.totales td {
-  background: #f6f9fc;
+  background: var(--superficie-suave);
   font-weight: 650;
 }
 
