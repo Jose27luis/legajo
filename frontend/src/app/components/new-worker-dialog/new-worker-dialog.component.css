@@ -25,7 +25,7 @@ legend {
   align-items: center;
   gap: 8px;
   padding: 0 6px;
-  color: var(--marino);
+  color: var(--titulo);
   font-size: 14px;
   font-weight: 700;
 }
@@ -36,8 +36,8 @@ legend {
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  background: var(--primario);
-  color: #fff;
+  background: var(--primario-fondo);
+  color: var(--sobre-color);
   font-size: 12px;
   font-weight: 750;
 }
@@ -52,7 +52,7 @@ legend {
 }
 
 input[readonly] {
-  background: #f1f7f3;
+  background: var(--exito-tenue);
   color: var(--exito);
   font-weight: 700;
 }
@@ -61,11 +61,11 @@ input[readonly] {
   display: grid;
   gap: 10px;
   padding: 12px 14px;
-  border: 1px solid #efd4b7;
+  border: 1px solid var(--ambar-borde);
   border-left: 4px solid var(--ambar);
   border-radius: 9px;
-  background: #fff4e8;
-  color: #7c5122;
+  background: var(--ambar-tenue);
+  color: var(--ambar-texto);
   font-size: 13.5px;
 }
 
