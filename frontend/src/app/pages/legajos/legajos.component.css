@@ -19,7 +19,7 @@
   place-items: center;
   width: 52px;
   height: 52px;
-  border-radius: 14px;
+  border-radius: var(--radio-panel);
   background: var(--primario-claro);
   color: var(--primario);
 }
