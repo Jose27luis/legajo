@@ -20,7 +20,7 @@
   margin: 0;
   padding: 0 0 0 16px;
   list-style: none;
-  border-left: 2px solid #d2e1ee;
+  border-left: 2px solid var(--linea-fuerte);
 }
 
 .linea > li {
@@ -40,7 +40,7 @@
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  border: 2px solid #9dbbd3;
+  border: 2px solid var(--primario-borde);
   background: var(--hoja);
 }
 
@@ -79,8 +79,8 @@
 
 .periodo:hover,
 .periodo:focus-visible {
-  border-color: #bcd8ee;
-  background: #eef6fd;
+  border-color: var(--primario-borde);
+  background: var(--primario-tenue);
 }
 
 .linea > li.sin-periodos::before {
@@ -166,7 +166,7 @@
 }
 
 .motivo {
-  color: #8a5a12;
+  color: var(--ambar-texto);
 }
 
 .motivo.motivo-renuncia {
