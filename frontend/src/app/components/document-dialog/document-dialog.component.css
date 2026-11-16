@@ -61,9 +61,9 @@
 
 .datos div {
   padding: 10px 12px;
-  border: 1px solid #e4edf3;
+  border: 1px solid var(--linea-suave);
   border-radius: 8px;
-  background: #f6f9fb;
+  background: var(--superficie-suave);
 }
 
 .datos .ancho {
@@ -115,8 +115,8 @@ h3 {
 }
 
 .versiones li.actual {
-  border-color: #c6dcf0;
-  background: #f6fbff;
+  border-color: var(--primario-borde);
+  background: var(--superficie-hover);
 }
 
 .versiones .numero {
@@ -171,7 +171,7 @@ h3 {
   margin: 0;
   padding: 0 0 0 16px;
   list-style: none;
-  border-left: 2px solid #d2e1ee;
+  border-left: 2px solid var(--linea-fuerte);
   display: grid;
   gap: 12px;
 }
@@ -187,7 +187,7 @@ h3 {
   padding: 8px 10px;
   list-style: none;
   border-radius: 8px;
-  background: #f6f9fb;
+  background: var(--superficie-suave);
   display: grid;
   gap: 3px;
   font-size: 12.5px;
@@ -215,7 +215,7 @@ h3 {
   height: min(72vh, 820px);
   border: 1px solid var(--linea);
   border-radius: 10px;
-  background: #f6f9fb;
+  background: var(--superficie-suave);
 }
 
 .campos .campo + .campo {
