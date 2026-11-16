@@ -20,7 +20,9 @@ export type NombreIcono =
   | 'menu'
   | 'contraer'
   | 'abajo'
-  | 'cerrar';
+  | 'cerrar'
+  | 'sol'
+  | 'luna';
 
 @Component({
   selector: 'app-icon',
