@@ -12,9 +12,9 @@
 
 .datos div {
   padding: 10px 12px;
-  border: 1px solid #e4edf3;
+  border: 1px solid var(--linea-suave);
   border-radius: 8px;
-  background: #f6f9fb;
+  background: var(--superficie-suave);
 }
 
 dt {
