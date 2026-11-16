@@ -3,7 +3,7 @@
     <h3>{{ titulo() }}</h3>
     <div class="herramientas">
       @if (registros.value(); as datos) {
-        <span class="conteo">{{ datos.total === 1 ? '1 evento' : datos.total + ' eventos' }}</span>
+        <span class="pastilla azul">{{ datos.total === 1 ? '1 evento' : datos.total + ' eventos' }}</span>
       }
       <button type="button" class="boton chico" (click)="registros.reload()">Actualizar</button>
       @if (sesion.tiene('reportes.exportar')) {
