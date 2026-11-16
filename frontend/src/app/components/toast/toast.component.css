@@ -15,9 +15,9 @@
   padding: 12px 10px 12px 16px;
   border-radius: 10px;
   background: var(--marino);
-  color: #fff;
+  color: var(--sobre-color);
   font-size: 13.5px;
-  box-shadow: 0 10px 28px rgb(7 27 44 / 0.28);
+  box-shadow: var(--sombra-menu);
   border-left: 4px solid var(--celeste);
 }
 
@@ -44,7 +44,7 @@
 
 .cerrar:hover {
   background: rgb(255 255 255 / 0.12);
-  color: #fff;
+  color: var(--sobre-color);
 }
 
 .cerrar svg {
