@@ -1,7 +1,11 @@
 <header class="cabecera-seccion">
   <div>
+    <p class="antetitulo">Control y trazabilidad</p>
     <h2>Copias de seguridad</h2>
-    <p>Copia diaria a la 01:00. Se conservan 7 diarias, 4 semanales y 12 mensuales.</p>
+    <p>
+      Cada noche a la 01:00 se copia la base de datos y los PDF. Las copias van cifradas y solo guardan lo que cambió desde la anterior. Se
+      conservan 7 diarias, 4 semanales y 12 mensuales; los domingos se revisa una muestra del repositorio.
+    </p>
   </div>
   @if (panel.value(); as datos) {
     <button type="button" class="boton principal" [disabled]="!datos.configurado || datos.pendiente || lanzando()" (click)="lanzar()">
