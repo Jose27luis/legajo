@@ -1056,6 +1056,25 @@ p {
   }
 }
 
+.cambiando-tema::view-transition-old(root),
+.cambiando-tema::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+.cambiando-tema::view-transition-new(root) {
+  animation: revelar-tema 620ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes revelar-tema {
+  from {
+    clip-path: circle(0 at var(--tema-x) var(--tema-y));
+  }
+  to {
+    clip-path: circle(var(--tema-radio) at var(--tema-x) var(--tema-y));
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
