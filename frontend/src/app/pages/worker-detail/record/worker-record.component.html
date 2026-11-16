@@ -1,12 +1,8 @@
 @if (contexto.detalle.value(); as trabajador) {
   <header class="cabecera-seccion" [style.--tono]="tono">
     <div>
-      <p class="antetitulo">Sección 01 de 12 · Datos estructurados</p>
+      <p class="antetitulo">Sección 01 de 12</p>
       <h2>Información personal y familiar</h2>
-      <p>
-        Datos personales, contacto autorizado, régimen, puesto, unidad orgánica, condición laboral, períodos de servicio y eventos de cese o
-        reingreso.
-      </p>
     </div>
     <div class="acciones-cabecera">
       <a routerLink=".." class="boton chico">Ver 12 secciones</a>
@@ -21,11 +17,6 @@
     </div>
   </header>
 
-  <p class="aviso info">
-    Esta sección contiene la ficha de datos del trabajador y permite adjuntar una copia ampliada de su DNI en PDF. El estado
-    <strong>ACTIVO / CESADO</strong> es independiente de los estados de los PDF de las otras secciones.
-  </p>
-
   @if (nuevo() === '1') {
     <div class="aviso exito resultado" role="status">
       <strong>Trabajador incorporado al directorio.</strong><br />
@@ -37,8 +28,7 @@
   <div class="rejilla">
     <section class="tarjeta" aria-labelledby="titulo-ficha">
       <div class="cabecera-tarjeta">
-        <h3 id="titulo-ficha">Ficha principal del trabajador</h3>
-        <span class="pastilla verde">{{ trabajador.tipoDocIdentidad }} único</span>
+        <h3 id="titulo-ficha">Ficha del trabajador</h3>
       </div>
       <dl class="datos">
         <div>
@@ -129,7 +119,7 @@
         </div>
       </dl>
 
-      <h4>Contacto y datos personales (solo datos autorizados)</h4>
+      <h4>Contacto y datos personales</h4>
       <dl class="datos">
         <div>
           <dt>Fecha de nacimiento</dt>
@@ -181,15 +171,6 @@
 
     <section class="tarjeta" aria-labelledby="titulo-vinculos">
       <app-link-history [trabajador]="trabajador" [documentos]="documentosLegajo()" (registrado)="alRegistrarSustento($event)" />
-      <p class="aviso info">
-        Al reingresar, el trabajador conserva su <strong>mismo legajo</strong>. Se agrega un nuevo período laboral; no se crean legajos
-        duplicados.
-      </p>
-      <h4>Eventos de salida</h4>
-      <p class="nota">
-        Renuncia, jubilación, fallecimiento, término de contrato u otro motivo. Se registra la fecha y el sustento administrativo de cada
-        evento en la Sección 11.
-      </p>
     </section>
   </div>
 
@@ -240,11 +221,6 @@
       </div>
     }
   </section>
-
-  <p class="nota">
-    Los datos familiares y personales sensibles deben limitarse a lo estrictamente necesario y consultarse según los permisos de cada
-    cuenta.
-  </p>
 }
 
 <app-dialog
