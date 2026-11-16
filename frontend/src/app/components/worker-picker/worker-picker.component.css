@@ -73,7 +73,7 @@ input[aria-invalid='true'] {
   gap: 1px;
   padding: 8px 10px;
   border: 0;
-  border-radius: var(--radio-control);
+  border-radius: 7px;
   background: transparent;
   color: var(--tinta);
   font: inherit;
