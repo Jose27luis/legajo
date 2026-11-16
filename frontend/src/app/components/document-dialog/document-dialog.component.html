@@ -183,11 +183,6 @@
             (cambio)="paginaCambios.ir($event)"
           />
         }
-
-        <p class="nota">
-          Fecha de emisión ≠ fecha de carga. Un documento de otro año no reemplaza automáticamente al anterior. Ningún estado elimina el PDF
-          del historial.
-        </p>
       }
 
       @case ('visor') {
@@ -328,8 +323,7 @@
       @case ('cese') {
         <p class="aviso info">
           <strong>Documento de sustento registrado:</strong> {{ doc.tipo.nombre }} · N.º {{ doc.numero ?? '—' }}<br />
-          {{ versionActual()?.nombreOriginal }}<br />
-          El cambio se reflejará en la Sección 01 y conservará el PDF y el historial.
+          {{ versionActual()?.nombreOriginal }}
         </p>
         <form id="formulario-cese" class="campos" [formGroup]="confirmacionCese" (ngSubmit)="confirmarCese()" novalidate>
           <div class="campo">
