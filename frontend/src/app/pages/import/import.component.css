@@ -46,17 +46,17 @@
 }
 
 .pasos li.actual {
-  border-color: #b9d6ee;
+  border-color: var(--primario-borde);
   background: var(--primario-claro);
 }
 
 .pasos li.actual .marca {
-  background: var(--primario);
-  color: #fff;
+  background: var(--primario-fondo);
+  color: var(--sobre-color);
 }
 
 .pasos li.actual b {
-  color: var(--marino);
+  color: var(--titulo);
 }
 
 .pasos li.hecho .marca {
@@ -69,9 +69,9 @@
   justify-items: center;
   gap: 8px;
   padding: 42px 20px;
-  border: 2px dashed #b9cfe0;
+  border: 2px dashed var(--linea-fuerte);
   border-radius: 16px;
-  background: linear-gradient(180deg, #f7fbfe, #eef5fb);
+  background: linear-gradient(180deg, var(--superficie-hover), var(--primario-tenue));
   text-align: center;
   cursor: pointer;
   transition:
@@ -100,7 +100,7 @@
   height: 56px;
   padding: 12px;
   border-radius: 16px;
-  background: #fff;
+  background: var(--hoja);
   box-shadow: var(--sombra-panel);
   fill: none;
   stroke: var(--primario);
@@ -110,7 +110,7 @@
 }
 
 .zona-titulo {
-  color: var(--marino);
+  color: var(--titulo);
   font-size: 17px;
   font-weight: 700;
 }
@@ -137,7 +137,7 @@
   padding: 3px 9px;
   border: 1px solid var(--linea);
   border-radius: 999px;
-  background: #fff;
+  background: var(--hoja);
   color: var(--tinta-media);
   font-size: 11.5px;
   font-weight: 700;
@@ -156,7 +156,7 @@
 details {
   border: 1px solid var(--linea);
   border-radius: 10px;
-  background: #fafcfe;
+  background: var(--superficie-suave);
 }
 
 summary {
@@ -229,7 +229,7 @@ code {
   align-items: center;
   gap: 9px;
   margin-top: 6px;
-  color: var(--marino);
+  color: var(--titulo);
   font-weight: 650;
 }
 
@@ -309,7 +309,7 @@ code {
 }
 
 .anillo-cifra {
-  color: var(--marino);
+  color: var(--titulo);
   font-size: 30px;
   font-weight: 750;
   line-height: 1;
@@ -340,7 +340,7 @@ code {
   padding: 14px;
   border: 1px solid var(--linea);
   border-radius: 12px;
-  background: #fafcfe;
+  background: var(--superficie-suave);
 }
 
 .cifra dt {
@@ -354,7 +354,7 @@ code {
 
 .cifra dd {
   margin: 6px 0 0;
-  color: var(--marino);
+  color: var(--titulo);
   font-size: 26px;
   font-weight: 750;
   line-height: 1;
@@ -391,13 +391,13 @@ code {
 }
 
 .hallazgos b {
-  color: var(--marino);
+  color: var(--titulo);
 }
 
 .observadas h3,
 .distribucion h3 {
   margin: 0 0 4px;
-  color: var(--marino);
+  color: var(--titulo);
   font-size: 14.5px;
 }
 
@@ -485,7 +485,7 @@ code {
   padding: 0 11px;
   border: 1px solid var(--linea);
   border-radius: 8px;
-  background: #fff;
+  background: var(--hoja);
 }
 
 .conteo {
@@ -500,7 +500,7 @@ code {
 }
 
 .aviso-fila {
-  color: #96600c;
+  color: var(--ambar-texto);
 }
 
 .mas {
@@ -519,10 +519,10 @@ code {
   gap: 14px;
   flex-wrap: wrap;
   padding: 14px 18px;
-  border: 1px solid #b9d6ee;
+  border: 1px solid var(--primario-borde);
   border-radius: 14px;
-  background: rgb(255 255 255 / 0.96);
-  box-shadow: 0 10px 30px rgb(19 45 70 / 0.16);
+  background: color-mix(in srgb, var(--hoja) 96%, transparent);
+  box-shadow: var(--sombra-panel);
   backdrop-filter: blur(6px);
 }
 
@@ -532,7 +532,7 @@ code {
 }
 
 .confirmar strong {
-  color: var(--marino);
+  color: var(--titulo);
 }
 
 .botones {
@@ -555,7 +555,7 @@ code {
 
 .terminado h3 {
   margin: 0;
-  color: var(--marino);
+  color: var(--titulo);
   font-size: 19px;
 }
 
