@@ -127,4 +127,16 @@
       }
     </div>
   }
+
+  @if (nuevo()) {
+    <div class="campo completo automatico">
+      <span class="etiqueta">Estado del documento (automático)</span>
+      <span class="valor">
+        <span class="pastilla verde">Registrado</span>
+        <span class="ayuda">
+          Al subirlo, la cuenta y la fecha de carga se registran solas; la última modificación queda en «Sin modificaciones».
+        </span>
+      </span>
+    </div>
+  }
 </div>
