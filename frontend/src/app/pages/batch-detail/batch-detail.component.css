@@ -48,8 +48,8 @@ h3 {
 }
 
 .cifras .verde {
-  border-color: #bfe4d0;
-  background: #f4fbf7;
+  border-color: var(--exito-borde);
+  background: var(--exito-tenue);
 }
 
 .cifras .verde dd {
@@ -57,17 +57,17 @@ h3 {
 }
 
 .cifras .ambar {
-  border-color: #f0dcae;
-  background: #fffaef;
+  border-color: var(--ambar-borde);
+  background: var(--ambar-tenue);
 }
 
 .cifras .ambar dd {
-  color: #8a5a12;
+  color: var(--ambar-texto);
 }
 
 .cifras .roja {
-  border-color: #efc8cd;
-  background: #fff7f8;
+  border-color: var(--alerta-borde);
+  background: var(--alerta-tenue);
 }
 
 .cifras .roja dd {
@@ -104,15 +104,15 @@ h3 {
   padding: 10px 12px;
   border: 1px solid var(--linea);
   border-radius: 10px;
-  background: #fff;
+  background: var(--hoja);
   color: var(--tinta);
   font: inherit;
   text-align: left;
 }
 
 .archivo.pendiente {
-  border-color: #ecd9ae;
-  background: #fffdf7;
+  border-color: var(--ambar-borde);
+  background: var(--ambar-tenue);
   cursor: pointer;
   transition:
     border-color 140ms ease,
@@ -120,8 +120,8 @@ h3 {
 }
 
 .archivo.pendiente:hover {
-  border-color: #d7b674;
-  box-shadow: 0 4px 14px rgb(120 86 20 / 0.1);
+  border-color: color-mix(in srgb, var(--ambar) 40%, var(--ambar-borde));
+  box-shadow: var(--sombra-panel);
 }
 
 .archivo.pendiente:focus-visible {
@@ -134,14 +134,14 @@ h3 {
   width: 32px;
   height: 38px;
   border-radius: 5px;
-  background: #fbe9eb;
-  color: #a3303d;
+  background: var(--alerta-claro);
+  color: var(--alerta-texto);
   font-size: 10px;
   font-weight: 800;
 }
 
 .hoja.gris {
-  background: #eef1f4;
+  background: var(--pizarra-claro);
   color: var(--tinta-suave);
 }
 
@@ -160,7 +160,7 @@ h3 {
 }
 
 .motivo {
-  color: #8a5a12;
+  color: var(--ambar-texto);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
