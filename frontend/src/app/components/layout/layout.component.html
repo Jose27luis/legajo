@@ -96,6 +96,16 @@
         <app-global-search />
       }
 
+      <button
+        type="button"
+        class="cambiar-tema"
+        (click)="tema.alternar()"
+        [attr.aria-label]="tema.tema() === 'oscuro' ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro'"
+        [attr.aria-pressed]="tema.tema() === 'oscuro'"
+      >
+        <app-icon [nombre]="tema.tema() === 'oscuro' ? 'sol' : 'luna'" [tamano]="19" />
+      </button>
+
       <a class="chip" routerLink="/profile" aria-label="Ver mi perfil">
         <span class="avatar" aria-hidden="true">{{ iniciales() }}</span>
         @if (sesion.usuario(); as usuario) {
