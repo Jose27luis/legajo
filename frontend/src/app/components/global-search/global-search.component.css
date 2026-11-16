@@ -33,13 +33,13 @@ input {
 }
 
 input:hover {
-  border-color: #b9cbdb;
+  border-color: var(--linea-fuerte);
 }
 
 input:focus-visible {
   border-color: var(--primario);
-  background: #fff;
-  box-shadow: 0 0 0 4px rgb(28 101 160 / 0.13);
+  background: var(--hoja);
+  box-shadow: var(--anillo);
   outline: none;
 }
 
@@ -52,7 +52,7 @@ input::-webkit-search-cancel-button {
   left: 34px;
   right: 70px;
   overflow: hidden;
-  color: #93a3b1;
+  color: var(--tinta-tenue);
   font-size: 13.5px;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -65,7 +65,7 @@ input::-webkit-search-cancel-button {
   padding: 2px 7px;
   border: 1px solid var(--linea);
   border-radius: 6px;
-  background: #fff;
+  background: var(--hoja);
   color: var(--tinta-suave);
   font-size: 11px;
   font-weight: 600;
@@ -85,7 +85,7 @@ input::-webkit-search-cancel-button {
   border: 1px solid var(--linea);
   border-radius: var(--radio-panel);
   background: var(--hoja);
-  box-shadow: 0 18px 40px rgb(18 45 70 / 0.18);
+  box-shadow: var(--sombra-menu);
   max-height: 70vh;
   overflow-y: auto;
 }
