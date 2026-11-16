@@ -26,6 +26,7 @@ import {
   hoy,
   puedeReingresar,
   textoDato,
+  tonoSeccion,
 } from '../../../core/labels';
 import type { Documento, Familiar, MotivoCambio, MovimientoLaboral, TipoDocIdentidad, TrabajadorDetalle } from '../../../core/models';
 import { SessionService } from '../../../core/session.service';
@@ -105,6 +106,7 @@ export class WorkerRecordComponent {
 
   readonly nuevo = input<string>();
 
+  protected readonly tono = tonoSeccion(1);
   protected readonly paraReingreso = signal<TrabajadorDetalle | null>(null);
   protected readonly documentosLegajo = computed(() => (this.contexto.legajo.hasValue() ? this.contexto.legajo.value().documentos : []));
 
