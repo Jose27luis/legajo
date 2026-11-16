@@ -37,7 +37,7 @@
   padding: 11px 13px;
   border: 1px dashed var(--linea);
   border-radius: var(--radio-control);
-  background: #fafcfe;
+  background: var(--superficie-suave);
 }
 
 .automatico .etiqueta {
