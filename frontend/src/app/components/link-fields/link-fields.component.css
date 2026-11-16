@@ -1,6 +1,6 @@
 .falta {
-  background: #fff4e8;
-  color: #7c5122;
+  background: var(--ambar-tenue);
+  color: var(--ambar-texto);
 }
 
 .falta a {
