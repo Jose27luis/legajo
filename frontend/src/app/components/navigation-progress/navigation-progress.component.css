@@ -4,7 +4,7 @@
   inset: 0 0 auto;
   height: 3px;
   overflow: hidden;
-  background: rgb(28 101 160 / 0.15);
+  background: var(--primario-claro);
 }
 
 .barra::after {
