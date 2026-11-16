@@ -99,7 +99,8 @@
       <button
         type="button"
         class="cambiar-tema"
-        (click)="tema.alternar()"
+        #botonTema
+        (click)="alternarTema(botonTema)"
         [attr.aria-label]="tema.tema() === 'oscuro' ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro'"
         [attr.aria-pressed]="tema.tema() === 'oscuro'"
       >
