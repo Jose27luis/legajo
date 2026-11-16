@@ -237,25 +237,6 @@ export const CLASE_MOVIMIENTO: Record<Movimiento, string> = {
   OTRO: 'gris',
 };
 
-const TONOS_SECCION: readonly string[] = [
-  '#1c65a0',
-  '#12805c',
-  '#6a4fc4',
-  '#a86a10',
-  '#0e8487',
-  '#b8571c',
-  '#3f5fc9',
-  '#b23a48',
-  '#58731a',
-  '#c0306f',
-  '#5b6b7c',
-  '#7a5230',
-];
-
-export function tonoSeccion(numero: number): string {
-  return TONOS_SECCION[(numero - 1) % TONOS_SECCION.length] ?? TONOS_SECCION[0];
-}
-
 export function tamanoLegible(bytes: number): string {
   if (bytes < 1024 * 1024) {
     return `${Math.max(1, Math.round(bytes / 1024))} KB`;
