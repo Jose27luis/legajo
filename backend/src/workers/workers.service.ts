@@ -313,7 +313,7 @@ export class WorkersService {
       condicionProfesion: datos.condicionProfesion,
       fechaIngreso: aFecha(datos.fechaIngreso),
     };
-    const vigente = this.vigenteAMover(actual, datos.fechaIngreso);
+    const vigente = datos.fechaIngreso === aTexto(actual.fechaIngreso) ? null : this.vigenteAMover(actual, datos.fechaIngreso);
     const actualizado = await sinDuplicados(
       () =>
         this.prisma.$transaction(async (transaccion) => {
