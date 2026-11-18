@@ -313,9 +313,25 @@ export class WorkersService {
       condicionProfesion: datos.condicionProfesion,
       fechaIngreso: aFecha(datos.fechaIngreso),
     };
+    const vigente = this.vigenteAMover(actual, datos.fechaIngreso);
     const actualizado = await sinDuplicados(
       () =>
         this.prisma.$transaction(async (transaccion) => {
+          if (vigente !== null) {
+            await transaccion.vinculo.update({ where: { id: vigente.id }, data: { fechaInicio: aFecha(datos.fechaIngreso) } });
+            await this.auditoria.registrar(
+              {
+                accion: 'VINCULO_ACTUALIZAR',
+                entidad: 'vinculo',
+                entidadId: vigente.id,
+                trabajadorId: id,
+                usuarioId: actor.usuarioId,
+                cliente,
+                detalle: { origen: 'ficha', inicioAnterior: aTexto(vigente.fechaInicio), inicio: datos.fechaIngreso },
+              },
+              transaccion,
+            );
+          }
           const trabajador = await transaccion.trabajador.update({ where: { id }, data: cambios, include: incluirDetalle });
           await this.auditoria.registrar(
             {
@@ -334,6 +350,29 @@ export class WorkersService {
       MENSAJE_DUPLICADO,
     );
     return aDetalleDto(actualizado);
+  }
+
+  private vigenteAMover(
+    trabajador: Prisma.TrabajadorGetPayload<{ include: typeof incluirDetalle }>,
+    fechaIngreso: string,
+  ): { id: string; fechaInicio: Date } | null {
+    const vigente = trabajador.vinculos.find((vinculo) => vinculo.actual);
+    if (vigente === undefined || aTexto(vigente.fechaInicio) === fechaIngreso) {
+      return null;
+    }
+    if (vigente.fechaFin !== null && fechaIngreso > aTexto(vigente.fechaFin)) {
+      throw new BadRequestException(`La fecha de ingreso no puede ser posterior al fin del período actual (${aTexto(vigente.fechaFin)}).`);
+    }
+    const cruzado = trabajador.vinculos.find(
+      (vinculo) => vinculo.id !== vigente.id && vinculo.fechaFin !== null && aTexto(vinculo.fechaFin) >= fechaIngreso,
+    );
+    if (cruzado?.fechaFin != null) {
+      const fin = aTexto(cruzado.fechaFin);
+      throw new BadRequestException(
+        `La fecha de ingreso es el inicio del período actual y se cruza con el período del ${aTexto(cruzado.fechaInicio)} al ${fin} del historial. Usa una fecha posterior al ${fin}.`,
+      );
+    }
+    return { id: vigente.id, fechaInicio: vigente.fechaInicio };
   }
 
   private async cargar(id: string): Promise<Prisma.TrabajadorGetPayload<{ include: typeof incluirDetalle }>> {
