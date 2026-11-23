@@ -13,6 +13,7 @@ export class DialogComponent {
   readonly titulo = input.required<string>();
   readonly angosto = input<boolean>(false);
   readonly ancho = input<boolean>(false);
+  readonly mediano = input<boolean>(false);
   readonly cerrar = output();
 
   private readonly dialogo = viewChild.required<ElementRef<HTMLDialogElement>>('dialogo');
