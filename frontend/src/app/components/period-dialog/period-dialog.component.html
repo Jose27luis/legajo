@@ -4,18 +4,25 @@
   (cerrar)="alCerrar()"
 >
   @if (vinculo(); as periodo) {
-    <p class="aviso info">
+    @let hasta = periodo.fechaFin === null ? 'presente' : fechaCorta(periodo.fechaFin);
+    <section class="resumen">
       @if (trabajador(); as actual) {
-        <strong>Trabajador:</strong> {{ nombreCompleto(actual) }} · DNI {{ actual.numeroDoc }}<br />
+        <p><strong>Trabajador:</strong> {{ nombreCompleto(actual) }} · DNI {{ actual.numeroDoc }}</p>
       }
-      <strong>{{ esSalida() ? 'Evento' : 'Vínculo' }}:</strong>
-      {{ fechaCorta(periodo.fechaInicio) }} al {{ periodo.fechaFin === null ? 'presente' : fechaCorta(periodo.fechaFin) }} ·
-      {{ periodo.regimen.nombre }}
+      <p>
+        <strong>{{ esSalida() ? 'Evento' : 'Vínculo' }}:</strong> {{ periodo.regimen.nombre }}
+      </p>
       @if (periodo.motivoFin; as motivo) {
-        <br /><strong>Motivo:</strong> {{ textoMotivoFin[motivo] }}
+        <p><strong>Motivo:</strong> {{ textoMotivoFin[motivo] }}</p>
       }
-      <br /><strong>Sección documental:</strong> {{ esSalida() ? '11 – Desvinculación' : '02 – Incorporación' }}
-    </p>
+      <p><strong>Sección documental:</strong> {{ esSalida() ? '11 – Desvinculación' : '02 – Incorporación' }}</p>
+      <div class="franja-periodo">
+        <app-icon class="icono-fecha" nombre="calendario" [tamano]="22" />
+        <span class="chip-fecha"><strong>Inicio:</strong> {{ fechaCorta(periodo.fechaInicio) }}</span>
+        <span class="chip-fecha"><strong>Fin:</strong> {{ hasta }}</span>
+        <span class="total">Periodo total del vínculo:<br />{{ fechaCorta(periodo.fechaInicio) }} al {{ hasta }}</span>
+      </div>
+    </section>
 
     <section class="bloque">
       <header>
@@ -36,7 +43,7 @@
             <p class="grupo">Incorporación · Sección 02</p>
             <ul class="documentos">
               @for (documento of vinculados(); track documento.id) {
-                <li class="documento">
+                <li class="documento sustento">
                   <span class="hoja" aria-hidden="true">PDF</span>
                   <span class="dato">
                     <strong>{{ documento.tipo.nombre }}</strong>
@@ -49,6 +56,18 @@
                       <a class="boton chico" [href]="enlace(documento)" target="_blank" rel="noopener">Ver PDF</a>
                     }
                   </span>
+                  @if (fechas(documento); as rango) {
+                    <span class="fechas-documento">
+                      <span>
+                        <app-icon class="icono-fecha" nombre="calendario" [tamano]="20" />
+                        <strong>Inicio {{ rango.sufijo }}:</strong> {{ rango.inicio === null ? 'No registrado' : fechaCorta(rango.inicio) }}
+                      </span>
+                      <span>
+                        <app-icon class="icono-fecha" nombre="calendario" [tamano]="20" />
+                        <strong>Fin {{ rango.sufijo }}:</strong> {{ rango.fin === null ? 'No registrado' : fechaCorta(rango.fin) }}
+                      </span>
+                    </span>
+                  }
                 </li>
               }
             </ul>
