@@ -17,7 +17,7 @@ import {
   renunciaDelPeriodo,
   textoDato,
 } from '../../core/labels';
-import type { Documento, TrabajadorDetalle, Vinculo } from '../../core/models';
+import type { Documento, MovimientoLaboral, TrabajadorDetalle, Vinculo } from '../../core/models';
 import { SessionService } from '../../core/session.service';
 import { ToastService } from '../../core/toast.service';
 import { DocumentsService } from '../../services/documents.service';
@@ -27,7 +27,53 @@ import { IconComponent } from '../icon/icon.component';
 interface FechasDocumento {
   inicio: string | null;
   fin: string | null;
-  sufijo: string;
+  etiquetaInicio: string;
+  etiquetaFin: string;
+}
+
+interface Mes {
+  nombre: string;
+  anio: string;
+}
+
+type ClaseEntrada = 'sustento' | 'personal' | 'movimiento' | 'salida';
+
+interface EntradaBase {
+  clave: string;
+  fecha: string | null;
+  orden: number;
+}
+
+interface EntradaDocumento extends EntradaBase {
+  clase: 'sustento' | 'personal' | 'salida';
+  documento: Documento;
+}
+
+interface EntradaMovimiento extends EntradaBase {
+  clase: 'movimiento';
+  movimiento: MovimientoLaboral;
+  documento: Documento | null;
+}
+
+type Entrada = EntradaDocumento | EntradaMovimiento;
+
+const MESES = ['Ene.', 'Feb.', 'Mar.', 'Abr.', 'May.', 'Jun.', 'Jul.', 'Ago.', 'Set.', 'Oct.', 'Nov.', 'Dic.'];
+
+const PRIORIDAD: Record<ClaseEntrada, number> = { sustento: 0, personal: 1, movimiento: 2, salida: 3 };
+
+const GRUPO: Record<ClaseEntrada, string> = {
+  sustento: 'Incorporación · Sección 02',
+  personal: 'Movimientos del personal · Sección 05',
+  movimiento: 'Desplazamiento · Sección 07',
+  salida: 'Desvinculación · Sección 11',
+};
+
+function fechaSustento(documento: Documento): string | null {
+  return textoDato(documento, 'inicio') ?? documento.fechaEmision;
+}
+
+function fechaSalida(documento: Documento): string | null {
+  return textoDato(documento, 'fechaCese') ?? textoDato(documento, 'fechaPresentacion') ?? documento.fechaEmision;
 }
 
 function masRecientePrimero(a: Documento, b: Documento): number {
@@ -35,9 +81,20 @@ function masRecientePrimero(a: Documento, b: Documento): number {
 }
 
 function masAntiguoPrimero(a: Documento, b: Documento): number {
-  const inicioA = textoDato(a, 'inicio') ?? a.fechaEmision ?? '';
-  const inicioB = textoDato(b, 'inicio') ?? b.fechaEmision ?? '';
-  return inicioA.localeCompare(inicioB) || a.creadoEn.localeCompare(b.creadoEn);
+  return (fechaSustento(a) ?? '').localeCompare(fechaSustento(b) ?? '') || a.creadoEn.localeCompare(b.creadoEn);
+}
+
+function cronologico(a: Entrada, b: Entrada): number {
+  if (a.fecha !== b.fecha) {
+    if (a.fecha === null) {
+      return 1;
+    }
+    if (b.fecha === null) {
+      return -1;
+    }
+    return a.fecha.localeCompare(b.fecha);
+  }
+  return PRIORIDAD[a.clase] - PRIORIDAD[b.clase] || a.orden - b.orden;
 }
 
 function esAdenda(documento: Documento): boolean {
@@ -67,22 +124,22 @@ export class PeriodDialogComponent {
   protected readonly claseEstado = CLASE_ESTADO_DOCUMENTO;
   protected readonly textoMotivoFin = TEXTO_MOTIVO_FIN;
   protected readonly textoMovimiento = TEXTO_MOVIMIENTO;
+  protected readonly grupo = GRUPO;
   protected readonly fechaCorta = fechaCorta;
   protected readonly nombreCompleto = nombreCompleto;
-  protected readonly detalleMovimientoPersonal = detalleMovimientoPersonal;
 
   protected readonly esSalida = computed(() => {
     const vinculo = this.vinculo();
     return vinculo !== null && esSalidaDocumentada(vinculo, this.documentos());
   });
   protected readonly numeroSeccion = computed(() => (this.esSalida() ? 11 : 2));
-  protected readonly vinculados = computed(() => {
+  private readonly vinculados = computed(() => {
     const vinculo = this.vinculo();
     if (vinculo === null) {
       return [];
     }
     const propios = this.documentos().filter((documento) => documento.vinculoId === vinculo.id && documento.seccion === 2);
-    const principales = propios.filter((documento) => !esAdenda(documento)).sort(masRecientePrimero);
+    const principales = propios.filter((documento) => !esAdenda(documento)).sort(masAntiguoPrimero);
     const adendas = propios.filter(esAdenda).sort(masAntiguoPrimero);
     const ordenados = principales.flatMap((principal) => [
       principal,
@@ -90,7 +147,7 @@ export class PeriodDialogComponent {
     ]);
     return [...ordenados, ...adendas.filter((adenda) => !ordenados.includes(adenda))];
   });
-  protected readonly salidas = computed(() => {
+  private readonly salidas = computed(() => {
     const vinculo = this.vinculo();
     if (vinculo === null) {
       return [];
@@ -101,29 +158,59 @@ export class PeriodDialogComponent {
     );
     return (renuncia === null ? propias : [...propias, renuncia]).sort(masRecientePrimero);
   });
-  protected readonly desplazamientos = computed(() => {
+  private readonly desplazamientos = computed(() => {
     const vinculo = this.vinculo();
     const trabajador = this.trabajador();
     if (vinculo === null || trabajador === null) {
       return [];
     }
-    return [...trabajador.movimientos]
-      .filter((movimiento) => periodoDelMovimiento(movimiento, trabajador.vinculos, this.documentos()) === vinculo.id)
-      .sort((a, b) => b.fecha.localeCompare(a.fecha))
-      .map((movimiento) => ({
-        movimiento,
-        documento: this.documentos().find((documento) => documento.id === movimiento.documentoId) ?? null,
-      }));
+    return trabajador.movimientos.filter(
+      (movimiento) => periodoDelMovimiento(movimiento, trabajador.vinculos, this.documentos()) === vinculo.id,
+    );
   });
-  protected readonly personal = computed(() => {
+  private readonly personal = computed(() => {
     const vinculo = this.vinculo();
     const trabajador = this.trabajador();
     if (vinculo === null || trabajador === null) {
       return [];
     }
-    return this.documentos()
-      .filter((documento) => esMovimientoPersonal(documento) && periodoDelMovimientoPersonal(documento, trabajador.vinculos) === vinculo.id)
-      .sort((a, b) => (fechaMovimientoPersonal(b) ?? '').localeCompare(fechaMovimientoPersonal(a) ?? '') || masRecientePrimero(a, b));
+    return this.documentos().filter(
+      (documento) => esMovimientoPersonal(documento) && periodoDelMovimientoPersonal(documento, trabajador.vinculos) === vinculo.id,
+    );
+  });
+  protected readonly lineaDeTiempo = computed<Entrada[]>(() => {
+    const documentos = this.documentos();
+    return [
+      ...this.vinculados().map((documento, orden): Entrada => ({
+        clase: 'sustento',
+        clave: documento.id,
+        fecha: fechaSustento(documento),
+        orden,
+        documento,
+      })),
+      ...this.personal().map((documento, orden): Entrada => ({
+        clase: 'personal',
+        clave: documento.id,
+        fecha: fechaMovimientoPersonal(documento),
+        orden,
+        documento,
+      })),
+      ...this.desplazamientos().map((movimiento, orden): Entrada => ({
+        clase: 'movimiento',
+        clave: movimiento.id,
+        fecha: movimiento.fecha,
+        orden,
+        movimiento,
+        documento: documentos.find((documento) => documento.id === movimiento.documentoId) ?? null,
+      })),
+      ...this.salidas().map((documento, orden): Entrada => ({
+        clase: 'salida',
+        clave: documento.id,
+        fecha: fechaSalida(documento),
+        orden,
+        documento,
+      })),
+    ].sort(cronologico);
   });
   protected readonly sinEnlazar = computed(() =>
     this.esSalida()
@@ -147,13 +234,32 @@ export class PeriodDialogComponent {
     return this.servicio.enlaceArchivo(documento.id, false);
   }
 
-  protected fechas(documento: Documento): FechasDocumento | null {
-    const inicio = textoDato(documento, 'inicio');
-    const fin = textoDato(documento, 'fin');
+  protected mes(fecha: string | null): Mes | null {
+    if (fecha === null) {
+      return null;
+    }
+    return { nombre: MESES[Number(fecha.slice(5, 7)) - 1] ?? '', anio: fecha.slice(0, 4) };
+  }
+
+  protected fechas(entrada: Entrada): FechasDocumento | null {
+    if (entrada.clase !== 'sustento' && entrada.clase !== 'personal') {
+      return null;
+    }
+    const inicio = textoDato(entrada.documento, 'inicio');
+    const fin = textoDato(entrada.documento, 'fin');
     if (inicio === null && fin === null) {
       return null;
     }
-    return { inicio, fin, sufijo: esAdenda(documento) ? 'de periodo' : 'de contrato' };
+    if (entrada.clase === 'personal') {
+      return { inicio, fin, etiquetaInicio: 'Inicio', etiquetaFin: 'Fin' };
+    }
+    const sufijo = esAdenda(entrada.documento) ? 'de periodo' : 'de contrato';
+    return { inicio, fin, etiquetaInicio: `Inicio ${sufijo}`, etiquetaFin: `Fin ${sufijo}` };
+  }
+
+  protected detallePersonal(documento: Documento): string[] {
+    const detalle = detalleMovimientoPersonal(documento);
+    return textoDato(documento, 'inicio') === null ? detalle : detalle.slice(0, -1);
   }
 
   protected referencia(documento: Documento): string {
