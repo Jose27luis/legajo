@@ -22,7 +22,8 @@ export type NombreIcono =
   | 'abajo'
   | 'cerrar'
   | 'sol'
-  | 'luna';
+  | 'luna'
+  | 'calendario';
 
 @Component({
   selector: 'app-icon',
