@@ -154,8 +154,38 @@ export function periodoDelMovimientoPersonal(
   return vinculos.find((vinculo) => vinculo.fechaInicio <= fecha && (vinculo.fechaFin === null || fecha <= vinculo.fechaFin))?.id ?? null;
 }
 
-export function detalleMovimientoPersonal(documento: Documento): string[] {
-  const detalle = documento.tipo.campos
+export interface RangoMovimientoPersonal {
+  inicio: string | null;
+  fin: string | null;
+  etiquetaInicio: string;
+  etiquetaFin: string;
+}
+
+const OBJETO_MOVIMIENTO_PERSONAL: Record<string, string> = {
+  '0501': 'de licencia o permiso',
+  '0502': 'de vacaciones',
+  '0503': 'de vacaciones',
+  '0504': 'de vacaciones',
+  '0505': 'de licencia',
+};
+
+export function rangoMovimientoPersonal(documento: Documento): RangoMovimientoPersonal | null {
+  const inicio = textoDato(documento, 'inicio');
+  const fin = textoDato(documento, 'fin');
+  if (inicio === null && fin === null) {
+    return null;
+  }
+  const objeto = OBJETO_MOVIMIENTO_PERSONAL[documento.tipo.codigo];
+  return {
+    inicio,
+    fin,
+    etiquetaInicio: objeto === undefined ? 'Inicio' : `Inicio ${objeto}`,
+    etiquetaFin: objeto === undefined ? 'Fin' : `Fin ${objeto}`,
+  };
+}
+
+export function camposMovimientoPersonal(documento: Documento): string[] {
+  return documento.tipo.campos
     .filter((campo) => campo.tipo === 'seleccion' || campo.tipo === 'texto')
     .flatMap((campo) => {
       const valor = textoDato(documento, campo.clave);
@@ -164,12 +194,18 @@ export function detalleMovimientoPersonal(documento: Documento): string[] {
       }
       return [campo.tipo === 'texto' ? `${campo.etiqueta}: ${valor}` : valor];
     });
-  const inicio = textoDato(documento, 'inicio');
-  const fin = textoDato(documento, 'fin');
-  if (inicio === null) {
-    return detalle;
+}
+
+export function detalleMovimientoPersonal(documento: Documento): string[] {
+  const rango = rangoMovimientoPersonal(documento);
+  if (rango === null) {
+    return camposMovimientoPersonal(documento);
   }
-  return [...detalle, fin === null ? `Desde el ${fechaCorta(inicio)}` : `Del ${fechaCorta(inicio)} al ${fechaCorta(fin)}`];
+  return [
+    ...camposMovimientoPersonal(documento),
+    ...(rango.inicio === null ? [] : [`${rango.etiquetaInicio}: ${fechaCorta(rango.inicio)}`]),
+    ...(rango.fin === null ? [] : [`${rango.etiquetaFin}: ${fechaCorta(rango.fin)}`]),
+  ];
 }
 
 export function fechaRenuncia(documento: Documento, vinculo: Pick<Vinculo, 'fechaFin'>): string | null {
