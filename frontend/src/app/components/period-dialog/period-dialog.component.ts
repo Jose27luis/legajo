@@ -22,14 +22,31 @@ import { SessionService } from '../../core/session.service';
 import { ToastService } from '../../core/toast.service';
 import { DocumentsService } from '../../services/documents.service';
 import { DialogComponent } from '../dialog/dialog.component';
+import { IconComponent } from '../icon/icon.component';
+
+interface FechasDocumento {
+  inicio: string | null;
+  fin: string | null;
+  sufijo: string;
+}
 
 function masRecientePrimero(a: Documento, b: Documento): number {
   return (b.fechaEmision ?? '').localeCompare(a.fechaEmision ?? '') || b.creadoEn.localeCompare(a.creadoEn);
 }
 
+function masAntiguoPrimero(a: Documento, b: Documento): number {
+  const inicioA = textoDato(a, 'inicio') ?? a.fechaEmision ?? '';
+  const inicioB = textoDato(b, 'inicio') ?? b.fechaEmision ?? '';
+  return inicioA.localeCompare(inicioB) || a.creadoEn.localeCompare(b.creadoEn);
+}
+
+function esAdenda(documento: Documento): boolean {
+  return documento.tipo.campos.some((campo) => campo.tipo === 'contrato');
+}
+
 @Component({
   selector: 'app-period-dialog',
-  imports: [DialogComponent],
+  imports: [DialogComponent, IconComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './period-dialog.component.html',
   styleUrl: './period-dialog.component.css',
@@ -64,12 +81,9 @@ export class PeriodDialogComponent {
     if (vinculo === null) {
       return [];
     }
-    const propios = this.documentos()
-      .filter((documento) => documento.vinculoId === vinculo.id && documento.seccion === 2)
-      .sort(masRecientePrimero);
-    const esAdenda = (documento: Documento) => documento.tipo.campos.some((campo) => campo.tipo === 'contrato');
-    const principales = propios.filter((documento) => !esAdenda(documento));
-    const adendas = propios.filter(esAdenda);
+    const propios = this.documentos().filter((documento) => documento.vinculoId === vinculo.id && documento.seccion === 2);
+    const principales = propios.filter((documento) => !esAdenda(documento)).sort(masRecientePrimero);
+    const adendas = propios.filter(esAdenda).sort(masAntiguoPrimero);
     const ordenados = principales.flatMap((principal) => [
       principal,
       ...adendas.filter((adenda) => textoDato(adenda, 'contratoRelacionado') === principal.id),
@@ -131,6 +145,15 @@ export class PeriodDialogComponent {
 
   protected enlace(documento: Documento): string {
     return this.servicio.enlaceArchivo(documento.id, false);
+  }
+
+  protected fechas(documento: Documento): FechasDocumento | null {
+    const inicio = textoDato(documento, 'inicio');
+    const fin = textoDato(documento, 'fin');
+    if (inicio === null && fin === null) {
+      return null;
+    }
+    return { inicio, fin, sufijo: esAdenda(documento) ? 'de periodo' : 'de contrato' };
   }
 
   protected referencia(documento: Documento): string {
