@@ -3,6 +3,82 @@
   line-height: 1.6;
 }
 
+.resumen {
+  margin-bottom: 16px;
+  padding: 14px 18px;
+  border: 1px solid var(--primario-borde);
+  border-left: 5px solid var(--primario);
+  border-radius: 12px;
+  background: var(--primario-tenue);
+  color: var(--tinta);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.resumen p {
+  margin: 0 0 2px;
+}
+
+.franja-periodo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--primario-claro);
+}
+
+.icono-fecha {
+  flex: none;
+  color: var(--primario);
+}
+
+.chip-fecha {
+  flex: none;
+  padding: 4px 10px;
+  border: 1px solid var(--primario-borde);
+  border-radius: 8px;
+  background: var(--hoja);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.franja-periodo .total {
+  flex: none;
+  margin-left: auto;
+  padding-left: 12px;
+  border-left: 1px solid var(--primario-borde);
+  font-size: 12.5px;
+  font-weight: 700;
+  line-height: 1.35;
+  white-space: nowrap;
+}
+
+.fechas-documento {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 0;
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: var(--primario-tenue);
+  color: var(--tinta);
+  font-size: 13px;
+}
+
+.fechas-documento > span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 200px;
+}
+
+.fechas-documento > span + span {
+  padding-left: 20px;
+  border-left: 1px solid var(--primario-borde);
+}
+
 .bloque {
   margin-bottom: 14px;
   overflow: hidden;
@@ -229,9 +305,44 @@
   font-weight: 650;
 }
 
+.documento.sustento {
+  align-items: start;
+  border-color: var(--primario-borde);
+  border-left-width: 5px;
+  background: var(--hoja);
+}
+
+.sustento .hoja {
+  width: 52px;
+  height: 52px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.sustento .dato strong {
+  font-size: 15px;
+}
+
 @media (max-width: 560px) {
   .documento {
     grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .franja-periodo {
+    flex-wrap: wrap;
+  }
+
+  .franja-periodo .total {
+    flex-basis: 100%;
+    margin-left: 0;
+    padding-left: 0;
+    border-left: 0;
+    white-space: normal;
+  }
+
+  .fechas-documento > span + span {
+    padding-left: 0;
+    border-left: 0;
   }
 
   .acciones {
