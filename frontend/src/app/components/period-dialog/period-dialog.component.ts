@@ -6,7 +6,7 @@ import {
   TEXTO_ESTADO_DOCUMENTO,
   TEXTO_MOTIVO_FIN,
   TEXTO_MOVIMIENTO,
-  detalleMovimientoPersonal,
+  camposMovimientoPersonal,
   esMovimientoPersonal,
   esSalidaDocumentada,
   fechaCorta,
@@ -14,6 +14,7 @@ import {
   nombreCompleto,
   periodoDelMovimiento,
   periodoDelMovimientoPersonal,
+  rangoMovimientoPersonal,
   renunciaDelPeriodo,
   textoDato,
 } from '../../core/labels';
@@ -242,7 +243,10 @@ export class PeriodDialogComponent {
   }
 
   protected fechas(entrada: Entrada): FechasDocumento | null {
-    if (entrada.clase !== 'sustento' && entrada.clase !== 'personal') {
+    if (entrada.clase === 'personal') {
+      return rangoMovimientoPersonal(entrada.documento);
+    }
+    if (entrada.clase !== 'sustento') {
       return null;
     }
     const inicio = textoDato(entrada.documento, 'inicio');
@@ -250,16 +254,12 @@ export class PeriodDialogComponent {
     if (inicio === null && fin === null) {
       return null;
     }
-    if (entrada.clase === 'personal') {
-      return { inicio, fin, etiquetaInicio: 'Inicio', etiquetaFin: 'Fin' };
-    }
     const sufijo = esAdenda(entrada.documento) ? 'de periodo' : 'de contrato';
     return { inicio, fin, etiquetaInicio: `Inicio ${sufijo}`, etiquetaFin: `Fin ${sufijo}` };
   }
 
   protected detallePersonal(documento: Documento): string[] {
-    const detalle = detalleMovimientoPersonal(documento);
-    return textoDato(documento, 'inicio') === null ? detalle : detalle.slice(0, -1);
+    return camposMovimientoPersonal(documento);
   }
 
   protected referencia(documento: Documento): string {
