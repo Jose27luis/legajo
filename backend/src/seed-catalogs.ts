@@ -334,6 +334,12 @@ const CAMPOS_CONCEPTO_PERIODO: CampoSeccion[] = [
   fecha('periodoInicio', 'Período de inicio'),
   fecha('periodoFin', 'Período de fin'),
 ];
+const CAMPOS_EVALUACION_DESEMPENO: CampoSeccion[] = [
+  fecha('fechaEvaluacion', 'Fecha de evaluación'),
+  catalogo('dependencia', 'Dependencia / Área / EESS', 'area'),
+  texto('evaluador', 'Nombre del evaluador'),
+  texto('periodoEvaluacion', 'Período de evaluación'),
+];
 const desplazamiento = (cargo: string, origen = 'Dependencia de origen', destino = 'Dependencia de destino'): CampoSeccion[] => [
   catalogo('areaOrigen', origen, 'area'),
   catalogo('areaDestino', destino, 'area'),
@@ -580,7 +586,7 @@ export const TIPOS_DOCUMENTO: readonly TipoSemilla[] = [
   tipo('0603', 'Certificados de retenciones tributarias', FORMULARIO_ENTIDAD, CAMPOS_CONCEPTO_PERIODO),
   tipo('0604', 'Liquidación de beneficios sociales', FORMULARIO_ENTIDAD, CAMPOS_CONCEPTO_PERIODO),
 
-  tipo('0701', 'Formato para la gestión del rendimiento', FORMULARIO_ENTIDAD, CAMPOS_CONCEPTO_PERIODO),
+  tipo('0701', 'Formato para la gestión del rendimiento', { numero: 'Número de documento' }, CAMPOS_EVALUACION_DESEMPENO),
   tipo('0702', 'Actas de retroalimentación y plan de mejora', FORMULARIO_ENTIDAD, CAMPOS_CONCEPTO_PERIODO),
   tipo('0703', 'Resolución de progresión en la carrera', FORMULARIO_ENTIDAD, CAMPOS_CONCEPTO_PERIODO),
   tipo('0704', 'Designación', FORMULARIO_DESPLAZAMIENTO, desplazamiento('Cargo designado'), movimiento),
