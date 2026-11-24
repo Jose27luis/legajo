@@ -7,7 +7,7 @@ import { SessionService } from '../../core/session.service';
 import { LinkOptionsService } from '../../services/link-options.service';
 import { DatePickerComponent } from '../date-picker/date-picker.component';
 import { SearchSelectComponent, type OpcionBuscable } from '../search-select/search-select.component';
-import { opcionesDependientes, sincronizarCampos, type FormularioDocumento } from './document-form';
+import { campoExigido, campoVisible, opcionesDependientes, sincronizarCampos, type FormularioDocumento } from './document-form';
 
 const OPCION_VACIA: OpcionBuscable = { valor: '', etiqueta: 'Seleccionar...' };
 const SOLO_VACIA: readonly OpcionBuscable[] = [OPCION_VACIA];
@@ -118,9 +118,23 @@ export class DocumentFieldsComponent {
   }
 
   protected alCambiarDato(campo: CampoSeccion): void {
+    const datos = this.grupo().controls.datos;
     for (const hijo of this.camposDelTipo().filter((item) => item.dependeDe?.clave === campo.clave)) {
-      this.grupo().controls.datos.controls[hijo.clave]?.setValue('');
+      datos.controls[hijo.clave]?.setValue('');
     }
+    for (const oculto of this.camposDelTipo().filter((item) => item.visibleSi?.clave === campo.clave)) {
+      if (!campoVisible(oculto, datos.getRawValue())) {
+        datos.controls[oculto.clave]?.setValue('');
+      }
+    }
+  }
+
+  protected visible(campo: CampoSeccion): boolean {
+    return campoVisible(campo, this.grupo().controls.datos.getRawValue());
+  }
+
+  protected exigido(campo: CampoSeccion): boolean {
+    return campoExigido(campo);
   }
 
   protected opcionesNivel(): readonly OpcionBuscable[] {
@@ -145,7 +159,7 @@ export class DocumentFieldsComponent {
 
   protected campoInvalido(campo: CampoSeccion): boolean {
     const control = this.grupo().controls.datos.controls[campo.clave];
-    return control !== undefined && control.touched && (control.invalid || (campo.obligatorio && control.value.trim() === ''));
+    return control !== undefined && control.touched && (control.invalid || (campoExigido(campo) && control.value.trim() === ''));
   }
 
   protected tipoEntrada(campo: CampoSeccion): string {

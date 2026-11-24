@@ -66,14 +66,16 @@
       <ng-container [ngTemplateOutlet]="dato" [ngTemplateOutletContext]="{ $implicit: campo }" />
     }
     @for (campo of camposDelTipo(); track campo.clave) {
-      <ng-container [ngTemplateOutlet]="dato" [ngTemplateOutletContext]="{ $implicit: campo }" />
+      @if (visible(campo)) {
+        <ng-container [ngTemplateOutlet]="dato" [ngTemplateOutletContext]="{ $implicit: campo }" />
+      }
     }
 
     <ng-template #dato let-campo>
       <div class="campo" [class.completo]="campo.tipo === 'parrafo'">
         <label [for]="id('dato-' + campo.clave)">
           {{ campo.etiqueta }}
-          @if (campo.obligatorio) {
+          @if (exigido(campo)) {
             <span class="obligatorio" aria-hidden="true">*</span>
           } @else {
             <span class="opcional">opcional</span>

@@ -20,6 +20,14 @@ const opcional = (valor: string): string | null => {
   return limpio === '' ? null : limpio;
 };
 
+export function campoVisible(campo: CampoSeccion, datos: Readonly<Record<string, string | undefined>>): boolean {
+  return campo.visibleSi === undefined || datos[campo.visibleSi.clave] === campo.visibleSi.valor;
+}
+
+export function campoExigido(campo: CampoSeccion): boolean {
+  return campo.obligatorio || campo.visibleSi !== undefined;
+}
+
 export function opcionesDependientes(campo: CampoSeccion, valorPadre: string): readonly string[] {
   return campo.dependeDe?.opciones[valorPadre] ?? campo.opciones ?? [];
 }
@@ -144,8 +152,12 @@ export function leerFormularioDocumento(formulario: FormularioDocumento, seccion
   }
   const datos: Record<string, ValorCampo> = {};
   for (const campo of camposDelDocumento(seccion, tipo)) {
+    if (!campoVisible(campo, valores.datos)) {
+      datos[campo.clave] = null;
+      continue;
+    }
     const valor = opcional(valores.datos[campo.clave] ?? '');
-    if (valor === null && campo.obligatorio) {
+    if (valor === null && campoExigido(campo)) {
       return `Completa el campo "${campo.etiqueta}".`;
     }
     const padre = campo.dependeDe === undefined ? null : opcional(valores.datos[campo.dependeDe.clave] ?? '');

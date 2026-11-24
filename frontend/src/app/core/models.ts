@@ -52,6 +52,7 @@ export interface CampoSeccion {
   tipo: TipoCampo;
   opciones?: string[];
   dependeDe?: { clave: string; opciones: Record<string, string[]> };
+  visibleSi?: { clave: string; valor: string };
   obligatorio: boolean;
 }
 
