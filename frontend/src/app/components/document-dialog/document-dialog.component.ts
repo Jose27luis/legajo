@@ -38,6 +38,7 @@ import { DatePickerComponent } from '../date-picker/date-picker.component';
 import { DialogComponent } from '../dialog/dialog.component';
 import { DocumentFieldsComponent } from '../document-fields/document-fields.component';
 import {
+  campoVisible,
   camposDelDocumento,
   crearFormularioDocumento,
   leerFormularioDocumento,
@@ -210,10 +211,15 @@ export class DocumentDialogComponent implements OnDestroy {
       return [];
     }
     const tipo = seccion.tipos.find((item) => item.id === documento.tipo.id) ?? documento.tipo;
-    return camposDelDocumento(seccion, tipo).map((campo) => ({
-      etiqueta: campo.etiqueta,
-      valor: this.mostrar(campo, documento.datos[campo.clave] ?? null),
-    }));
+    const guardados = Object.fromEntries(
+      Object.entries(documento.datos).map(([clave, valor]) => [clave, valor === null ? undefined : String(valor)]),
+    );
+    return camposDelDocumento(seccion, tipo)
+      .filter((campo) => campoVisible(campo, guardados))
+      .map((campo) => ({
+        etiqueta: campo.etiqueta,
+        valor: this.mostrar(campo, documento.datos[campo.clave] ?? null),
+      }));
   });
 
   protected readonly puedeConfirmar = computed(() => this.sesion.tiene('personal.editar'));
