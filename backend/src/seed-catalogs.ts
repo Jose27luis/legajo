@@ -8,6 +8,7 @@ export type CampoSeccion = {
   tipo: TipoCampo;
   opciones?: string[];
   dependeDe?: { clave: string; opciones: Record<string, string[]> };
+  visibleSi?: { clave: string; valor: string };
   obligatorio: boolean;
 };
 
@@ -346,6 +347,36 @@ const desplazamiento = (cargo: string, origen = 'Dependencia de origen', destino
   texto('cargoAsignado', cargo),
   fecha('fechaEfecto', 'Fecha de inicio o efecto'),
 ];
+const OTRO_CARGO_DESIGNADO = 'Otro (especificar)';
+const CAMPOS_DESIGNACION_FUNCIONES: CampoSeccion[] = [
+  seleccion('tipoAccion', 'Tipo de acción', [
+    'Designación',
+    'Asignación de funciones',
+    'Ratificación de funciones',
+    'Asignación y ratificación de funciones',
+  ]),
+  seleccion('cargoAsignado', 'Cargo o función asignada', [
+    'Director/a General',
+    'Director/a Ejecutivo/a',
+    'Director/a de Red de Salud',
+    'Jefe/a de Oficina',
+    'Jefe/a de Unidad',
+    'Jefe/a de Área',
+    'Jefe/a de Establecimiento de Salud',
+    'Gerente de Microred',
+    'Jefe/a de Servicio',
+    'Coordinador/a',
+    'Responsable de Área',
+    'Responsable de Programa',
+    OTRO_CARGO_DESIGNADO,
+  ]),
+  {
+    ...texto('cargoEspecifico', 'Especificar cargo o función'),
+    visibleSi: { clave: 'cargoAsignado', valor: OTRO_CARGO_DESIGNADO },
+  },
+  fecha('fechaInicioFunciones', 'Fecha de inicio de funciones'),
+  fecha('fechaFinFunciones', 'Fecha de término de funciones'),
+];
 const CAMPOS_ROTACION: CampoSeccion[] = [
   ...desplazamiento('Cargo o función asignada'),
   fecha('fechaFinRotacion', 'Fecha fin de rotación'),
@@ -589,7 +620,7 @@ export const TIPOS_DOCUMENTO: readonly TipoSemilla[] = [
   tipo('0701', 'Formato para la gestión del rendimiento', { numero: 'Número de documento' }, CAMPOS_EVALUACION_DESEMPENO),
   tipo('0702', 'Actas de retroalimentación y plan de mejora', FORMULARIO_ENTIDAD, CAMPOS_CONCEPTO_PERIODO),
   tipo('0703', 'Resolución de progresión en la carrera', FORMULARIO_ENTIDAD, CAMPOS_CONCEPTO_PERIODO),
-  tipo('0704', 'Designación', FORMULARIO_DESPLAZAMIENTO, desplazamiento('Cargo designado'), movimiento),
+  tipo('0704', 'Designación', FORMULARIO_DESPLAZAMIENTO, CAMPOS_DESIGNACION_FUNCIONES),
   tipo('0705', 'Rotación', FORMULARIO_DESPLAZAMIENTO, CAMPOS_ROTACION, movimiento),
   tipo(
     '0706',
