@@ -262,7 +262,7 @@ Las resoluciones 0203 a 0205, el contrato y la adenda crean o actualizan el vín
 | 0707 | Encargo de puestos o funciones | | | |
 | 0708 | Otros documentos de desplazamiento | | | |
 
-Los tipos 0704 a 0708 se confirman como movimiento laboral y actualizan el área de la ficha. La designación ocupa formalmente un cargo; el encargo cubre un puesto de forma temporal y no es un ascenso.
+Los tipos 0705 a 0708 se confirman como movimiento laboral y actualizan el área de la ficha. La designación (0704) registra el cargo o la función asignada sin mover al servidor de dependencia, por eso no se confirma como movimiento. La designación ocupa formalmente un cargo; el encargo cubre un puesto de forma temporal y no es un ascenso.
 
 **08 Reconocimientos y sanciones disciplinarias** (carpeta `08_Reconocimientos_y_Sanciones`)
 
@@ -346,7 +346,8 @@ El número, la fecha de emisión, el emisor y el vencimiento cambian de nombre s
 | 0505 Licencias otorgadas | Tipo de licencia, inicio y fin |
 | 0601 | Tiempo de servicios reconocido, fecha de reconocimiento o efecto |
 | 0602 a 0604, 0701 a 0703 | Concepto o motivo, período de inicio y de fin |
-| 0704 a 0708 Desplazamiento | Dependencia de origen y de destino, cargo o función, fecha de inicio o efecto |
+| 0704 Designación | Tipo de acción (designación, asignación de funciones, ratificación de funciones, asignación y ratificación de funciones); cargo o función asignada (director/a general, director/a ejecutivo/a, director/a de red de salud, jefe/a de oficina, de unidad, de área, de establecimiento de salud o de servicio, gerente de microred, coordinador/a, responsable de área o de programa, otro); fecha de inicio de funciones y de término. «Otro (especificar)» habilita «Especificar cargo o función», que entonces es obligatorio |
+| 0705 a 0708 Desplazamiento | Dependencia de origen y de destino, cargo o función, fecha de inicio o efecto |
 | 0801 a 0803 Reconocimientos | Motivo y fecha del reconocimiento |
 | 0804 Sanciones | Tipo de sanción (amonestación escrita, suspensión, destitución), fecha de inicio o efecto |
 | 0805 Recursos | Resultado del recurso (fundado, infundado, improcedente), fecha de inicio o efecto |
