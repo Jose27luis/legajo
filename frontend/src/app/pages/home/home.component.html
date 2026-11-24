@@ -43,35 +43,6 @@
     }
   </div>
 
-  <p class="aclaracion">
-    <strong>Importante:</strong> ACTIVO y CESADO son estados laborales excluyentes. ROTACIÓN, DESTAQUE y ENCARGATURA son movimientos; por
-    eso sus cantidades pueden estar incluidas en el total de activos y <strong>no deben sumarse a los estados</strong>.
-  </p>
-
-  @if (resumen.value(); as datos) {
-    @if (datos.recientes.length > 0) {
-      <section class="recientes" aria-labelledby="titulo-recientes">
-        <h2 id="titulo-recientes">Ingresos más recientes</h2>
-        <ul>
-          @for (trabajador of datos.recientes; track trabajador.id) {
-            <li>
-              <div>
-                <a [routerLink]="['/workers', trabajador.id]">{{ nombreCompleto(trabajador) }}</a>
-                <span>
-                  {{ trabajador.tipoDocIdentidad }} {{ trabajador.numeroDoc }}, ingreso el {{ fechaCorta(trabajador.fechaIngreso) }}
-                  @if (trabajador.vinculo; as vinculo) {
-                    en {{ vinculo.area.nombre }}
-                  }
-                </span>
-              </div>
-              <a class="boton chico" [routerLink]="['/workers', trabajador.id]">Abrir legajo</a>
-            </li>
-          }
-        </ul>
-      </section>
-    }
-  }
-
   <app-worker-directory titulo="Buscar y seleccionar trabajador" (cambio)="resumen.reload()" />
 
   <p class="nota-pie">

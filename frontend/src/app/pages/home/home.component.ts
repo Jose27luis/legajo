@@ -4,7 +4,7 @@ import { NewWorkerDialogComponent } from '../../components/new-worker-dialog/new
 import { ReentryDialogComponent } from '../../components/reentry-dialog/reentry-dialog.component';
 import { WorkerDirectoryComponent } from '../../components/worker-directory/worker-directory.component';
 import { mensajeDeError } from '../../core/errors';
-import { fechaCorta, nombreCompleto } from '../../core/labels';
+import { nombreCompleto } from '../../core/labels';
 import type { EstadoTrabajador, Movimiento, TrabajadorDetalle, TrabajadorResumen } from '../../core/models';
 import { SessionService } from '../../core/session.service';
 import { ToastService } from '../../core/toast.service';
@@ -40,8 +40,6 @@ export class HomeComponent {
   private readonly reingreso = viewChild.required(ReentryDialogComponent);
   private readonly directorio = viewChild.required(WorkerDirectoryComponent);
 
-  protected readonly nombreCompleto = nombreCompleto;
-  protected readonly fechaCorta = fechaCorta;
   protected readonly resumen = resource({ loader: () => this.servicio.resumen() });
   protected readonly errorResumen = computed(() => {
     const error = this.resumen.error();
