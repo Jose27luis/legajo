@@ -9,6 +9,7 @@ const esquemaCampos = z.array(
     tipo: z.enum(TIPOS_CAMPO),
     opciones: z.array(z.string()).optional(),
     dependeDe: z.object({ clave: z.string(), opciones: z.record(z.string(), z.array(z.string())) }).optional(),
+    visibleSi: z.object({ clave: z.string(), valor: z.string() }).optional(),
     obligatorio: z.boolean(),
   }),
 );
@@ -52,10 +53,15 @@ export function validarDatos(campos: SectionFieldDto[], entrada: Record<string, 
   }
   const resultado: Record<string, ValorCampo> = {};
   for (const campo of campos) {
+    const condicion = campo.visibleSi;
+    if (condicion !== undefined && entrada[condicion.clave] !== condicion.valor) {
+      resultado[campo.clave] = null;
+      continue;
+    }
     const bruto = entrada[campo.clave];
     const vacio = bruto === undefined || bruto === null || (typeof bruto === 'string' && bruto.trim() === '');
     if (vacio) {
-      if (campo.obligatorio) {
+      if (campo.obligatorio || condicion !== undefined) {
         throw new BadRequestException(`Completa el campo "${campo.etiqueta}"`);
       }
       resultado[campo.clave] = null;
