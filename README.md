@@ -1329,7 +1329,7 @@ flowchart LR
     LOGIN["Inicio de sesión"] --> CC["Cambiar clave<br/>primer ingreso"]
     LOGIN --> REC["Recuperar contraseña<br/>código al correo"]
     REC --> LOGIN
-    LOGIN --> INI["Inicio<br/>total, activos, cesados,<br/>rotados, destacados,<br/>ingresos recientes"]
+    LOGIN --> INI["Inicio<br/>total, activos, cesados,<br/>rotados, destacados"]
     INI --> PRF["Mi perfil<br/>datos y cambio de clave"]
     CC --> INI
     INI --> PER["Personal<br/>listado con filtros"]
