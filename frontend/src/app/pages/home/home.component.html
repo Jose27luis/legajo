@@ -43,6 +43,76 @@
     }
   </div>
 
+  <section class="jefaturas" aria-labelledby="titulo-jefaturas">
+    <header class="cabecera-jefaturas">
+      <div>
+        <h2 id="titulo-jefaturas">Jefes de EESS y gerentes de microred</h2>
+        <p>Designaciones vigentes registradas en la Sección 07 del legajo.</p>
+      </div>
+      @if (resumen.value(); as datos) {
+        <div class="conteos">
+          <span class="pastilla violeta">{{ contarCargo(datos.jefaturas, 'Gerente de Microred') }} gerentes de microred</span>
+          <span class="pastilla azul">{{ contarCargo(datos.jefaturas, 'Jefe/a de Establecimiento de Salud') }} jefes de EESS</span>
+        </div>
+      }
+    </header>
+
+    @if (resumen.value(); as datos) {
+      @if (datos.jefaturas.length === 0) {
+        <p class="vacio">
+          Todavía no hay jefes de EESS ni gerentes de microred designados. Aparecen aquí al registrar su designación (0704) en la Sección 07
+          con el cargo «Jefe/a de Establecimiento de Salud» o «Gerente de Microred».
+        </p>
+      } @else {
+        <div class="tabla-contenedor">
+          <table class="tabla apilable">
+            <thead>
+              <tr>
+                <th scope="col">Cargo</th>
+                <th scope="col">Trabajador</th>
+                <th scope="col">Establecimiento o microred</th>
+                <th scope="col">Desde</th>
+                <th scope="col">Resolución</th>
+                <th scope="col">Legajo</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (jefatura of datos.jefaturas; track jefatura.documentoId) {
+                <tr>
+                  <td data-etiqueta="Cargo">
+                    <span class="pastilla" [class]="jefatura.cargo === 'Gerente de Microred' ? 'violeta' : 'azul'">{{
+                      jefatura.cargo === 'Gerente de Microred' ? 'Gerente de microred' : 'Jefe/a de EESS'
+                    }}</span>
+                  </td>
+                  <td data-etiqueta="Trabajador">
+                    <strong>{{ jefatura.nombre }}</strong>
+                    <span class="secundario">{{ jefatura.documentoIdentidad }}</span>
+                  </td>
+                  <td data-etiqueta="Establecimiento o microred">
+                    {{ jefatura.dependencia ?? 'Sin dependencia registrada' }}
+                    @if (jefatura.dependenciaSuperior; as superior) {
+                      <span class="secundario">{{ superior }}</span>
+                    }
+                  </td>
+                  <td data-etiqueta="Desde">
+                    {{ jefatura.desde === null ? '—' : fechaCorta(jefatura.desde) }}
+                    @if (jefatura.tipoAccion; as accion) {
+                      <span class="secundario">{{ accion }}</span>
+                    }
+                  </td>
+                  <td data-etiqueta="Resolución">{{ jefatura.resolucion ?? '—' }}</td>
+                  <td>
+                    <a class="boton chico" [routerLink]="['/workers', jefatura.trabajadorId, 'sections', 7]">Ver legajo</a>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    }
+  </section>
+
   <app-worker-directory titulo="Buscar y seleccionar trabajador" (cambio)="resumen.reload()" />
 
   <p class="nota-pie">

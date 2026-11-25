@@ -4,8 +4,8 @@ import { NewWorkerDialogComponent } from '../../components/new-worker-dialog/new
 import { ReentryDialogComponent } from '../../components/reentry-dialog/reentry-dialog.component';
 import { WorkerDirectoryComponent } from '../../components/worker-directory/worker-directory.component';
 import { mensajeDeError } from '../../core/errors';
-import { nombreCompleto } from '../../core/labels';
-import type { EstadoTrabajador, Movimiento, TrabajadorDetalle, TrabajadorResumen } from '../../core/models';
+import { fechaCorta, nombreCompleto } from '../../core/labels';
+import type { EstadoTrabajador, Jefatura, Movimiento, TrabajadorDetalle, TrabajadorResumen } from '../../core/models';
 import { SessionService } from '../../core/session.service';
 import { ToastService } from '../../core/toast.service';
 import { BackupsService } from '../../services/backups.service';
@@ -115,6 +115,12 @@ export class HomeComponent {
 
   protected readonly nuevoAbierto = signal(false);
   protected readonly paraReingreso = signal<TrabajadorResumen | null>(null);
+
+  protected readonly fechaCorta = fechaCorta;
+
+  protected contarCargo(jefaturas: readonly Jefatura[], cargo: string): number {
+    return jefaturas.filter((jefatura) => jefatura.cargo === cargo).length;
+  }
 
   protected filtrar(indicador: Indicador): void {
     const parametros: Record<string, string> = {};

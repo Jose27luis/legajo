@@ -109,6 +109,62 @@ h1 {
   font-size: 10px;
 }
 
+.jefaturas {
+  display: grid;
+  gap: 14px;
+  padding: 18px 20px;
+  border: 1px solid var(--linea);
+  border-left: 4px solid var(--violeta);
+  border-radius: var(--radio-panel);
+  background: var(--hoja);
+  box-shadow: var(--sombra-panel);
+}
+
+.cabecera-jefaturas {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.cabecera-jefaturas h2 {
+  color: var(--titulo);
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.cabecera-jefaturas p {
+  margin-top: 2px;
+  color: var(--tinta-suave);
+  font-size: 12.5px;
+}
+
+.conteos {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.jefaturas .tabla td:last-child {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.jefaturas .tabla a {
+  text-decoration: none;
+}
+
+.vacio {
+  padding: 16px 18px;
+  border: 1px dashed var(--linea-fuerte);
+  border-radius: 10px;
+  background: var(--superficie-suave);
+  color: var(--tinta-media);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
 .nota-pie {
   color: var(--tinta-suave);
   font-size: 13px;

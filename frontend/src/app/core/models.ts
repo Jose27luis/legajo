@@ -256,7 +256,21 @@ export interface ResumenPersonal {
   cesados: number;
   rotados: number;
   destacados: number;
-  recientes: TrabajadorResumen[];
+  jefaturas: Jefatura[];
+}
+
+export interface Jefatura {
+  trabajadorId: string;
+  documentoId: string;
+  nombre: string;
+  documentoIdentidad: string;
+  cargo: string;
+  tipoAccion: string | null;
+  dependencia: string | null;
+  dependenciaSuperior: string | null;
+  desde: string | null;
+  hasta: string | null;
+  resolucion: string | null;
 }
 
 export interface FiltrosPersonal {
