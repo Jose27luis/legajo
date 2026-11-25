@@ -264,6 +264,8 @@ Las resoluciones 0203 a 0205, el contrato y la adenda crean o actualizan el vín
 
 Los tipos 0705 a 0708 se confirman como movimiento laboral y actualizan el área de la ficha. La designación (0704) registra el cargo o la función asignada sin mover al servidor de dependencia, por eso no se confirma como movimiento. La designación ocupa formalmente un cargo; el encargo cubre un puesto de forma temporal y no es un ascenso.
 
+El inicio muestra, entre los indicadores y el buscador, la tabla de jefes de EESS y gerentes de microred. Sale de las designaciones 0704 disponibles con cargo «Jefe/a de Establecimiento de Salud» o «Gerente de Microred», de trabajadores activos y vigentes a la fecha: el inicio de funciones ya llegó y el término no pasó o está vacío. Si un trabajador tiene varias, vale la de inicio más reciente. El establecimiento es el área de su período actual, con la microred a la que pertenece debajo.
+
 **08 Reconocimientos y sanciones disciplinarias** (carpeta `08_Reconocimientos_y_Sanciones`)
 
 | Código | Tipo | R | Nº | V |
@@ -1329,7 +1331,7 @@ flowchart LR
     LOGIN["Inicio de sesión"] --> CC["Cambiar clave<br/>primer ingreso"]
     LOGIN --> REC["Recuperar contraseña<br/>código al correo"]
     REC --> LOGIN
-    LOGIN --> INI["Inicio<br/>total, activos, cesados,<br/>rotados, destacados"]
+    LOGIN --> INI["Inicio<br/>total, activos, cesados,<br/>rotados, destacados,<br/>jefes de EESS y gerentes"]
     INI --> PRF["Mi perfil<br/>datos y cambio de clave"]
     CC --> INI
     INI --> PER["Personal<br/>listado con filtros"]
