@@ -10,13 +10,15 @@ import { aFecha, aTexto, hoyEnLima, normalizarBusqueda } from '../common/dates';
 import { sinDuplicados } from '../common/unique-violation';
 import { enviarLibro, type CeldaValor, type ColumnaHoja } from '../common/xlsx-stream';
 import type { CreateWorkerDto, LookupQueryDto, UpdateWorkerDto, WorkerQueryDto } from './dto/worker-input.dto';
-import type { MovimientoValor, WorkerDetailDto, WorkerLookupDto, WorkerPageDto, WorkerSummaryDto } from './dto/worker.dto';
+import type { HeadshipDto, MovimientoValor, WorkerDetailDto, WorkerLookupDto, WorkerPageDto, WorkerSummaryDto } from './dto/worker.dto';
 import { exigirCatalogosActivos } from './catalog-guard';
 import { TEXTO_MOVIMIENTO } from './labels';
 import { aDetalleDto, aDirectorioDto, aListadoDto, incluirDetalle, incluirDirectorio, incluirListado, validarDocumento, validarFormacion, validarUbigeo } from './worker.mapper';
 
 const MENSAJE_DUPLICADO = 'Ya existe un trabajador registrado con ese documento';
 const LIMITE_EXPORTACION = 10000;
+const CODIGO_DESIGNACION = '0704';
+const CARGOS_JEFATURA = ['Jefe/a de Establecimiento de Salud', 'Gerente de Microred'];
 
 const TEXTO_ESTADO = { ACTIVO: 'Activo', CESADO: 'Cesado' } as const;
 const TEXTO_MOTIVO = {
@@ -83,19 +85,14 @@ export class WorkersService {
   }
 
   async resumen(): Promise<WorkerSummaryDto> {
-    const [estados, movimientos, recientes, deCesados] = await Promise.all([
+    const [estados, movimientos, jefaturas, deCesados] = await Promise.all([
       this.prisma.trabajador.groupBy({ by: ['estado'], _count: { _all: true } }),
       this.prisma.trabajador.groupBy({
         by: ['movimientoActual'],
         where: { estado: 'ACTIVO', movimientoActual: { in: ['ROTACION', 'DESTAQUE'] } },
         _count: { _all: true },
       }),
-      this.prisma.trabajador.findMany({
-        where: { estado: 'ACTIVO' },
-        include: incluirListado,
-        orderBy: [{ fechaIngreso: 'desc' }, { creadoEn: 'desc' }],
-        take: 5,
-      }),
+      this.jefaturas(),
       this.movimientosDeCesados(),
     ]);
     const contar = (estado: 'ACTIVO' | 'CESADO') => estados.find((fila) => fila.estado === estado)?._count._all ?? 0;
@@ -110,8 +107,60 @@ export class WorkersService {
       cesados,
       rotados: contarMovimiento('ROTACION'),
       destacados: contarMovimiento('DESTAQUE'),
-      recientes: recientes.map(aListadoDto),
+      jefaturas,
     };
+  }
+
+  private async jefaturas(): Promise<HeadshipDto[]> {
+    const hoy = hoyEnLima();
+    const designaciones = await this.prisma.documento.findMany({
+      where: {
+        estado: 'DISPONIBLE',
+        tipoDocumento: { codigo: CODIGO_DESIGNACION },
+        trabajador: { estado: 'ACTIVO' },
+        OR: CARGOS_JEFATURA.map((cargo) => ({ datos: { path: ['cargoAsignado'], equals: cargo } })),
+      },
+      include: {
+        trabajador: {
+          include: { vinculos: { where: { actual: true }, include: { area: { include: { padre: true } } }, take: 1 } },
+        },
+      },
+    });
+    const vigentes = new Map<string, HeadshipDto>();
+    for (const documento of designaciones) {
+      const datos = leerDatosGuardados(documento.datos);
+      const cargo = datos['cargoAsignado'];
+      const desde = typeof datos['fechaInicioFunciones'] === 'string' ? datos['fechaInicioFunciones'] : null;
+      const hasta = typeof datos['fechaFinFunciones'] === 'string' ? datos['fechaFinFunciones'] : null;
+      if (typeof cargo !== 'string' || (desde !== null && desde > hoy) || (hasta !== null && hasta < hoy)) {
+        continue;
+      }
+      const anterior = vigentes.get(documento.trabajadorId);
+      if (anterior !== undefined && (anterior.desde ?? '') >= (desde ?? '')) {
+        continue;
+      }
+      const { trabajador } = documento;
+      const area = trabajador.vinculos[0]?.area ?? null;
+      vigentes.set(documento.trabajadorId, {
+        trabajadorId: trabajador.id,
+        documentoId: documento.id,
+        nombre: `${[trabajador.apellidoPaterno, trabajador.apellidoMaterno].filter((parte) => parte !== null && parte !== '').join(' ')}, ${trabajador.nombres}`,
+        documentoIdentidad: `${trabajador.tipoDocIdentidad} ${trabajador.numeroDoc}`,
+        cargo,
+        tipoAccion: typeof datos['tipoAccion'] === 'string' ? datos['tipoAccion'] : null,
+        dependencia: area?.nombre ?? null,
+        dependenciaSuperior: area?.padre?.nombre ?? null,
+        desde,
+        hasta,
+        resolucion: documento.numero,
+      });
+    }
+    return [...vigentes.values()].sort(
+      (a, b) =>
+        CARGOS_JEFATURA.indexOf(b.cargo) - CARGOS_JEFATURA.indexOf(a.cargo) ||
+        (a.dependenciaSuperior ?? a.dependencia ?? '').localeCompare(b.dependenciaSuperior ?? b.dependencia ?? '') ||
+        a.nombre.localeCompare(b.nombre),
+    );
   }
 
   async exportar(consulta: WorkerQueryDto, respuesta: Response): Promise<void> {

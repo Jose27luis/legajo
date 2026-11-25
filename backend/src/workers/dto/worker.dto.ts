@@ -135,8 +135,43 @@ export class WorkerSummaryDto {
   @ApiProperty()
   destacados: number;
 
-  @ApiProperty({ type: [WorkerListItemDto] })
-  recientes: WorkerListItemDto[];
+  @ApiProperty({ type: () => [HeadshipDto] })
+  jefaturas: HeadshipDto[];
+}
+
+export class HeadshipDto {
+  @ApiProperty({ format: 'uuid' })
+  trabajadorId: string;
+
+  @ApiProperty({ format: 'uuid' })
+  documentoId: string;
+
+  @ApiProperty()
+  nombre: string;
+
+  @ApiProperty()
+  documentoIdentidad: string;
+
+  @ApiProperty()
+  cargo: string;
+
+  @ApiProperty({ type: String, nullable: true })
+  tipoAccion: string | null;
+
+  @ApiProperty({ type: String, nullable: true })
+  dependencia: string | null;
+
+  @ApiProperty({ type: String, nullable: true })
+  dependenciaSuperior: string | null;
+
+  @ApiProperty({ type: String, nullable: true, format: 'date' })
+  desde: string | null;
+
+  @ApiProperty({ type: String, nullable: true, format: 'date' })
+  hasta: string | null;
+
+  @ApiProperty({ type: String, nullable: true })
+  resolucion: string | null;
 }
 
 export class RelativeDto {
