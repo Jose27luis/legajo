@@ -3,7 +3,7 @@ import type { Response } from 'express';
 import type { Prisma } from '../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
-import { leerDatosGuardados } from '../catalogs/section-fields';
+import { leerDatosGuardados, type ValorCampo } from '../catalogs/section-fields';
 import { GERENTE_MICRORED, JEFE_EESS } from '../seed-catalogs';
 import type { DatosCliente } from '../common/client';
 import type { SesionActiva } from '../common/session';
@@ -20,6 +20,11 @@ const MENSAJE_DUPLICADO = 'Ya existe un trabajador registrado con ese documento'
 const LIMITE_EXPORTACION = 10000;
 const CODIGO_DESIGNACION = '0704';
 const CARGOS_JEFATURA = [JEFE_EESS, GERENTE_MICRORED];
+
+function areaDesignada(datos: Record<string, ValorCampo>): number | null {
+  const valor = datos['cargoAsignado'] === GERENTE_MICRORED ? datos['microredDesignada'] : datos['eessDesignado'];
+  return typeof valor === 'number' ? valor : null;
+}
 
 const TEXTO_ESTADO = { ACTIVO: 'Activo', CESADO: 'Cesado' } as const;
 const TEXTO_MOTIVO = {
@@ -124,8 +129,8 @@ export class WorkersService {
       include: { trabajador: true },
     });
     const idsArea = designaciones
-      .map((documento) => leerDatosGuardados(documento.datos)['areaDesignada'])
-      .filter((valor): valor is number => typeof valor === 'number');
+      .map((documento) => areaDesignada(leerDatosGuardados(documento.datos)))
+      .filter((valor): valor is number => valor !== null);
     const areas = new Map(
       (await this.prisma.area.findMany({ where: { id: { in: [...new Set(idsArea)] } }, include: { padre: true } })).map((area) => [
         area.id,
@@ -146,8 +151,8 @@ export class WorkersService {
         continue;
       }
       const { trabajador } = documento;
-      const areaDesignada = datos['areaDesignada'];
-      const area = typeof areaDesignada === 'number' ? (areas.get(areaDesignada) ?? null) : null;
+      const idArea = areaDesignada(datos);
+      const area = idArea === null ? null : (areas.get(idArea) ?? null);
       vigentes.set(documento.trabajadorId, {
         trabajadorId: trabajador.id,
         documentoId: documento.id,
