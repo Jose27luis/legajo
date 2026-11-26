@@ -1,5 +1,5 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma, type Regimen } from '../generated/prisma/client';
+import { Prisma, type Area, type Regimen } from '../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import type { DatosCliente } from '../common/client';
@@ -15,6 +15,17 @@ export function aRegimenDto(regimen: Regimen): RegimeDto {
     nombre: regimen.nombre,
     esLaboral: regimen.esLaboral,
     activo: regimen.activo,
+  };
+}
+
+function aAreaDto(area: Area & { padre: Area | null }): AreaDto {
+  return {
+    id: area.id,
+    nombre: area.nombre,
+    padreId: area.padreId,
+    padreNombre: area.padre?.nombre ?? null,
+    tipo: area.tipo,
+    activo: area.activo,
   };
 }
 
@@ -55,13 +66,7 @@ export class OrganizationService {
 
   async listarAreas(): Promise<AreaDto[]> {
     const areas = await this.prisma.area.findMany({ include: { padre: true }, orderBy: { nombre: 'asc' } });
-    return areas.map((area) => ({
-      id: area.id,
-      nombre: area.nombre,
-      padreId: area.padreId,
-      padreNombre: area.padre?.nombre ?? null,
-      activo: area.activo,
-    }));
+    return areas.map(aAreaDto);
   }
 
   async crearArea(datos: AreaInputDto, actor: SesionActiva, cliente: DatosCliente): Promise<AreaDto> {
@@ -71,15 +76,15 @@ export class OrganizationService {
       () =>
         this.prisma.$transaction(async (transaccion) => {
           const area = await transaccion.area.create({
-            data: { nombre: datos.nombre, padreId, activo: datos.activo },
+            data: { nombre: datos.nombre, padreId, tipo: datos.tipo, activo: datos.activo },
             include: { padre: true },
           });
-          await this.registrar('CATALOGO_CREAR', 'area', area.id, actor, cliente, { nombre: area.nombre, padreId }, transaccion);
+          await this.registrar('CATALOGO_CREAR', 'area', area.id, actor, cliente, { nombre: area.nombre, padreId, tipo: area.tipo }, transaccion);
           return area;
         }),
       'Ya existe un área con ese nombre en la misma dependencia',
     );
-    return { id: creada.id, nombre: creada.nombre, padreId: creada.padreId, padreNombre: creada.padre?.nombre ?? null, activo: creada.activo };
+    return aAreaDto(creada);
   }
 
   async editarArea(id: number, datos: AreaInputDto, actor: SesionActiva, cliente: DatosCliente): Promise<AreaDto> {
@@ -91,21 +96,23 @@ export class OrganizationService {
         this.prisma.$transaction(async (transaccion) => {
           const area = await transaccion.area.update({
             where: { id },
-            data: { nombre: datos.nombre, padreId, activo: datos.activo },
+            data: { nombre: datos.nombre, padreId, tipo: datos.tipo, activo: datos.activo },
             include: { padre: true },
           });
-          await this.registrar('CATALOGO_EDITAR', 'area', id, actor, cliente, { nombre: area.nombre, padreId, activo: area.activo }, transaccion);
+          await this.registrar(
+            'CATALOGO_EDITAR',
+            'area',
+            id,
+            actor,
+            cliente,
+            { nombre: area.nombre, padreId, tipo: area.tipo, activo: area.activo },
+            transaccion,
+          );
           return area;
         }),
       'Ya existe un área con ese nombre en la misma dependencia',
     );
-    return {
-      id: actualizada.id,
-      nombre: actualizada.nombre,
-      padreId: actualizada.padreId,
-      padreNombre: actualizada.padre?.nombre ?? null,
-      activo: actualizada.activo,
-    };
+    return aAreaDto(actualizada);
   }
 
   async eliminarArea(id: number, actor: SesionActiva, cliente: DatosCliente): Promise<void> {
