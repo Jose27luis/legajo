@@ -260,21 +260,47 @@ export interface ResumenPersonal {
   cesados: number;
   rotados: number;
   destacados: number;
-  jefaturas: Jefatura[];
 }
 
-export interface Jefatura {
-  trabajadorId: string;
+export type SituacionAsignacion = 'VIGENTE' | 'PROXIMA' | 'CONCLUIDA';
+
+export interface Asignacion {
   documentoId: string;
+  trabajadorId: string;
   nombre: string;
   documentoIdentidad: string;
-  cargo: string;
+  trabajadorActivo: boolean;
   tipoAccion: string | null;
-  dependencia: string | null;
-  dependenciaSuperior: string | null;
+  numero: string | null;
+  fechaEmision: string | null;
   desde: string | null;
   hasta: string | null;
-  resolucion: string | null;
+  situacion: SituacionAsignacion;
+  disponible: boolean;
+}
+
+export interface JefaturaEess {
+  id: number;
+  nombre: string;
+  microredId: number | null;
+  microred: string | null;
+  personal: number;
+  actual: Asignacion | null;
+  historial: Asignacion[];
+}
+
+export interface GerenciaMicrored {
+  id: number;
+  nombre: string;
+  activo: boolean;
+  eess: number;
+  actual: Asignacion | null;
+  historial: Asignacion[];
+}
+
+export interface Jefaturas {
+  eess: JefaturaEess[];
+  microredes: GerenciaMicrored[];
 }
 
 export interface FiltrosPersonal {
