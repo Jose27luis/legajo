@@ -8,7 +8,7 @@ export type CampoSeccion = {
   tipo: TipoCampo;
   opciones?: string[];
   dependeDe?: { clave: string; opciones: Record<string, string[]> };
-  visibleSi?: { clave: string; valor: string };
+  visibleSi?: { clave: string; valores: string[] };
   obligatorio: boolean;
 };
 
@@ -348,6 +348,8 @@ const desplazamiento = (cargo: string, origen = 'Dependencia de origen', destino
   fecha('fechaEfecto', 'Fecha de inicio o efecto'),
 ];
 const OTRO_CARGO_DESIGNADO = 'Otro (especificar)';
+export const JEFE_EESS = 'Jefe/a de Establecimiento de Salud';
+export const GERENTE_MICRORED = 'Gerente de Microred';
 const CAMPOS_DESIGNACION_FUNCIONES: CampoSeccion[] = [
   seleccion('tipoAccion', 'Tipo de acción', [
     'Designación',
@@ -362,8 +364,8 @@ const CAMPOS_DESIGNACION_FUNCIONES: CampoSeccion[] = [
     'Jefe/a de Oficina',
     'Jefe/a de Unidad',
     'Jefe/a de Área',
-    'Jefe/a de Establecimiento de Salud',
-    'Gerente de Microred',
+    JEFE_EESS,
+    GERENTE_MICRORED,
     'Jefe/a de Servicio',
     'Coordinador/a',
     'Responsable de Área',
@@ -372,7 +374,11 @@ const CAMPOS_DESIGNACION_FUNCIONES: CampoSeccion[] = [
   ]),
   {
     ...texto('cargoEspecifico', 'Especificar cargo o función'),
-    visibleSi: { clave: 'cargoAsignado', valor: OTRO_CARGO_DESIGNADO },
+    visibleSi: { clave: 'cargoAsignado', valores: [OTRO_CARGO_DESIGNADO] },
+  },
+  {
+    ...catalogo('areaDesignada', 'EESS o microred designada', 'area'),
+    visibleSi: { clave: 'cargoAsignado', valores: [JEFE_EESS, GERENTE_MICRORED] },
   },
   fecha('fechaInicioFunciones', 'Fecha de inicio de funciones'),
   fecha('fechaFinFunciones', 'Fecha de término de funciones'),
