@@ -303,6 +303,40 @@ export interface Jefaturas {
   microredes: GerenciaMicrored[];
 }
 
+export type CargoJefatura = 'Jefe/a de Establecimiento de Salud' | 'Gerente de Microred';
+
+export interface CandidatoJefatura {
+  trabajadorId: string;
+  nombre: string;
+  documentoIdentidad: string;
+  cargo: string;
+  eess: string;
+}
+
+export interface AsignacionMasiva {
+  trabajadorId: string;
+  areaId: number;
+  desde: string | null;
+  hasta: string | null;
+}
+
+export interface DesignacionMasiva {
+  cargo: CargoJefatura;
+  numero: string;
+  fechaEmision: string;
+  tipoAccion: string;
+  desde: string;
+  hasta: string | null;
+  nivelAcceso: NivelAcceso;
+  observaciones: string | null;
+  asignaciones: AsignacionMasiva[];
+}
+
+export interface RevisionMasiva {
+  filas: { indice: number; problemas: string[] }[];
+  valida: boolean;
+}
+
 export interface FiltrosPersonal {
   busqueda: string;
   estado: EstadoTrabajador | '';
