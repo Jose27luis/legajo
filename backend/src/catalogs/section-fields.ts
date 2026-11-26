@@ -9,7 +9,7 @@ const esquemaCampos = z.array(
     tipo: z.enum(TIPOS_CAMPO),
     opciones: z.array(z.string()).optional(),
     dependeDe: z.object({ clave: z.string(), opciones: z.record(z.string(), z.array(z.string())) }).optional(),
-    visibleSi: z.object({ clave: z.string(), valor: z.string() }).optional(),
+    visibleSi: z.object({ clave: z.string(), valores: z.array(z.string()).min(1) }).optional(),
     obligatorio: z.boolean(),
   }),
 );
@@ -54,7 +54,8 @@ export function validarDatos(campos: SectionFieldDto[], entrada: Record<string, 
   const resultado: Record<string, ValorCampo> = {};
   for (const campo of campos) {
     const condicion = campo.visibleSi;
-    if (condicion !== undefined && entrada[condicion.clave] !== condicion.valor) {
+    const valorCondicion = condicion === undefined ? undefined : entrada[condicion.clave];
+    if (condicion !== undefined && (typeof valorCondicion !== 'string' || !condicion.valores.includes(valorCondicion))) {
       resultado[campo.clave] = null;
       continue;
     }
