@@ -151,7 +151,7 @@ export class DocumentDialogComponent implements OnDestroy {
   protected readonly progreso = signal<number | null>(null);
   protected readonly archivo = signal<File | null>(null);
   protected readonly areas = computed<OpcionBuscable[]>(() =>
-    (this.opcionesVinculo.opciones()?.areas ?? []).map((area) => ({ valor: area.id, etiqueta: area.nombre, detalle: area.padreNombre })),
+    (this.opcionesVinculo.opciones()?.areasDeTrabajo ?? []).map((area) => ({ valor: area.id, etiqueta: area.nombre, detalle: area.padreNombre })),
   );
 
   protected readonly formulario = crearFormularioDocumento();
