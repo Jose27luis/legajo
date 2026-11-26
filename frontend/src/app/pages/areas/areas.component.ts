@@ -5,7 +5,8 @@ import { SearchSelectComponent, type OpcionBuscable, type ValorOpcion } from '..
 import { SkeletonComponent } from '../../components/skeleton/skeleton.component';
 import { mensajeDeError } from '../../core/errors';
 import { normalizarTexto } from '../../core/format';
-import type { Area } from '../../core/models';
+import { TEXTO_TIPO_AREA, TIPOS_AREA } from '../../core/labels';
+import type { Area, TipoArea } from '../../core/models';
 import { ToastService } from '../../core/toast.service';
 import { CatalogsService } from '../../services/catalogs.service';
 
@@ -18,6 +19,8 @@ const OPCIONES_ESTADO: readonly OpcionBuscable[] = [
 ];
 
 const FILTROS: readonly FiltroEstado[] = ['activas', 'inactivas', 'todas'];
+
+const OPCIONES_TIPO: readonly OpcionBuscable[] = TIPOS_AREA.map((tipo) => ({ valor: tipo, etiqueta: TEXTO_TIPO_AREA[tipo] }));
 
 @Component({
   selector: 'app-areas',
@@ -43,6 +46,8 @@ export class AreasComponent implements OnInit {
   protected readonly busqueda = signal('');
   protected readonly estado = signal<FiltroEstado>('activas');
   protected readonly opcionesEstado = OPCIONES_ESTADO;
+  protected readonly opcionesTipo = OPCIONES_TIPO;
+  protected readonly textoTipo = TEXTO_TIPO_AREA;
 
   protected readonly resumen = computed(() => {
     const areas = this.areas();
@@ -58,7 +63,10 @@ export class AreasComponent implements OnInit {
     const estado = this.estado();
     return this.areas()
       .filter((area) => estado === 'todas' || area.activo === (estado === 'activas'))
-      .filter((area) => termino === '' || normalizarTexto(`${area.nombre} ${area.padreNombre ?? ''}`).includes(termino))
+      .filter(
+        (area) =>
+          termino === '' || normalizarTexto(`${area.nombre} ${area.padreNombre ?? ''} ${TEXTO_TIPO_AREA[area.tipo]}`).includes(termino),
+      )
       .sort((a, b) => (a.padreNombre ?? '').localeCompare(b.padreNombre ?? '') || a.nombre.localeCompare(b.nombre));
   });
 
@@ -77,6 +85,7 @@ export class AreasComponent implements OnInit {
       validators: [Validators.required, Validators.minLength(2), Validators.maxLength(140)],
     }),
     padreId: new FormControl<number | null>(null),
+    tipo: new FormControl<TipoArea>('DEPENDENCIA', { nonNullable: true, validators: [Validators.required] }),
   });
 
   ngOnInit(): void {
@@ -108,14 +117,14 @@ export class AreasComponent implements OnInit {
   protected nuevo(): void {
     this.editando.set(null);
     this.errorFormulario.set(null);
-    this.formulario.reset({ nombre: '', padreId: null });
+    this.formulario.reset({ nombre: '', padreId: null, tipo: 'DEPENDENCIA' });
     this.dialogoAbierto.set(true);
   }
 
   protected editar(area: Area): void {
     this.editando.set(area);
     this.errorFormulario.set(null);
-    this.formulario.reset({ nombre: area.nombre, padreId: area.padreId });
+    this.formulario.reset({ nombre: area.nombre, padreId: area.padreId, tipo: area.tipo });
     this.dialogoAbierto.set(true);
   }
 
@@ -138,10 +147,10 @@ export class AreasComponent implements OnInit {
     }
     this.guardando.set(true);
     this.errorFormulario.set(null);
-    const { nombre, padreId } = this.formulario.getRawValue();
+    const { nombre, padreId, tipo } = this.formulario.getRawValue();
     try {
       const actual = this.editando();
-      const datos = { nombre: nombre.trim(), padreId, activo: actual?.activo ?? true };
+      const datos = { nombre: nombre.trim(), padreId, tipo, activo: actual?.activo ?? true };
       if (actual === null) {
         const creada = await this.servicio.crearArea(datos);
         this.areas.update((lista) => [...lista, creada].sort((a, b) => a.nombre.localeCompare(b.nombre)));
@@ -160,7 +169,7 @@ export class AreasComponent implements OnInit {
 
   protected async alternarActivo(area: Area): Promise<void> {
     try {
-      await this.recargarTras(this.servicio.editarArea(area.id, { nombre: area.nombre, padreId: area.padreId, activo: !area.activo }));
+      await this.recargarTras(this.servicio.editarArea(area.id, { nombre: area.nombre, padreId: area.padreId, tipo: area.tipo, activo: !area.activo }));
       this.avisos.exito(`Área ${area.activo ? 'desactivada' : 'activada'}`);
     } catch (error: unknown) {
       this.avisos.error(mensajeDeError(error));
