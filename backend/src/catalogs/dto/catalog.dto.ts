@@ -30,9 +30,9 @@ export class SectionFieldDto {
 
   @ApiProperty({
     required: false,
-    description: 'El campo solo se muestra y se exige cuando el campo indicado tiene ese valor',
+    description: 'El campo solo se muestra y se exige cuando el campo indicado tiene alguno de esos valores',
   })
-  visibleSi?: { clave: string; valor: string };
+  visibleSi?: { clave: string; valores: string[] };
 
   @ApiProperty()
   obligatorio: boolean;
