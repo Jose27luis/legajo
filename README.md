@@ -264,7 +264,13 @@ Las resoluciones 0203 a 0205, el contrato y la adenda crean o actualizan el vín
 
 Los tipos 0705 a 0708 se confirman como movimiento laboral y actualizan el área de la ficha. La designación (0704) registra el cargo o la función asignada sin mover al servidor de dependencia, por eso no se confirma como movimiento. La designación ocupa formalmente un cargo; el encargo cubre un puesto de forma temporal y no es un ascenso.
 
-El inicio muestra, entre los indicadores y el buscador, la tabla de jefes de EESS y gerentes de microred. Sale de las designaciones 0704 disponibles con cargo «Jefe/a de Establecimiento de Salud» o «Gerente de Microred», de trabajadores activos y vigentes a la fecha: el inicio de funciones ya llegó y el término no pasó o está vacío. Si un trabajador tiene varias, vale la de inicio más reciente. El establecimiento o la microred es el que indica la 0704, con la dependencia a la que pertenece debajo.
+El inicio muestra, entre los indicadores y el buscador de personal, el buscador de jefes de EESS y gerentes de microred. Sale de las designaciones 0704 con cargo «Jefe/a de Establecimiento de Salud» o «Gerente de Microred» y del EESS o la microred que cada una indica.
+
+- La cabecera cuenta cuántos EESS tienen jefe y cuántas microredes tienen gerente, sobre el total de cada tipo de área.
+- Dos pestañas: EESS, con todos los EESS y su microred, y Microredes, con las microredes y su número de EESS. Cada fila muestra la persona vigente con su documento de identidad, desde cuándo y la resolución, o que no hay nadie registrado.
+- Se filtra por texto (EESS, microred, nombre o documento, sin importar tildes), por microred y por estado: todos, con jefe o sin jefe.
+- «Historial» lista todas las designaciones de esa sede, de la más reciente a la más antigua, con su situación (vigente, próxima o concluida), tipo de acción, resolución, emisión y fechas. Desde cada una se abre el legajo del trabajador en la Sección 07 y, con permiso para ver documentos, su PDF.
+- Vigente es la designación disponible de un trabajador activo cuyo inicio de funciones ya llegó y cuyo término no pasó o está vacío. Las designaciones anuladas no aparecen y las demás siguen la visibilidad de documentos de la sesión.
 
 **08 Reconocimientos y sanciones disciplinarias** (carpeta `08_Reconocimientos_y_Sanciones`)
 
@@ -348,7 +354,7 @@ El número, la fecha de emisión, el emisor y el vencimiento cambian de nombre s
 | 0505 Licencias otorgadas | Tipo de licencia, inicio y fin |
 | 0601 | Tiempo de servicios reconocido, fecha de reconocimiento o efecto |
 | 0602 a 0604, 0701 a 0703 | Concepto o motivo, período de inicio y de fin |
-| 0704 Designación | Tipo de acción (designación, asignación de funciones, ratificación de funciones, asignación y ratificación de funciones); cargo o función asignada (director/a general, director/a ejecutivo/a, director/a de red de salud, jefe/a de oficina, de unidad, de área, de establecimiento de salud o de servicio, gerente de microred, coordinador/a, responsable de área o de programa, otro); fecha de inicio de funciones y de término. «Otro (especificar)» habilita «Especificar cargo o función», que entonces es obligatorio. «Jefe/a de Establecimiento de Salud» habilita «EESS donde ejerce la jefatura» y «Gerente de Microred» habilita «Microred que dirige»; cada uno ofrece solo áreas de ese tipo y entonces es obligatorio |
+| 0704 Designación | Tipo de acción (designación, asignación de funciones, ratificación de funciones, asignación y ratificación de funciones); cargo o función asignada (director/a general, director/a ejecutivo/a, director/a de red de salud, jefe/a de oficina, de unidad, de área, de establecimiento de salud o de servicio, gerente de microred, coordinador/a, responsable de área o de programa, otro); fecha de inicio de funciones y de término. «Otro (especificar)» habilita «Especificar cargo o función», que entonces es obligatorio. «Jefe/a de Establecimiento de Salud» habilita «EESS donde ejerce la jefatura» y «Gerente de Microred» habilita «Microred que dirige»; cada uno ofrece solo áreas de ese tipo y entonces es obligatorio. Un EESS tiene un solo jefe y una microred un solo gerente a la vez: se rechaza la designación cuyas fechas se cruzan con otra no anulada de otro trabajador para la misma sede; el mismo trabajador puede tener varias (designación y ratificación) y una fecha vacía deja el período abierto |
 | 0705 a 0708 Desplazamiento | Dependencia de origen y de destino, cargo o función, fecha de inicio o efecto |
 | 0801 a 0803 Reconocimientos | Motivo y fecha del reconocimiento |
 | 0804 Sanciones | Tipo de sanción (amonestación escrita, suspensión, destitución), fecha de inicio o efecto |
@@ -1333,7 +1339,7 @@ flowchart LR
     LOGIN["Inicio de sesión"] --> CC["Cambiar clave<br/>primer ingreso"]
     LOGIN --> REC["Recuperar contraseña<br/>código al correo"]
     REC --> LOGIN
-    LOGIN --> INI["Inicio<br/>total, activos, cesados,<br/>rotados, destacados,<br/>jefes de EESS y gerentes"]
+    LOGIN --> INI["Inicio<br/>total, activos, cesados,<br/>rotados, destacados,<br/>buscador de jefes de EESS<br/>y gerentes con historial"]
     INI --> PRF["Mi perfil<br/>datos y cambio de clave"]
     CC --> INI
     INI --> PER["Personal<br/>listado con filtros"]
