@@ -1,0 +1,197 @@
+<section class="jefaturas" aria-labelledby="jefaturas-titulo">
+  <header class="cabecera">
+    <div>
+      <h2 id="jefaturas-titulo">Jefes de EESS y gerentes de microred</h2>
+      <p>Según las designaciones registradas en la Sección 07 del legajo.</p>
+    </div>
+    @if (resumen(); as cifras) {
+      <div class="conteos">
+        <span class="pastilla azul">EESS con jefe: {{ cifras.eessConJefe }} de {{ cifras.eess }}</span>
+        <span class="pastilla violeta">Microredes con gerente: {{ cifras.microredesConGerente }} de {{ cifras.microredes }}</span>
+      </div>
+    }
+  </header>
+
+  @if (errorCarga(); as mensaje) {
+    <div class="aviso error" role="alert">
+      {{ mensaje }}
+      <button type="button" class="boton chico" (click)="recargar()">Reintentar</button>
+    </div>
+  } @else {
+    <div class="pestanas" role="tablist" aria-label="Tipo de sede">
+      @for (opcion of pestanas; track opcion.id; let indice = $index) {
+        <button
+          type="button"
+          role="tab"
+          class="pestana"
+          [id]="'jefaturas-pestana-' + opcion.id"
+          [class.activa]="pestana() === opcion.id"
+          [attr.aria-selected]="pestana() === opcion.id"
+          [attr.aria-controls]="'jefaturas-panel-' + opcion.id"
+          [attr.tabindex]="pestana() === opcion.id ? 0 : -1"
+          (click)="seleccionar(opcion.id)"
+          (keydown)="moverConTeclado($event, indice)"
+        >
+          {{ opcion.etiqueta }}
+        </button>
+      }
+    </div>
+
+    <div class="panel" role="tabpanel" [id]="'jefaturas-panel-' + pestana()" [attr.aria-labelledby]="'jefaturas-pestana-' + pestana()">
+      <div class="barra-tabla">
+        <div class="campo buscador">
+          <label for="jefaturas-busqueda">{{ pestana() === 'eess' ? 'Buscar EESS, jefe o documento' : 'Buscar microred, gerente o documento' }}</label>
+          <input id="jefaturas-busqueda" type="search" autocomplete="off" [value]="busqueda()" (input)="buscar($event)" />
+        </div>
+        <div class="campo filtro">
+          <label for="jefaturas-microred">Microred</label>
+          <app-search-select idCampo="jefaturas-microred" [opciones]="opcionesMicrored()" [seleccion]="microredId()" (cambio)="filtrarMicrored($event)" />
+        </div>
+        <div class="campo filtro">
+          <label for="jefaturas-estado">Estado</label>
+          <app-search-select idCampo="jefaturas-estado" [opciones]="opcionesEstado()" [seleccion]="estado()" (cambio)="filtrarEstado($event)" />
+        </div>
+        <span class="conteo" aria-live="polite">{{ filtradas().length }} {{ filtradas().length === 1 ? 'resultado' : 'resultados' }}</span>
+      </div>
+
+      <div class="tabla-contenedor">
+        <table class="tabla apilable">
+          <thead>
+            <tr>
+              <th scope="col">{{ pestana() === 'eess' ? 'Establecimiento' : 'Microred' }}</th>
+              <th scope="col">{{ pestana() === 'eess' ? 'Jefe vigente' : 'Gerente vigente' }}</th>
+              <th scope="col">Desde</th>
+              <th scope="col">Resolución</th>
+              <th scope="col"><span class="solo-lector">Acciones</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            @if (datos.isLoading() && !datos.hasValue()) {
+              <tr>
+                <td colspan="5" class="celda-vacia">Cargando jefaturas</td>
+              </tr>
+            } @else {
+              @for (sede of visibles(); track sede.clave) {
+                <tr>
+                  <td [attr.data-etiqueta]="pestana() === 'eess' ? 'Establecimiento' : 'Microred'">
+                    <strong>{{ sede.nombre }}</strong>
+                    <span class="secundario">{{ sede.detalle }}</span>
+                  </td>
+                  <td [attr.data-etiqueta]="pestana() === 'eess' ? 'Jefe vigente' : 'Gerente vigente'">
+                    @if (sede.actual; as actual) {
+                      <strong>{{ actual.nombre }}</strong>
+                      <span class="secundario">{{ actual.documentoIdentidad }}</span>
+                    } @else {
+                      <span class="sin-registro">Sin {{ pestana() === 'eess' ? 'jefe' : 'gerente' }} registrado</span>
+                    }
+                  </td>
+                  <td data-etiqueta="Desde">
+                    @if (sede.actual; as actual) {
+                      {{ actual.desde === null ? 'Sin fecha' : fechaCorta(actual.desde) }}
+                      @if (actual.tipoAccion; as accion) {
+                        <span class="secundario">{{ accion }}</span>
+                      }
+                    } @else {
+                      —
+                    }
+                  </td>
+                  <td data-etiqueta="Resolución">{{ sede.actual?.numero ?? '—' }}</td>
+                  <td>
+                    <div class="fila-acciones">
+                      <button type="button" class="boton chico" (click)="abrirHistorial(sede)">
+                        Historial
+                        <span class="solo-lector">de {{ sede.nombre }}</span>
+                        <span class="cantidad">{{ sede.historial.length }}</span>
+                      </button>
+                      @if (sede.actual; as actual) {
+                        <a class="boton chico" [routerLink]="['/workers', actual.trabajadorId, 'sections', 7]">
+                          Ver legajo<span class="solo-lector"> de {{ actual.nombre }}</span>
+                        </a>
+                      }
+                    </div>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="5" class="celda-vacia">
+                    No hay {{ pestana() === 'eess' ? 'establecimientos' : 'microredes' }} que coincidan con los filtros.
+                    <button type="button" class="boton chico" (click)="limpiar()">Quitar filtros</button>
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <app-pager
+        [pagina]="pagina()"
+        [paginas]="paginas()"
+        [total]="filtradas().length"
+        [unidad]="pestana() === 'eess' ? ['establecimiento', 'establecimientos'] : ['microred', 'microredes']"
+        etiqueta="Páginas de jefaturas"
+        (cambio)="pagina.set($event)"
+      />
+    </div>
+  }
+</section>
+
+<app-dialog [abierto]="abierta() !== null" [mediano]="true" [titulo]="'Historial · ' + (abierta()?.nombre ?? '')" (cerrar)="cerrarHistorial()">
+  @if (abierta(); as sede) {
+    <p class="explicacion">{{ sede.detalle }} · {{ sede.historial.length }} {{ sede.historial.length === 1 ? 'designación' : 'designaciones' }}</p>
+    @if (sede.historial.length === 0) {
+      <p class="vacio">
+        Todavía no hay designaciones para esta sede. Se registran en la Sección 07 del legajo del trabajador, con la designación 0704 y el cargo
+        «{{ pestana() === 'eess' ? 'Jefe/a de Establecimiento de Salud' : 'Gerente de Microred' }}».
+      </p>
+    } @else {
+      <ol class="historial">
+        @for (asignacion of sede.historial; track asignacion.documentoId) {
+          <li class="asignacion">
+            <div class="asignacion-cabecera">
+              <strong>{{ asignacion.nombre }}</strong>
+              <span class="pastilla" [class]="tonoSituacion[asignacion.situacion]">{{ textoSituacion[asignacion.situacion] }}</span>
+            </div>
+            <dl class="asignacion-datos">
+              <div>
+                <dt>Documento de identidad</dt>
+                <dd>{{ asignacion.documentoIdentidad }}{{ asignacion.trabajadorActivo ? '' : ' · cesado' }}</dd>
+              </div>
+              <div>
+                <dt>Tipo de acción</dt>
+                <dd>{{ asignacion.tipoAccion ?? 'No registrado' }}</dd>
+              </div>
+              <div>
+                <dt>Resolución</dt>
+                <dd>{{ asignacion.numero ?? 'Sin número' }}</dd>
+              </div>
+              <div>
+                <dt>Emisión</dt>
+                <dd>{{ fechaCorta(asignacion.fechaEmision) }}</dd>
+              </div>
+              <div class="ancho">
+                <dt>Período de funciones</dt>
+                <dd>{{ periodo(asignacion) }}</dd>
+              </div>
+            </dl>
+            <div class="fila-acciones">
+              <a class="boton chico" [routerLink]="['/workers', asignacion.trabajadorId, 'sections', 7]" (click)="cerrarHistorial()">
+                Ver legajo<span class="solo-lector"> de {{ asignacion.nombre }}</span>
+              </a>
+              @if (asignacion.disponible && sesion.tiene('documentos.ver')) {
+                <a class="boton chico" [href]="enlacePdf(asignacion)" target="_blank" rel="noopener">
+                  Ver PDF<span class="solo-lector"> de la resolución {{ asignacion.numero ?? '' }}</span>
+                </a>
+              } @else if (!asignacion.disponible) {
+                <span class="secundario">El PDF no está disponible todavía</span>
+              }
+            </div>
+          </li>
+        }
+      </ol>
+    }
+  }
+  <ng-container pie>
+    <button type="button" class="boton" (click)="cerrarHistorial()">Cerrar</button>
+  </ng-container>
+</app-dialog>
