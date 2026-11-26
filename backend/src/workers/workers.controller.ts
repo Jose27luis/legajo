@@ -54,7 +54,7 @@ export class WorkersController {
 
   @Requiere('personal.ver')
   @Get('summary')
-  @ApiOperation({ summary: 'Indicadores del personal y jefaturas de EESS y microredes vigentes' })
+  @ApiOperation({ summary: 'Indicadores del personal' })
   @ApiResponse({ status: 200, type: WorkerSummaryDto })
   async resumen(): Promise<WorkerSummaryDto> {
     return this.trabajadores.resumen();
