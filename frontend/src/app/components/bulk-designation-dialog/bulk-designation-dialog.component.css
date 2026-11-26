@@ -1,0 +1,142 @@
+.explicacion {
+  margin-bottom: 14px;
+  color: var(--tinta-media);
+  line-height: 1.55;
+}
+
+.bloque {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.bloque h3 {
+  color: var(--titulo);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.titulo-bloque {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.rejilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 12px 14px;
+}
+
+.rejilla .ancho {
+  grid-column: 1 / -1;
+}
+
+.barra-tabla {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.buscador {
+  flex: 1 1 240px;
+}
+
+.filtro {
+  flex: 0 0 220px;
+}
+
+.barra-tabla .casilla,
+.sede-eleccion .casilla {
+  align-items: center;
+  align-self: flex-end;
+}
+
+.sedes {
+  display: grid;
+  gap: 8px;
+  max-height: 46vh;
+  margin: 0;
+  padding: 0 2px 2px 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.sede {
+  display: grid;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--linea);
+  border-radius: 10px;
+  background: var(--hoja);
+}
+
+.sede.elegida {
+  border-color: var(--primario);
+  background: var(--primario-claro);
+}
+
+.sede.con-problemas {
+  border-color: var(--alerta);
+  border-left-width: 4px;
+}
+
+.sede-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.secundario {
+  display: block;
+  color: var(--tinta-suave);
+  font-size: 12px;
+}
+
+.sede-eleccion {
+  display: grid;
+  grid-template-columns: minmax(240px, 2fr) auto repeat(2, minmax(150px, 1fr));
+  align-items: end;
+  gap: 10px;
+}
+
+.aviso-sede {
+  color: var(--tinta-media);
+  font-size: 12.5px;
+  font-style: italic;
+}
+
+.problemas {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding-left: 18px;
+  color: var(--alerta-texto);
+  font-size: 12.5px;
+}
+
+.vacio {
+  padding: 14px;
+  border: 1px dashed var(--linea-fuerte);
+  border-radius: 10px;
+  color: var(--tinta-media);
+  font-size: 13px;
+}
+
+@media (max-width: 760px) {
+  .filtro {
+    flex: 1 1 100%;
+  }
+
+  .sede-eleccion {
+    grid-template-columns: 1fr;
+  }
+
+  .sede-cabecera {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
