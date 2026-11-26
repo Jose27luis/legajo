@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import { IsBoolean, IsIn, IsInt, IsOptional, IsPositive, IsString, Length, Matches, Max, Min } from 'class-validator';
-import { APLICA_A, TIPOS_PERSONAL, type AplicaAValor, type TipoPersonalValor } from './catalog.dto';
+import { APLICA_A, TIPOS_AREA, TIPOS_PERSONAL, type AplicaAValor, type TipoAreaValor, type TipoPersonalValor } from './catalog.dto';
 
 const recortar = ({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim().replace(/\s+/g, ' ') : value);
 const mayusculas = ({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim().toUpperCase() : value);
@@ -103,6 +103,10 @@ export class AreaInputDto {
   @IsInt()
   @IsPositive()
   padreId: number | null = null;
+
+  @ApiProperty({ enum: TIPOS_AREA })
+  @IsIn(TIPOS_AREA, { message: 'Elige si el área es una dependencia, una microred o un EESS' })
+  tipo: TipoAreaValor;
 
   @ApiProperty()
   @IsBoolean()
