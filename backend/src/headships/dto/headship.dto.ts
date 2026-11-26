@@ -84,6 +84,44 @@ export class MicronetworkHeadshipDto {
   historial: AssignmentDto[];
 }
 
+export class HeadshipCandidateDto {
+  @ApiProperty({ format: 'uuid' })
+  trabajadorId: string;
+
+  @ApiProperty()
+  nombre: string;
+
+  @ApiProperty()
+  documentoIdentidad: string;
+
+  @ApiProperty()
+  cargo: string;
+
+  @ApiProperty({ description: 'EESS de su período actual' })
+  eess: string;
+}
+
+export class BulkRowReviewDto {
+  @ApiProperty({ description: 'Posición de la fila en la lista enviada, desde 0' })
+  indice: number;
+
+  @ApiProperty({ type: [String] })
+  problemas: string[];
+}
+
+export class BulkReviewDto {
+  @ApiProperty({ type: () => [BulkRowReviewDto] })
+  filas: BulkRowReviewDto[];
+
+  @ApiProperty({ description: 'Ninguna fila tiene problemas' })
+  valida: boolean;
+}
+
+export class BulkResultDto {
+  @ApiProperty({ type: [String], format: 'uuid' })
+  documentos: string[];
+}
+
 export class HeadshipsDto {
   @ApiProperty({ type: () => [HealthFacilityHeadshipDto] })
   eess: HealthFacilityHeadshipDto[];
