@@ -264,7 +264,7 @@ Las resoluciones 0203 a 0205, el contrato y la adenda crean o actualizan el vín
 
 Los tipos 0705 a 0708 se confirman como movimiento laboral y actualizan el área de la ficha. La designación (0704) registra el cargo o la función asignada sin mover al servidor de dependencia, por eso no se confirma como movimiento. La designación ocupa formalmente un cargo; el encargo cubre un puesto de forma temporal y no es un ascenso.
 
-El inicio muestra, entre los indicadores y el buscador, la tabla de jefes de EESS y gerentes de microred. Sale de las designaciones 0704 disponibles con cargo «Jefe/a de Establecimiento de Salud» o «Gerente de Microred», de trabajadores activos y vigentes a la fecha: el inicio de funciones ya llegó y el término no pasó o está vacío. Si un trabajador tiene varias, vale la de inicio más reciente. El establecimiento o la microred es el área designada en la 0704, con la dependencia a la que pertenece debajo.
+El inicio muestra, entre los indicadores y el buscador, la tabla de jefes de EESS y gerentes de microred. Sale de las designaciones 0704 disponibles con cargo «Jefe/a de Establecimiento de Salud» o «Gerente de Microred», de trabajadores activos y vigentes a la fecha: el inicio de funciones ya llegó y el término no pasó o está vacío. Si un trabajador tiene varias, vale la de inicio más reciente. El establecimiento o la microred es el que indica la 0704, con la dependencia a la que pertenece debajo.
 
 **08 Reconocimientos y sanciones disciplinarias** (carpeta `08_Reconocimientos_y_Sanciones`)
 
@@ -348,7 +348,7 @@ El número, la fecha de emisión, el emisor y el vencimiento cambian de nombre s
 | 0505 Licencias otorgadas | Tipo de licencia, inicio y fin |
 | 0601 | Tiempo de servicios reconocido, fecha de reconocimiento o efecto |
 | 0602 a 0604, 0701 a 0703 | Concepto o motivo, período de inicio y de fin |
-| 0704 Designación | Tipo de acción (designación, asignación de funciones, ratificación de funciones, asignación y ratificación de funciones); cargo o función asignada (director/a general, director/a ejecutivo/a, director/a de red de salud, jefe/a de oficina, de unidad, de área, de establecimiento de salud o de servicio, gerente de microred, coordinador/a, responsable de área o de programa, otro); fecha de inicio de funciones y de término. «Otro (especificar)» habilita «Especificar cargo o función», que entonces es obligatorio. «Jefe/a de Establecimiento de Salud» y «Gerente de Microred» habilitan «EESS o microred designada», un área del catálogo que entonces es obligatoria |
+| 0704 Designación | Tipo de acción (designación, asignación de funciones, ratificación de funciones, asignación y ratificación de funciones); cargo o función asignada (director/a general, director/a ejecutivo/a, director/a de red de salud, jefe/a de oficina, de unidad, de área, de establecimiento de salud o de servicio, gerente de microred, coordinador/a, responsable de área o de programa, otro); fecha de inicio de funciones y de término. «Otro (especificar)» habilita «Especificar cargo o función», que entonces es obligatorio. «Jefe/a de Establecimiento de Salud» habilita «EESS donde ejerce la jefatura» y «Gerente de Microred» habilita «Microred que dirige»; cada uno ofrece solo áreas de ese tipo y entonces es obligatorio |
 | 0705 a 0708 Desplazamiento | Dependencia de origen y de destino, cargo o función, fecha de inicio o efecto |
 | 0801 a 0803 Reconocimientos | Motivo y fecha del reconocimiento |
 | 0804 Sanciones | Tipo de sanción (amonestación escrita, suspensión, destitución), fecha de inicio o efecto |
@@ -381,7 +381,7 @@ Nivel de acceso por documento: **Restringido** (Administrador y Operador) o **Mu
 | Reportes | Listados y documentos faltantes |
 | Auditoría | Registrar quién realizó cada acción |
 | Backup | Copias de seguridad |
-| Catálogos | Secciones, tipos de documento, documentos obligatorios, regímenes, áreas y cargos (lo administra el rol Administrador) |
+| Catálogos | Secciones, tipos de documento, documentos obligatorios, regímenes, áreas y cargos (lo administra el rol Administrador). Cada área es una dependencia, una microred o un EESS |
 
 ## Modelo de datos
 
@@ -460,6 +460,7 @@ erDiagram
         int id PK
         varchar nombre
         int padre_id FK "dependencia superior"
+        varchar tipo "DEPENDENCIA, MICRORED o EESS"
         bool activo
     }
     CARGO {
@@ -691,6 +692,7 @@ Motivos de cese: `RENUNCIA`, `JUBILACION`, `FALLECIMIENTO`, `FIN_CONTRATO`, `DES
 - El contrato manda sobre el estado. Los contratos, adendas y resoluciones de la sección 02 llevan fecha de fin; la más lejana entre los enlazados al vínculo actual es el fin del contrato vigente y se muestra en la ficha. Cuando esa fecha ya pasó, el trabajador queda CESADO por `FIN_CONTRATO` en esa fecha: al registrar el contrato si ya venció, o en la revisión diaria del worker cuando vence después. Un contrato posterior se registra como reingreso y vuelve a activarlo.
 - Los períodos respetan el orden de las fechas. Un contrato que empieza antes del período vigente y tiene fecha de fin es un período anterior: crea su propio período cerrado por fin de contrato, con el régimen, cargo y área del contrato, y nunca toca los datos ni las fechas del período vigente. Si sus fechas se cruzan con cualquier período del historial, el contrato se rechaza con el detalle del cruce. Un contrato que empieza el mismo día que el período vigente es su sustento; uno que empieza después abre un período nuevo como renovación. Las adendas de un período anterior lo extienden como máximo hasta el día antes del período siguiente.
 - Editar el inicio de un contrato no mueve su período. Si el nuevo inicio queda fuera del período que el contrato sustenta, la edición se rechaza: el documento se elimina y se vuelve a subir con las fechas correctas, y al eliminarlo el período anterior se restaura como indica la regla de eliminación.
+- Una microred agrupa EESS y no es un lugar de trabajo: no se elige como área de un vínculo, de un contrato ni como destino de un movimiento, y la importación de trabajadores rechaza las filas que la indican. Los campos de área de cada formulario solo ofrecen los tipos de área que les corresponden.
 - Editar el régimen, el cargo o el área de dependencia (EESS) de un contrato actualiza su período en la Sección 01, siempre que sea el contrato más reciente de ese período. Las adendas no cambian estos datos del período.
 - La fecha de ingreso de la ficha es el inicio del período actual. Al editarla en la ficha, el período actual pasa a empezar en esa fecha. Si la fecha se cruza con un período cerrado del historial o queda después del fin del período actual, la edición se rechaza.
 - Editar la fecha de cese de un documento de desvinculación ya confirmado lo reubica. Si al confirmarlo solo anotó el motivo de un período ya cerrado, pasa al período cerrado que contiene la nueva fecha y le anota su motivo; si ningún período cerrado la contiene, la edición se rechaza. Si al confirmarlo cerró el período, la nueva fecha pasa a ser el fin de ese período, sin ser anterior a su inicio ni futura.
