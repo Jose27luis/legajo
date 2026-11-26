@@ -39,11 +39,11 @@ export class LinkFieldsComponent implements OnInit {
     (this.opciones()?.cargos ?? []).map((cargo) => ({ valor: cargo.id, etiqueta: cargo.nombre })),
   );
   protected readonly areas = computed<OpcionBuscable[]>(() =>
-    (this.opciones()?.areas ?? []).map((area) => ({ valor: area.id, etiqueta: area.nombre, detalle: area.padreNombre })),
+    (this.opciones()?.areasDeTrabajo ?? []).map((area) => ({ valor: area.id, etiqueta: area.nombre, detalle: area.padreNombre })),
   );
   protected readonly faltanCatalogos = computed(() => {
     const opciones = this.opciones();
-    return opciones !== null && (opciones.cargos.length === 0 || opciones.areas.length === 0);
+    return opciones !== null && (opciones.cargos.length === 0 || opciones.areasDeTrabajo.length === 0);
   });
 
   ngOnInit(): void {
