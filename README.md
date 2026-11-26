@@ -264,7 +264,7 @@ Las resoluciones 0203 a 0205, el contrato y la adenda crean o actualizan el vín
 
 Los tipos 0705 a 0708 se confirman como movimiento laboral y actualizan el área de la ficha. La designación (0704) registra el cargo o la función asignada sin mover al servidor de dependencia, por eso no se confirma como movimiento. La designación ocupa formalmente un cargo; el encargo cubre un puesto de forma temporal y no es un ascenso.
 
-El inicio muestra, entre los indicadores y el buscador, la tabla de jefes de EESS y gerentes de microred. Sale de las designaciones 0704 disponibles con cargo «Jefe/a de Establecimiento de Salud» o «Gerente de Microred», de trabajadores activos y vigentes a la fecha: el inicio de funciones ya llegó y el término no pasó o está vacío. Si un trabajador tiene varias, vale la de inicio más reciente. El establecimiento es el área de su período actual, con la microred a la que pertenece debajo.
+El inicio muestra, entre los indicadores y el buscador, la tabla de jefes de EESS y gerentes de microred. Sale de las designaciones 0704 disponibles con cargo «Jefe/a de Establecimiento de Salud» o «Gerente de Microred», de trabajadores activos y vigentes a la fecha: el inicio de funciones ya llegó y el término no pasó o está vacío. Si un trabajador tiene varias, vale la de inicio más reciente. El establecimiento o la microred es el área designada en la 0704, con la dependencia a la que pertenece debajo.
 
 **08 Reconocimientos y sanciones disciplinarias** (carpeta `08_Reconocimientos_y_Sanciones`)
 
@@ -348,7 +348,7 @@ El número, la fecha de emisión, el emisor y el vencimiento cambian de nombre s
 | 0505 Licencias otorgadas | Tipo de licencia, inicio y fin |
 | 0601 | Tiempo de servicios reconocido, fecha de reconocimiento o efecto |
 | 0602 a 0604, 0701 a 0703 | Concepto o motivo, período de inicio y de fin |
-| 0704 Designación | Tipo de acción (designación, asignación de funciones, ratificación de funciones, asignación y ratificación de funciones); cargo o función asignada (director/a general, director/a ejecutivo/a, director/a de red de salud, jefe/a de oficina, de unidad, de área, de establecimiento de salud o de servicio, gerente de microred, coordinador/a, responsable de área o de programa, otro); fecha de inicio de funciones y de término. «Otro (especificar)» habilita «Especificar cargo o función», que entonces es obligatorio |
+| 0704 Designación | Tipo de acción (designación, asignación de funciones, ratificación de funciones, asignación y ratificación de funciones); cargo o función asignada (director/a general, director/a ejecutivo/a, director/a de red de salud, jefe/a de oficina, de unidad, de área, de establecimiento de salud o de servicio, gerente de microred, coordinador/a, responsable de área o de programa, otro); fecha de inicio de funciones y de término. «Otro (especificar)» habilita «Especificar cargo o función», que entonces es obligatorio. «Jefe/a de Establecimiento de Salud» y «Gerente de Microred» habilitan «EESS o microred designada», un área del catálogo que entonces es obligatoria |
 | 0705 a 0708 Desplazamiento | Dependencia de origen y de destino, cargo o función, fecha de inicio o efecto |
 | 0801 a 0803 Reconocimientos | Motivo y fecha del reconocimiento |
 | 0804 Sanciones | Tipo de sanción (amonestación escrita, suspensión, destitución), fecha de inicio o efecto |
