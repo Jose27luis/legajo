@@ -182,9 +182,10 @@ export class WorkerImportService {
     const filas = await leerArchivo(nombre, contenido);
     const [regimenes, areas, cargos] = await Promise.all([
       this.prisma.regimen.findMany({ where: { activo: true }, select: { id: true, codigo: true, nombre: true } }),
-      this.prisma.area.findMany({ where: { activo: true }, select: { nombre: true } }),
+      this.prisma.area.findMany({ where: { activo: true }, select: { nombre: true, tipo: true } }),
       this.prisma.cargo.findMany({ where: { activo: true }, select: { nombre: true } }),
     ]);
+    const microredes = new Set(areas.filter((area) => area.tipo === 'MICRORED').map((area) => compacto(area.nombre)));
     const documentos = filas.map(documento);
     const leidos = documentos.filter((item): item is DocumentoLeido => item !== null);
     const existentes = new Map(
@@ -267,6 +268,10 @@ export class WorkerImportService {
       }
       const area = areaDelPadron(fila) ?? (primero(fila, 'area', 'dependencia') || SIN_AREA);
       const cargo = primero(fila, 'cargo', 'puesto') || SIN_CARGO;
+      if (microredes.has(compacto(area))) {
+        observar(`«${area}» es una microred. Indica el EESS o la dependencia donde trabaja.`);
+        return;
+      }
       if (!areasConocidas.has(compacto(area))) {
         avisos.push(`El área «${area}» se agregará a Catálogos.`);
       }
@@ -371,9 +376,13 @@ export class WorkerImportService {
       () =>
         this.prisma.$transaction(
           async (transaccion) => {
-            const areas = new Map(
-              (await transaccion.area.findMany({ select: { id: true, nombre: true } })).map((area) => [compacto(area.nombre), area.id]),
-            );
+            const registradas = await transaccion.area.findMany({ select: { id: true, nombre: true, tipo: true } });
+            const areas = new Map(registradas.map((area) => [compacto(area.nombre), area.id]));
+            const microredes = new Set(registradas.filter((area) => area.tipo === 'MICRORED').map((area) => compacto(area.nombre)));
+            const microred = filas.find((fila) => microredes.has(compacto(fila.area)));
+            if (microred !== undefined) {
+              throw new ConflictException(`«${microred.area}» es una microred. Indica el EESS o la dependencia donde trabaja.`);
+            }
             const cargos = new Map(
               (await transaccion.cargo.findMany({ select: { id: true, nombre: true } })).map((cargo) => [compacto(cargo.nombre), cargo.id]),
             );
