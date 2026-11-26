@@ -53,6 +53,7 @@ export interface CampoSeccion {
   opciones?: string[];
   dependeDe?: { clave: string; opciones: Record<string, string[]> };
   visibleSi?: { clave: string; valores: string[] };
+  tiposArea?: TipoArea[];
   obligatorio: boolean;
 }
 
@@ -105,11 +106,14 @@ export interface Regimen {
   activo: boolean;
 }
 
+export type TipoArea = 'DEPENDENCIA' | 'MICRORED' | 'EESS';
+
 export interface Area {
   id: number;
   nombre: string;
   padreId: number | null;
   padreNombre: string | null;
+  tipo: TipoArea;
   activo: boolean;
 }
 
