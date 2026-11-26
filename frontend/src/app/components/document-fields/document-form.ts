@@ -21,7 +21,11 @@ const opcional = (valor: string): string | null => {
 };
 
 export function campoVisible(campo: CampoSeccion, datos: Readonly<Record<string, string | undefined>>): boolean {
-  return campo.visibleSi === undefined || datos[campo.visibleSi.clave] === campo.visibleSi.valor;
+  if (campo.visibleSi === undefined) {
+    return true;
+  }
+  const valor = datos[campo.visibleSi.clave];
+  return valor !== undefined && campo.visibleSi.valores.includes(valor);
 }
 
 export function campoExigido(campo: CampoSeccion): boolean {
