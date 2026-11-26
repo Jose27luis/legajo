@@ -18,7 +18,14 @@ import type { DatosCliente } from '../common/client';
 import type { SesionActiva } from '../common/session';
 import { aFecha, aTextoOpcional, hoyEnLima } from '../common/dates';
 import { aTipoDto } from '../catalogs/document-types.service';
-import { leerCampos, referenciasACatalogo, validarDatos, type CatalogoReferido, type ValorCampo } from '../catalogs/section-fields';
+import {
+  TEXTO_TIPO_AREA,
+  leerCampos,
+  referenciasACatalogo,
+  validarDatos,
+  type CatalogoReferido,
+  type ValorCampo,
+} from '../catalogs/section-fields';
 import type { SectionFieldDto } from '../catalogs/dto/catalog.dto';
 import type {
   CreateDocumentDto,
@@ -628,6 +635,7 @@ export class DocumentsService {
     const campos = [...leerCampos(tipo.seccion.campos), ...leerCampos(tipo.campos)];
     const propios = validarDatos(campos, datos.datos);
     await this.exigirReferencias(referenciasACatalogo(campos, propios));
+    await this.exigirTiposArea(campos, propios);
     return {
       tipoDocumentoId: tipo.id,
       numero: datos.numero,
@@ -749,6 +757,29 @@ export class DocumentsService {
     }
     if (cargos !== new Set(referencias.cargo).size) {
       throw new BadRequestException('El cargo elegido no existe o está inactivo');
+    }
+  }
+
+  private async exigirTiposArea(campos: SectionFieldDto[], datos: Record<string, ValorCampo>): Promise<void> {
+    const elegidas = campos.flatMap((campo) => {
+      const valor = datos[campo.clave];
+      return campo.tipo === 'area' && campo.tiposArea !== undefined && typeof valor === 'number'
+        ? [{ campo, tiposArea: campo.tiposArea, areaId: valor }]
+        : [];
+    });
+    if (elegidas.length === 0) {
+      return;
+    }
+    const tipos = new Map(
+      (await this.prisma.area.findMany({ where: { id: { in: elegidas.map((item) => item.areaId) } }, select: { id: true, tipo: true } })).map(
+        (area) => [area.id, area.tipo],
+      ),
+    );
+    for (const { campo, tiposArea, areaId } of elegidas) {
+      const tipo = tipos.get(areaId);
+      if (tipo === undefined || !tiposArea.includes(tipo)) {
+        throw new BadRequestException(`"${campo.etiqueta}": elige ${tiposArea.map((valor) => TEXTO_TIPO_AREA[valor]).join(' o ')}`);
+      }
     }
   }
 
