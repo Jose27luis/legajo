@@ -4,6 +4,7 @@ import type { Prisma } from '../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import { leerDatosGuardados } from '../catalogs/section-fields';
+import { GERENTE_MICRORED, JEFE_EESS } from '../seed-catalogs';
 import type { DatosCliente } from '../common/client';
 import type { SesionActiva } from '../common/session';
 import { aFecha, aTexto, hoyEnLima, normalizarBusqueda } from '../common/dates';
@@ -18,7 +19,7 @@ import { aDetalleDto, aDirectorioDto, aListadoDto, incluirDetalle, incluirDirect
 const MENSAJE_DUPLICADO = 'Ya existe un trabajador registrado con ese documento';
 const LIMITE_EXPORTACION = 10000;
 const CODIGO_DESIGNACION = '0704';
-const CARGOS_JEFATURA = ['Jefe/a de Establecimiento de Salud', 'Gerente de Microred'];
+const CARGOS_JEFATURA = [JEFE_EESS, GERENTE_MICRORED];
 
 const TEXTO_ESTADO = { ACTIVO: 'Activo', CESADO: 'Cesado' } as const;
 const TEXTO_MOTIVO = {
@@ -120,12 +121,17 @@ export class WorkersService {
         trabajador: { estado: 'ACTIVO' },
         OR: CARGOS_JEFATURA.map((cargo) => ({ datos: { path: ['cargoAsignado'], equals: cargo } })),
       },
-      include: {
-        trabajador: {
-          include: { vinculos: { where: { actual: true }, include: { area: { include: { padre: true } } }, take: 1 } },
-        },
-      },
+      include: { trabajador: true },
     });
+    const idsArea = designaciones
+      .map((documento) => leerDatosGuardados(documento.datos)['areaDesignada'])
+      .filter((valor): valor is number => typeof valor === 'number');
+    const areas = new Map(
+      (await this.prisma.area.findMany({ where: { id: { in: [...new Set(idsArea)] } }, include: { padre: true } })).map((area) => [
+        area.id,
+        area,
+      ]),
+    );
     const vigentes = new Map<string, HeadshipDto>();
     for (const documento of designaciones) {
       const datos = leerDatosGuardados(documento.datos);
@@ -140,7 +146,8 @@ export class WorkersService {
         continue;
       }
       const { trabajador } = documento;
-      const area = trabajador.vinculos[0]?.area ?? null;
+      const areaDesignada = datos['areaDesignada'];
+      const area = typeof areaDesignada === 'number' ? (areas.get(areaDesignada) ?? null) : null;
       vigentes.set(documento.trabajadorId, {
         trabajadorId: trabajador.id,
         documentoId: documento.id,
