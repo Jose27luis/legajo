@@ -6,6 +6,7 @@ export interface OpcionesVinculo {
   regimenes: Regimen[];
   cargos: Cargo[];
   areas: Area[];
+  areasDeTrabajo: Area[];
 }
 
 @Injectable({ providedIn: 'root' })
@@ -19,10 +20,12 @@ export class LinkOptionsService {
     if (forzar || this.pendiente === null) {
       this.pendiente = Promise.all([this.catalogos.regimenes(), this.catalogos.cargos(), this.catalogos.areas()]).then(
         ([regimenes, cargos, areas]) => {
+          const activas = areas.filter((area) => area.activo);
           const opciones = {
             regimenes: regimenes.filter((regimen) => regimen.activo),
             cargos: cargos.filter((cargo) => cargo.activo),
-            areas: areas.filter((area) => area.activo),
+            areas: activas,
+            areasDeTrabajo: activas.filter((area) => area.tipo !== 'MICRORED'),
           };
           this.opciones.set(opciones);
           return opciones;
