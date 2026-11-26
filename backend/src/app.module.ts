@@ -12,6 +12,7 @@ import { BatchesModule } from './batches/batches.module';
 import { SearchModule } from './search/search.module';
 import { ReportsModule } from './reports/reports.module';
 import { BackupsModule } from './backups/backups.module';
+import { HeadshipsModule } from './headships/headships.module';
 import { HealthController } from './health/health.controller';
 
 @Module({
@@ -29,6 +30,7 @@ import { HealthController } from './health/health.controller';
     SearchModule,
     ReportsModule,
     BackupsModule,
+    HeadshipsModule,
   ],
   controllers: [HealthController],
 })
