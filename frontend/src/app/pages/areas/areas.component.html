@@ -45,6 +45,7 @@
       <thead>
         <tr>
           <th scope="col">Área</th>
+          <th scope="col">Tipo</th>
           <th scope="col">Depende de</th>
           <th scope="col">Estado</th>
           <th scope="col"><span class="solo-lector">Acciones</span></th>
@@ -53,12 +54,13 @@
       <tbody>
         @if (cargando()) {
           <tr>
-            <td colspan="4" class="celda-esqueleto"><app-skeleton [columnas]="4" texto="Cargando áreas" /></td>
+            <td colspan="5" class="celda-esqueleto"><app-skeleton [columnas]="5" texto="Cargando áreas" /></td>
           </tr>
         } @else {
           @for (area of visibles(); track area.id) {
             <tr [class.fila-inactiva]="!area.activo">
               <td class="nombre">{{ area.nombre }}</td>
+              <td>{{ textoTipo[area.tipo] }}</td>
               <td>{{ area.padreNombre ?? 'Ninguna' }}</td>
               <td>
                 @if (area.activo) {
@@ -79,7 +81,7 @@
             </tr>
           } @empty {
             <tr>
-              <td colspan="4" class="celda-vacia">
+              <td colspan="5" class="celda-vacia">
                 {{
                   areas().length === 0
                     ? 'Todavía no hay áreas. Registra la primera con Nueva área o dependencia.'
@@ -106,6 +108,11 @@
     <div class="campo">
       <label for="area-nombre">Nombre <span class="obligatorio" aria-hidden="true">*</span></label>
       <input id="area-nombre" formControlName="nombre" autocomplete="off" maxlength="140" [attr.aria-invalid]="nombreInvalido()" />
+    </div>
+    <div class="campo">
+      <label for="area-tipo">Tipo <span class="obligatorio" aria-hidden="true">*</span></label>
+      <app-search-select idCampo="area-tipo" formControlName="tipo" [opciones]="opcionesTipo" />
+      <p class="ayuda">Una microred agrupa EESS y no es lugar de trabajo: no se elige como área de un contrato ni de un movimiento.</p>
     </div>
     <div class="campo">
       <label for="area-padre">Depende de</label>
