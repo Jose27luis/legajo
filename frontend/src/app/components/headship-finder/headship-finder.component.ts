@@ -5,8 +5,10 @@ import { normalizarTexto } from '../../core/format';
 import { fechaCorta } from '../../core/labels';
 import type { Asignacion, SituacionAsignacion } from '../../core/models';
 import { SessionService } from '../../core/session.service';
+import { ToastService } from '../../core/toast.service';
 import { DocumentsService } from '../../services/documents.service';
 import { HeadshipsService } from '../../services/headships.service';
+import { BulkDesignationDialogComponent, type SedeDesignable } from '../bulk-designation-dialog/bulk-designation-dialog.component';
 import { DialogComponent } from '../dialog/dialog.component';
 import { PagerComponent } from '../pager/pager.component';
 import { SearchSelectComponent, type OpcionBuscable, type ValorOpcion } from '../search-select/search-select.component';
@@ -51,7 +53,7 @@ function textoDe(asignaciones: readonly Asignacion[]): string {
 
 @Component({
   selector: 'app-headship-finder',
-  imports: [RouterLink, DialogComponent, PagerComponent, SearchSelectComponent],
+  imports: [RouterLink, BulkDesignationDialogComponent, DialogComponent, PagerComponent, SearchSelectComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './headship-finder.component.html',
   styleUrl: './headship-finder.component.css',
@@ -59,6 +61,7 @@ function textoDe(asignaciones: readonly Asignacion[]): string {
 export class HeadshipFinderComponent {
   private readonly servicio = inject(HeadshipsService);
   private readonly documentos = inject(DocumentsService);
+  private readonly avisos = inject(ToastService);
   protected readonly sesion = inject(SessionService);
 
   protected readonly datos = resource({ loader: () => this.servicio.listar() });
@@ -74,6 +77,19 @@ export class HeadshipFinderComponent {
   protected readonly estado = signal<FiltroEstado>('todas');
   protected readonly pagina = signal(1);
   protected readonly abierta = signal<Sede | null>(null);
+  protected readonly masivoAbierto = signal(false);
+
+  protected readonly puedeRegistrar = computed(() => this.sesion.tiene('documentos.subir') && this.sesion.tiene('personal.ver'));
+
+  protected readonly sedesDesignables = computed<SedeDesignable[]>(() => {
+    if (!this.datos.hasValue()) {
+      return [];
+    }
+    const { eess, microredes } = this.datos.value();
+    return this.pestana() === 'eess'
+      ? eess.map((item) => ({ id: item.id, nombre: item.nombre, detalle: item.microred ?? 'Sin microred', microredId: item.microredId }))
+      : microredes.map((item) => ({ id: item.id, nombre: item.nombre, detalle: `${item.eess} EESS`, microredId: item.id }));
+  });
 
   protected readonly fechaCorta = fechaCorta;
   protected readonly textoSituacion = TEXTO_SITUACION;
@@ -202,6 +218,14 @@ export class HeadshipFinderComponent {
 
   protected cerrarHistorial(): void {
     this.abierta.set(null);
+  }
+
+  protected alRegistrar(cantidad: number): void {
+    this.masivoAbierto.set(false);
+    this.avisos.exito(
+      `${cantidad} ${cantidad === 1 ? 'designación registrada' : 'designaciones registradas'}. Los PDF se están procesando en cada legajo.`,
+    );
+    this.recargar();
   }
 
   protected enlacePdf(asignacion: Asignacion): string {
