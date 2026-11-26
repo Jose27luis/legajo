@@ -29,7 +29,7 @@ export function leerDesignacion(datos: Record<string, ValorCampo>): Designacion 
   if (cargo !== JEFE_EESS && cargo !== GERENTE_MICRORED) {
     return null;
   }
-  const campoArea = cargo === GERENTE_MICRORED ? 'microredDesignada' : 'eessDesignado';
+  const campoArea = campoAreaDe(cargo);
   const areaId = datos[campoArea];
   if (typeof areaId !== 'number') {
     return null;
@@ -61,12 +61,24 @@ export async function exigirJefaturaSinCruce(transaccion: Prisma.TransactionClie
     return;
   }
   await transaccion.$queryRaw`SELECT id FROM area WHERE id = ${designacion.areaId} FOR UPDATE`;
-  const otras = await transaccion.documento.findMany({
+  const cruce = await buscarCruce(transaccion, designacion, documento.trabajadorId, documento.documentoId);
+  if (cruce !== null) {
+    throw new ConflictException(cruce);
+  }
+}
+
+export async function buscarCruce(
+  cliente: Prisma.TransactionClient,
+  designacion: Designacion,
+  trabajadorId: string,
+  documentoId: string | null,
+): Promise<string | null> {
+  const otras = await cliente.documento.findMany({
     where: {
       tipoDocumento: { codigo: CODIGO_DESIGNACION },
       estado: { not: 'ANULADO' },
-      trabajadorId: { not: documento.trabajadorId },
-      ...(documento.documentoId === null ? {} : { id: { not: documento.documentoId } }),
+      trabajadorId: { not: trabajadorId },
+      ...(documentoId === null ? {} : { id: { not: documentoId } }),
       AND: [
         { datos: { path: ['cargoAsignado'], equals: designacion.cargo } },
         { datos: { path: [designacion.campoArea], equals: designacion.areaId } },
@@ -78,17 +90,19 @@ export async function exigirJefaturaSinCruce(transaccion: Prisma.TransactionClie
     .map((otra) => ({ otra, existente: leerDesignacion(leerDatosGuardados(otra.datos)) }))
     .find((item): item is { otra: (typeof otras)[number]; existente: Designacion } => item.existente !== null && seCruzan(item.existente, designacion));
   if (cruce === undefined) {
-    return;
+    return null;
   }
-  const area = await transaccion.area.findUnique({ where: { id: designacion.areaId }, select: { nombre: true } });
+  const area = await cliente.area.findUnique({ where: { id: designacion.areaId }, select: { nombre: true } });
   const nombreArea = area?.nombre ?? 'La sede';
   const sede = designacion.cargo === GERENTE_MICRORED ? `${nombreArea} ya tiene gerente` : `${nombreArea} ya tiene jefe`;
   const desde = cruce.existente.desde === null ? 'sin fecha de inicio' : `desde el ${fechaLegible(cruce.existente.desde)}`;
   const hasta = cruce.existente.hasta === null ? 'sin fecha de término' : `hasta el ${fechaLegible(cruce.existente.hasta)}`;
   const resolucion = cruce.otra.numero === null ? '' : ` (N.º ${cruce.otra.numero})`;
-  throw new ConflictException(
-    `${sede} ${desde} ${hasta}: ${nombreTrabajador(cruce.otra.trabajador)}${resolucion}. Corrige las fechas o anula la designación anterior.`,
-  );
+  return `${sede} ${desde} ${hasta}: ${nombreTrabajador(cruce.otra.trabajador)}${resolucion}. Corrige las fechas o anula la designación anterior.`;
+}
+
+export function campoAreaDe(cargo: CargoJefatura): Designacion['campoArea'] {
+  return cargo === GERENTE_MICRORED ? 'microredDesignada' : 'eessDesignado';
 }
 
 function fechaLegible(fecha: string): string {
