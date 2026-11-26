@@ -1,0 +1,145 @@
+<app-dialog
+  [abierto]="abierto()"
+  [ancho]="true"
+  [titulo]="gerencias() ? 'Registro masivo · Gerentes de microred' : 'Registro masivo · Jefes de EESS'"
+  (cerrar)="alCerrar()"
+>
+  <p class="explicacion">
+    Registra una resolución que designa a varios {{ gerencias() ? 'gerentes de microred' : 'jefes de EESS' }}. Se guarda una designación 0704 en el
+    legajo de cada persona, con su copia del PDF. Si alguna fila tiene un problema no se registra ninguna.
+  </p>
+
+  <form class="bloque" [formGroup]="formulario" (submit)="$event.preventDefault(); revisar()" novalidate>
+    <h3>1. Resolución</h3>
+    <app-pdf-picker idCampo="masivo-archivo" [(archivo)]="archivo" [progreso]="progreso()" [deshabilitado]="ocupado()" [invalido]="faltaArchivo()" />
+    <div class="rejilla">
+      <div class="campo">
+        <label for="masivo-numero">Número de resolución <span class="obligatorio" aria-hidden="true">*</span></label>
+        <input id="masivo-numero" formControlName="numero" autocomplete="off" maxlength="60" [attr.aria-invalid]="intentado() && formulario.controls.numero.invalid" />
+      </div>
+      <div class="campo">
+        <label for="masivo-emision">Fecha de emisión <span class="obligatorio" aria-hidden="true">*</span></label>
+        <app-date-picker idCampo="masivo-emision" formControlName="fechaEmision" [max]="hoy" [invalido]="intentado() && formulario.controls.fechaEmision.invalid" />
+      </div>
+      <div class="campo">
+        <label for="masivo-accion">Tipo de acción <span class="obligatorio" aria-hidden="true">*</span></label>
+        <app-search-select idCampo="masivo-accion" formControlName="tipoAccion" [opciones]="opcionesAccion()" [invalido]="intentado() && formulario.controls.tipoAccion.invalid" />
+      </div>
+      <div class="campo">
+        <label for="masivo-desde">Inicio de funciones <span class="obligatorio" aria-hidden="true">*</span></label>
+        <app-date-picker idCampo="masivo-desde" formControlName="desde" [invalido]="intentado() && formulario.controls.desde.invalid" />
+      </div>
+      <div class="campo">
+        <label for="masivo-hasta">Término de funciones</label>
+        <app-date-picker idCampo="masivo-hasta" formControlName="hasta" [min]="formulario.controls.desde.value || null" />
+        <p class="ayuda">Vacío si la resolución no fija término.</p>
+      </div>
+      <div class="campo ancho">
+        <label for="masivo-observaciones">Observaciones</label>
+        <textarea id="masivo-observaciones" formControlName="observaciones" maxlength="500" rows="2"></textarea>
+      </div>
+    </div>
+  </form>
+
+  <section class="bloque" aria-labelledby="masivo-personas">
+    <div class="titulo-bloque">
+      <h3 id="masivo-personas">2. {{ gerencias() ? 'Gerente de cada microred' : 'Jefe de cada EESS' }}</h3>
+      <span class="pastilla" [class.violeta]="gerencias()" [class.azul]="!gerencias()">{{ cantidad() }} {{ cantidad() === 1 ? 'elegido' : 'elegidos' }}</span>
+    </div>
+    <div class="barra-tabla">
+      <div class="campo buscador">
+        <label for="masivo-busqueda">{{ gerencias() ? 'Buscar microred' : 'Buscar EESS o microred' }}</label>
+        <input id="masivo-busqueda" type="search" autocomplete="off" [value]="busqueda()" (input)="buscar($event)" />
+      </div>
+      @if (!gerencias()) {
+        <div class="campo filtro">
+          <label for="masivo-microred">Microred</label>
+          <app-search-select idCampo="masivo-microred" [opciones]="microredes()" [seleccion]="microredId()" (cambio)="filtrarMicrored($event)" />
+        </div>
+      }
+      <label class="casilla">
+        <input type="checkbox" [checked]="soloElegidas()" (change)="alternarSoloElegidas($event)" />
+        Solo las elegidas
+      </label>
+    </div>
+
+    <ul class="sedes">
+      @for (sede of visibles(); track sede.id) {
+        @let elegida = eleccion(sede);
+        <li class="sede" [class.elegida]="elegida !== null" [class.con-problemas]="problemasDe(sede).length > 0">
+          <div class="sede-cabecera">
+            <div>
+              <strong>{{ sede.nombre }}</strong>
+              <span class="secundario">{{ sede.detalle }}</span>
+            </div>
+            @if (elegida === null) {
+              <button type="button" class="boton chico" (click)="elegir(sede)" [disabled]="ocupado() || cargandoSede() === sede.id" [attr.aria-busy]="cargandoSede() === sede.id">
+                {{ cargandoSede() === sede.id ? 'Cargando personal' : 'Elegir ' + persona() }}<span class="solo-lector"> de {{ sede.nombre }}</span>
+              </button>
+            } @else {
+              <button type="button" class="boton chico" (click)="quitar(sede)" [disabled]="ocupado()">Quitar<span class="solo-lector"> {{ sede.nombre }}</span></button>
+            }
+          </div>
+          @if (elegida !== null) {
+            @if (sinPersonal(sede)) {
+              <p class="aviso-sede">
+                {{ gerencias() ? 'Ningún EESS de esta microred tiene personal activo registrado.' : 'Este EESS no tiene personal activo con su período actual aquí.' }}
+              </p>
+            } @else {
+              <div class="sede-eleccion">
+                <div class="campo">
+                  <label [for]="'masivo-persona-' + sede.id">{{ gerencias() ? 'Gerente' : 'Jefe' }} <span class="obligatorio" aria-hidden="true">*</span></label>
+                  <app-search-select
+                    [idCampo]="'masivo-persona-' + sede.id"
+                    [opciones]="opcionesDe(sede)"
+                    [seleccion]="elegida.trabajadorId"
+                    [bloqueado]="ocupado()"
+                    sugerencia="Busca por nombre o documento"
+                    (cambio)="asignar(sede, $event)"
+                  />
+                </div>
+                <label class="casilla">
+                  <input type="checkbox" [checked]="elegida.ajustar" [disabled]="ocupado()" (change)="alternarAjuste(sede, $event)" />
+                  Fechas propias
+                </label>
+                @if (elegida.ajustar) {
+                  <div class="campo">
+                    <label [for]="'masivo-desde-' + sede.id">Inicio</label>
+                    <app-date-picker [idCampo]="'masivo-desde-' + sede.id" [fecha]="elegida.desde" (cambio)="fechaPropia(sede, 'desde', $event)" />
+                  </div>
+                  <div class="campo">
+                    <label [for]="'masivo-hasta-' + sede.id">Término</label>
+                    <app-date-picker [idCampo]="'masivo-hasta-' + sede.id" [fecha]="elegida.hasta" (cambio)="fechaPropia(sede, 'hasta', $event)" />
+                  </div>
+                }
+              </div>
+            }
+          }
+          @if (problemasDe(sede).length > 0) {
+            <ul class="problemas" role="list">
+              @for (problema of problemasDe(sede); track $index) {
+                <li>{{ problema }}</li>
+              }
+            </ul>
+          }
+        </li>
+      } @empty {
+        <li class="vacio">No hay sedes que coincidan con la búsqueda.</li>
+      }
+    </ul>
+  </section>
+
+  @if (error(); as mensaje) {
+    <p class="aviso error" role="alert">{{ mensaje }}</p>
+  } @else if (revisada()) {
+    <p class="aviso exito" role="status">Todo correcto: {{ cantidad() }} {{ cantidad() === 1 ? 'designación lista' : 'designaciones listas' }} para registrar.</p>
+  }
+
+  <ng-container pie>
+    <button type="button" class="boton" (click)="alCerrar()" [disabled]="ocupado()">Cancelar</button>
+    <button type="button" class="boton" (click)="revisar()" [disabled]="ocupado()" [attr.aria-busy]="ocupado() && !revisada()">3. Revisar</button>
+    <button type="button" class="boton principal" (click)="registrar()" [disabled]="ocupado() || !revisada()" [attr.aria-busy]="ocupado() && revisada()">
+      {{ ocupado() && revisada() ? 'Registrando' : 'Registrar ' + cantidad() + (cantidad() === 1 ? ' designación' : ' designaciones') }}
+    </button>
+  </ng-container>
+</app-dialog>
