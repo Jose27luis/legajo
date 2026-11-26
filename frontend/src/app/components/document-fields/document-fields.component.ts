@@ -61,7 +61,6 @@ export class DocumentFieldsComponent {
     const aOpcion = (item: { id: number; nombre: string }): OpcionBuscable => ({ valor: String(item.id), etiqueta: item.nombre });
     return {
       regimen: [OPCION_VACIA, ...(opciones?.regimenes ?? []).map(aOpcion)],
-      area: [OPCION_VACIA, ...(opciones?.areas ?? []).map(aOpcion)],
       cargo: [OPCION_VACIA, ...(opciones?.cargos ?? []).map(aOpcion)],
       contrato: [OPCION_VACIA, ...this.contratos()],
     };
@@ -106,7 +105,12 @@ export class DocumentFieldsComponent {
   }
 
   protected opcionesDe(campo: CampoSeccion): readonly OpcionBuscable[] {
-    if (campo.tipo === 'regimen' || campo.tipo === 'area' || campo.tipo === 'cargo' || campo.tipo === 'contrato') {
+    if (campo.tipo === 'area') {
+      const tipos = campo.tiposArea;
+      const areas = (this.opcionesVinculo.opciones()?.areas ?? []).filter((area) => tipos === undefined || tipos.includes(area.tipo));
+      return [OPCION_VACIA, ...areas.map((area) => ({ valor: String(area.id), etiqueta: area.nombre, detalle: area.padreNombre }))];
+    }
+    if (campo.tipo === 'regimen' || campo.tipo === 'cargo' || campo.tipo === 'contrato') {
       return this.catalogos()[campo.tipo];
     }
     if (campo.tipo !== 'seleccion') {
