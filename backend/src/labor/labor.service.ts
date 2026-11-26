@@ -8,7 +8,7 @@ import { aFecha, aTexto, diaAnterior, diaSiguiente, hoyEnLima } from '../common/
 import { leerDatosGuardados, type ValorCampo } from '../catalogs/section-fields';
 import { aDocumentoDto, filtroVisibilidad, incluirDocumento, type DocumentoCompleto } from '../documents/document.mapper';
 import type { DocumentDto } from '../documents/dto/document.dto';
-import { exigirCatalogosActivos } from '../workers/catalog-guard';
+import { exigirCatalogosActivos, MENSAJE_MICRORED } from '../workers/catalog-guard';
 import { TEXTO_MOTIVO_CESE, TEXTO_MOVIMIENTO } from '../workers/labels';
 import { MOTIVOS_CESE as MOTIVOS_CESE_VALORES, type MotivoCambioValor as MotivoCambio } from '../workers/dto/worker.dto';
 import type { CeseInputDto, MovementInputDto } from './dto/labor-input.dto';
@@ -782,10 +782,14 @@ export class LaborService {
       (vinculo.fechaFin === null || datos.fecha <= aTexto(vinculo.fechaFin));
     const areas = await transaccion.area.findMany({
       where: { id: { in: [datos.areaOrigenId, datos.areaDestinoId] }, activo: true },
-      select: { id: true },
+      select: { id: true, tipo: true },
     });
-    if (!areas.some((area) => area.id === datos.areaOrigenId) || !areas.some((area) => area.id === datos.areaDestinoId)) {
+    const destino = areas.find((area) => area.id === datos.areaDestinoId);
+    if (!areas.some((area) => area.id === datos.areaOrigenId) || destino === undefined) {
       throw new BadRequestException('El área de origen o destino no existe o está inactiva');
+    }
+    if (destino.tipo === 'MICRORED') {
+      throw new BadRequestException(MENSAJE_MICRORED);
     }
     const movimiento = await transaccion.movimientoLaboral.create({
       data: {
