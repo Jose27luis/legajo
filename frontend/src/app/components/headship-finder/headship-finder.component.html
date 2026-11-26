@@ -4,12 +4,15 @@
       <h2 id="jefaturas-titulo">Jefes de EESS y gerentes de microred</h2>
       <p>Según las designaciones registradas en la Sección 07 del legajo.</p>
     </div>
-    @if (resumen(); as cifras) {
-      <div class="conteos">
+    <div class="conteos">
+      @if (resumen(); as cifras) {
         <span class="pastilla azul">EESS con jefe: {{ cifras.eessConJefe }} de {{ cifras.eess }}</span>
         <span class="pastilla violeta">Microredes con gerente: {{ cifras.microredesConGerente }} de {{ cifras.microredes }}</span>
-      </div>
-    }
+      }
+      @if (puedeRegistrar()) {
+        <button type="button" class="boton chico principal" (click)="masivoAbierto.set(true)" [disabled]="!datos.hasValue()">Registro masivo</button>
+      }
+    </div>
   </header>
 
   @if (errorCarga(); as mensaje) {
@@ -135,6 +138,17 @@
     </div>
   }
 </section>
+
+@if (puedeRegistrar()) {
+  <app-bulk-designation-dialog
+    [abierto]="masivoAbierto()"
+    [gerencias]="pestana() === 'microredes'"
+    [sedes]="sedesDesignables()"
+    [microredes]="opcionesMicrored()"
+    (cerrar)="masivoAbierto.set(false)"
+    (registrado)="alRegistrar($event)"
+  />
+}
 
 <app-dialog [abierto]="abierta() !== null" [mediano]="true" [titulo]="'Historial · ' + (abierta()?.nombre ?? '')" (cerrar)="cerrarHistorial()">
   @if (abierta(); as sede) {
