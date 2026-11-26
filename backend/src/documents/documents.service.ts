@@ -796,7 +796,7 @@ export class DocumentsService {
     }
   }
 
-  private async exigirSubida(subidaId: string, sesion: SesionActiva): Promise<string> {
+  async exigirSubida(subidaId: string, sesion: SesionActiva): Promise<string> {
     const subida = await this.subidas.obtener(subidaId);
     if (subida === null || subida.metadata?.['usuario'] !== sesion.usuarioId) {
       throw new BadRequestException('No se encontró el archivo subido. Vuelve a seleccionarlo.');
