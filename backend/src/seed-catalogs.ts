@@ -9,8 +9,11 @@ export type CampoSeccion = {
   opciones?: string[];
   dependeDe?: { clave: string; opciones: Record<string, string[]> };
   visibleSi?: { clave: string; valores: string[] };
+  tiposArea?: TipoAreaCampo[];
   obligatorio: boolean;
 };
+
+export type TipoAreaCampo = 'DEPENDENCIA' | 'MICRORED' | 'EESS';
 
 export type FormularioTipo = {
   numero?: string;
@@ -43,11 +46,19 @@ const seleccion = (clave: string, etiqueta: string, opciones: string[], obligato
   opciones,
   obligatorio,
 });
-const catalogo = (clave: string, etiqueta: string, tipo: 'regimen' | 'area' | 'cargo' | 'contrato', obligatorio = false): CampoSeccion => ({
+const catalogo = (clave: string, etiqueta: string, tipo: 'regimen' | 'cargo' | 'contrato', obligatorio = false): CampoSeccion => ({
   clave,
   etiqueta,
   tipo,
   obligatorio,
+});
+const LUGAR_DE_TRABAJO: TipoAreaCampo[] = ['DEPENDENCIA', 'EESS'];
+const area = (clave: string, etiqueta: string, tiposArea: TipoAreaCampo[] = LUGAR_DE_TRABAJO): CampoSeccion => ({
+  clave,
+  etiqueta,
+  tipo: 'area',
+  tiposArea,
+  obligatorio: false,
 });
 
 export const TIPOS_MOVIMIENTO = ['Rotación', 'Destaque', 'Reasignación', 'Encargatura', 'Designación', 'Cambio de funciones', 'Otro'];
@@ -242,13 +253,13 @@ const CAMPOS_DESIGNACION: CampoSeccion[] = [
   fecha('inicio', 'Inicio de designación'),
   fecha('fin', 'Fin de designación'),
   catalogo('puesto', 'Cargo designado', 'cargo'),
-  catalogo('dependencia', 'Área de dependencia', 'area'),
+  area('dependencia', 'Área de dependencia'),
 ];
 const CAMPOS_RENOVACION: CampoSeccion[] = [
   fecha('inicio', 'Inicio de la renovación'),
   fecha('fin', 'Fin de la renovación'),
   catalogo('puesto', 'Cargo o puesto', 'cargo'),
-  catalogo('dependencia', 'Área de dependencia', 'area'),
+  area('dependencia', 'Área de dependencia'),
 ];
 const CAMPOS_CARRERA: CampoSeccion[] = [
   fecha('inicio', 'Fecha de efecto'),
@@ -260,7 +271,7 @@ const CAMPOS_CONTRATO: CampoSeccion[] = [
   fecha('inicio', 'Inicio del vínculo'),
   fecha('fin', 'Fin del vínculo'),
   catalogo('puesto', 'Cargo o puesto', 'cargo'),
-  catalogo('dependencia', 'Área de dependencia', 'area'),
+  area('dependencia', 'Área de dependencia'),
 ];
 const CAMPOS_ADENDA: CampoSeccion[] = [
   catalogo('contratoRelacionado', 'Contrato relacionado', 'contrato'),
@@ -320,7 +331,7 @@ const CAMPOS_ADELANTO: CampoSeccion[] = [
   fecha('inicio', 'Nueva fecha de inicio'),
   fecha('fin', 'Nueva fecha de fin'),
 ];
-const CAMPOS_ROL: CampoSeccion[] = [texto('anioRol', 'Año del rol vacacional'), catalogo('dependenciaRol', 'Dependencia o área', 'area')];
+const CAMPOS_ROL: CampoSeccion[] = [texto('anioRol', 'Año del rol vacacional'), area('dependenciaRol', 'Dependencia o área')];
 const CAMPOS_LICENCIA_OTORGADA: CampoSeccion[] = [
   seleccion('tipoLicencia', 'Tipo de licencia', TIPOS_LICENCIA),
   fecha('inicio', 'Fecha de inicio'),
@@ -337,13 +348,13 @@ const CAMPOS_CONCEPTO_PERIODO: CampoSeccion[] = [
 ];
 const CAMPOS_EVALUACION_DESEMPENO: CampoSeccion[] = [
   fecha('fechaEvaluacion', 'Fecha de evaluación'),
-  catalogo('dependencia', 'Dependencia / Área / EESS', 'area'),
+  area('dependencia', 'Dependencia / Área / EESS', ['DEPENDENCIA', 'MICRORED', 'EESS']),
   texto('evaluador', 'Nombre del evaluador'),
   texto('periodoEvaluacion', 'Período de evaluación'),
 ];
 const desplazamiento = (cargo: string, origen = 'Dependencia de origen', destino = 'Dependencia de destino'): CampoSeccion[] => [
-  catalogo('areaOrigen', origen, 'area'),
-  catalogo('areaDestino', destino, 'area'),
+  area('areaOrigen', origen),
+  area('areaDestino', destino),
   texto('cargoAsignado', cargo),
   fecha('fechaEfecto', 'Fecha de inicio o efecto'),
 ];
@@ -377,8 +388,12 @@ const CAMPOS_DESIGNACION_FUNCIONES: CampoSeccion[] = [
     visibleSi: { clave: 'cargoAsignado', valores: [OTRO_CARGO_DESIGNADO] },
   },
   {
-    ...catalogo('areaDesignada', 'EESS o microred designada', 'area'),
-    visibleSi: { clave: 'cargoAsignado', valores: [JEFE_EESS, GERENTE_MICRORED] },
+    ...area('eessDesignado', 'EESS donde ejerce la jefatura', ['EESS']),
+    visibleSi: { clave: 'cargoAsignado', valores: [JEFE_EESS] },
+  },
+  {
+    ...area('microredDesignada', 'Microred que dirige', ['MICRORED']),
+    visibleSi: { clave: 'cargoAsignado', valores: [GERENTE_MICRORED] },
   },
   fecha('fechaInicioFunciones', 'Fecha de inicio de funciones'),
   fecha('fechaFinFunciones', 'Fecha de término de funciones'),
@@ -390,7 +405,7 @@ const CAMPOS_ROTACION: CampoSeccion[] = [
 ];
 const CAMPOS_ENCARGO: CampoSeccion[] = [
   seleccion('modalidadEncargo', 'Modalidad de encargo', ['Encargo de funciones', 'Encargo de puesto']),
-  catalogo('areaDestino', 'Dependencia', 'area'),
+  area('areaDestino', 'Dependencia'),
   seleccion('cargoAsignado', 'Puesto o función encargada', [
     'JEFE/A DE UNIDAD',
     'JEFE/A DE OFICINA',
