@@ -27,6 +27,7 @@ import {
   type ValorCampo,
 } from '../catalogs/section-fields';
 import type { SectionFieldDto } from '../catalogs/dto/catalog.dto';
+import { exigirJefaturaSinCruce } from '../headships/headship-rules';
 import type {
   CreateDocumentDto,
   DeleteDocumentDto,
@@ -245,6 +246,12 @@ export class DocumentsService {
   }
 
   async crearDocumento(transaccion: Prisma.TransactionClient, nuevo: NuevoDocumento): Promise<DocumentoCompleto> {
+    await exigirJefaturaSinCruce(transaccion, {
+      tipoDocumentoId: nuevo.validados.tipoDocumentoId,
+      datos: nuevo.validados.datos,
+      trabajadorId: nuevo.trabajadorId,
+      documentoId: null,
+    });
     const documento = await transaccion.documento.create({
       data: {
         ...nuevo.validados,
@@ -285,6 +292,12 @@ export class DocumentsService {
     this.exigirEditable(actual, sesion);
     const validados = await this.validar(datos, sesion, actual.tipoDocumento.seccionId);
     const actualizado = await this.prisma.$transaction(async (transaccion) => {
+      await exigirJefaturaSinCruce(transaccion, {
+        tipoDocumentoId: validados.tipoDocumentoId,
+        datos: validados.datos,
+        trabajadorId: actual.trabajadorId,
+        documentoId: id,
+      });
       const documento = await transaccion.documento.update({
         where: { id },
         data: {
