@@ -271,6 +271,7 @@ El inicio muestra, entre los indicadores y el buscador de personal, el buscador 
 - Se filtra por texto (EESS, microred, nombre o documento, sin importar tildes), por microred y por estado: todos, con jefe o sin jefe.
 - «Historial» lista todas las designaciones de esa sede, de la más reciente a la más antigua, con su situación (vigente, próxima o concluida), tipo de acción, resolución, emisión y fechas. Desde cada una se abre el legajo del trabajador en la Sección 07 y, con permiso para ver documentos, su PDF.
 - Vigente es la designación disponible de un trabajador activo cuyo inicio de funciones ya llegó y cuyo término no pasó o está vacío. Las designaciones anuladas no aparecen y las demás siguen la visibilidad de documentos de la sesión.
+- «Registro masivo» registra una resolución que designa a varios jefes de EESS o gerentes de microred de una vez (ver «Registro masivo de designaciones» en Flujos).
 
 **08 Reconocimientos y sanciones disciplinarias** (carpeta `08_Reconocimientos_y_Sanciones`)
 
@@ -1049,6 +1050,30 @@ flowchart TD
 - Cada PDF del lote pasa por el mismo procesamiento que una subida individual.
 - Los totales del lote alimentan el reporte de digitalización.
 - Si un archivo no termina de subirse en 24 horas, su ítem queda en ERROR y se libera el espacio.
+
+### Registro masivo de designaciones
+
+Una resolución que designa a varios jefes de EESS o gerentes de microred se registra una sola vez desde el buscador del inicio. Lo usa quien tiene `documentos.subir` y `personal.ver`, y queda una designación 0704 en el legajo de cada persona, con su propia copia del PDF.
+
+```mermaid
+flowchart TD
+    A(["Registro masivo<br/>desde la pestaña EESS o Microredes"]) --> B["PDF de la resolución, número, emisión,<br/>tipo de acción e inicio y término comunes"]
+    B --> C["Por cada sede, elige a la persona<br/>entre su personal; puede ajustar sus fechas"]
+    C --> D["Revisar: valida todas las filas sin guardar"]
+    D --> E{"¿Hay problemas?"}
+    E -->|"sí"| F["Se muestran en su fila:<br/>no elegible, cruce con otra jefatura<br/>o con otra fila de la misma resolución"]
+    F --> C
+    E -->|"no"| G["Sube el PDF y lo copia una vez por persona"]
+    G --> H["Una transacción crea una 0704 por persona<br/>y vuelve a validar los cruces"]
+    H --> I{"¿Falló alguna?"}
+    I -->|"sí"| J["No se guarda ninguna<br/>se borran las copias"]
+    I -->|"no"| K(["Cada PDF pasa al worker<br/>el buscador muestra las nuevas jefaturas"])
+```
+
+- Elegibles: para jefe de un EESS, un trabajador activo con período actual en ese EESS; para gerente de una microred, uno con período actual en algún EESS de esa microred.
+- Las fechas de inicio y término de funciones se ingresan una vez y cada fila puede cambiarlas.
+- Es todo o nada: si una fila no es válida no se registra ninguna. La misma sede no puede repetirse con otra persona en fechas que se cruzan.
+- Cada designación se audita como la subida de un documento (`DOCUMENTO_SUBIR`) y la subida original se borra al terminar.
 
 ### Ver y descargar un documento
 
