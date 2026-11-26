@@ -5,6 +5,8 @@ export const APLICA_A = ['ACTIVO', 'CESADO', 'TODOS'] as const;
 export const TIPOS_CAMPO = ['texto', 'fecha', 'numero', 'seleccion', 'parrafo', 'regimen', 'area', 'cargo', 'contrato'] as const;
 export const ACCIONES_DOCUMENTO = ['NINGUNA', 'VINCULO', 'MOVIMIENTO', 'CESE'] as const;
 export type AccionDocumentoValor = (typeof ACCIONES_DOCUMENTO)[number];
+export const TIPOS_AREA = ['DEPENDENCIA', 'MICRORED', 'EESS'] as const;
+export type TipoAreaValor = (typeof TIPOS_AREA)[number];
 
 export type TipoPersonalValor = (typeof TIPOS_PERSONAL)[number];
 export type AplicaAValor = (typeof APLICA_A)[number];
@@ -33,6 +35,14 @@ export class SectionFieldDto {
     description: 'El campo solo se muestra y se exige cuando el campo indicado tiene alguno de esos valores',
   })
   visibleSi?: { clave: string; valores: string[] };
+
+  @ApiProperty({
+    enum: TIPOS_AREA,
+    isArray: true,
+    required: false,
+    description: 'En un campo de área, los tipos de área que se pueden elegir',
+  })
+  tiposArea?: TipoAreaValor[];
 
   @ApiProperty()
   obligatorio: boolean;
@@ -148,6 +158,9 @@ export class AreaDto {
 
   @ApiProperty({ type: String, nullable: true })
   padreNombre: string | null;
+
+  @ApiProperty({ enum: TIPOS_AREA })
+  tipo: TipoAreaValor;
 
   @ApiProperty()
   activo: boolean;
