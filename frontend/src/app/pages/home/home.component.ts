@@ -1,11 +1,12 @@
 import { ChangeDetectionStrategy, Component, computed, inject, resource, signal, viewChild } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
+import { HeadshipFinderComponent } from '../../components/headship-finder/headship-finder.component';
 import { NewWorkerDialogComponent } from '../../components/new-worker-dialog/new-worker-dialog.component';
 import { ReentryDialogComponent } from '../../components/reentry-dialog/reentry-dialog.component';
 import { WorkerDirectoryComponent } from '../../components/worker-directory/worker-directory.component';
 import { mensajeDeError } from '../../core/errors';
-import { fechaCorta, nombreCompleto } from '../../core/labels';
-import type { EstadoTrabajador, Jefatura, Movimiento, TrabajadorDetalle, TrabajadorResumen } from '../../core/models';
+import { nombreCompleto } from '../../core/labels';
+import type { EstadoTrabajador, Movimiento, TrabajadorDetalle, TrabajadorResumen } from '../../core/models';
 import { SessionService } from '../../core/session.service';
 import { ToastService } from '../../core/toast.service';
 import { BackupsService } from '../../services/backups.service';
@@ -24,7 +25,7 @@ interface Indicador {
 
 @Component({
   selector: 'app-home',
-  imports: [RouterLink, WorkerDirectoryComponent, NewWorkerDialogComponent, ReentryDialogComponent],
+  imports: [RouterLink, HeadshipFinderComponent, WorkerDirectoryComponent, NewWorkerDialogComponent, ReentryDialogComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './home.component.html',
   styleUrl: './home.component.css',
@@ -39,6 +40,7 @@ export class HomeComponent {
   private readonly nuevoIngreso = viewChild.required(NewWorkerDialogComponent);
   private readonly reingreso = viewChild.required(ReentryDialogComponent);
   private readonly directorio = viewChild.required(WorkerDirectoryComponent);
+  private readonly jefaturas = viewChild.required(HeadshipFinderComponent);
 
   protected readonly resumen = resource({ loader: () => this.servicio.resumen() });
   protected readonly errorResumen = computed(() => {
@@ -116,12 +118,6 @@ export class HomeComponent {
   protected readonly nuevoAbierto = signal(false);
   protected readonly paraReingreso = signal<TrabajadorResumen | null>(null);
 
-  protected readonly fechaCorta = fechaCorta;
-
-  protected contarCargo(jefaturas: readonly Jefatura[], cargo: string): number {
-    return jefaturas.filter((jefatura) => jefatura.cargo === cargo).length;
-  }
-
   protected filtrar(indicador: Indicador): void {
     const parametros: Record<string, string> = {};
     if (indicador.estado !== '') {
@@ -158,6 +154,12 @@ export class HomeComponent {
 
   protected refrescar(): void {
     this.resumen.reload();
+    this.jefaturas().recargar();
     this.directorio().recargar();
+  }
+
+  protected alCambiarDirectorio(): void {
+    this.resumen.reload();
+    this.jefaturas().recargar();
   }
 }
