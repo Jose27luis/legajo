@@ -109,12 +109,19 @@ model Regimen {
   @@map("regimen")
 }
 
+enum TipoArea {
+  DEPENDENCIA
+  MICRORED
+  EESS
+}
+
 model Area {
-  id       Int                 @id @default(autoincrement())
+  id       Int               @id @default(autoincrement())
   nombre   String              @db.VarChar(140)
   padreId  Int?                @map("padre_id")
+  tipo     TipoArea            @default(DEPENDENCIA)
   activo   Boolean             @default(true)
-  padre    Area?               @relation("AreaDependencia", fields: [padreId], references: [id], onDelete: Restrict)
+  padre    Area?             @relation("AreaDependencia", fields: [padreId], references: [id], onDelete: Restrict)
   hijas    Area[]              @relation("AreaDependencia")
   vinculos Vinculo[]
   salidas  MovimientoLaboral[] @relation("MovimientoOrigen")
