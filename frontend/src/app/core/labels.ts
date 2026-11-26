@@ -11,6 +11,7 @@ import type {
   MovimientoLaboral,
   NivelAcceso,
   SituacionCelda,
+  TipoArea,
   TipoPersonal,
   TrabajadorResumen,
   Vinculo,
@@ -53,6 +54,14 @@ export const TEXTO_TIPO_PERSONAL: Record<TipoPersonal, string> = {
   ADMINISTRATIVO: 'Administrativo',
   ASISTENCIAL: 'Asistencial',
 };
+
+export const TEXTO_TIPO_AREA: Record<TipoArea, string> = {
+  DEPENDENCIA: 'Dependencia',
+  MICRORED: 'Microred',
+  EESS: 'EESS',
+};
+
+export const TIPOS_AREA: readonly TipoArea[] = ['DEPENDENCIA', 'MICRORED', 'EESS'];
 
 export const MOVIMIENTOS: readonly Movimiento[] = [
   'SIN_MOVIMIENTO',
