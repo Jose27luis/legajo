@@ -1,6 +1,12 @@
 import { BadRequestException } from '@nestjs/common';
 import { z } from 'zod';
-import { TIPOS_CAMPO, type DocumentFormDto, type SectionFieldDto } from './dto/catalog.dto';
+import { TIPOS_AREA, TIPOS_CAMPO, type DocumentFormDto, type SectionFieldDto, type TipoAreaValor } from './dto/catalog.dto';
+
+export const TEXTO_TIPO_AREA: Record<TipoAreaValor, string> = {
+  DEPENDENCIA: 'una dependencia',
+  MICRORED: 'una microred',
+  EESS: 'un EESS',
+};
 
 const esquemaCampos = z.array(
   z.object({
@@ -10,6 +16,7 @@ const esquemaCampos = z.array(
     opciones: z.array(z.string()).optional(),
     dependeDe: z.object({ clave: z.string(), opciones: z.record(z.string(), z.array(z.string())) }).optional(),
     visibleSi: z.object({ clave: z.string(), valores: z.array(z.string()).min(1) }).optional(),
+    tiposArea: z.array(z.enum(TIPOS_AREA)).min(1).optional(),
     obligatorio: z.boolean(),
   }),
 );
